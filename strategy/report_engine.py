@@ -42,6 +42,20 @@ def print_support_resistance(levels):
     print("----------------------------------------")
 
 
+def print_volume_analysis(volume_analysis):
+
+    print("----------------------------------------")
+    print("       VOLUME REPORT")
+    print("----------------------------------------")
+
+    print(f"Current Volume : {volume_analysis['Current Volume']}")
+    print(f"Average Volume : {volume_analysis['Average Volume']}")
+    print(f"Volume Ratio   : {volume_analysis['Volume Ratio']}x")
+    print(f"Spike          : {'YES' if volume_analysis['Spike'] else 'NO'}")
+
+    print("----------------------------------------")
+
+
 def print_backtest_report(summary):
 
     print("----------------------------------------")

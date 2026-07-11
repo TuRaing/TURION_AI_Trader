@@ -26,12 +26,15 @@ from strategy.market_structure import get_market_structure
 
 from strategy.support_resistance import get_support_resistance
 
+from strategy.volume_engine import get_volume_analysis
+
 from strategy.report_engine import (
     print_validation_report,
     print_market_structure,
     print_support_resistance,
     print_filtered_signal,
-    print_risk_levels
+    print_risk_levels,
+    print_volume_analysis
 )
 
 from report.excel_report import save_market_summary
@@ -89,12 +92,15 @@ structure = get_market_structure(nifty)
 
 levels = get_support_resistance(nifty)
 
+volume_analysis = get_volume_analysis(nifty)
+
 signal, filter_notes = generate_filtered_signal(
     ema20.iloc[-1],
     ema50.iloc[-1],
     rsi.iloc[-1],
     structure["Trend Analysis"]["Trend"],
-    levels
+    levels,
+    volume_analysis
 )
 
 decision, explanation, reasons = generate_reason(
@@ -142,6 +148,8 @@ print_market_structure(structure)
 
 print_support_resistance(levels)
 
+print_volume_analysis(volume_analysis)
+
 print_filtered_signal(signal, filter_notes)
 
 if signal in ("BUY", "SELL"):
@@ -182,7 +190,9 @@ save_market_summary(
 
     resistance=levels["Resistance"],
 
-    atr=atr.iloc[-1]
+    atr=atr.iloc[-1],
+
+    volume_ratio=volume_analysis["Volume Ratio"]
 
 )
 

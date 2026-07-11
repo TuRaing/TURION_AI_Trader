@@ -19,7 +19,8 @@ def save_market_summary(
     action,
     support=None,
     resistance=None,
-    atr=None
+    atr=None,
+    volume_ratio=None
 ):
 
     os.makedirs("reports", exist_ok=True)
@@ -48,7 +49,8 @@ def save_market_summary(
             "AI Decision",
             "Support",
             "Resistance",
-            "ATR14"
+            "ATR14",
+            "Volume Ratio"
         ])
 
         # ---------------- Header Style ----------------
@@ -104,7 +106,8 @@ def save_market_summary(
             "L":18,
             "M":12,
             "N":12,
-            "O":10
+            "O":10,
+            "P":12
         }
 
         for col, width in widths.items():
@@ -114,7 +117,7 @@ def save_market_summary(
         sheet.freeze_panes = "A2"
 
         # Filter
-        sheet.auto_filter.ref = "A1:O1"
+        sheet.auto_filter.ref = "A1:P1"
 
         workbook.save(FILE_NAME)
 
@@ -131,6 +134,9 @@ def save_market_summary(
 
     if sheet["O1"].value != "ATR14":
         sheet["O1"] = "ATR14"
+
+    if sheet["P1"].value != "Volume Ratio":
+        sheet["P1"] = "Volume Ratio"
 
     run_id = sheet.max_row
 
@@ -166,7 +172,9 @@ def save_market_summary(
 
         round(resistance, 2) if resistance is not None else "",
 
-        round(atr, 2) if atr is not None else ""
+        round(atr, 2) if atr is not None else "",
+
+        round(volume_ratio, 2) if volume_ratio is not None else ""
 
     ])
 

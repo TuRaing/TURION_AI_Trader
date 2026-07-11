@@ -7,6 +7,7 @@ from strategy.signal_engine import generate_signal, generate_filtered_signal
 from strategy.market_structure import get_market_structure
 from strategy.support_resistance import get_support_resistance
 from strategy.risk_engine import calculate_atr_levels
+from strategy.volume_engine import calculate_average_volume, build_volume_analysis
 
 # Candles looked back for Market Structure / Support-Resistance filters,
 # kept bounded so per-candle recomputation in the backtest loop stays fast
@@ -55,6 +56,7 @@ def run_backtest(
     close = data["Close"]
     high = data["High"]
     low = data["Low"]
+    volume = data["Volume"]
 
     if hasattr(close, "columns"):
         close = close.iloc[:, 0]
@@ -65,10 +67,14 @@ def run_backtest(
     if hasattr(low, "columns"):
         low = low.iloc[:, 0]
 
+    if hasattr(volume, "columns"):
+        volume = volume.iloc[:, 0]
+
     ema20 = calculate_ema(data, 20)
     ema50 = calculate_ema(data, 50)
     rsi = calculate_rsi(data)
     atr = calculate_atr(data)
+    avg_volume = calculate_average_volume(data, 20)
 
     warmup = 50
 
@@ -101,13 +107,15 @@ def run_backtest(
 
             structure = get_market_structure(window)
             levels = get_support_resistance(window)
+            volume_analysis = build_volume_analysis(volume.iloc[i], avg_volume.iloc[i])
 
             signal, _ = generate_filtered_signal(
                 ema20.iloc[i],
                 ema50.iloc[i],
                 rsi.iloc[i],
                 structure["Trend Analysis"]["Trend"],
-                levels
+                levels,
+                volume_analysis
             )
 
         else:
