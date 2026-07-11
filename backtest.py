@@ -15,8 +15,8 @@ def main():
     parser.add_argument("--symbol", default="^NSEI")
     parser.add_argument("--period", default="60d")
     parser.add_argument("--interval", default="15m")
-    parser.add_argument("--stop-loss", type=float, default=0.3, help="Stop-loss %% from entry price")
-    parser.add_argument("--target", type=float, default=0.6, help="Target %% from entry price")
+    parser.add_argument("--stop-loss", type=float, default=0.2, help="Stop-loss %% from entry price")
+    parser.add_argument("--target", type=float, default=0.9, help="Target %% from entry price")
     parser.add_argument("--no-filters", action="store_true", help="Disable Market Structure / Support-Resistance filters")
 
     args = parser.parse_args()

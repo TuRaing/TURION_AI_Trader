@@ -11,7 +11,7 @@ from strategy.support_resistance import get_support_resistance
 STRUCTURE_WINDOW = 100
 
 
-def run_backtest(symbol="^NSEI", period="60d", interval="15m", stop_loss_pct=0.3, target_pct=0.6, use_filters=True):
+def run_backtest(symbol="^NSEI", period="60d", interval="15m", stop_loss_pct=0.2, target_pct=0.9, use_filters=True):
     """
     Run Backtest
 
