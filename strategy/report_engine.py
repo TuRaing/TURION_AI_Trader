@@ -1,3 +1,40 @@
+def format_paper_trade_message(price, signal, action, filter_notes, portfolio):
+
+    lines = [
+        "TURION AI Trader - Paper Trade Update",
+        f"Price  : {price:.2f}",
+        f"Signal : {signal}",
+        f"Action : {action}"
+    ]
+
+    if filter_notes:
+
+        lines.append("Filters:")
+
+        for note in filter_notes:
+            lines.append(f"  - {note}")
+
+    position = portfolio["Position"]
+
+    if position:
+
+        lines.append(
+            f"Open Position: Entry {position['Entry Price']:.2f}, "
+            f"SL {position['Stop Loss']:.2f}, Target {position['Target']:.2f}"
+        )
+
+    else:
+
+        lines.append("Open Position: None")
+
+    closed = portfolio["Closed Trades"]
+    total_pnl = sum(t["PnL"] for t in closed)
+
+    lines.append(f"Cash: {portfolio['Cash']:.2f}  Closed Trades: {len(closed)}  Total PnL: {total_pnl:.2f}")
+
+    return "\n".join(lines)
+
+
 def print_ai_decision(ai_decision):
 
     print("----------------------------------------")

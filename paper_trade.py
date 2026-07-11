@@ -18,7 +18,9 @@ from strategy.candlestick_engine import get_candlestick_pattern
 from strategy.data_validator import validate_market_data
 
 from strategy.paper_trading import load_portfolio, save_portfolio, process_signal
-from strategy.report_engine import print_paper_portfolio
+from strategy.report_engine import print_paper_portfolio, format_paper_trade_message
+
+from report.telegram_notifier import send_telegram_message
 
 
 def main():
@@ -90,6 +92,10 @@ def main():
             print(f"  - {note}")
 
     print_paper_portfolio(portfolio)
+
+    message = format_paper_trade_message(price, signal, action, filter_notes, portfolio)
+
+    send_telegram_message(message)
 
 
 if __name__ == "__main__":
