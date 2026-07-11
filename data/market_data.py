@@ -30,6 +30,8 @@ from strategy.volume_engine import get_volume_analysis
 
 from strategy.candlestick_engine import get_candlestick_pattern
 
+from strategy.ai_decision_engine import get_ai_decision
+
 from strategy.report_engine import (
     print_validation_report,
     print_market_structure,
@@ -37,7 +39,8 @@ from strategy.report_engine import (
     print_filtered_signal,
     print_risk_levels,
     print_volume_analysis,
-    print_candlestick_pattern
+    print_candlestick_pattern,
+    print_ai_decision
 )
 
 from report.excel_report import save_market_summary
@@ -109,6 +112,16 @@ signal, filter_notes = generate_filtered_signal(
     candle_pattern
 )
 
+ai_decision = get_ai_decision(
+    ema20.iloc[-1],
+    ema50.iloc[-1],
+    rsi.iloc[-1],
+    structure["Trend Analysis"]["Trend"],
+    levels,
+    volume_analysis,
+    candle_pattern
+)
+
 decision, explanation, reasons = generate_reason(
     ema20.iloc[-1],
     ema50.iloc[-1],
@@ -160,6 +173,8 @@ print_candlestick_pattern(candle_pattern)
 
 print_filtered_signal(signal, filter_notes)
 
+print_ai_decision(ai_decision)
+
 if signal in ("BUY", "SELL"):
 
     stop_loss, target = calculate_atr_levels(price, atr.iloc[-1], signal)
@@ -202,7 +217,11 @@ save_market_summary(
 
     volume_ratio=volume_analysis["Volume Ratio"],
 
-    candle_pattern=candle_pattern["Pattern"]
+    candle_pattern=candle_pattern["Pattern"],
+
+    ai_decision=ai_decision["Decision"],
+
+    ai_confidence=ai_decision["Confidence"]
 
 )
 

@@ -24,7 +24,9 @@ def save_market_summary(
     resistance=None,
     atr=None,
     volume_ratio=None,
-    candle_pattern=None
+    candle_pattern=None,
+    ai_decision=None,
+    ai_confidence=None
 ):
 
     os.makedirs("reports", exist_ok=True)
@@ -55,7 +57,9 @@ def save_market_summary(
             "Resistance",
             "ATR14",
             "Volume Ratio",
-            "Candle Pattern"
+            "Candle Pattern",
+            "AI Engine Decision",
+            "AI Confidence %"
         ])
 
         # ---------------- Header Style ----------------
@@ -113,7 +117,9 @@ def save_market_summary(
             "N":12,
             "O":10,
             "P":12,
-            "Q":18
+            "Q":18,
+            "R":16,
+            "S":14
         }
 
         for col, width in widths.items():
@@ -123,7 +129,7 @@ def save_market_summary(
         sheet.freeze_panes = "A2"
 
         # Filter
-        sheet.auto_filter.ref = "A1:Q1"
+        sheet.auto_filter.ref = "A1:S1"
 
         workbook.save(FILE_NAME)
 
@@ -146,6 +152,12 @@ def save_market_summary(
 
     if sheet["Q1"].value != "Candle Pattern":
         sheet["Q1"] = "Candle Pattern"
+
+    if sheet["R1"].value != "AI Engine Decision":
+        sheet["R1"] = "AI Engine Decision"
+
+    if sheet["S1"].value != "AI Confidence %":
+        sheet["S1"] = "AI Confidence %"
 
     run_id = sheet.max_row
 
@@ -185,7 +197,11 @@ def save_market_summary(
 
         round(volume_ratio, 2) if volume_ratio is not None else "",
 
-        candle_pattern if candle_pattern is not None else ""
+        candle_pattern if candle_pattern is not None else "",
+
+        ai_decision if ai_decision is not None else "",
+
+        round(ai_confidence, 1) if ai_confidence is not None else ""
 
     ])
 
@@ -303,7 +319,9 @@ def update_dashboard(workbook, market_sheet):
         ("Support", latest("M")),
         ("Resistance", latest("N")),
         ("ATR14", latest("O")),
-        ("Candle Pattern", latest("Q"))
+        ("Candle Pattern", latest("Q")),
+        ("AI Engine Decision", latest("R")),
+        ("AI Confidence %", latest("S"))
     ]
 
     row = 3

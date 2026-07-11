@@ -1,3 +1,22 @@
+def print_ai_decision(ai_decision):
+
+    print("----------------------------------------")
+    print("       AI DECISION ENGINE")
+    print("----------------------------------------")
+
+    print(f"Decision   : {ai_decision['Decision']}")
+    print(f"Bias       : {ai_decision['Bias']}")
+    print(f"Confidence : {ai_decision['Confidence']}%")
+
+    print()
+    print("Breakdown")
+
+    for name, score in ai_decision["Breakdown"].items():
+        print(f"  {name:<18}: {score:+d}")
+
+    print("----------------------------------------")
+
+
 def print_paper_portfolio(portfolio):
 
     print("----------------------------------------")
