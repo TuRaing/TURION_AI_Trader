@@ -42,6 +42,32 @@ def print_support_resistance(levels):
     print("----------------------------------------")
 
 
+def print_backtest_report(summary):
+
+    print("----------------------------------------")
+    print("       BACKTEST REPORT")
+    print("----------------------------------------")
+
+    print(f"Total Trades : {summary['Total Trades']}")
+    print(f"Wins         : {summary['Wins']}")
+    print(f"Losses       : {summary['Losses']}")
+    print(f"Win Rate     : {summary['Win Rate']}%")
+
+    print()
+
+    print(f"Total PnL    : {summary['Total PnL']:.2f}")
+    print(f"Max Drawdown : {summary['Max Drawdown']:.2f}")
+
+    print("----------------------------------------")
+
+    print("Exit Breakdown")
+
+    for reason, count in summary["Exit Reasons"].items():
+        print(f"  {reason} : {count}")
+
+    print("----------------------------------------")
+
+
 def print_market_structure(structure):
 
     trend = structure["Trend Analysis"]
