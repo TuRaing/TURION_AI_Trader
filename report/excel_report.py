@@ -276,6 +276,7 @@ def save_market_summary(
         decision_cell.fill = gray
 
     update_dashboard(workbook, sheet)
+    update_paper_trades_sheet(workbook)
 
     workbook.save(FILE_NAME)
 
@@ -390,3 +391,81 @@ def update_dashboard(workbook, market_sheet):
         chart.add_data(data_ref, titles_from_data=False)
 
         dashboard.add_chart(chart, "D3")
+
+
+def update_paper_trades_sheet(workbook):
+
+    if "Paper Trades" in workbook.sheetnames:
+
+        sheet = workbook["Paper Trades"]
+        sheet.delete_rows(1, sheet.max_row)
+
+    else:
+
+        sheet = workbook.create_sheet("Paper Trades")
+
+    blue_fill = PatternFill(fill_type="solid", start_color="1F4E78", end_color="1F4E78")
+    white_font = Font(bold=True, color="FFFFFF")
+    center = Alignment(horizontal="center", vertical="center")
+
+    green = PatternFill(fill_type="solid", start_color="C6EFCE", end_color="C6EFCE")
+    red = PatternFill(fill_type="solid", start_color="FFC7CE", end_color="FFC7CE")
+
+    sheet.append([
+        "Trade #",
+        "Entry Time",
+        "Entry Price",
+        "Exit Time",
+        "Exit Price",
+        "Quantity",
+        "Exit Reason",
+        "PnL"
+    ])
+
+    for cell in sheet[1]:
+        cell.fill = blue_fill
+        cell.font = white_font
+        cell.alignment = center
+
+    widths = {"A": 10, "B": 20, "C": 12, "D": 20, "E": 12, "F": 10, "G": 14, "H": 12}
+
+    for col, width in widths.items():
+        sheet.column_dimensions[col].width = width
+
+    if not os.path.exists(PORTFOLIO_FILE):
+
+        sheet.freeze_panes = "A2"
+        return
+
+    with open(PORTFOLIO_FILE, "r") as f:
+        portfolio = json.load(f)
+
+    closed = portfolio["Closed Trades"]
+
+    for i, trade in enumerate(closed, start=1):
+
+        sheet.append([
+            i,
+            trade["Entry Time"],
+            round(trade["Entry Price"], 2),
+            trade["Exit Time"],
+            round(trade["Exit Price"], 2),
+            trade["Quantity"],
+            trade["Exit Reason"],
+            round(trade["PnL"], 2)
+        ])
+
+        pnl_cell = sheet[f"H{sheet.max_row}"]
+        pnl_cell.fill = green if trade["PnL"] > 0 else red
+
+    if closed:
+
+        total_row = sheet.max_row + 2
+
+        sheet[f"A{total_row}"] = "Total"
+        sheet[f"A{total_row}"].font = Font(bold=True)
+
+        sheet[f"H{total_row}"] = round(sum(t["PnL"] for t in closed), 2)
+        sheet[f"H{total_row}"].font = Font(bold=True)
+
+    sheet.freeze_panes = "A2"
