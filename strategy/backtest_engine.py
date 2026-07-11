@@ -2,16 +2,28 @@ import yfinance as yf
 
 from indicators.ema import calculate_ema
 from indicators.rsi import calculate_rsi
+from indicators.atr import calculate_atr
 from strategy.signal_engine import generate_signal, generate_filtered_signal
 from strategy.market_structure import get_market_structure
 from strategy.support_resistance import get_support_resistance
+from strategy.risk_engine import calculate_atr_levels
 
 # Candles looked back for Market Structure / Support-Resistance filters,
 # kept bounded so per-candle recomputation in the backtest loop stays fast
 STRUCTURE_WINDOW = 100
 
 
-def run_backtest(symbol="^NSEI", period="60d", interval="15m", stop_loss_pct=0.2, target_pct=0.9, use_filters=True):
+def run_backtest(
+    symbol="^NSEI",
+    period="60d",
+    interval="15m",
+    stop_loss_pct=0.2,
+    target_pct=0.9,
+    use_filters=True,
+    use_atr_stops=False,
+    atr_sl_mult=1.5,
+    atr_target_mult=3.0
+):
     """
     Run Backtest
 
@@ -21,11 +33,17 @@ def run_backtest(symbol="^NSEI", period="60d", interval="15m", stop_loss_pct=0.2
     period : str
     interval : str
     stop_loss_pct : float
-        Stop-loss distance from entry price, in percent
+        Stop-loss distance from entry price, in percent (used unless use_atr_stops)
     target_pct : float
-        Target distance from entry price, in percent
+        Target distance from entry price, in percent (used unless use_atr_stops)
     use_filters : bool
         Apply Market Structure / Support-Resistance filters to each signal
+    use_atr_stops : bool
+        Size Stop-Loss/Target off ATR instead of a fixed percent
+    atr_sl_mult : float
+        Stop-loss distance as a multiple of ATR
+    atr_target_mult : float
+        Target distance as a multiple of ATR
 
     Returns
     -------
@@ -50,6 +68,7 @@ def run_backtest(symbol="^NSEI", period="60d", interval="15m", stop_loss_pct=0.2
     ema20 = calculate_ema(data, 20)
     ema50 = calculate_ema(data, 50)
     rsi = calculate_rsi(data)
+    atr = calculate_atr(data)
 
     warmup = 50
 
@@ -101,11 +120,26 @@ def run_backtest(symbol="^NSEI", period="60d", interval="15m", stop_loss_pct=0.2
 
         if position is None and signal == "BUY":
 
+            if use_atr_stops:
+
+                stop_loss, target = calculate_atr_levels(
+                    price,
+                    atr.iloc[i],
+                    "BUY",
+                    sl_mult=atr_sl_mult,
+                    target_mult=atr_target_mult
+                )
+
+            else:
+
+                stop_loss = price * (1 - stop_loss_pct / 100)
+                target = price * (1 + target_pct / 100)
+
             position = {
                 "Entry Time": time,
                 "Entry Price": price,
-                "Stop Loss": price * (1 - stop_loss_pct / 100),
-                "Target": price * (1 + target_pct / 100)
+                "Stop Loss": stop_loss,
+                "Target": target
             }
 
         elif position is not None and signal == "SELL":
