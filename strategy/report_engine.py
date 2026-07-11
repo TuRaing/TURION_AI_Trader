@@ -1,3 +1,39 @@
+def print_paper_portfolio(portfolio):
+
+    print("----------------------------------------")
+    print("       PAPER PORTFOLIO")
+    print("----------------------------------------")
+
+    print(f"Cash : {portfolio['Cash']:.2f}")
+
+    position = portfolio["Position"]
+
+    if position:
+
+        print()
+        print("Open Position")
+        print(f"  Entry Price : {position['Entry Price']:.2f}")
+        print(f"  Quantity    : {position['Quantity']}")
+        print(f"  Stop Loss   : {position['Stop Loss']:.2f}")
+        print(f"  Target      : {position['Target']:.2f}")
+
+    else:
+
+        print("Open Position : None")
+
+    closed = portfolio["Closed Trades"]
+
+    print()
+    print(f"Closed Trades : {len(closed)}")
+
+    if closed:
+
+        total_pnl = sum(t["PnL"] for t in closed)
+        print(f"Total PnL     : {total_pnl:.2f}")
+
+    print("----------------------------------------")
+
+
 def print_validation_report(is_valid, errors, candle_count):
 
     print("----------------------------------------")
