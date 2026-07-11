@@ -20,7 +20,8 @@ def save_market_summary(
     support=None,
     resistance=None,
     atr=None,
-    volume_ratio=None
+    volume_ratio=None,
+    candle_pattern=None
 ):
 
     os.makedirs("reports", exist_ok=True)
@@ -50,7 +51,8 @@ def save_market_summary(
             "Support",
             "Resistance",
             "ATR14",
-            "Volume Ratio"
+            "Volume Ratio",
+            "Candle Pattern"
         ])
 
         # ---------------- Header Style ----------------
@@ -107,7 +109,8 @@ def save_market_summary(
             "M":12,
             "N":12,
             "O":10,
-            "P":12
+            "P":12,
+            "Q":18
         }
 
         for col, width in widths.items():
@@ -117,7 +120,7 @@ def save_market_summary(
         sheet.freeze_panes = "A2"
 
         # Filter
-        sheet.auto_filter.ref = "A1:P1"
+        sheet.auto_filter.ref = "A1:Q1"
 
         workbook.save(FILE_NAME)
 
@@ -137,6 +140,9 @@ def save_market_summary(
 
     if sheet["P1"].value != "Volume Ratio":
         sheet["P1"] = "Volume Ratio"
+
+    if sheet["Q1"].value != "Candle Pattern":
+        sheet["Q1"] = "Candle Pattern"
 
     run_id = sheet.max_row
 
@@ -174,7 +180,9 @@ def save_market_summary(
 
         round(atr, 2) if atr is not None else "",
 
-        round(volume_ratio, 2) if volume_ratio is not None else ""
+        round(volume_ratio, 2) if volume_ratio is not None else "",
+
+        candle_pattern if candle_pattern is not None else ""
 
     ])
 

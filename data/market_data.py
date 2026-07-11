@@ -28,13 +28,16 @@ from strategy.support_resistance import get_support_resistance
 
 from strategy.volume_engine import get_volume_analysis
 
+from strategy.candlestick_engine import get_candlestick_pattern
+
 from strategy.report_engine import (
     print_validation_report,
     print_market_structure,
     print_support_resistance,
     print_filtered_signal,
     print_risk_levels,
-    print_volume_analysis
+    print_volume_analysis,
+    print_candlestick_pattern
 )
 
 from report.excel_report import save_market_summary
@@ -94,13 +97,16 @@ levels = get_support_resistance(nifty)
 
 volume_analysis = get_volume_analysis(nifty)
 
+candle_pattern = get_candlestick_pattern(nifty)
+
 signal, filter_notes = generate_filtered_signal(
     ema20.iloc[-1],
     ema50.iloc[-1],
     rsi.iloc[-1],
     structure["Trend Analysis"]["Trend"],
     levels,
-    volume_analysis
+    volume_analysis,
+    candle_pattern
 )
 
 decision, explanation, reasons = generate_reason(
@@ -150,6 +156,8 @@ print_support_resistance(levels)
 
 print_volume_analysis(volume_analysis)
 
+print_candlestick_pattern(candle_pattern)
+
 print_filtered_signal(signal, filter_notes)
 
 if signal in ("BUY", "SELL"):
@@ -192,7 +200,9 @@ save_market_summary(
 
     atr=atr.iloc[-1],
 
-    volume_ratio=volume_analysis["Volume Ratio"]
+    volume_ratio=volume_analysis["Volume Ratio"],
+
+    candle_pattern=candle_pattern["Pattern"]
 
 )
 

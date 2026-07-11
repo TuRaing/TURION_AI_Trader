@@ -88,11 +88,33 @@ def apply_volume_filter(signal, volume_analysis, min_ratio=0.5):
     return signal, None
 
 
-def generate_filtered_signal(ema20, ema50, rsi, market_structure_trend, levels, volume_analysis):
+def apply_candlestick_filter(signal, candle_pattern):
+    """
+    Block a BUY right after a Bearish candlestick pattern, or a SELL
+    right after a Bullish one, where the last candle is warning against
+    the trade direction.
+
+    Returns
+    -------
+    signal : str
+    note : str or None
+    """
+
+    if signal == "BUY" and candle_pattern["Bias"] == "Bearish":
+        return "NO TRADE", f"Blocked BUY: {candle_pattern['Pattern']} candle is Bearish"
+
+    if signal == "SELL" and candle_pattern["Bias"] == "Bullish":
+        return "NO TRADE", f"Blocked SELL: {candle_pattern['Pattern']} candle is Bullish"
+
+    return signal, None
+
+
+def generate_filtered_signal(ema20, ema50, rsi, market_structure_trend, levels, volume_analysis, candle_pattern):
     """
     Generate a Trading Signal, then filter it through Market Structure,
-    Support/Resistance and Volume so it does not trade against structure,
-    straight into a level, or on unconfirmed low-volume moves.
+    Support/Resistance, Volume and Candlestick Pattern so it does not
+    trade against structure, straight into a level, on unconfirmed
+    low-volume moves, or against what the last candle is showing.
 
     Returns
     -------
@@ -114,6 +136,11 @@ def generate_filtered_signal(ema20, ema50, rsi, market_structure_trend, levels, 
         filter_notes.append(note)
 
     signal, note = apply_volume_filter(signal, volume_analysis)
+
+    if note:
+        filter_notes.append(note)
+
+    signal, note = apply_candlestick_filter(signal, candle_pattern)
 
     if note:
         filter_notes.append(note)
