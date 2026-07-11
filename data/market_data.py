@@ -10,7 +10,7 @@ from indicators.ema import calculate_ema
 
 from indicators.rsi import calculate_rsi
 
-from strategy.signal_engine import generate_signal
+from strategy.signal_engine import generate_filtered_signal
 
 from strategy.reasoning_engine import generate_reason
 
@@ -25,7 +25,8 @@ from strategy.support_resistance import get_support_resistance
 from strategy.report_engine import (
     print_validation_report,
     print_market_structure,
-    print_support_resistance
+    print_support_resistance,
+    print_filtered_signal
 )
 
 from report.excel_report import save_market_summary
@@ -80,10 +81,12 @@ structure = get_market_structure(nifty)
 
 levels = get_support_resistance(nifty)
 
-signal = generate_signal(
+signal, filter_notes = generate_filtered_signal(
     ema20.iloc[-1],
     ema50.iloc[-1],
-    rsi.iloc[-1]
+    rsi.iloc[-1],
+    structure["Trend Analysis"]["Trend"],
+    levels
 )
 
 decision, explanation, reasons = generate_reason(
@@ -129,6 +132,8 @@ print("----------------------------------------")
 print_market_structure(structure)
 
 print_support_resistance(levels)
+
+print_filtered_signal(signal, filter_notes)
 
 print("Reason")
 

@@ -17,18 +17,20 @@ def main():
     parser.add_argument("--interval", default="15m")
     parser.add_argument("--stop-loss", type=float, default=0.3, help="Stop-loss %% from entry price")
     parser.add_argument("--target", type=float, default=0.6, help="Target %% from entry price")
+    parser.add_argument("--no-filters", action="store_true", help="Disable Market Structure / Support-Resistance filters")
 
     args = parser.parse_args()
 
     print(f"Running Backtest on {args.symbol} ({args.period}, {args.interval})...")
-    print(f"Stop-Loss: {args.stop_loss}%  Target: {args.target}%")
+    print(f"Stop-Loss: {args.stop_loss}%  Target: {args.target}%  Filters: {not args.no_filters}")
 
     summary = run_backtest(
         symbol=args.symbol,
         period=args.period,
         interval=args.interval,
         stop_loss_pct=args.stop_loss,
-        target_pct=args.target
+        target_pct=args.target,
+        use_filters=not args.no_filters
     )
 
     print_backtest_report(summary)
