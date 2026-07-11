@@ -15,9 +15,12 @@ from strategy.data_validator import validate_market_data
 
 from strategy.market_structure import get_market_structure
 
+from strategy.support_resistance import get_support_resistance
+
 from strategy.report_engine import (
     print_validation_report,
-    print_market_structure
+    print_market_structure,
+    print_support_resistance
 )
 
 from report.excel_report import save_market_summary
@@ -70,6 +73,8 @@ market_state, action, reason = get_market_state(
 
 structure = get_market_structure(nifty)
 
+levels = get_support_resistance(nifty)
+
 signal = generate_signal(
     ema20.iloc[-1],
     ema50.iloc[-1],
@@ -118,6 +123,8 @@ print("----------------------------------------")
 
 print_market_structure(structure)
 
+print_support_resistance(levels)
+
 print("Reason")
 
 print(reason)
@@ -140,7 +147,11 @@ save_market_summary(
 
     market_structure=structure["Trend Analysis"]["Trend"],
 
-    action=action
+    action=action,
+
+    support=levels["Support"],
+
+    resistance=levels["Resistance"]
 
 )
 

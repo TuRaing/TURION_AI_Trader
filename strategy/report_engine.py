@@ -24,6 +24,24 @@ def print_validation_report(is_valid, errors, candle_count):
     print("----------------------------------------")
 
 
+def print_support_resistance(levels):
+
+    print("----------------------------------------")
+    print("       SUPPORT / RESISTANCE REPORT")
+    print("----------------------------------------")
+
+    print(f"Current Price : {levels['Current Price']:.2f}")
+    print(f"Resistance    : {levels['Resistance']:.2f}")
+    print(f"Support       : {levels['Support']:.2f}")
+
+    print()
+
+    print(f"Distance To Resistance : {levels['Distance To Resistance']:.2f}")
+    print(f"Distance To Support    : {levels['Distance To Support']:.2f}")
+
+    print("----------------------------------------")
+
+
 def print_market_structure(structure):
 
     trend = structure["Trend Analysis"]

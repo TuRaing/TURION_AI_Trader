@@ -16,7 +16,9 @@ def save_market_summary(
     rsi,
     market_state,
     market_structure,
-    action
+    action,
+    support=None,
+    resistance=None
 ):
 
     os.makedirs("reports", exist_ok=True)
@@ -42,7 +44,9 @@ def save_market_summary(
             "RSI",
             "Market State",
             "Market Structure",
-            "AI Decision"
+            "AI Decision",
+            "Support",
+            "Resistance"
         ])
 
         # ---------------- Header Style ----------------
@@ -95,7 +99,9 @@ def save_market_summary(
             "I":10,
             "J":18,
             "K":18,
-            "L":18
+            "L":18,
+            "M":12,
+            "N":12
         }
 
         for col, width in widths.items():
@@ -105,13 +111,20 @@ def save_market_summary(
         sheet.freeze_panes = "A2"
 
         # Filter
-        sheet.auto_filter.ref = "A1:L1"
+        sheet.auto_filter.ref = "A1:N1"
 
         workbook.save(FILE_NAME)
 
     workbook = load_workbook(FILE_NAME)
 
     sheet = workbook["Market Summary"]
+
+    # Updated: 2026-07-11 - backfill Support/Resistance headers for report files created before these columns existed
+    if sheet["M1"].value != "Support":
+        sheet["M1"] = "Support"
+
+    if sheet["N1"].value != "Resistance":
+        sheet["N1"] = "Resistance"
 
     run_id = sheet.max_row
 
@@ -141,7 +154,11 @@ def save_market_summary(
 
         market_structure,
 
-        action
+        action,
+
+        round(support, 2) if support is not None else "",
+
+        round(resistance, 2) if resistance is not None else ""
 
     ])
 
