@@ -1,4 +1,8 @@
 import argparse
+import sys
+
+# Updated: 2026-07-11 - force UTF-8 stdout so emoji in reports don't crash on Windows' default cp1252 console
+sys.stdout.reconfigure(encoding="utf-8")
 
 from strategy.backtest_engine import run_backtest
 from strategy.report_engine import print_backtest_report

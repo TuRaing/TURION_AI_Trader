@@ -1,3 +1,8 @@
+import sys
+
+# Updated: 2026-07-11 - force UTF-8 stdout so emoji in reports don't crash on Windows' default cp1252 console
+sys.stdout.reconfigure(encoding="utf-8")
+
 import yfinance as yf
 import matplotlib.pyplot as plt
 
