@@ -1,3 +1,51 @@
+def print_watchlist_report(results, top_n=10):
+
+    print("----------------------------------------")
+    print("       WATCHLIST SCAN REPORT")
+    print("----------------------------------------")
+
+    print(f"Symbols Scanned : {len(results)}")
+
+    bullish = [r for r in results if r["Bias"] == "Bullish"]
+    bearish = [r for r in results if r["Bias"] == "Bearish"]
+
+    print()
+    print(f"Top {top_n} Bullish")
+    print("----------------------------------------")
+
+    for r in bullish[:top_n]:
+        print(f"  {r['Name']:<14} {r['Decision']:<9} {r['Confidence']}%  Price {r['Price']}  ({r['Candle Pattern']})")
+
+    print()
+    print(f"Top {top_n} Bearish")
+    print("----------------------------------------")
+
+    for r in bearish[:top_n]:
+        print(f"  {r['Name']:<14} {r['Decision']:<9} {r['Confidence']}%  Price {r['Price']}  ({r['Candle Pattern']})")
+
+    print("----------------------------------------")
+
+
+def format_watchlist_message(results, top_n=5):
+
+    bullish = [r for r in results if r["Bias"] == "Bullish"][:top_n]
+    bearish = [r for r in results if r["Bias"] == "Bearish"][:top_n]
+
+    lines = ["TURION AI Trader - Watchlist Scan", f"Scanned: {len(results)} symbols"]
+
+    lines.append("\nTop Bullish:")
+
+    for r in bullish:
+        lines.append(f"  {r['Name']} - {r['Decision']} ({r['Confidence']}%) @ {r['Price']}")
+
+    lines.append("\nTop Bearish:")
+
+    for r in bearish:
+        lines.append(f"  {r['Name']} - {r['Decision']} ({r['Confidence']}%) @ {r['Price']}")
+
+    return "\n".join(lines)
+
+
 def format_paper_trade_message(price, signal, action, filter_notes, portfolio):
 
     lines = [
