@@ -1,0 +1,41 @@
+name: Paper Trade Check
+
+on:
+  schedule:
+    # Every 15 min, 03:00-10:45 UTC = ~08:30-16:15 IST, Mon-Fri
+    # (a buffer either side of NSE's 09:15-15:30 IST market hours)
+    - cron: '0,15,30,45 3-10 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  paper-trade:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run paper trade check
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python paper_trade.py
+
+      - name: Commit updated portfolio state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add reports/paper_portfolio.json
+          git diff --staged --quiet || git commit -m "Update paper trading portfolio [skip ci]"
+          git push
