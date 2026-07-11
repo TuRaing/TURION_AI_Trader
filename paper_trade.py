@@ -69,7 +69,7 @@ def main():
 
     portfolio = load_portfolio()
 
-    if portfolio["Position"] is None and signal == "BUY":
+    if portfolio["Positions"].get("NIFTY 50") is None and signal == "BUY":
 
         stop_loss, target = calculate_atr_levels(price, atr.iloc[-1], "BUY")
 
@@ -77,7 +77,7 @@ def main():
 
         stop_loss, target = None, None
 
-    portfolio, action = process_signal(portfolio, signal, price, stop_loss, target)
+    portfolio, action = process_signal(portfolio, "NIFTY 50", signal, price, stop_loss, target)
 
     save_portfolio(portfolio)
 

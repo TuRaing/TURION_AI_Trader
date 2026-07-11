@@ -1,4 +1,4 @@
-name: Paper Trade Check
+name: Watchlist Paper Trade Check
 
 on:
   schedule:
@@ -26,11 +26,11 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run paper trade check
+      - name: Run watchlist paper trade check
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python paper_trade.py
+        run: python watchlist_paper_trade.py
 
       - name: Commit updated portfolio state
         run: |
