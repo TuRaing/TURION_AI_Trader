@@ -10,7 +10,11 @@ from indicators.ema import calculate_ema
 
 from indicators.rsi import calculate_rsi
 
+from indicators.atr import calculate_atr
+
 from strategy.signal_engine import generate_filtered_signal
+
+from strategy.risk_engine import calculate_atr_levels
 
 from strategy.reasoning_engine import generate_reason
 
@@ -26,7 +30,8 @@ from strategy.report_engine import (
     print_validation_report,
     print_market_structure,
     print_support_resistance,
-    print_filtered_signal
+    print_filtered_signal,
+    print_risk_levels
 )
 
 from report.excel_report import save_market_summary
@@ -68,6 +73,9 @@ ema50 = calculate_ema(nifty, 50)
 
 #RSI
 rsi = calculate_rsi(nifty)
+
+# ATR
+atr = calculate_atr(nifty)
 
 price = close.iloc[-1]
 
@@ -118,6 +126,7 @@ print(f"Current Price : {price:.2f}")
 print(f"EMA20         : {ema20.iloc[-1]:.2f}")
 print(f"EMA50         : {ema50.iloc[-1]:.2f}")
 print(f"RSI           : {rsi.iloc[-1]:.2f}")
+print(f"ATR14         : {atr.iloc[-1]:.2f}")
 
 print("----------------------------------------")
 
@@ -134,6 +143,16 @@ print_market_structure(structure)
 print_support_resistance(levels)
 
 print_filtered_signal(signal, filter_notes)
+
+if signal in ("BUY", "SELL"):
+
+    stop_loss, target = calculate_atr_levels(price, atr.iloc[-1], signal)
+
+else:
+
+    stop_loss, target = None, None
+
+print_risk_levels(signal, stop_loss, target)
 
 print("Reason")
 
@@ -161,7 +180,9 @@ save_market_summary(
 
     support=levels["Support"],
 
-    resistance=levels["Resistance"]
+    resistance=levels["Resistance"],
+
+    atr=atr.iloc[-1]
 
 )
 

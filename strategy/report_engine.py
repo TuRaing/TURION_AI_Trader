@@ -87,6 +87,25 @@ def print_filtered_signal(signal, filter_notes):
     print("----------------------------------------")
 
 
+def print_risk_levels(signal, stop_loss, target):
+
+    print("----------------------------------------")
+    print("       ATR RISK LEVELS")
+    print("----------------------------------------")
+
+    if stop_loss is None:
+
+        print("No open-trade signal - nothing to size.")
+
+    else:
+
+        print(f"If {signal} now:")
+        print(f"  Stop Loss : {stop_loss:.2f}")
+        print(f"  Target    : {target:.2f}")
+
+    print("----------------------------------------")
+
+
 def print_market_structure(structure):
 
     trend = structure["Trend Analysis"]
