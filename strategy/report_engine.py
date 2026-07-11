@@ -24,6 +24,50 @@ def print_validation_report(is_valid, errors, candle_count):
     print("----------------------------------------")
 
 
+def print_support_resistance(levels):
+
+    print("----------------------------------------")
+    print("       SUPPORT / RESISTANCE REPORT")
+    print("----------------------------------------")
+
+    print(f"Current Price : {levels['Current Price']:.2f}")
+    print(f"Resistance    : {levels['Resistance']:.2f}")
+    print(f"Support       : {levels['Support']:.2f}")
+
+    print()
+
+    print(f"Distance To Resistance : {levels['Distance To Resistance']:.2f}")
+    print(f"Distance To Support    : {levels['Distance To Support']:.2f}")
+
+    print("----------------------------------------")
+
+
+def print_backtest_report(summary):
+
+    print("----------------------------------------")
+    print("       BACKTEST REPORT")
+    print("----------------------------------------")
+
+    print(f"Total Trades : {summary['Total Trades']}")
+    print(f"Wins         : {summary['Wins']}")
+    print(f"Losses       : {summary['Losses']}")
+    print(f"Win Rate     : {summary['Win Rate']}%")
+
+    print()
+
+    print(f"Total PnL    : {summary['Total PnL']:.2f}")
+    print(f"Max Drawdown : {summary['Max Drawdown']:.2f}")
+
+    print("----------------------------------------")
+
+    print("Exit Breakdown")
+
+    for reason, count in summary["Exit Reasons"].items():
+        print(f"  {reason} : {count}")
+
+    print("----------------------------------------")
+
+
 def print_market_structure(structure):
 
     trend = structure["Trend Analysis"]
