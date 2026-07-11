@@ -7,8 +7,6 @@ from indicators.rsi import calculate_rsi
 
 from strategy.signal_engine import generate_signal
 
-from strategy.signal_engine import generate_signal
-
 from strategy.reasoning_engine import generate_reason
 
 from strategy.market_state import get_market_state
