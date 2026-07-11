@@ -56,6 +56,18 @@ def print_volume_analysis(volume_analysis):
     print("----------------------------------------")
 
 
+def print_candlestick_pattern(candle_pattern):
+
+    print("----------------------------------------")
+    print("       CANDLESTICK REPORT")
+    print("----------------------------------------")
+
+    print(f"Pattern : {candle_pattern['Pattern']}")
+    print(f"Bias    : {candle_pattern['Bias']}")
+
+    print("----------------------------------------")
+
+
 def print_backtest_report(summary):
 
     print("----------------------------------------")
