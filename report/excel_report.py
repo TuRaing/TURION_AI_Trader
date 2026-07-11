@@ -1,10 +1,13 @@
 import os
+import json
 from datetime import datetime
 
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
+from openpyxl.chart import LineChart, Reference
 
 FILE_NAME = "reports/TURION_AI_Trader.xlsx"
+PORTFOLIO_FILE = "reports/paper_portfolio.json"
 
 
 def save_market_summary(
@@ -256,6 +259,116 @@ def save_market_summary(
     else:
         decision_cell.fill = gray
 
+    update_dashboard(workbook, sheet)
+
     workbook.save(FILE_NAME)
 
     print("Excel Database Updated Successfully.")
+
+
+def update_dashboard(workbook, market_sheet):
+
+    if "Dashboard" in workbook.sheetnames:
+
+        dashboard = workbook["Dashboard"]
+        dashboard.delete_rows(1, dashboard.max_row)
+        dashboard._charts = []
+
+    else:
+
+        dashboard = workbook.create_sheet("Dashboard", 0)
+
+    blue_fill = PatternFill(fill_type="solid", start_color="1F4E78", end_color="1F4E78")
+    title_font = Font(bold=True, color="FFFFFF", size=14)
+    label_font = Font(bold=True)
+    section_font = Font(bold=True, size=12)
+
+    dashboard["A1"] = "TURION AI TRADER - DASHBOARD"
+    dashboard["A1"].font = title_font
+    dashboard["A1"].fill = blue_fill
+    dashboard.merge_cells("A1:D1")
+
+    last_row = market_sheet.max_row
+
+    def latest(col):
+        return market_sheet[f"{col}{last_row}"].value
+
+    kpis = [
+        ("Last Updated", f"{latest('B')} {latest('C')}"),
+        ("Symbol", latest("D")),
+        ("Current Price", latest("F")),
+        ("Market State", latest("J")),
+        ("Market Structure", latest("K")),
+        ("AI Decision", latest("L")),
+        ("Support", latest("M")),
+        ("Resistance", latest("N")),
+        ("ATR14", latest("O")),
+        ("Candle Pattern", latest("Q"))
+    ]
+
+    row = 3
+
+    for label, value in kpis:
+
+        dashboard[f"A{row}"] = label
+        dashboard[f"A{row}"].font = label_font
+        dashboard[f"B{row}"] = value
+
+        row += 1
+
+    row += 1
+
+    dashboard[f"A{row}"] = "PAPER TRADING"
+    dashboard[f"A{row}"].font = section_font
+
+    row += 1
+
+    if os.path.exists(PORTFOLIO_FILE):
+
+        with open(PORTFOLIO_FILE, "r") as f:
+            portfolio = json.load(f)
+
+        closed = portfolio["Closed Trades"]
+        total_pnl = sum(t["PnL"] for t in closed)
+
+        paper_kpis = [
+            ("Cash", round(portfolio["Cash"], 2)),
+            ("Open Position", "Yes" if portfolio["Position"] else "No"),
+            ("Closed Trades", len(closed)),
+            ("Total PnL", round(total_pnl, 2))
+        ]
+
+        for label, value in paper_kpis:
+
+            dashboard[f"A{row}"] = label
+            dashboard[f"A{row}"].font = label_font
+            dashboard[f"B{row}"] = value
+
+            row += 1
+
+    else:
+
+        dashboard[f"A{row}"] = "No paper trading data yet"
+
+        row += 1
+
+    dashboard.column_dimensions["A"].width = 20
+    dashboard.column_dimensions["B"].width = 22
+
+    # Price Trend Chart over the recent runs
+    max_points = 30
+    start = max(2, last_row - max_points + 1)
+
+    if last_row >= 2:
+
+        chart = LineChart()
+        chart.title = "Price Trend (Recent Runs)"
+        chart.y_axis.title = "Price"
+        chart.x_axis.title = "Run"
+        chart.width = 18
+        chart.height = 9
+
+        data_ref = Reference(market_sheet, min_col=6, min_row=start, max_row=last_row)
+        chart.add_data(data_ref, titles_from_data=False)
+
+        dashboard.add_chart(chart, "D3")
