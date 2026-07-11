@@ -68,6 +68,25 @@ def print_backtest_report(summary):
     print("----------------------------------------")
 
 
+def print_filtered_signal(signal, filter_notes):
+
+    print("----------------------------------------")
+    print("       FILTERED SIGNAL")
+    print("----------------------------------------")
+
+    print(f"Signal : {signal}")
+
+    if filter_notes:
+
+        print()
+        print("Filters Applied")
+
+        for note in filter_notes:
+            print(f"  - {note}")
+
+    print("----------------------------------------")
+
+
 def print_market_structure(structure):
 
     trend = structure["Trend Analysis"]

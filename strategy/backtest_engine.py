@@ -2,10 +2,16 @@ import yfinance as yf
 
 from indicators.ema import calculate_ema
 from indicators.rsi import calculate_rsi
-from strategy.signal_engine import generate_signal
+from strategy.signal_engine import generate_signal, generate_filtered_signal
+from strategy.market_structure import get_market_structure
+from strategy.support_resistance import get_support_resistance
+
+# Candles looked back for Market Structure / Support-Resistance filters,
+# kept bounded so per-candle recomputation in the backtest loop stays fast
+STRUCTURE_WINDOW = 100
 
 
-def run_backtest(symbol="^NSEI", period="60d", interval="15m", stop_loss_pct=0.3, target_pct=0.6):
+def run_backtest(symbol="^NSEI", period="60d", interval="15m", stop_loss_pct=0.2, target_pct=0.9, use_filters=True):
     """
     Run Backtest
 
@@ -18,6 +24,8 @@ def run_backtest(symbol="^NSEI", period="60d", interval="15m", stop_loss_pct=0.3
         Stop-loss distance from entry price, in percent
     target_pct : float
         Target distance from entry price, in percent
+    use_filters : bool
+        Apply Market Structure / Support-Resistance filters to each signal
 
     Returns
     -------
@@ -68,11 +76,28 @@ def run_backtest(symbol="^NSEI", period="60d", interval="15m", stop_loss_pct=0.3
                 position = None
                 continue
 
-        signal = generate_signal(
-            ema20.iloc[i],
-            ema50.iloc[i],
-            rsi.iloc[i]
-        )
+        if use_filters:
+
+            window = data.iloc[max(0, i - STRUCTURE_WINDOW):i + 1]
+
+            structure = get_market_structure(window)
+            levels = get_support_resistance(window)
+
+            signal, _ = generate_filtered_signal(
+                ema20.iloc[i],
+                ema50.iloc[i],
+                rsi.iloc[i],
+                structure["Trend Analysis"]["Trend"],
+                levels
+            )
+
+        else:
+
+            signal = generate_signal(
+                ema20.iloc[i],
+                ema50.iloc[i],
+                rsi.iloc[i]
+            )
 
         if position is None and signal == "BUY":
 
