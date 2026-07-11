@@ -350,9 +350,11 @@ def update_dashboard(workbook, market_sheet):
         closed = portfolio["Closed Trades"]
         total_pnl = sum(t["PnL"] for t in closed)
 
+        positions = portfolio.get("Positions", {})
+
         paper_kpis = [
             ("Cash", round(portfolio["Cash"], 2)),
-            ("Open Position", "Yes" if portfolio["Position"] else "No"),
+            ("Open Positions", len(positions)),
             ("Closed Trades", len(closed)),
             ("Total PnL", round(total_pnl, 2))
         ]
@@ -413,6 +415,7 @@ def update_paper_trades_sheet(workbook):
 
     sheet.append([
         "Trade #",
+        "Symbol",
         "Entry Time",
         "Entry Price",
         "Exit Time",
@@ -427,7 +430,7 @@ def update_paper_trades_sheet(workbook):
         cell.font = white_font
         cell.alignment = center
 
-    widths = {"A": 10, "B": 20, "C": 12, "D": 20, "E": 12, "F": 10, "G": 14, "H": 12}
+    widths = {"A": 10, "B": 14, "C": 20, "D": 12, "E": 20, "F": 12, "G": 10, "H": 14, "I": 12}
 
     for col, width in widths.items():
         sheet.column_dimensions[col].width = width
@@ -446,6 +449,7 @@ def update_paper_trades_sheet(workbook):
 
         sheet.append([
             i,
+            trade.get("Symbol", "NIFTY 50"),
             trade["Entry Time"],
             round(trade["Entry Price"], 2),
             trade["Exit Time"],
@@ -455,7 +459,7 @@ def update_paper_trades_sheet(workbook):
             round(trade["PnL"], 2)
         ])
 
-        pnl_cell = sheet[f"H{sheet.max_row}"]
+        pnl_cell = sheet[f"I{sheet.max_row}"]
         pnl_cell.fill = green if trade["PnL"] > 0 else red
 
     if closed:
@@ -465,7 +469,7 @@ def update_paper_trades_sheet(workbook):
         sheet[f"A{total_row}"] = "Total"
         sheet[f"A{total_row}"].font = Font(bold=True)
 
-        sheet[f"H{total_row}"] = round(sum(t["PnL"] for t in closed), 2)
-        sheet[f"H{total_row}"].font = Font(bold=True)
+        sheet[f"I{total_row}"] = round(sum(t["PnL"] for t in closed), 2)
+        sheet[f"I{total_row}"].font = Font(bold=True)
 
     sheet.freeze_panes = "A2"

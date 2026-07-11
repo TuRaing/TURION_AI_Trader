@@ -46,6 +46,71 @@ def format_watchlist_message(results, top_n=5):
     return "\n".join(lines)
 
 
+def print_watchlist_paper_trade_report(portfolio, events):
+
+    print("----------------------------------------")
+    print("       WATCHLIST PAPER TRADING")
+    print("----------------------------------------")
+
+    print(f"Cash : {portfolio['Cash']:.2f}")
+
+    positions = portfolio["Positions"]
+
+    print()
+    print(f"Open Positions ({len(positions)})")
+
+    for symbol, position in positions.items():
+        print(f"  {symbol}: Entry {position['Entry Price']:.2f}, "
+              f"SL {position['Stop Loss']:.2f}, Target {position['Target']:.2f}")
+
+    if events:
+
+        print()
+        print("Events This Run")
+
+        for e in events:
+            print(f"  {e['Name']}: {e['Action']} @ {e['Price']}")
+
+    closed = portfolio["Closed Trades"]
+    total_pnl = sum(t["PnL"] for t in closed)
+
+    print()
+    print(f"Closed Trades : {len(closed)}  Total PnL : {total_pnl:.2f}")
+
+    print("----------------------------------------")
+
+
+def format_watchlist_paper_trade_message(portfolio, events):
+
+    lines = ["TURION AI Trader - Watchlist Paper Trading"]
+
+    if events:
+
+        lines.append("\nEvents:")
+
+        for e in events:
+            lines.append(f"  {e['Name']}: {e['Action']} @ {e['Price']}")
+
+    else:
+
+        lines.append("\nNo new trade events this run.")
+
+    positions = portfolio["Positions"]
+
+    lines.append(f"\nOpen Positions ({len(positions)}):")
+
+    for symbol, position in positions.items():
+        lines.append(f"  {symbol}: Entry {position['Entry Price']:.2f}, "
+                      f"SL {position['Stop Loss']:.2f}, Target {position['Target']:.2f}")
+
+    closed = portfolio["Closed Trades"]
+    total_pnl = sum(t["PnL"] for t in closed)
+
+    lines.append(f"\nCash: {portfolio['Cash']:.2f}  Closed Trades: {len(closed)}  Total PnL: {total_pnl:.2f}")
+
+    return "\n".join(lines)
+
+
 def format_paper_trade_message(price, signal, action, filter_notes, portfolio):
 
     lines = [
@@ -62,7 +127,7 @@ def format_paper_trade_message(price, signal, action, filter_notes, portfolio):
         for note in filter_notes:
             lines.append(f"  - {note}")
 
-    position = portfolio["Position"]
+    position = portfolio["Positions"].get("NIFTY 50")
 
     if position:
 
@@ -110,20 +175,21 @@ def print_paper_portfolio(portfolio):
 
     print(f"Cash : {portfolio['Cash']:.2f}")
 
-    position = portfolio["Position"]
+    positions = portfolio["Positions"]
 
-    if position:
+    if positions:
 
         print()
-        print("Open Position")
-        print(f"  Entry Price : {position['Entry Price']:.2f}")
-        print(f"  Quantity    : {position['Quantity']}")
-        print(f"  Stop Loss   : {position['Stop Loss']:.2f}")
-        print(f"  Target      : {position['Target']:.2f}")
+        print(f"Open Positions ({len(positions)})")
+
+        for symbol, position in positions.items():
+
+            print(f"  {symbol}: Entry {position['Entry Price']:.2f}, "
+                  f"SL {position['Stop Loss']:.2f}, Target {position['Target']:.2f}")
 
     else:
 
-        print("Open Position : None")
+        print("Open Positions : None")
 
     closed = portfolio["Closed Trades"]
 
