@@ -25,3 +25,5 @@ def send_telegram_message(text):
 
     if response.status_code != 200:
         print(f"Telegram notification failed: {response.text}")
+    else:
+        print("Telegram notification sent successfully.")
