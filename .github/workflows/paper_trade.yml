@@ -2,9 +2,12 @@ name: Watchlist Paper Trade Check
 
 on:
   schedule:
-    # Every 15 min, 03:00-10:45 UTC = ~08:30-16:15 IST, Mon-Fri
+    # Every 15 min, 03:07-10:52 UTC = ~08:37-16:22 IST, Mon-Fri
     # (a buffer either side of NSE's 09:15-15:30 IST market hours)
-    - cron: '0,15,30,45 3-10 * * 1-5'
+    # Offset from the hour (:07/:22/:37/:52) instead of :00/:15/:30/:45 to
+    # avoid GitHub Actions' top-of-hour scheduling load, which was causing
+    # most of the 15-min scheduled runs to be delayed or dropped.
+    - cron: '7,22,37,52 3-10 * * 1-5'
   workflow_dispatch:
 
 permissions:
