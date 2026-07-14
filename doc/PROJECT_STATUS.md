@@ -12,7 +12,7 @@ TURION AI Trader
 
 Version
 
-v0.0.6
+v0.0.7
 
 --------------------------------------------------
 
@@ -30,7 +30,7 @@ Project Started
 
 Last Updated
 
-11-Jul-2026
+13-Jul-2026
 
 --------------------------------------------------
 
@@ -146,9 +146,11 @@ PROJECT MILESTONES
 
 ⬜ Broker Integration         (broker not selected)
 
-🟡 Desktop Dashboard          (PySide6 built, not committed)
+🟡 Desktop Dashboard          (PySide6 built + verified, not committed)
 
-⬜ Android App                (Telegram covers daily use)
+🟡 Android App                (Flutter APK built, installed on phone,
+                               reads live Portfolio from GitHub - not
+                               committed to repo yet)
 
 ⬜ Algorithmic Trading        (needs broker)
 
@@ -156,7 +158,8 @@ PROJECT MILESTONES
 
 --------------------------------------------------
 
-Progress: 19 / 26 milestones done (~73%)
+Progress: 19 / 26 milestones done (~73%), 2 more in-progress
+(Desktop + Android both working locally, pending commit)
 
 ==================================================
 
@@ -175,6 +178,17 @@ EXTRA FEATURES (beyond original milestone list)
 ✅ Pre-Market Report (08:45 IST daily)
 
 ✅ Windows Encoding Fix + requirements.txt
+
+✅ Unit Test Suite (45 pytest tests - signal_engine,
+   ai_decision_engine, paper_trading, backtest_engine,
+   risk_engine - all pure logic, ~3.5s, no network)
+
+✅ Telegram delivery confirmation logging
+   (PR #1, separate session)
+
+✅ Paper-trade cron reliability fix
+   (:07/:22/:37/:52 offset avoids GitHub Actions
+   top-of-hour scheduling load - PR #1)
 
 ==================================================
 
@@ -216,12 +230,19 @@ AUTOMATION (GitHub Actions - runs in cloud)
 
 • Pre-Market Report      → 08:45 IST, Mon-Fri
 
-• Watchlist Paper Trade  → every 15 min,
-                           08:30-16:15 IST, Mon-Fri
+• Watchlist Paper Trade  → every 15 min (offset
+                           :07/:22/:37/:52),
+                           08:37-16:22 IST, Mon-Fri
 
 • Portfolio state auto-committed back to repo
 
-• All alerts delivered to Telegram
+• All alerts delivered to Telegram (now logs
+  success/failure in the Action run output)
+
+• CONFIRMED WORKING 13-Jul: both workflows fired
+  automatically on schedule and opened 7 real paper
+  positions (HDFCBANK, ICICIBANK, BAJFINANCE,
+  SUNPHARMA, TITAN, BAJAJ-AUTO, TECHM)
 
 ==================================================
 
@@ -235,7 +256,14 @@ KNOWN ISSUES
 
 • 15m strategy still weak (needs tuning).
 
-• Desktop App not yet committed / packaged.
+• Desktop App + Android App verified working
+  locally, but not yet committed to the repo.
+
+• A separate Claude session (branch
+  claude/tula-repocha-actress-hob5j0) fixed the
+  Telegram/cron issue in parallel - merged as PR #1.
+  Watch for multiple sessions editing the same repo
+  at once going forward.
 
 ==================================================
 
@@ -244,19 +272,21 @@ NEXT DEVELOPMENT PLAN
 Priority 1
 
 Run automated Paper Trading 1-2 weeks,
-review Telegram + Excel results
+review Telegram + Excel + Android app results
 
 --------------------------------------------------
 
 Priority 2
 
-Fix TATAMOTORS / LTIM ticker symbols
+Commit Desktop App (PySide6) + Android App
+(Flutter, mobile_app/) to the repo,
+package Desktop as .exe (PyInstaller)
 
 --------------------------------------------------
 
 Priority 3
 
-Commit Desktop App + package as .exe (PyInstaller)
+Fix TATAMOTORS / LTIM ticker symbols
 
 --------------------------------------------------
 
@@ -327,11 +357,11 @@ Status
 
 Current Version
 
-v0.0.6
+v0.0.7
 
 Next Version
 
-v0.0.7
+v0.0.8
 
 ==================================================
 
