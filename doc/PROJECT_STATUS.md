@@ -12,7 +12,7 @@ TURION AI Trader
 
 Version
 
-v0.0.5
+v0.0.7
 
 --------------------------------------------------
 
@@ -30,15 +30,15 @@ Project Started
 
 Last Updated
 
-04-Jul-2026
+13-Jul-2026
 
 --------------------------------------------------
 
 Current Phase
 
-Phase 1
+Phase 2
 
-Foundation Development
+Trading & AI Intelligence
 
 ==================================================
 
@@ -46,17 +46,17 @@ PROJECT PROGRESS
 
 Overall Progress
 
-🟩🟩🟩⬜⬜⬜⬜⬜⬜⬜
+🟩🟩🟩🟩🟩🟩🟩⬜⬜⬜
 
-35%
+73%
 
 --------------------------------------------------
 
 Foundation
 
-█████████░
+██████████
 
-90%
+100%
 
 Status
 
@@ -66,29 +66,37 @@ Status
 
 Market Intelligence
 
-███░░░░░░░
+██████████
 
-30%
+100%
 
 Status
 
-🟡 In Progress
+🟢 Stable
 
 --------------------------------------------------
 
 Trading Intelligence
 
-░░░░░░░░░░
+████████░░
 
-0%
+80%
+
+Status
+
+🟢 Paper Trading Live (automated)
 
 --------------------------------------------------
 
 AI Intelligence
 
-░░░░░░░░░░
+██████░░░░
 
-0%
+60%
+
+Status
+
+🟡 Weighted scoring done, ML pending
 
 ==================================================
 
@@ -116,41 +124,77 @@ PROJECT MILESTONES
 
 ✅ Excel Database Engine v1
 
-⬜ Professional Excel Dashboard
+✅ Professional Excel Dashboard
 
-⬜ Support & Resistance Engine
+✅ Support & Resistance Engine
 
-⬜ Candlestick Engine
+✅ Candlestick Engine
 
-⬜ Volume Engine
+✅ Volume Engine
 
-⬜ ATR Engine
+✅ ATR Engine
 
-⬜ Option Chain Engine
+⬜ Option Chain Engine        (blocked - NSE IP)
 
-⬜ Open Interest Engine
+⬜ Open Interest Engine       (blocked - NSE IP)
 
-⬜ AI Decision Engine
+✅ AI Decision Engine         (weighted scoring)
 
-⬜ Paper Trading
+✅ Paper Trading              (multi-symbol, automated)
 
-⬜ Backtesting
+✅ Backtesting
 
-⬜ Broker Integration
+⬜ Broker Integration         (broker not selected)
 
-⬜ Desktop Dashboard
+🟡 Desktop Dashboard          (PySide6 built + verified, not committed)
 
-⬜ Android App
+🟡 Android App                (Flutter APK built, installed on phone,
+                               reads live Portfolio from GitHub - not
+                               committed to repo yet)
 
-⬜ Algorithmic Trading
+⬜ Algorithmic Trading        (needs broker)
 
 ⬜ TURION AI Trader v1.0
+
+--------------------------------------------------
+
+Progress: 19 / 26 milestones done (~73%), 2 more in-progress
+(Desktop + Android both working locally, pending commit)
+
+==================================================
+
+EXTRA FEATURES (beyond original milestone list)
+
+✅ Signal Filters (Structure + S/R + Volume +
+   Candlestick combined)
+
+✅ Telegram Notifications
+
+✅ Multi-Symbol Watchlist Scanner
+   (NIFTY 50 + Bank Nifty + 50 companies)
+
+✅ GitHub Actions Automation (24/7, no laptop)
+
+✅ Pre-Market Report (08:45 IST daily)
+
+✅ Windows Encoding Fix + requirements.txt
+
+✅ Unit Test Suite (45 pytest tests - signal_engine,
+   ai_decision_engine, paper_trading, backtest_engine,
+   risk_engine - all pure logic, ~3.5s, no network)
+
+✅ Telegram delivery confirmation logging
+   (PR #1, separate session)
+
+✅ Paper-trade cron reliability fix
+   (:07/:22/:37/:52 offset avoids GitHub Actions
+   top-of-hour scheduling load - PR #1)
 
 ==================================================
 
 CURRENT ARCHITECTURE
 
-Live Market Data
+Live Market Data (yfinance)
 
 ↓
 
@@ -158,113 +202,68 @@ Data Validation Engine
 
 ↓
 
-Indicator Engine
-
-(EMA + RSI)
-
-↓
-
-Market State Engine
+Indicator Engines
+(EMA + RSI + ATR + Volume)
 
 ↓
 
-Market Structure Engine
+Market State / Structure / Support-Resistance /
+Candlestick Engines
 
 ↓
 
-Reasoning Engine
+Signal Engine (with Filters)
++ AI Decision Engine (weighted score)
 
 ↓
 
-Report Engine
+Paper Trading Engine (multi-symbol)
 
 ↓
 
-Excel Database
+Report Engine → Console / Excel Dashboard /
+Telegram / Desktop App
 
 ==================================================
 
-CURRENT MODULES
+AUTOMATION (GitHub Actions - runs in cloud)
 
-Completed
+• Pre-Market Report      → 08:45 IST, Mon-Fri
 
-✅ Live Market Data
+• Watchlist Paper Trade  → every 15 min (offset
+                           :07/:22/:37/:52),
+                           08:37-16:22 IST, Mon-Fri
 
-✅ EMA Engine
+• Portfolio state auto-committed back to repo
 
-✅ RSI Engine
+• All alerts delivered to Telegram (now logs
+  success/failure in the Action run output)
 
-✅ Market State Engine
-
-✅ Market Structure Engine
-
-✅ Reasoning Engine
-
-✅ Data Validation Engine
-
-✅ Report Engine
-
-✅ Excel Database Engine
-
-==================================================
-
-CURRENT FEATURES
-
-• Download Live Market Data
-
-• Validate Market Data
-
-• Calculate EMA
-
-• Calculate RSI
-
-• Detect Market State
-
-• Detect Market Structure
-
-• Generate Trading Reason
-
-• Store Analysis in Excel Database
-
-==================================================
-
-LATEST SESSION
-
-Today's Work
-
-• Created Market Structure Engine
-
-• Added HH / HL / LH / LL Detection
-
-• Created Data Validation Engine
-
-• Added Validation Report
-
-• Upgraded Report Engine
-
-• Created Excel Database Engine
-
-• Added Excel History Logging
-
-• Added Professional Excel Formatting
+• CONFIRMED WORKING 13-Jul: both workflows fired
+  automatically on schedule and opened 7 real paper
+  positions (HDFCBANK, ICICIBANK, BAJFINANCE,
+  SUNPHARMA, TITAN, BAJAJ-AUTO, TECHM)
 
 ==================================================
 
 KNOWN ISSUES
 
-• Excel Dashboard pending
+• Option Chain / OI blocked from datacenter IPs
+  (NSE 403) - local/home run only.
 
-• Support & Resistance pending
+• TATAMOTORS.NS / LTIM.NS - no Yahoo data,
+  need correct symbols.
 
-• Candlestick pending
+• 15m strategy still weak (needs tuning).
 
-• Volume Analysis pending
+• Desktop App + Android App verified working
+  locally, but not yet committed to the repo.
 
-• ATR pending
-
-• Option Chain pending
-
-• AI Decision Engine pending
+• A separate Claude session (branch
+  claude/tula-repocha-actress-hob5j0) fixed the
+  Telegram/cron issue in parallel - merged as PR #1.
+  Watch for multiple sessions editing the same repo
+  at once going forward.
 
 ==================================================
 
@@ -272,61 +271,52 @@ NEXT DEVELOPMENT PLAN
 
 Priority 1
 
-Professional Excel Dashboard
+Run automated Paper Trading 1-2 weeks,
+review Telegram + Excel + Android app results
 
 --------------------------------------------------
 
 Priority 2
 
-Support & Resistance Engine
+Commit Desktop App (PySide6) + Android App
+(Flutter, mobile_app/) to the repo,
+package Desktop as .exe (PyInstaller)
 
 --------------------------------------------------
 
 Priority 3
 
-Candlestick Engine
+Fix TATAMOTORS / LTIM ticker symbols
 
 --------------------------------------------------
 
 Priority 4
 
-Volume Engine
+Select Broker (Upstox / Angel One - free API)
+→ Broker Integration
 
 --------------------------------------------------
 
 Priority 5
 
-ATR Engine
+Option Chain / Open Interest Engine
+(run locally from home IP)
 
 --------------------------------------------------
 
 Priority 6
 
-Option Chain Engine
-
---------------------------------------------------
-
-Priority 7
-
-AI Decision Engine
+Algorithmic Trading (after broker, user-supervised)
 
 ==================================================
 
 LONG TERM ROADMAP
 
-Excel Database
+Paper Trading (live now)
 
 ↓
 
-Desktop Dashboard
-
-↓
-
-Android Application
-
-↓
-
-Paper Trading
+Desktop Dashboard (.exe)
 
 ↓
 
@@ -334,11 +324,11 @@ Broker Integration
 
 ↓
 
-Live Trading
+Live Trading (user-approved orders only)
 
 ↓
 
-Algorithmic Trading
+Algorithmic Trading (supervised)
 
 ==================================================
 
@@ -354,27 +344,10 @@ DEVELOPMENT RULES
 
 • Report Engine handles presentation.
 
-• Excel Database stores project history.
+• Options logic kept separate from stock/index logic.
 
-==================================================
-
-NEXT SESSION
-
-Create
-
-Professional Excel Dashboard
-
-↓
-
-Support & Resistance Engine
-
-↓
-
-Improve Excel Database
-
-↓
-
-Continue AI Trading Platform Development
+• Claude never executes a real trade -
+  final action is always the user's.
 
 ==================================================
 
@@ -384,11 +357,11 @@ Status
 
 Current Version
 
-v0.0.5
+v0.0.7
 
 Next Version
 
-v0.0.6
+v0.0.8
 
 ==================================================
 
