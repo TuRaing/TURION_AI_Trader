@@ -73,6 +73,106 @@ Today's Achievements
    confirms the graceful-degradation design works as
    intended rather than assuming it would
 
+✅ [Same day, follow-up] Best Trade Paper Trading
+   (strategy/best_trade_paper_trading.py) - the daily
+   locked pick, if it's an equity trade, now opens as a
+   real intraday paper position (its own portfolio file,
+   reports/best_trade_portfolio.json, kept fully separate
+   from the existing swing-style watchlist paper trading
+   in strategy/paper_trading.py - that working module was
+   not touched) and force-closes before market shut via
+   a new square_off_best_trade.py script + .github/
+   workflows/best_trade_squareoff.yml (15:15 IST, 15 min
+   before NSE close) - at Stop Loss/Target if already
+   breached, otherwise at the current price ("Intraday
+   Square-Off"). This was a direct fix to the gap the
+   user flagged: without this, a locked pick would have
+   silently carried over to the next day like the
+   watchlist scanner's positions do. Index option (CE/PE)
+   picks are still recommendation-only, by design - no
+   reliable live premium feed exists to mark P&L against.
+
+✅ 11 more pytest tests (test_best_trade_paper_trading.py,
+   pure logic - open/square-off for both BUY and SELL
+   directions, missing-file/round-trip file I/O) - 85
+   total tests passing
+
+✅ [Same day, second follow-up] Best Trade Report now
+   runs every ~30 min through market hours (~09:35-14:05
+   IST, offset :05/:35 past the hour) instead of once at
+   10:00 IST - user asked "will it only check at 10, or
+   during market hours?" and wanted the latter. Two
+   guards keep this from being wasteful/spammy:
+   1. If a Best Trade position is already open, the whole
+      scan is skipped that run (one locked pick per day,
+      unchanged).
+   2. No new position opens within 14:45-15:15 IST of the
+      square-off (LAST_ENTRY_CUTOFF in daily_best_trade.py)
+      - not enough runway left to call it intraday.
+   Every run still logs to the Excel "Best Trade" sheet
+   (audit trail), but Telegram only fires when a position
+   actually opens - otherwise 10 runs/day would mean 10
+   near-identical "no trade yet" pings.
+
+✅ [Same day, third follow-up] Live multi-timeframe entry
+   scanning + a 45-min open/close buffer, replacing the
+   30-min single-script design above. User wanted "check
+   every candle live, analyze, and trade" with 1m/5m/15m
+   combined (15m = trend, 5m = entry, 1m = timing - all
+   three must agree), and confirmed a trade should open 45
+   min after NSE opens and close 45 min before it shuts.
+
+   First design considered: one long-lived GitHub Actions
+   job per market-hours session (~6h, split into two since
+   a single job caps at 6h) looping internally every 60s.
+   Rejected after a validation pass found real problems:
+   yfinance's "batch" download is actually one HTTP
+   request per ticker, so a 60s loop across many symbols
+   for hours risks tripping Yahoo's rate limiting on
+   GitHub's shared runner IP range (breaking the *other*
+   existing scheduled scripts too, not just this one);
+   this repo's own workflow comments already document
+   `schedule` triggers slipping under load; and committing
+   mid-loop over several hours would need `git rebase`
+   handling to avoid non-fast-forward push failures.
+
+   Replaced with two cooperating stateless scripts instead
+   (same proven pattern this repo already relies on -
+   independent short runs handing off state via a
+   committed file, like paper_portfolio.json already does):
+   - refresh_shortlist.py (new) - the wide daily-interval
+     scan + news + option chain/decision, still every 30
+     min (+ one new pre-market run at 08:45 IST) via
+     .github/workflows/best_trade_report.yml, writing
+     reports/best_trade_shortlist.json.
+   - daily_best_trade.py (rewritten) - every ~5 min (new
+     .github/workflows/best_trade_entry_scan.yml - 5 min is
+     GitHub Actions' actual schedule floor, and also the
+     entry timeframe's own cadence, so there's no benefit
+     to tighter polling anyway). Reads the shortlist, checks
+     15m/5m/1m alignment per candidate
+     (strategy/multi_timeframe_engine.py, new), and - the
+     genuinely new capability - checks any already-open
+     position's Stop Loss/Target every run
+     (strategy/best_trade_paper_trading.check_open_position,
+     new) instead of only at the final square-off.
+   - ENTRY_START (10:00 IST) / LAST_ENTRY_CUTOFF (14:15
+     IST) in daily_best_trade.py, and the square-off time
+     itself moved from 15:15 to 14:45 IST (45 min before
+     NSE's 15:30 close, matching what the user asked for) -
+     analysis still runs and logs to Excel even before
+     10:00, only the actual position-open waits.
+   - All three Best Trade workflows now `git pull --rebase`
+     before committing - cheap insurance now that three
+     independently-scheduled workflows touch repo state
+     close together in time.
+
+✅ 11 more pytest tests (test_multi_timeframe_engine.py -
+   7 cases, pure alignment logic, aligned/not-aligned/
+   missing-data; 4 new cases in
+   test_best_trade_paper_trading.py for
+   check_open_position) - 96 total tests passing
+
 ==================================================
 
 Known Issues / Blockers
@@ -97,6 +197,25 @@ Known Issues / Blockers
   may be a more reliable Option Chain source than the
   free NSE scrape.
 
+• Resolved by the third follow-up above: Best Trade
+  positions now get checked every ~5 min all day (not
+  just at open/close), so a Stop Loss/Target touch is
+  caught close to when it happens instead of only being
+  discovered at the final square-off.
+
+• The rejected sleep-loop design's rate-limit math was
+  reasoned about, not measured against a live GitHub
+  Actions run - the shipped 5-min/30-min stateless design
+  is far more conservative, but genuinely confirming
+  yfinance behaves under the new schedule still needs a
+  few real days of scheduled runs to watch.
+
+• best_trade_shortlist.json (like the other two
+  portfolio files) is committed to git every run - worth
+  watching the first few days for any git-rebase
+  friction between the three Best Trade workflows now
+  that they run more frequently and closer together.
+
 ==================================================
 
 Development Rule
@@ -118,10 +237,16 @@ user's.
 
 Next Session
 
-1. Watch the first few scheduled Daily Best Trade
-   Report runs (10:00 IST) - confirm whether GitHub
-   Actions can reach the RSS feeds and whether NSE
-   still blocks the option chain from that network
+1. Watch the first few days of all three Best Trade
+   workflows (Shortlist Refresh every 30 min +
+   pre-market, Entry Scan every ~5 min, Square-Off at
+   14:45 IST) - confirm whether GitHub Actions can
+   reach the RSS feeds, whether NSE still blocks the
+   option chain from that network, that entries only
+   open between 10:00-14:15 IST as intended, that
+   Stop Loss/Target hits get caught intraday (not just
+   at square-off), and that the more frequent commits
+   across three workflows aren't hitting git conflicts
 
 2. Commit Desktop App (PySide6) and Android App
    (Flutter, mobile_app/) to the repo (carried over)
@@ -134,6 +259,13 @@ Next Session
 5. Tune the News Engine keyword lexicon and Best
    Trade Engine weighting once real daily picks can
    be compared against outcomes
+
+6. Once a few days of live 15m/5m/1m alignment picks
+   exist, review how often the shortlist (from
+   refresh_shortlist.py) actually produces an aligned
+   candidate - the shortlist size (6 stocks) or
+   alignment strictness may need tuning if entries are
+   very rare or too frequent
 
 ==================================================
 

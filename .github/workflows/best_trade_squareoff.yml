@@ -1,0 +1,45 @@
+name: Best Trade Square-Off
+
+on:
+  schedule:
+    # 09:15 UTC = 14:45 IST, Mon-Fri (45 min before NSE closes at 15:30 IST) -
+    # force-closes today's Best Trade paper position (if still open) so it
+    # never silently carries over to the next day. Matches
+    # daily_best_trade.py's LAST_ENTRY_CUTOFF (14:15 IST), which leaves a
+    # 30-min buffer before this runs.
+    - cron: '15 9 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  best-trade-squareoff:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run best trade square-off
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python square_off_best_trade.py
+
+      - name: Commit updated best trade portfolio state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin ${{ github.ref_name }} || true
+          git add reports/best_trade_portfolio.json
+          git diff --staged --quiet || git commit -m "Square off best trade [skip ci]"
+          git push

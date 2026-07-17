@@ -1,106 +1,255 @@
 import sys
+import os
+import json
+from datetime import datetime, timedelta, timezone
 
 # Force UTF-8 stdout so emoji in reports don't crash on Windows' default cp1252 console
 sys.stdout.reconfigure(encoding="utf-8")
 
-from data.watchlist import NIFTY_50_SYMBOLS, INDICES
-from strategy.watchlist_scanner import scan_watchlist
-from strategy.news_engine import get_market_news_sentiment, score_sentiment
-from strategy.option_chain_engine import get_option_chain_analysis
-from strategy.options_decision_engine import get_options_decision
+import yfinance as yf
+
 from strategy.best_trade_engine import rank_trade_candidates, pick_best_trade
-from strategy.report_engine import print_best_trade_report, format_best_trade_message
+from strategy.best_trade_paper_trading import (
+    load_best_trade_portfolio,
+    save_best_trade_portfolio,
+    open_best_trade,
+    check_open_position,
+)
+from strategy.multi_timeframe_engine import get_multi_timeframe_signal
+from strategy.risk_engine import calculate_atr_levels
+from strategy.report_engine import (
+    print_best_trade_report,
+    format_best_trade_message,
+    print_best_trade_squareoff,
+    format_best_trade_squareoff_message,
+)
 
 from report.telegram_notifier import send_telegram_message
 from report.excel_report import save_best_trade
 
-OPTION_CHAIN_SYMBOLS = {
-    "NIFTY 50": "NIFTY",
-    "BANK NIFTY": "BANKNIFTY",
-}
+from refresh_shortlist import SHORTLIST_FILE
+
+IST = timezone(timedelta(hours=5, minutes=30))
+
+# Don't open a position in the first 45 min after NSE opens (09:15 IST) -
+# opening-range volatility settles by then. Analysis/shortlist-checking
+# still runs before this - only the actual entry waits.
+ENTRY_START = (10, 0)
+
+# Stop opening new positions this close to the 14:45 IST square-off (see
+# square_off_best_trade.py / best_trade_squareoff.yml, itself 45 min before
+# NSE's 15:30 close) - a trade opened with only a few minutes of runway
+# before it gets force-closed isn't a real intraday trade, it's noise.
+LAST_ENTRY_CUTOFF = (14, 15)
 
 
-def build_options_candidates(index_results):
-    """
-    For every index in the watchlist scan (NIFTY 50, BANK NIFTY), pull
-    its option chain and turn (price-action bias + option chain) into
-    a CE/PE decision. Kept separate from equity scoring throughout -
-    see strategy/options_decision_engine.py.
-    """
+def _before_entry_start():
 
-    candidates = []
+    now_ist = datetime.now(IST)
+    start_hour, start_minute = ENTRY_START
 
-    for name, result in index_results.items():
+    return (now_ist.hour, now_ist.minute) < (start_hour, start_minute)
 
-        option_symbol = OPTION_CHAIN_SYMBOLS.get(name)
 
-        if option_symbol is None:
-            continue
+def _past_entry_cutoff():
 
-        chain_analysis = get_option_chain_analysis(option_symbol)
+    now_ist = datetime.now(IST)
+    cutoff_hour, cutoff_minute = LAST_ENTRY_CUTOFF
 
-        decision = get_options_decision(
-            result["Bias"],
-            result["Confidence"],
-            chain_analysis,
-        )
+    return (now_ist.hour, now_ist.minute) >= (cutoff_hour, cutoff_minute)
 
-        candidates.append({
-            "Name": name,
-            "Bias": result["Bias"],
-            "Decision": decision["Decision"],
-            "Confidence": decision["Confidence"],
-            "Reason": decision["Reason"],
-        })
 
-    return candidates
+def _fetch_current_price(symbol):
+
+    data = yf.download(symbol, period="5d", interval="1m", progress=False)
+
+    if data is None or data.empty:
+        return None
+
+    return float(data["Close"].iloc[-1])
 
 
 def main():
+    """
+    Runs every ~5 min through market hours (see .github/workflows/
+    best_trade_entry_scan.yml) - GitHub's actual schedule floor, and
+    also the cadence of the entry timeframe itself (5m), so there's no
+    benefit to checking more often for *new* entries. Each run either:
 
-    symbols = dict(INDICES)
+    1. Checks today's already-open Best Trade position against a fresh
+       price and closes it the moment Stop Loss/Target is hit (instead
+       of only discovering that at the 14:45 IST square-off), or
 
-    for ticker in NIFTY_50_SYMBOLS:
-        symbols[ticker.replace(".NS", "")] = ticker
+    2. If no position is open and it's before the entry cutoff, reads
+       the shortlist reports/best_trade_shortlist.json (written every
+       ~30 min by refresh_shortlist.py) and checks each shortlisted
+       stock's 15m/5m/1m alignment (strategy/multi_timeframe_engine.py)
+       - 15m sets the trend, 5m is the entry decision, 1m confirms
+       timing. Only aligned candidates are ranked; the day's index
+       options candidate (computed by refresh_shortlist.py, reused
+       as-is here - option chain/OI data is slow-moving and often
+       unavailable on cloud anyway) competes on the same scale.
 
-    print(f"Analyzing {len(symbols)} symbols (NIFTY 50 + BankNifty + Nifty50 companies)...")
+    A position closing early via Stop Loss/Target leaves the door open
+    for the very next run to find a new entry (still before the entry
+    cutoff) - "one locked pick" doesn't mean "one attempt no matter how
+    fast it resolves."
 
-    results = scan_watchlist(symbols, period="6mo", interval="1d")
+    The alignment analysis itself runs on every eligible run regardless
+    of time of day, but the actual position only opens between
+    ENTRY_START (10:00 IST, 45 min after NSE opens - lets opening-range
+    volatility settle) and LAST_ENTRY_CUTOFF (14:15 IST, 30 min before
+    the 14:45 IST square-off).
+    """
 
-    index_results = {r["Name"]: r for r in results if r["Name"] in INDICES}
-    stock_candidates = [r for r in results if r["Name"] not in INDICES]
+    portfolio = load_best_trade_portfolio()
 
-    print("Fetching news headlines...")
+    if portfolio["Position"] is not None:
+        monitor_open_position(portfolio)
+        return
 
-    market_news = get_market_news_sentiment(limit=50)
-    headline_pool = market_news["Headlines"]
+    if _past_entry_cutoff():
 
-    news_sentiment_by_symbol = {}
+        print(f"Past {LAST_ENTRY_CUTOFF[0]:02d}:{LAST_ENTRY_CUTOFF[1]:02d} IST entry cutoff - skipping scan this run.")
+        return
 
-    for candidate in stock_candidates:
-        news_sentiment_by_symbol[candidate["Name"]] = score_symbol_news(candidate["Name"], headline_pool)
+    shortlist = load_shortlist()
 
-    for name in index_results:
-        news_sentiment_by_symbol[name] = score_symbol_news(name, headline_pool)
+    if shortlist is None:
 
-    print("Fetching option chain analysis (NIFTY / BANKNIFTY)...")
+        print(f"No shortlist yet at {SHORTLIST_FILE} - skipping this run (refresh_shortlist.py hasn't run yet today).")
+        return
 
-    options_candidates = build_options_candidates(index_results)
+    scan_for_entry(portfolio, shortlist)
 
-    ranked = rank_trade_candidates(stock_candidates, options_candidates, news_sentiment_by_symbol)
+
+def monitor_open_position(portfolio):
+
+    symbol = portfolio["Position"]["Symbol"]
+    current_price = _fetch_current_price(symbol)
+
+    if current_price is None:
+
+        print(f"Could not fetch a current price for {symbol} - skipping this run.")
+        return
+
+    portfolio, action = check_open_position(portfolio, current_price)
+
+    if action == "HOLD":
+
+        print(f"Best Trade position ({portfolio['Position']['Name']}) holding - no Stop Loss/Target hit yet.")
+        return
+
+    save_best_trade_portfolio(portfolio)
+
+    closed_trade = portfolio["Closed Trades"][-1]
+
+    print_best_trade_squareoff(closed_trade, action)
+
+    message = format_best_trade_squareoff_message(closed_trade)
+    send_telegram_message(message)
+
+
+def load_shortlist():
+
+    if not os.path.exists(SHORTLIST_FILE):
+        return None
+
+    with open(SHORTLIST_FILE, "r") as f:
+        return json.load(f)
+
+
+def scan_for_entry(portfolio, shortlist):
+
+    print(f"Checking {len(shortlist['Stocks'])} shortlisted symbols for 15m/5m/1m alignment...")
+
+    aligned_candidates = []
+
+    for candidate in shortlist["Stocks"]:
+
+        signal = get_multi_timeframe_signal(candidate["Name"], candidate["Symbol"])
+
+        if not signal["Aligned"]:
+            continue
+
+        aligned_candidates.append({
+            "Name": signal["Name"],
+            "Symbol": signal["Symbol"],
+            "Decision": signal["Decision"],
+            "Bias": signal["Bias"],
+            "Confidence": signal["Confidence"],
+            "Price": signal["Price"],
+            "ATR": signal["ATR"],
+            "Candle Pattern": signal["5m"]["Candle Pattern"],
+        })
+
+    ranked = rank_trade_candidates(aligned_candidates, shortlist["Options"], shortlist["News"])
     result = pick_best_trade(ranked)
 
     print_best_trade_report(result)
 
+    # Always logged to Excel for a full audit trail of every check, but
+    # Telegram is reserved for an actual event (see below) so a 5-min
+    # cadence doesn't turn into dozens of "nothing happened" pings a day.
     save_best_trade(result)
 
-    message = format_best_trade_message(result)
-    send_telegram_message(message)
+    if _before_entry_start():
+
+        print(f"Before {ENTRY_START[0]:02d}:{ENTRY_START[1]:02d} IST entry start - analysis only, not opening a position yet.")
+        return
+
+    position_note, opened = open_equity_paper_position(portfolio, result["Best Trade"])
+
+    if opened:
+
+        message = format_best_trade_message(result, position_note)
+        send_telegram_message(message)
+
+    else:
+
+        print("No position opened this run - Telegram skipped (avoids repeat pings every ~5 min).")
 
 
-def score_symbol_news(name, headline_pool):
+def open_equity_paper_position(portfolio, best):
+    """
+    If today's locked pick is an equity trade, open it as today's single
+    Best Trade paper position (auto square-off ~14:45 IST via
+    square_off_best_trade.py - see strategy/best_trade_paper_trading.py).
+    Index option picks are never opened here - no reliable live premium
+    feed exists to mark P&L against, so they stay recommendation-only.
 
-    return score_sentiment(headline_pool, keywords=[name])
+    Returns
+    -------
+    position_note : str or None
+    opened : bool - True only when a new position was actually opened
+        this run (caller uses this to decide whether to notify).
+    """
+
+    if best is None:
+        return None, False
+
+    if best["Type"] != "Equity Intraday":
+        return "Index option pick - recommendation only, no live premium feed to track P&L.", False
+
+    stop_loss, target = calculate_atr_levels(best["Price"], best["ATR"], best["Decision"])
+
+    portfolio, action = open_best_trade(
+        portfolio, best["Name"], best["Symbol"], best["Decision"],
+        best["Price"], stop_loss, target
+    )
+
+    save_best_trade_portfolio(portfolio)
+
+    print(f"Best Trade paper position: {action}")
+
+    if action == "OPENED":
+        return (
+            f"Paper position OPENED @ {best['Price']} (SL {stop_loss:.2f} / Target {target:.2f}) "
+            "- checked every ~5 min, auto square-off ~14:45 IST if still open.",
+            True,
+        )
+
+    return "A Best Trade position is already open today - not opening another.", False
 
 
 if __name__ == "__main__":

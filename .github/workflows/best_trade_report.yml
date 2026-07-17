@@ -1,14 +1,25 @@
-name: Daily Best Trade Report
+name: Best Trade Shortlist Refresh
 
 on:
   schedule:
-    # 04:30 UTC = 10:00 IST, Mon-Fri (45 min after NSE opens at 09:15 IST,
-    # giving opening-range volatility time to settle before locking a pick)
-    - cron: '30 4 * * 1-5'
+    # 03:15 UTC = 08:45 IST, Mon-Fri - one pre-market run so a shortlist
+    # already exists by the time entries are allowed (10:00 IST) - analysis
+    # starts before the market even opens, not just once it's running.
+    - cron: '15 3 * * 1-5'
+    # :05/:35 past the hour, 04-08 UTC = ~09:35-14:05 IST, Mon-Fri, every 30
+    # min (offset from :00/:30 to avoid GitHub Actions' top-of-hour load,
+    # same reasoning as the watchlist paper trade cron) - keeps the
+    # shortlist's daily-interval trend/news/option-chain context refreshed
+    # while the market is open. daily_best_trade.py (every ~5 min) is what
+    # actually watches live 15m/5m/1m candles for entries between refreshes.
+    - cron: '5,35 4-8 * * 1-5'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  best-trade-report:
+  best-trade-shortlist:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,8 +34,17 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run daily best trade report
+      - name: Refresh best trade shortlist
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python daily_best_trade.py
+        run: python refresh_shortlist.py
+
+      - name: Commit updated shortlist
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin ${{ github.ref_name }} || true
+          git add reports/best_trade_shortlist.json
+          git diff --staged --quiet || git commit -m "Refresh best trade shortlist [skip ci]"
+          git push
