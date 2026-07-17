@@ -12,7 +12,7 @@ TURION AI Trader
 
 Version
 
-v0.0.8
+v0.0.9
 
 --------------------------------------------------
 
@@ -345,26 +345,46 @@ AUTOMATION (GitHub Actions - runs in cloud)
   positions (HDFCBANK, ICICIBANK, BAJFINANCE,
   SUNPHARMA, TITAN, BAJAJ-AUTO, TECHM)
 
+• CONFIRMED WORKING 17-Jul: all three Best Trade
+  workflows manually triggered on the real GitHub
+  Actions runner (via workflow_dispatch, ahead of
+  their first real scheduled firing) - Shortlist
+  Refresh succeeded first try (6 stock candidates,
+  2 option candidates, both News Engine and Option
+  Chain Engine reachable with no fetch errors).
+  Entry Scan and Square-Off both failed their first
+  try on an unrelated bug (see Known Issues → fixed),
+  then succeeded once re-triggered after the fix.
+
 ==================================================
 
 KNOWN ISSUES
 
-• Option Chain / OI still blocked from datacenter
-  IPs (NSE 403) on GitHub Actions - the new engine
-  detects this and returns "Available: False"
-  instead of crashing, but the Best Trade Engine
-  will only get real PCR/Max Pain confirmation
-  when run from a non-blocked (e.g. home) network.
+• FIXED 17-Jul: Best Trade Entry Scan and Square-Off
+  workflows crashed (`git add reports/
+  best_trade_portfolio.json` failing with "pathspec
+  did not match any files") on a repo where that file
+  had never been created yet - only discovered by
+  manually triggering the workflows instead of
+  waiting for Monday. Fixed with `git add <file> ||
+  true` in all three Best Trade workflows.
 
-• News Engine's RSS feeds (Moneycontrol/ET) were
-  blocked by this dev sandbox's outbound proxy
-  during testing (403) - unconfirmed whether
-  GitHub Actions' runners can reach them; watch
-  the first scheduled run's output for "Headlines
-  fetched: 0" to check.
+• RESOLVED 17-Jul (was: unconfirmed whether GitHub
+  Actions can reach NSE/RSS): confirmed via the manual
+  trigger above - both the Option Chain Engine and
+  News Engine fetched successfully from the real
+  GitHub Actions runner, no "Available: False" or
+  "Headlines fetched: 0" in the log. This dev
+  sandbox's proxy blocking those same domains during
+  earlier local testing was a sandbox-only artifact.
+  Still worth re-checking over a few real trading
+  days since NSE's IP blocking isn't perfectly
+  consistent.
 
-• TATAMOTORS.NS / LTIM.NS - no Yahoo data,
-  need correct symbols.
+• TATAMOTORS.NS / LTIM.NS - no Yahoo data
+  ("Quote not found" / delisted, reconfirmed on the
+  real GitHub Actions run 17-Jul), need correct
+  symbols.
 
 • 15m strategy still weak (needs tuning).
 
@@ -383,12 +403,14 @@ NEXT DEVELOPMENT PLAN
 
 Priority 1
 
-Run automated Paper Trading + new Daily Best
-Trade Report 1-2 weeks, review Telegram +
-Excel ("Best Trade" sheet) results - confirm
-whether GitHub Actions can reach the RSS news
-feeds and whether NSE still blocks the option
-chain from that network
+Run automated Paper Trading + the three Best
+Trade workflows for real over 1-2 weeks, review
+Telegram + Excel ("Best Trade" sheet) results -
+manual workflow_dispatch runs already confirmed
+each workflow individually (RSS/option chain
+reachable, git-add bug fixed), but real entries/
+exits on live intraday data and concurrent-cron
+behavior across all three still need observing
 
 --------------------------------------------------
 
@@ -477,11 +499,11 @@ Status
 
 Current Version
 
-v0.0.8
+v0.0.9
 
 Next Version
 
-v0.0.9
+v0.0.10
 
 ==================================================
 

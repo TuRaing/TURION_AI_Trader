@@ -18,7 +18,7 @@ Date
 
 Version
 
-v0.0.7 → v0.0.8
+v0.0.7 → v0.0.9
 
 ==================================================
 
@@ -173,25 +173,58 @@ Today's Achievements
    test_best_trade_paper_trading.py for
    check_open_position) - 96 total tests passing
 
+✅ [Same day, fourth follow-up] Manually triggered all
+   three Best Trade workflows via workflow_dispatch to
+   verify them for real instead of waiting for Monday's
+   first scheduled run - this immediately caught a real
+   bug: Best Trade Entry Scan and Best Trade Square-Off
+   both failed (Shortlist Refresh succeeded).
+
+   Root cause: on a repo where no Best Trade position has
+   ever been opened, reports/best_trade_portfolio.json
+   genuinely doesn't exist yet (the Python scripts only
+   call save_best_trade_portfolio() when there's actually
+   something to open/close). The workflows' `git add
+   reports/best_trade_portfolio.json` step had no guard
+   for that, so it failed with "fatal: pathspec ... did
+   not match any files" (exit 128) and took the whole job
+   down with it. Shortlist Refresh didn't hit this because
+   refresh_shortlist.py saves unconditionally every run.
+
+   Fix: `git add <file> || true` in all three Best Trade
+   workflows - a no-op when the file isn't there yet,
+   unchanged behavior once it exists. Shipped as PR #4,
+   merged, then re-triggered both previously-failed
+   workflows manually to confirm - both now succeed.
+
+✅ 11 more pytest tests
+   (test_daily_best_trade_timing.py) - fixed-clock
+   monkeypatch coverage for ENTRY_START/LAST_ENTRY_CUTOFF,
+   which had no tests until this manual test pass
+   surfaced the gap - 107 total tests passing
+
 ==================================================
 
 Known Issues / Blockers
 
-• Option Chain Engine still only gets real PCR/Max
-  Pain/OI data from a non-blocked network (NSE 403s
-  datacenter/cloud IPs, including this dev sandbox and
-  likely GitHub Actions too) - unconfirmed until the
-  first scheduled cloud run.
-
-• News Engine's RSS feeds (Moneycontrol/ET) were
-  blocked in this dev sandbox during testing - GitHub
-  Actions runners have open internet by default so
-  this is expected to work there, but unconfirmed
-  until the first scheduled run. Watch for "Headlines
-  fetched: 0" in the Action log.
+• RESOLVED (confirmed by the manual trigger above):
+  both the Option Chain Engine and News Engine ran
+  clean on the real GitHub Actions runner - the
+  "Refresh best trade shortlist" job log shows
+  "Shortlist saved: 6 stock candidates, 2 option
+  candidates" with no fetch-failure lines for either
+  news or option chain. This dev sandbox's proxy
+  blocking those domains was a sandbox-only artifact,
+  not representative of GitHub Actions' network - NSE
+  is reachable from GitHub's runners after all, at
+  least on this occasion. Worth re-confirming over a
+  few real trading days since NSE's blocking behavior
+  isn't perfectly consistent.
 
 • TATAMOTORS.NS / LTIM.NS still return no data from
-  Yahoo Finance - carried over, unresolved.
+  Yahoo Finance ("Quote not found" / delisted) -
+  confirmed again on the real GitHub Actions run,
+  carried over, unresolved.
 
 • Broker not yet selected - once chosen, its data API
   may be a more reliable Option Chain source than the
@@ -211,10 +244,19 @@ Known Issues / Blockers
   few real days of scheduled runs to watch.
 
 • best_trade_shortlist.json (like the other two
-  portfolio files) is committed to git every run - worth
-  watching the first few days for any git-rebase
-  friction between the three Best Trade workflows now
-  that they run more frequently and closer together.
+  portfolio files) is committed to git every run - all
+  three workflows were confirmed working individually via
+  manual `workflow_dispatch` runs, but not yet observed
+  running concurrently on their real overlapping cron
+  schedules - worth watching the first few days for any
+  git-rebase friction there.
+
+• Neither manual test run actually opened or closed a
+  Best Trade position (it was after both the 14:15 IST
+  entry cutoff and outside market hours) - the git-add
+  fix and the open/close code paths themselves are only
+  verified by unit tests so far, not a real end-to-end
+  open-then-close cycle on live data.
 
 ==================================================
 
@@ -237,16 +279,18 @@ user's.
 
 Next Session
 
-1. Watch the first few days of all three Best Trade
-   workflows (Shortlist Refresh every 30 min +
-   pre-market, Entry Scan every ~5 min, Square-Off at
-   14:45 IST) - confirm whether GitHub Actions can
-   reach the RSS feeds, whether NSE still blocks the
-   option chain from that network, that entries only
-   open between 10:00-14:15 IST as intended, that
-   Stop Loss/Target hits get caught intraday (not just
-   at square-off), and that the more frequent commits
-   across three workflows aren't hitting git conflicts
+1. Watch the first few real trading days of all three
+   Best Trade workflows on their actual cron schedules
+   (Shortlist Refresh every 30 min + pre-market, Entry
+   Scan every ~5 min, Square-Off at 14:45 IST) - manual
+   workflow_dispatch runs already confirmed each one
+   individually (including that GitHub Actions can reach
+   both the RSS feeds and the NSE option chain), but
+   still need to see: entries actually opening between
+   10:00-14:15 IST on live data, a Stop Loss/Target hit
+   getting caught intraday (not just at square-off), and
+   that concurrent/overlapping cron runs across three
+   workflows aren't hitting git-rebase conflicts
 
 2. Commit Desktop App (PySide6) and Android App
    (Flutter, mobile_app/) to the repo (carried over)
