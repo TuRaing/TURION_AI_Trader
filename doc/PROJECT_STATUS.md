@@ -294,8 +294,14 @@ AUTOMATION (GitHub Actions - runs in cloud)
                            :07/:22/:37/:52),
                            08:37-16:22 IST, Mon-Fri
 
-• Daily Best Trade Report → 10:00 IST, Mon-Fri
-                           (daily_best_trade.py)
+• Best Trade Report       → every ~30 min, ~09:35-14:05
+                           IST, Mon-Fri (daily_best_trade.py)
+                           - skips the scan once today's
+                           pick is already open, and stops
+                           opening new ones after 14:45 IST
+
+• Best Trade Square-Off   → 15:15 IST, Mon-Fri
+                           (square_off_best_trade.py)
 
 • Portfolio state auto-committed back to repo
 

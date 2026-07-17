@@ -97,6 +97,23 @@ Today's Achievements
    directions, missing-file/round-trip file I/O) - 85
    total tests passing
 
+✅ [Same day, second follow-up] Best Trade Report now
+   runs every ~30 min through market hours (~09:35-14:05
+   IST, offset :05/:35 past the hour) instead of once at
+   10:00 IST - user asked "will it only check at 10, or
+   during market hours?" and wanted the latter. Two
+   guards keep this from being wasteful/spammy:
+   1. If a Best Trade position is already open, the whole
+      scan is skipped that run (one locked pick per day,
+      unchanged).
+   2. No new position opens within 14:45-15:15 IST of the
+      square-off (LAST_ENTRY_CUTOFF in daily_best_trade.py)
+      - not enough runway left to call it intraday.
+   Every run still logs to the Excel "Best Trade" sheet
+   (audit trail), but Telegram only fires when a position
+   actually opens - otherwise 10 runs/day would mean 10
+   near-identical "no trade yet" pings.
+
 ==================================================
 
 Known Issues / Blockers
