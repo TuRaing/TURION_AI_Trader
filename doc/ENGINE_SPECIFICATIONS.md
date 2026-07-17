@@ -448,6 +448,19 @@ excel_report.save_best_trade - this engine
 itself only returns structured data, same as
 every other engine.
 
+If the locked pick is an equity trade, it is
+opened as a real intraday paper position
+(strategy/best_trade_paper_trading.py, its own
+reports/best_trade_portfolio.json - kept
+separate from strategy/paper_trading.py's
+swing-style watchlist positions) and force-
+closed before market shut by
+square_off_best_trade.py + .github/workflows/
+best_trade_squareoff.yml (15:15 IST). Index
+option picks are never opened this way - no
+reliable live premium feed exists to mark P&L
+against.
+
 ------------------------------------------
 
 ENGINE 10

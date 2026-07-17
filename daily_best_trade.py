@@ -9,6 +9,12 @@ from strategy.news_engine import get_market_news_sentiment, score_sentiment
 from strategy.option_chain_engine import get_option_chain_analysis
 from strategy.options_decision_engine import get_options_decision
 from strategy.best_trade_engine import rank_trade_candidates, pick_best_trade
+from strategy.best_trade_paper_trading import (
+    load_best_trade_portfolio,
+    save_best_trade_portfolio,
+    open_best_trade,
+)
+from strategy.risk_engine import calculate_atr_levels
 from strategy.report_engine import print_best_trade_report, format_best_trade_message
 
 from report.telegram_notifier import send_telegram_message
@@ -92,10 +98,46 @@ def main():
 
     print_best_trade_report(result)
 
+    position_note = open_equity_paper_position(result["Best Trade"])
+
     save_best_trade(result)
 
-    message = format_best_trade_message(result)
+    message = format_best_trade_message(result, position_note)
     send_telegram_message(message)
+
+
+def open_equity_paper_position(best):
+    """
+    If today's locked pick is an equity trade, open it as today's single
+    Best Trade paper position (auto square-off ~15:15 IST via
+    square_off_best_trade.py - see strategy/best_trade_paper_trading.py).
+    Index option picks are never opened here - no reliable live premium
+    feed exists to mark P&L against, so they stay recommendation-only.
+    """
+
+    if best is None:
+        return None
+
+    if best["Type"] != "Equity Intraday":
+        return "Index option pick - recommendation only, no live premium feed to track P&L."
+
+    portfolio = load_best_trade_portfolio()
+
+    stop_loss, target = calculate_atr_levels(best["Price"], best["ATR"], best["Decision"])
+
+    portfolio, action = open_best_trade(
+        portfolio, best["Name"], best["Symbol"], best["Decision"],
+        best["Price"], stop_loss, target
+    )
+
+    save_best_trade_portfolio(portfolio)
+
+    print(f"Best Trade paper position: {action}")
+
+    if action == "OPENED":
+        return f"Paper position OPENED @ {best['Price']} (SL {stop_loss:.2f} / Target {target:.2f}) - auto square-off ~15:15 IST if still open."
+
+    return "A Best Trade position is already open today - not opening another."
 
 
 def score_symbol_news(name, headline_pool):

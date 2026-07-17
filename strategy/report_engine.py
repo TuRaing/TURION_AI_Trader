@@ -371,7 +371,7 @@ def print_best_trade_report(result):
     print("----------------------------------------")
 
 
-def format_best_trade_message(result):
+def format_best_trade_message(result, position_note=None):
 
     lines = ["TURION AI Trader - Best Trade Of The Day"]
 
@@ -393,7 +393,45 @@ def format_best_trade_message(result):
     for r in result["Ranked"]:
         lines.append(f"  {r['Name']} ({r['Type']}) - {r['Decision']} ({r['Final Confidence']}%)")
 
+    if position_note:
+        lines.append(f"\n{position_note}")
+
     lines.append("\nRecommendation only - final action is yours.")
+
+    return "\n".join(lines)
+
+
+def print_best_trade_squareoff(closed_trade, action):
+
+    print("----------------------------------------")
+    print("       BEST TRADE SQUARE-OFF")
+    print("----------------------------------------")
+
+    if closed_trade is None:
+
+        print("No open Best Trade position to square off today.")
+
+    else:
+
+        print(f"{closed_trade['Name']} ({closed_trade['Direction']})")
+        print(f"Entry : {closed_trade['Entry Price']}")
+        print(f"Exit  : {closed_trade['Exit Price']}  ({closed_trade['Exit Reason']})")
+        print(f"PnL   : {closed_trade['PnL']}")
+
+    print("----------------------------------------")
+
+
+def format_best_trade_squareoff_message(closed_trade):
+
+    if closed_trade is None:
+        return "TURION AI Trader - Best Trade Square-Off\nNo open Best Trade position to square off today."
+
+    lines = [
+        "TURION AI Trader - Best Trade Square-Off",
+        f"{closed_trade['Name']} ({closed_trade['Direction']})",
+        f"Entry: {closed_trade['Entry Price']}  Exit: {closed_trade['Exit Price']} ({closed_trade['Exit Reason']})",
+        f"PnL: {closed_trade['PnL']}",
+    ]
 
     return "\n".join(lines)
 

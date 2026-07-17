@@ -73,6 +73,30 @@ Today's Achievements
    confirms the graceful-degradation design works as
    intended rather than assuming it would
 
+✅ [Same day, follow-up] Best Trade Paper Trading
+   (strategy/best_trade_paper_trading.py) - the daily
+   locked pick, if it's an equity trade, now opens as a
+   real intraday paper position (its own portfolio file,
+   reports/best_trade_portfolio.json, kept fully separate
+   from the existing swing-style watchlist paper trading
+   in strategy/paper_trading.py - that working module was
+   not touched) and force-closes before market shut via
+   a new square_off_best_trade.py script + .github/
+   workflows/best_trade_squareoff.yml (15:15 IST, 15 min
+   before NSE close) - at Stop Loss/Target if already
+   breached, otherwise at the current price ("Intraday
+   Square-Off"). This was a direct fix to the gap the
+   user flagged: without this, a locked pick would have
+   silently carried over to the next day like the
+   watchlist scanner's positions do. Index option (CE/PE)
+   picks are still recommendation-only, by design - no
+   reliable live premium feed exists to mark P&L against.
+
+✅ 11 more pytest tests (test_best_trade_paper_trading.py,
+   pure logic - open/square-off for both BUY and SELL
+   directions, missing-file/round-trip file I/O) - 85
+   total tests passing
+
 ==================================================
 
 Known Issues / Blockers
@@ -97,6 +121,13 @@ Known Issues / Blockers
   may be a more reliable Option Chain source than the
   free NSE scrape.
 
+• Best Trade square-off only checks the position twice
+  a day (open ~10:00 IST, force-close ~15:15 IST) - it
+  is not continuous intraday monitoring, so a SL/Target
+  touch and reversal in between could be missed; the
+  15:15 check only sees wherever the price is (or
+  whichever level is breached) at that moment.
+
 ==================================================
 
 Development Rule
@@ -119,9 +150,12 @@ user's.
 Next Session
 
 1. Watch the first few scheduled Daily Best Trade
-   Report runs (10:00 IST) - confirm whether GitHub
-   Actions can reach the RSS feeds and whether NSE
-   still blocks the option chain from that network
+   Report runs (10:00 IST) and Square-Off runs
+   (15:15 IST) - confirm whether GitHub Actions can
+   reach the RSS feeds, whether NSE still blocks the
+   option chain from that network, and that the
+   square-off fires and commits reports/
+   best_trade_portfolio.json correctly
 
 2. Commit Desktop App (PySide6) and Android App
    (Flutter, mobile_app/) to the repo (carried over)

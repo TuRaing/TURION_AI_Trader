@@ -221,6 +221,17 @@ EXTRA FEATURES (beyond original milestone list)
    "Claude never executes a real trade" rule
    applies.
 
+✅ Best Trade Paper Trading - if the locked
+   pick is an equity trade, it opens a real
+   intraday paper position (own portfolio file,
+   separate from the swing-style watchlist
+   paper trading) and force-closes by 15:15 IST
+   via square_off_best_trade.py + a second
+   GitHub Actions workflow, so it never silently
+   carries over like a swing trade. Index option
+   picks stay recommendation-only (no live
+   premium feed to mark P&L against).
+
 ==================================================
 
 CURRENT ARCHITECTURE
