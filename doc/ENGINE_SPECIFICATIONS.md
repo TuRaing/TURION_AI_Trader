@@ -300,6 +300,8 @@ ENGINE 9
 
 Option Chain Engine
 
+Status: Implemented (strategy/option_chain_engine.py) - 17-Jul-26
+
 Purpose
 
 Understand option market.
@@ -319,6 +321,132 @@ Max Pain
 IV
 
 Confidence
+
+Note
+
+NSE blocks datacenter/cloud IPs (403) - this
+engine returns real PCR/Max Pain/OI data only
+from a non-blocked network (e.g. run locally
+at home). On blocked networks (GitHub Actions
+included) it returns {"Available": False,
+"Reason": ...} instead of raising, so callers
+degrade gracefully.
+
+------------------------------------------
+
+ENGINE 13
+
+News Engine
+
+Status: Implemented (strategy/news_engine.py) - 17-Jul-26
+
+Purpose
+
+Read market sentiment from financial news
+headlines.
+
+Input
+
+RSS feeds (Moneycontrol, Economic Times -
+free, no API key)
+
+Output
+
+Headlines
+
+Positive / Negative / Neutral counts
+
+Sentiment (Bullish / Bearish / Neutral)
+
+Score
+
+Confidence
+
+Note
+
+Keyword-lexicon based, same transparent
+rule-based philosophy as the AI Decision
+Engine - not a trained NLP/ML model.
+
+------------------------------------------
+
+ENGINE 14
+
+Options Decision Engine
+
+Status: Implemented (strategy/options_decision_engine.py) - 17-Jul-26
+
+Purpose
+
+Decide BUY CE / BUY PE / NO TRADE for index
+options (NIFTY / BANKNIFTY intraday), combining
+index price-action bias with the Option Chain
+Engine's signal.
+
+Kept fully separate from equity
+signal_engine / ai_decision_engine /
+paper_trading, per project rule that options
+logic must never mix with normal stock/index
+signal logic.
+
+Input
+
+Index Bias + Confidence (from AI Decision
+Engine run on the index)
+
+Option Chain Engine output
+
+Output
+
+Decision (BUY CE / BUY PE / NO TRADE)
+
+Confidence
+
+Reason
+
+------------------------------------------
+
+ENGINE 15
+
+Best Trade Engine
+
+Status: Implemented (strategy/best_trade_engine.py) - 17-Jul-26
+
+Purpose
+
+Rank every cleared candidate of the day -
+Nifty 50 stocks (equity, from the Watchlist
+Scanner + AI Decision Engine) and index options
+(from the Options Decision Engine) - on one
+comparable confidence scale, adjusted by News
+Engine sentiment, and lock the single highest-
+probability intraday pick.
+
+Input
+
+Watchlist Scanner results (stocks)
+
+Options Decision Engine result (per index)
+
+News Engine sentiment (per symbol)
+
+Output
+
+Best Trade (Name, Type, Decision, Bias,
+Final Confidence)
+
+Reason
+
+Ranked shortlist (top 5)
+
+Orchestrated by daily_best_trade.py, scheduled
+via .github/workflows/best_trade_report.yml
+(10:00 IST, Mon-Fri). Presentation-only via
+report_engine.print_best_trade_report /
+format_best_trade_message and
+excel_report.save_best_trade - this engine
+itself only returns structured data, same as
+every other engine.
 
 ------------------------------------------
 

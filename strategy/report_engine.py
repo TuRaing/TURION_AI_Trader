@@ -338,6 +338,66 @@ def print_risk_levels(signal, stop_loss, target):
     print("----------------------------------------")
 
 
+def print_best_trade_report(result):
+
+    print("----------------------------------------")
+    print("       BEST TRADE OF THE DAY")
+    print("----------------------------------------")
+
+    best = result["Best Trade"]
+
+    if best is None:
+
+        print("No trade cleared today's bar.")
+        print(f"Reason: {result['Reason']}")
+
+    else:
+
+        print(f"{best['Name']} ({best['Type']})")
+        print(f"Decision   : {best['Decision']}")
+        print(f"Bias       : {best['Bias']}")
+        print(f"Confidence : {best['Final Confidence']}%")
+        print(f"Reason     : {result['Reason']}")
+
+    print()
+    print(f"Shortlist (top {len(result['Ranked'])})")
+    print("----------------------------------------")
+
+    for r in result["Ranked"]:
+        print(f"  {r['Name']:<20} {r['Type']:<20} {r['Decision']:<8} {r['Final Confidence']}%")
+
+    print("----------------------------------------")
+    print("Reminder: this is a recommendation only - final action is yours.")
+    print("----------------------------------------")
+
+
+def format_best_trade_message(result):
+
+    lines = ["TURION AI Trader - Best Trade Of The Day"]
+
+    best = result["Best Trade"]
+
+    if best is None:
+
+        lines.append(f"No trade cleared today's bar. {result['Reason']}")
+
+    else:
+
+        lines.append(f"\n{best['Name']} ({best['Type']})")
+        lines.append(f"Decision: {best['Decision']}")
+        lines.append(f"Bias: {best['Bias']}  Confidence: {best['Final Confidence']}%")
+        lines.append(f"Reason: {result['Reason']}")
+
+    lines.append("\nShortlist:")
+
+    for r in result["Ranked"]:
+        lines.append(f"  {r['Name']} ({r['Type']}) - {r['Decision']} ({r['Final Confidence']}%)")
+
+    lines.append("\nRecommendation only - final action is yours.")
+
+    return "\n".join(lines)
+
+
 def print_market_structure(structure):
 
     trend = structure["Trend Analysis"]

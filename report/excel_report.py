@@ -283,6 +283,92 @@ def save_market_summary(
     print("Excel Database Updated Successfully.")
 
 
+def save_best_trade(result):
+    """
+    Append one row to the "Best Trade" sheet for the day's locked pick
+    from strategy.best_trade_engine.pick_best_trade(...). Kept as its
+    own sheet/function rather than reusing save_market_summary - that
+    schema is tightly coupled to the single-symbol analysis row shape,
+    while this covers both equity and index-option picks.
+    """
+
+    os.makedirs("reports", exist_ok=True)
+
+    if os.path.exists(FILE_NAME):
+        workbook = load_workbook(FILE_NAME)
+
+    else:
+        workbook = Workbook()
+        workbook.active.title = "Market Summary"
+
+    if "Best Trade" in workbook.sheetnames:
+
+        sheet = workbook["Best Trade"]
+
+    else:
+
+        sheet = workbook.create_sheet("Best Trade")
+
+        sheet.append([
+            "Date", "Time", "Name", "Type", "Decision", "Bias",
+            "Final Confidence %", "Reason"
+        ])
+
+        blue_fill = PatternFill(fill_type="solid", start_color="1F4E78", end_color="1F4E78")
+        white_font = Font(bold=True, color="FFFFFF")
+        center = Alignment(horizontal="center", vertical="center")
+
+        for cell in sheet[1]:
+            cell.fill = blue_fill
+            cell.font = white_font
+            cell.alignment = center
+
+        widths = {"A": 12, "B": 10, "C": 22, "D": 20, "E": 12, "F": 10, "G": 16, "H": 50}
+
+        for col, width in widths.items():
+            sheet.column_dimensions[col].width = width
+
+        sheet.freeze_panes = "A2"
+
+    now = datetime.now()
+    best = result["Best Trade"]
+
+    if best is None:
+
+        sheet.append([
+            now.strftime("%d-%m-%Y"), now.strftime("%H:%M:%S"),
+            "-", "-", "NO TRADE", "-", "-", result["Reason"]
+        ])
+
+    else:
+
+        sheet.append([
+            now.strftime("%d-%m-%Y"), now.strftime("%H:%M:%S"),
+            best["Name"], best["Type"], best["Decision"], best["Bias"],
+            best["Final Confidence"], result["Reason"]
+        ])
+
+    green = PatternFill(fill_type="solid", start_color="C6EFCE", end_color="C6EFCE")
+    red = PatternFill(fill_type="solid", start_color="FFC7CE", end_color="FFC7CE")
+    gray = PatternFill(fill_type="solid", start_color="D9D9D9", end_color="D9D9D9")
+
+    decision_cell = sheet[f"E{sheet.max_row}"]
+    value = str(decision_cell.value).upper()
+
+    if "BUY" in value:
+        decision_cell.fill = green
+
+    elif "SELL" in value:
+        decision_cell.fill = red
+
+    else:
+        decision_cell.fill = gray
+
+    workbook.save(FILE_NAME)
+
+    print("Best Trade Excel Sheet Updated Successfully.")
+
+
 def update_dashboard(workbook, market_sheet):
 
     if "Dashboard" in workbook.sheetnames:
