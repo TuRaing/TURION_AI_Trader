@@ -1,20 +1,22 @@
-name: Best Trade Square-Off
+name: Best Trade Entry Scan
 
 on:
   schedule:
-    # 09:15 UTC = 14:45 IST, Mon-Fri (45 min before NSE closes at 15:30 IST) -
-    # force-closes today's Best Trade paper position (if still open) so it
-    # never silently carries over to the next day. Matches
-    # daily_best_trade.py's LAST_ENTRY_CUTOFF (14:15 IST), which leaves a
-    # 30-min buffer before this runs.
-    - cron: '15 9 * * 1-5'
+    # Every 5 min (GitHub's actual schedule floor), 03:50-09:15 UTC =
+    # ~09:20-14:45 IST, Mon-Fri. Runs from market open - the entry-timing
+    # gates (ENTRY_START 10:00 IST, LAST_ENTRY_CUTOFF 14:15 IST) live inside
+    # daily_best_trade.py itself, not in this cron schedule, so this can
+    # start as soon as the market opens and still do useful work (checking
+    # an already-open position's Stop Loss/Target, or just analysing without
+    # opening yet).
+    - cron: '*/5 3-9 * * 1-5'
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  best-trade-squareoff:
+  best-trade-entry-scan:
     runs-on: ubuntu-latest
 
     steps:
@@ -29,11 +31,11 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run best trade square-off
+      - name: Run best trade entry scan
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python square_off_best_trade.py
+        run: python daily_best_trade.py
 
       - name: Commit updated best trade portfolio state
         run: |
@@ -41,5 +43,5 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git pull --rebase origin ${{ github.ref_name }} || true
           git add reports/best_trade_portfolio.json
-          git diff --staged --quiet || git commit -m "Square off best trade [skip ci]"
+          git diff --staged --quiet || git commit -m "Update best trade portfolio [skip ci]"
           git push

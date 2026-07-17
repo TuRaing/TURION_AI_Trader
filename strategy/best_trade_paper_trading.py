@@ -92,26 +92,7 @@ def _exit_price_and_reason(position, current_price, force_close):
     return None, None
 
 
-def square_off_best_trade(portfolio, current_price):
-    """
-    Close today's open Best Trade position before market close - at
-    Stop Loss/Target if already breached, otherwise at the current
-    market price ("Intraday Square-Off"). This is what makes the Best
-    Trade pick a genuine same-day intraday trade instead of silently
-    carrying over to the next day.
-
-    Returns
-    -------
-    portfolio : dict
-    action : str
-    """
-
-    position = portfolio["Position"]
-
-    if position is None:
-        return portfolio, "NO POSITION"
-
-    exit_price, reason = _exit_price_and_reason(position, current_price, force_close=True)
+def _close_position(portfolio, position, exit_price, reason):
 
     if position["Direction"] == "BUY":
         pnl = (exit_price - position["Entry Price"]) * position["Quantity"]
@@ -137,3 +118,56 @@ def square_off_best_trade(portfolio, current_price):
     portfolio["Position"] = None
 
     return portfolio, f"CLOSED ({reason})"
+
+
+def check_open_position(portfolio, current_price):
+    """
+    Check today's open Best Trade position against the current price -
+    closes it only if Stop Loss/Target has actually been breached,
+    otherwise leaves it open ("HOLD"). Unlike square_off_best_trade,
+    this never force-closes at market price - it's meant to be called
+    often through the day (every ~5 min - see daily_best_trade.py) so a
+    Stop Loss/Target hit is caught close to when it actually happens,
+    instead of only being discovered at the 14:45 IST square-off.
+
+    Returns
+    -------
+    portfolio : dict
+    action : str
+    """
+
+    position = portfolio["Position"]
+
+    if position is None:
+        return portfolio, "NO POSITION"
+
+    exit_price, reason = _exit_price_and_reason(position, current_price, force_close=False)
+
+    if exit_price is None:
+        return portfolio, "HOLD"
+
+    return _close_position(portfolio, position, exit_price, reason)
+
+
+def square_off_best_trade(portfolio, current_price):
+    """
+    Close today's open Best Trade position before market close - at
+    Stop Loss/Target if already breached, otherwise at the current
+    market price ("Intraday Square-Off"). This is what makes the Best
+    Trade pick a genuine same-day intraday trade instead of silently
+    carrying over to the next day.
+
+    Returns
+    -------
+    portfolio : dict
+    action : str
+    """
+
+    position = portfolio["Position"]
+
+    if position is None:
+        return portfolio, "NO POSITION"
+
+    exit_price, reason = _exit_price_and_reason(position, current_price, force_close=True)
+
+    return _close_position(portfolio, position, exit_price, reason)

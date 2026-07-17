@@ -5,6 +5,7 @@ from strategy.best_trade_paper_trading import (
     load_best_trade_portfolio,
     open_best_trade,
     square_off_best_trade,
+    check_open_position,
 )
 
 
@@ -101,6 +102,45 @@ def test_square_off_sell_forces_close_at_market_price():
 def test_square_off_with_no_position_is_a_no_op():
     p = _empty()
     p, action = square_off_best_trade(p, 1000)
+
+    assert action == "NO POSITION"
+    assert p["Closed Trades"] == []
+
+
+# ---------------- check_open_position (non-forcing, called every ~5 min) ----------------
+
+def test_check_open_position_holds_when_neither_level_breached():
+    p = _empty()
+    p, _ = open_best_trade(p, "TCS", "TCS.NS", "BUY", 3800, 3760, 3900)
+    p, action = check_open_position(p, 3830)  # between SL and target
+
+    assert action == "HOLD"
+    assert p["Position"] is not None  # still open
+    assert p["Closed Trades"] == []
+
+
+def test_check_open_position_closes_on_stop_loss_hit():
+    p = _empty()
+    p, _ = open_best_trade(p, "TCS", "TCS.NS", "BUY", 3800, 3760, 3900)
+    p, action = check_open_position(p, 3700)  # below stop
+
+    assert action == "CLOSED (Stop Loss)"
+    assert p["Position"] is None
+    assert p["Closed Trades"][-1]["Exit Price"] == 3760
+
+
+def test_check_open_position_closes_on_target_hit():
+    p = _empty()
+    p, _ = open_best_trade(p, "TCS", "TCS.NS", "BUY", 3800, 3760, 3900)
+    p, action = check_open_position(p, 3950)  # above target
+
+    assert action == "CLOSED (Target)"
+    assert p["Closed Trades"][-1]["Exit Price"] == 3900
+
+
+def test_check_open_position_with_no_position_is_a_no_op():
+    p = _empty()
+    p, action = check_open_position(p, 1000)
 
     assert action == "NO POSITION"
     assert p["Closed Trades"] == []

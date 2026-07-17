@@ -211,23 +211,35 @@ EXTRA FEATURES (beyond original milestone list)
 ✅ Options Decision Engine (BUY CE / BUY PE,
    kept fully separate from equity signal logic)
 
-✅ Best Trade Engine + daily_best_trade.py +
-   GitHub Actions workflow (10:00 IST daily) -
-   ranks Nifty 50 stocks + NIFTY/BANKNIFTY
-   options + news sentiment on one scale and
-   locks the single highest-probability
-   intraday pick, with a top-5 shortlist as
-   backup context. Recommendation only - same
-   "Claude never executes a real trade" rule
-   applies.
+✅ Best Trade Engine + refresh_shortlist.py
+   (every 30 min, wide daily-interval scan) +
+   daily_best_trade.py (every ~5 min, live
+   15m/5m/1m alignment check) - ranks Nifty 50
+   stocks + NIFTY/BANKNIFTY options + news
+   sentiment on one scale and locks the single
+   highest-probability intraday pick, with a
+   top-5 shortlist as backup context.
+   Recommendation only - same "Claude never
+   executes a real trade" rule applies.
+
+✅ Multi-Timeframe Engine - 15-minute candles
+   set the trend, 5-minute candles are the
+   entry decision, 1-minute candles confirm
+   timing; a trade only fires when all three
+   agree. Replaced an earlier "check every 30
+   min" design after the user asked for
+   something closer to live/continuous checking.
 
 ✅ Best Trade Paper Trading - if the locked
    pick is an equity trade, it opens a real
    intraday paper position (own portfolio file,
    separate from the swing-style watchlist
-   paper trading) and force-closes by 15:15 IST
-   via square_off_best_trade.py + a second
-   GitHub Actions workflow, so it never silently
+   paper trading) between 10:00 IST and 14:15
+   IST, gets its Stop Loss/Target checked every
+   ~5 min all day (not just once at the end),
+   and force-closes by 14:45 IST via
+   square_off_best_trade.py + a third GitHub
+   Actions workflow, so it never silently
    carries over like a swing trade. Index option
    picks stay recommendation-only (no live
    premium feed to mark P&L against).
@@ -269,10 +281,18 @@ Telegram / Desktop App
 Separate daily path (options are never mixed
 into the equity path above):
 
-Watchlist Scan (stocks + indices)
-+ News Engine (RSS sentiment)
-+ Option Chain Engine → Options Decision Engine
-  (NIFTY / BANKNIFTY CE / PE)
+refresh_shortlist.py (every 30 min): Watchlist
+Scan (stocks + indices) + News Engine (RSS
+sentiment) + Option Chain Engine → Options
+Decision Engine (NIFTY / BANKNIFTY CE / PE)
+→ reports/best_trade_shortlist.json
+
+↓
+
+daily_best_trade.py (every ~5 min): reads the
+shortlist, checks 15m/5m/1m alignment per
+candidate (Multi-Timeframe Engine) + monitors
+any open position's Stop Loss/Target live
 
 ↓
 
@@ -294,13 +314,25 @@ AUTOMATION (GitHub Actions - runs in cloud)
                            :07/:22/:37/:52),
                            08:37-16:22 IST, Mon-Fri
 
-• Best Trade Report       → every ~30 min, ~09:35-14:05
-                           IST, Mon-Fri (daily_best_trade.py)
-                           - skips the scan once today's
-                           pick is already open, and stops
-                           opening new ones after 14:45 IST
+• Best Trade Shortlist    → every 30 min + one pre-market
+                           run at 08:45 IST, Mon-Fri
+                           (refresh_shortlist.py) - wide
+                           daily-interval scan + news +
+                           option chain, written to
+                           reports/best_trade_shortlist.json
 
-• Best Trade Square-Off   → 15:15 IST, Mon-Fri
+• Best Trade Entry Scan   → every ~5 min, ~09:20-14:45 IST,
+                           Mon-Fri (daily_best_trade.py) -
+                           checks shortlist candidates'
+                           15m/5m/1m alignment; only opens
+                           a position between 10:00 IST
+                           (ENTRY_START) and 14:15 IST
+                           (LAST_ENTRY_CUTOFF); monitors any
+                           open position's Stop Loss/Target
+                           every run regardless of time
+
+• Best Trade Square-Off   → 14:45 IST, Mon-Fri (45 min
+                           before NSE's 15:30 close)
                            (square_off_best_trade.py)
 
 • Portfolio state auto-committed back to repo

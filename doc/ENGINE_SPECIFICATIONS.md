@@ -439,27 +439,58 @@ Reason
 
 Ranked shortlist (top 5)
 
-Orchestrated by daily_best_trade.py, scheduled
-via .github/workflows/best_trade_report.yml
-(10:00 IST, Mon-Fri). Presentation-only via
+Split across two cooperating scripts (same-day
+follow-up, 17-Jul-26 - replaces the original
+single every-30-min daily_best_trade.py):
+
+refresh_shortlist.py (new) - the wide
+daily-interval scan_watchlist + News Engine +
+Option Chain/Options Decision Engine for both
+indices, every 30 min (.github/workflows/
+best_trade_report.yml, including one pre-market
+run at 08:45 IST) - writes the top 6 equity
+candidates + index options candidates + news
+sentiment to reports/best_trade_shortlist.json.
+
+daily_best_trade.py (rewritten) - every ~5 min
+(.github/workflows/best_trade_entry_scan.yml,
+GitHub Actions' actual schedule floor) - reads
+that shortlist and checks each candidate's
+15-minute/5-minute/1-minute alignment
+(strategy/multi_timeframe_engine.py: 15m = trend
+filter, 5m = entry decision, 1m = timing
+confirmation - a trade only fires when all three
+agree). Also monitors any already-open position
+every run, closing it the moment Stop Loss/
+Target is hit instead of waiting for the
+15:15/14:45 square-off.
+
+Presentation-only via
 report_engine.print_best_trade_report /
 format_best_trade_message and
 excel_report.save_best_trade - this engine
 itself only returns structured data, same as
 every other engine.
 
-If the locked pick is an equity trade, it is
-opened as a real intraday paper position
+If the locked pick is an equity trade, it opens
+between ENTRY_START (10:00 IST, 45 min after NSE
+opens) and LAST_ENTRY_CUTOFF (14:15 IST) as a
+real intraday paper position
 (strategy/best_trade_paper_trading.py, its own
 reports/best_trade_portfolio.json - kept
 separate from strategy/paper_trading.py's
 swing-style watchlist positions) and force-
 closed before market shut by
 square_off_best_trade.py + .github/workflows/
-best_trade_squareoff.yml (15:15 IST). Index
-option picks are never opened this way - no
-reliable live premium feed exists to mark P&L
-against.
+best_trade_squareoff.yml (14:45 IST, 45 min
+before NSE's 15:30 close). Index option picks
+are never opened this way - no reliable live
+premium feed exists to mark P&L against.
+
+A rejected earlier design (one long-lived
+GitHub Actions job per session, looping
+internally) was dropped after review - see
+doc/17jul26_SESSION_LOG.md for why.
 
 ------------------------------------------
 
