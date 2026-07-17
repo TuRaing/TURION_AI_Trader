@@ -1,0 +1,30 @@
+name: Daily Best Trade Report
+
+on:
+  schedule:
+    # 04:30 UTC = 10:00 IST, Mon-Fri (45 min after NSE opens at 09:15 IST,
+    # giving opening-range volatility time to settle before locking a pick)
+    - cron: '30 4 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  best-trade-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run daily best trade report
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python daily_best_trade.py

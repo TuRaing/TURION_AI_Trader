@@ -12,7 +12,7 @@ TURION AI Trader
 
 Version
 
-v0.0.7
+v0.0.8
 
 --------------------------------------------------
 
@@ -30,7 +30,7 @@ Project Started
 
 Last Updated
 
-13-Jul-2026
+17-Jul-2026
 
 --------------------------------------------------
 
@@ -46,9 +46,9 @@ PROJECT PROGRESS
 
 Overall Progress
 
-🟩🟩🟩🟩🟩🟩🟩⬜⬜⬜
+🟩🟩🟩🟩🟩🟩🟩🟩⬜⬜
 
-73%
+79%
 
 --------------------------------------------------
 
@@ -78,25 +78,27 @@ Status
 
 Trading Intelligence
 
-████████░░
+█████████░
 
-80%
+90%
 
 Status
 
-🟢 Paper Trading Live (automated)
+🟢 Paper Trading Live (automated) + Option Chain / Options
+   Decision Engine added
 
 --------------------------------------------------
 
 AI Intelligence
 
-██████░░░░
+███████░░░
 
-60%
+70%
 
 Status
 
-🟡 Weighted scoring done, ML pending
+🟡 Weighted scoring + News sentiment + cross-symbol
+   Best Trade ranking done, ML pending
 
 ==================================================
 
@@ -134,15 +136,23 @@ PROJECT MILESTONES
 
 ✅ ATR Engine
 
-⬜ Option Chain Engine        (blocked - NSE IP)
-
-⬜ Open Interest Engine       (blocked - NSE IP)
+✅ Option Chain Engine        (PCR/Max Pain/OI - real data
+                               needs a non-blocked network,
+                               degrades gracefully on NSE 403)
 
 ✅ AI Decision Engine         (weighted scoring)
 
 ✅ Paper Trading              (multi-symbol, automated)
 
 ✅ Backtesting
+
+✅ News Engine                (RSS sentiment, free feeds)
+
+✅ Options Decision Engine    (CE/PE, kept separate from
+                               equity signal/paper-trading logic)
+
+✅ Best Trade Engine          (ranks stocks + index options +
+                               news into one daily locked pick)
 
 ⬜ Broker Integration         (broker not selected)
 
@@ -158,7 +168,7 @@ PROJECT MILESTONES
 
 --------------------------------------------------
 
-Progress: 19 / 26 milestones done (~73%), 2 more in-progress
+Progress: 23 / 29 milestones done (~79%), 2 more in-progress
 (Desktop + Android both working locally, pending commit)
 
 ==================================================
@@ -189,6 +199,27 @@ EXTRA FEATURES (beyond original milestone list)
 ✅ Paper-trade cron reliability fix
    (:07/:22/:37/:52 offset avoids GitHub Actions
    top-of-hour scheduling load - PR #1)
+
+✅ News Engine (free RSS - Moneycontrol +
+   Economic Times, keyword sentiment scoring)
+
+✅ Option Chain Engine (PCR, Max Pain, OI
+   Call/Put Writing, IV - degrades gracefully
+   when NSE blocks the network instead of
+   crashing the pipeline)
+
+✅ Options Decision Engine (BUY CE / BUY PE,
+   kept fully separate from equity signal logic)
+
+✅ Best Trade Engine + daily_best_trade.py +
+   GitHub Actions workflow (10:00 IST daily) -
+   ranks Nifty 50 stocks + NIFTY/BANKNIFTY
+   options + news sentiment on one scale and
+   locks the single highest-probability
+   intraday pick, with a top-5 shortlist as
+   backup context. Recommendation only - same
+   "Claude never executes a real trade" rule
+   applies.
 
 ==================================================
 
@@ -224,6 +255,24 @@ Paper Trading Engine (multi-symbol)
 Report Engine → Console / Excel Dashboard /
 Telegram / Desktop App
 
+Separate daily path (options are never mixed
+into the equity path above):
+
+Watchlist Scan (stocks + indices)
++ News Engine (RSS sentiment)
++ Option Chain Engine → Options Decision Engine
+  (NIFTY / BANKNIFTY CE / PE)
+
+↓
+
+Best Trade Engine (ranks everything, locks
+one pick + top-5 shortlist)
+
+↓
+
+Report Engine → Console / Excel ("Best Trade"
+sheet) / Telegram
+
 ==================================================
 
 AUTOMATION (GitHub Actions - runs in cloud)
@@ -233,6 +282,9 @@ AUTOMATION (GitHub Actions - runs in cloud)
 • Watchlist Paper Trade  → every 15 min (offset
                            :07/:22/:37/:52),
                            08:37-16:22 IST, Mon-Fri
+
+• Daily Best Trade Report → 10:00 IST, Mon-Fri
+                           (daily_best_trade.py)
 
 • Portfolio state auto-committed back to repo
 
@@ -248,8 +300,19 @@ AUTOMATION (GitHub Actions - runs in cloud)
 
 KNOWN ISSUES
 
-• Option Chain / OI blocked from datacenter IPs
-  (NSE 403) - local/home run only.
+• Option Chain / OI still blocked from datacenter
+  IPs (NSE 403) on GitHub Actions - the new engine
+  detects this and returns "Available: False"
+  instead of crashing, but the Best Trade Engine
+  will only get real PCR/Max Pain confirmation
+  when run from a non-blocked (e.g. home) network.
+
+• News Engine's RSS feeds (Moneycontrol/ET) were
+  blocked by this dev sandbox's outbound proxy
+  during testing (403) - unconfirmed whether
+  GitHub Actions' runners can reach them; watch
+  the first scheduled run's output for "Headlines
+  fetched: 0" to check.
 
 • TATAMOTORS.NS / LTIM.NS - no Yahoo data,
   need correct symbols.
@@ -271,8 +334,12 @@ NEXT DEVELOPMENT PLAN
 
 Priority 1
 
-Run automated Paper Trading 1-2 weeks,
-review Telegram + Excel + Android app results
+Run automated Paper Trading + new Daily Best
+Trade Report 1-2 weeks, review Telegram +
+Excel ("Best Trade" sheet) results - confirm
+whether GitHub Actions can reach the RSS news
+feeds and whether NSE still blocks the option
+chain from that network
 
 --------------------------------------------------
 
@@ -293,14 +360,18 @@ Fix TATAMOTORS / LTIM ticker symbols
 Priority 4
 
 Select Broker (Upstox / Angel One - free API)
-→ Broker Integration
+→ Broker Integration (also unlocks a paid/
+reliable Option Chain data source as an
+alternative to the free NSE scrape)
 
 --------------------------------------------------
 
 Priority 5
 
-Option Chain / Open Interest Engine
-(run locally from home IP)
+Tune the News Engine's keyword lexicon and
+Best Trade Engine's weighting once 1-2 weeks
+of real daily picks can be compared against
+outcomes
 
 --------------------------------------------------
 
@@ -357,11 +428,11 @@ Status
 
 Current Version
 
-v0.0.7
+v0.0.8
 
 Next Version
 
-v0.0.8
+v0.0.9
 
 ==================================================
 
