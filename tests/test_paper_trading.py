@@ -1,7 +1,12 @@
 import json
 
 import strategy.paper_trading as pt
-from strategy.paper_trading import process_signal, load_portfolio
+from strategy.paper_trading import (
+    process_signal,
+    load_portfolio,
+    calculate_position_size,
+    run_watchlist_paper_trading,
+)
 
 
 def _empty():
@@ -83,3 +88,67 @@ def test_missing_file_returns_fresh_portfolio(tmp_path, monkeypatch):
     assert p["Cash"] == pt.INITIAL_CAPITAL
     assert p["Positions"] == {}
     assert p["Closed Trades"] == []
+
+
+# ---------------- calculate_position_size ----------------
+
+def test_position_size_at_floor_confidence_is_half_risk():
+    # 60% confidence -> half of base_risk_pct (2%) of equity
+    qty = calculate_position_size(60, price=100, equity=100000, base_risk_pct=2.0)
+    assert qty == int((100000 * 0.02 * 0.5) // 100)  # 10
+
+
+def test_position_size_at_full_confidence_is_full_risk():
+    qty = calculate_position_size(100, price=100, equity=100000, base_risk_pct=2.0)
+    assert qty == int((100000 * 0.02 * 1.0) // 100)  # 20
+
+
+def test_position_size_scales_between_floor_and_ceiling():
+    low = calculate_position_size(60, price=100, equity=100000)
+    mid = calculate_position_size(80, price=100, equity=100000)
+    high = calculate_position_size(100, price=100, equity=100000)
+    assert low < mid < high
+
+
+def test_position_size_never_zero_even_for_expensive_stock():
+    # 2% of 100000 = 2000, far less than one SHREECEM-priced share
+    qty = calculate_position_size(60, price=26515, equity=100000)
+    assert qty == 1
+
+
+def test_position_size_clamps_confidence_outside_expected_range():
+    # Below the 60% floor or above 100 should clamp, not extrapolate/invert
+    below = calculate_position_size(40, price=100, equity=100000)
+    above = calculate_position_size(120, price=100, equity=100000)
+    at_floor = calculate_position_size(60, price=100, equity=100000)
+    at_ceiling = calculate_position_size(100, price=100, equity=100000)
+    assert below == at_floor
+    assert above == at_ceiling
+
+
+# ---------------- MAX_CONCURRENT_POSITIONS ----------------
+
+def _fake_frame():
+    # analyze_symbol is monkeypatched below, so the frame content itself
+    # is irrelevant - just needs len() >= MIN_CANDLES.
+    return list(range(100))
+
+
+def test_max_concurrent_positions_blocks_new_entries_at_cap(monkeypatch, tmp_path):
+
+    symbols = {f"STOCK{i}": f"STOCK{i}.NS" for i in range(pt.MAX_CONCURRENT_POSITIONS + 3)}
+
+    monkeypatch.setattr(pt, "download_watchlist", lambda syms, period, interval: {name: _fake_frame() for name in syms})
+    monkeypatch.setattr(pt, "MIN_CANDLES", 1)
+    monkeypatch.setattr(
+        pt,
+        "analyze_symbol",
+        lambda frame: {"Price": 100, "Signal": "BUY", "Confidence": 80, "ATR": 2},
+    )
+    monkeypatch.setattr(pt, "PORTFOLIO_FILE", str(tmp_path / "portfolio.json"))
+
+    portfolio, events = run_watchlist_paper_trading(symbols)
+
+    assert len(portfolio["Positions"]) == pt.MAX_CONCURRENT_POSITIONS
+    opened_events = [e for e in events if e["Action"] == "OPENED BUY"]
+    assert len(opened_events) == pt.MAX_CONCURRENT_POSITIONS
