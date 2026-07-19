@@ -338,6 +338,49 @@ def print_risk_levels(signal, stop_loss, target):
     print("----------------------------------------")
 
 
+def print_multi_timeframe_backtest_report(symbol, result):
+
+    print("----------------------------------------")
+    print("       MULTI-TIMEFRAME (15m/5m) BACKTEST")
+    print("----------------------------------------")
+
+    print(f"Symbol : {symbol}")
+
+    if "Error" in result:
+
+        print(f"Error  : {result['Error']}")
+        print("----------------------------------------")
+        return
+
+    print(f"Aligned Candles : {result['Aligned Candles']} / {result['Total Entry Candles']}")
+
+    print()
+
+    print(f"Total Trades : {result['Total Trades']}")
+    print(f"Wins         : {result['Wins']}")
+    print(f"Losses       : {result['Losses']}")
+    print(f"Win Rate     : {result['Win Rate']}%")
+
+    print()
+
+    print(f"Total PnL    : {result['Total PnL']:.2f}")
+    print(f"Max Drawdown : {result['Max Drawdown']:.2f}")
+
+    print("----------------------------------------")
+
+    print("Exit Breakdown")
+
+    for reason, count in result["Exit Reasons"].items():
+        print(f"  {reason} : {count}")
+
+    print("----------------------------------------")
+    print("Note: tests the 15m/5m alignment core only - live entries also")
+    print("require 1m confirmation, which Yahoo's ~7-day 1m history is too")
+    print("short to backtest meaningfully. Analysis only, not wired into")
+    print("any paper trading.")
+    print("----------------------------------------")
+
+
 def print_best_trade_report(result):
 
     print("----------------------------------------")
