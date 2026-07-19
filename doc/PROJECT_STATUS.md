@@ -12,7 +12,7 @@ TURION AI Trader
 
 Version
 
-v0.0.9
+v0.0.10
 
 --------------------------------------------------
 
@@ -30,7 +30,7 @@ Project Started
 
 Last Updated
 
-17-Jul-2026
+19-Jul-2026
 
 --------------------------------------------------
 
@@ -244,6 +244,31 @@ EXTRA FEATURES (beyond original milestone list)
    picks stay recommendation-only (no live
    premium feed to mark P&L against).
 
+✅ Multi-Timeframe Backtest Tool (mtf_backtest.py,
+   19-Jul) - backtests the 15m(trend)/5m(entry)
+   alignment core of the Multi-Timeframe Engine.
+   Analysis only, never wired into paper trading -
+   the user explicitly wants 15m kept to context/
+   analysis, with 5m+ as the only timeframe that
+   can actually open a trade. See Known Issues for
+   what the sweep found.
+
+✅ Confidence-Based Position Sizing + Portfolio
+   Risk Cap (19-Jul, strategy/paper_trading.py) -
+   the Daily-timeframe watchlist strategy (the one
+   proven profitable in backtest) now sizes new
+   entries by risking 1-2% of current equity,
+   scaled by how far above the AI Decision Engine's
+   60% threshold the confidence is (60% -> half
+   risk, 100% -> full risk; always >=1 share so a
+   signal is never skipped for being expensive).
+   MAX_CONCURRENT_POSITIONS (15) blocks new entries
+   once the portfolio is already at capacity.
+   Backward compatible - the 14 positions already
+   open keep whatever quantity they were opened
+   with; only new entries going forward use the
+   new sizing.
+
 ==================================================
 
 CURRENT ARCHITECTURE
@@ -386,7 +411,26 @@ KNOWN ISSUES
   real GitHub Actions run 17-Jul), need correct
   symbols.
 
-• 15m strategy still weak (needs tuning).
+• 15m strategy CONFIRMED weak, 19-Jul: exhaustive
+  15-combo SL/Target sweep on NIFTY (fixed % - same
+  method as the profitable Daily-timeframe tuning)
+  was net-negative in every single case, best only
+  -259.67 PnL. Tuning parameters cannot fix this -
+  the entry signal itself has no edge on 15m alone.
+  15m must only be used as trend context, never as
+  a standalone signal (see mtf_backtest.py below).
+
+• Multi-Timeframe (15m/5m) alignment core also
+  tested standalone, 19-Jul: fixed %-based SL/Target
+  net-negative; best ATR-based combo (0.5x SL / 1.5x
+  Target) was roughly break-even (+4.00 PnL, 72
+  trades, 34.7% win rate) on NIFTY - no real edge
+  once real-world costs are considered. Conclusion:
+  do NOT drop the live Best Trade Engine's 1m
+  confirmation requirement - there is no backtest
+  evidence that would help, and 1m only ever narrows
+  candidates (adds selectivity), never creates false
+  positives on its own.
 
 • Desktop App + Android App verified working
   locally, but not yet committed to the repo.
@@ -499,11 +543,11 @@ Status
 
 Current Version
 
-v0.0.9
+v0.0.10
 
 Next Version
 
-v0.0.10
+v0.0.11
 
 ==================================================
 
