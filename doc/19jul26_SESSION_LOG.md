@@ -141,4 +141,75 @@ Next Session
 
 ==================================================
 
+Session Continued (same day, 19-Jul)
+
+Today's Achievements (part 2)
+
+✅ Rebuilt the Android app (mobile_app/) from a
+   single-screen Portfolio view into a 5-tab app
+   (Portfolio, Best trade, Watchlist, News, History)
+   - live clock header, disclaimer banners, hero PnL
+   stat, rupee formatting, event banner for the most
+   recent closed trade. Iterated the design with the
+   user via mockups before building, matching a
+   hand-drawn sketch they provided.
+
+✅ Added backend support the app needed:
+   - daily_best_trade.py: persist the daily locked
+     pick to reports/best_trade_pick.json (was
+     Excel/Telegram-only before)
+   - news_engine.py / refresh_shortlist.py:
+     per-headline sentiment tagging, persisted to
+     best_trade_shortlist.json's new "Market
+     Headlines" key
+   - paper_trading.py: stash Last Price/Last Checked
+     on open positions every 15-min check, so the
+     app can show live up/down without a separate
+     price feed
+
+✅ Added a "BUY" tag to each open-position card -
+   the watchlist paper-trading engine only ever
+   opens on a BUY signal (never SELL/short), so
+   every open position is long by construction.
+
+✅ Diagnosed and fixed an "App not installed" error
+   after transferring the APK via WhatsApp - ruled
+   out both a signing mismatch (old app uninstalled,
+   still failed) and file corruption (verified zip
+   integrity + byte-identical file, the 155 MB vs
+   162 MB the user saw was just MiB vs MB display,
+   not real data loss). Root cause found via
+   `adb install` returning the real Android installer
+   error: INSTALL_FAILED_INSUFFICIENT_STORAGE (phone
+   was at 99% storage, 1.4 GB free). User freed
+   space, install succeeded.
+
+✅ Committed and merged feature/mobile-app-5-tabs
+   into main, pushed to origin (fast-forward, no
+   conflicts - confirmed no other session's commits
+   were ahead on main first, per CLAUDE.md).
+
+✅ Discussed live-data architecture with the user:
+   clarified the app is 15-min-lag "near-live" (reads
+   static GitHub raw JSON, refreshed by scheduled
+   GitHub Actions) rather than true real-time, and
+   what true real-time would require (broker API +
+   an always-on backend, ~₹0-2500/month depending on
+   broker). Also confirmed for the user that neither
+   a trained ML model nor automated broker execution
+   exists yet - the "AI" Decision Engine is a
+   transparent rule-based weighted scorer, and
+   automated real-money execution is permanently out
+   of scope per CLAUDE.md regardless of broker
+   integration.
+
+✅ User decided the next-steps sequence: run the
+   current Daily-strategy paper trading for 1 more
+   week (review ~26-Jul), then design + test an
+   intraday strategy, then decide on broker/live-data
+   work - see doc/PROJECT_STATUS.md Next Development
+   Plan.
+
+==================================================
+
 END OF SESSION

@@ -12,7 +12,7 @@ TURION AI Trader
 
 Version
 
-v0.0.10
+v0.0.11
 
 --------------------------------------------------
 
@@ -158,9 +158,11 @@ PROJECT MILESTONES
 
 🟡 Desktop Dashboard          (PySide6 built + verified, not committed)
 
-🟡 Android App                (Flutter APK built, installed on phone,
-                               reads live Portfolio from GitHub - not
-                               committed to repo yet)
+✅ Android App                (Flutter, 5 tabs - Portfolio/Best trade/
+                               Watchlist/News/History - committed and
+                               merged to main 19-Jul, installed on
+                               phone via adb, reads GitHub raw JSON,
+                               refreshed every 15 min by GitHub Actions)
 
 ⬜ Algorithmic Trading        (needs broker)
 
@@ -168,8 +170,8 @@ PROJECT MILESTONES
 
 --------------------------------------------------
 
-Progress: 23 / 29 milestones done (~79%), 2 more in-progress
-(Desktop + Android both working locally, pending commit)
+Progress: 24 / 29 milestones done (~83%), 1 more in-progress
+(Desktop App working locally, pending commit)
 
 ==================================================
 
@@ -432,8 +434,19 @@ KNOWN ISSUES
   candidates (adds selectivity), never creates false
   positives on its own.
 
-• Desktop App + Android App verified working
-  locally, but not yet committed to the repo.
+• Desktop App verified working locally, but not yet
+  committed to the repo. (Android App committed
+  19-Jul - see milestone above.)
+
+• "App not installed" installing the Android APK via
+  WhatsApp self-chat, even after uninstalling the
+  previous version - turned out to be
+  INSTALL_FAILED_INSUFFICIENT_STORAGE (phone at 99%
+  storage), not a signing or transfer-corruption
+  issue. `adb install` over USB surfaces the real
+  Android installer error instead of the generic
+  Play Store dialog - worth reaching for first next
+  time this happens instead of guessing.
 
 • A separate Claude session (branch
   claude/tula-repocha-actress-hob5j0) fixed the
@@ -447,41 +460,50 @@ NEXT DEVELOPMENT PLAN
 
 Priority 1
 
-Run automated Paper Trading + the three Best
-Trade workflows for real over 1-2 weeks, review
-Telegram + Excel ("Best Trade" sheet) results -
-manual workflow_dispatch runs already confirmed
-each workflow individually (RSS/option chain
-reachable, git-add bug fixed), but real entries/
-exits on live intraday data and concurrent-cron
-behavior across all three still need observing
+Run the Daily-timeframe watchlist paper trading
+(with confidence-based sizing + risk cap) for
+1 more week - review ~26-Jul via the Android app's
+History tab / reports/paper_portfolio.json. Agreed
+with the user 19-Jul: don't start intraday-strategy
+design or broker/live-data work before this review.
 
 --------------------------------------------------
 
 Priority 2
 
-Commit Desktop App (PySide6) + Android App
-(Flutter, mobile_app/) to the repo,
-package Desktop as .exe (PyInstaller)
+Once Priority 1 is reviewed: design + backtest an
+intraday strategy (Opening-Range-Breakout or
+VWAP-based, not the reused EMA/RSI swing logic -
+flagged earlier as a bigger, ~2-3 hour task)
 
 --------------------------------------------------
 
 Priority 3
 
-Fix TATAMOTORS / LTIM ticker symbols
+Commit Desktop App (PySide6) to the repo,
+package as .exe (PyInstaller)
 
 --------------------------------------------------
 
 Priority 4
 
-Select Broker (Upstox / Angel One - free API)
-→ Broker Integration (also unlocks a paid/
-reliable Option Chain data source as an
-alternative to the free NSE scrape)
+Fix TATAMOTORS / LTIM ticker symbols
 
 --------------------------------------------------
 
 Priority 5
+
+Only after Priority 1 + 2: select Broker (Upstox /
+Angel One - free API) → Broker Integration (also
+unlocks a paid/reliable Option Chain data source,
+and is the prerequisite for true live/real-time
+data instead of the current 15-min GitHub Actions
+refresh - discussed cost with the user 19-Jul,
+roughly ₹0-2500/month depending on broker chosen)
+
+--------------------------------------------------
+
+Priority 6
 
 Tune the News Engine's keyword lexicon and
 Best Trade Engine's weighting once 1-2 weeks
@@ -490,9 +512,12 @@ outcomes
 
 --------------------------------------------------
 
-Priority 6
+Priority 7
 
-Algorithmic Trading (after broker, user-supervised)
+Algorithmic Trading (after broker, user-supervised -
+Claude never executes a real trade regardless; this
+would be the user's own automation on top of broker
+APIs, not something Claude does)
 
 ==================================================
 
@@ -543,11 +568,11 @@ Status
 
 Current Version
 
-v0.0.10
+v0.0.11
 
 Next Version
 
-v0.0.11
+v0.0.12
 
 ==================================================
 
