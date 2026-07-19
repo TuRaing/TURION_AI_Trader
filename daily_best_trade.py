@@ -31,6 +31,25 @@ from refresh_shortlist import SHORTLIST_FILE
 
 IST = timezone(timedelta(hours=5, minutes=30))
 
+BEST_TRADE_PICK_FILE = "reports/best_trade_pick.json"
+
+
+def save_best_trade_pick(result):
+    """
+    Persist the latest pick_best_trade() result to JSON - Excel/Telegram
+    already got it, but neither is machine-readable for the mobile app's
+    Best Trade tab. Overwritten every scan (every ~5 min), so this always
+    reflects the most recent check, not a history of past picks.
+    """
+
+    os.makedirs("reports", exist_ok=True)
+
+    payload = dict(result)
+    payload["Checked At"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    with open(BEST_TRADE_PICK_FILE, "w") as f:
+        json.dump(payload, f, indent=2, default=str)
+
 # Don't open a position in the first 45 min after NSE opens (09:15 IST) -
 # opening-range volatility settles by then. Analysis/shortlist-checking
 # still runs before this - only the actual entry waits.
@@ -192,6 +211,7 @@ def scan_for_entry(portfolio, shortlist):
     # Telegram is reserved for an actual event (see below) so a 5-min
     # cadence doesn't turn into dozens of "nothing happened" pings a day.
     save_best_trade(result)
+    save_best_trade_pick(result)
 
     if _before_entry_start():
 

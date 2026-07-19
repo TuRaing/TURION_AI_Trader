@@ -157,6 +157,15 @@ def process_signal(portfolio, symbol, signal, price, stop_loss=None, target=None
 
             action = f"CLOSED ({reason})"
 
+        else:
+
+            # Updated: 2026-07-19 - stash the last-seen price on the position
+            # itself (checked every 15 min by run_watchlist_paper_trading)
+            # so the mobile app can show live up/down without a separate
+            # live-price feed.
+            position["Last Price"] = price
+            position["Last Checked"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
     return portfolio, action
 
 
