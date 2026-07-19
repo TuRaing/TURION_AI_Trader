@@ -1,4 +1,4 @@
-from strategy.news_engine import score_sentiment
+from strategy.news_engine import score_sentiment, classify_headline_sentiment
 
 
 def test_all_positive_headlines_is_bullish():
@@ -70,3 +70,19 @@ def test_headline_with_both_positive_and_negative_words_is_neutral():
     assert result["Positive"] == 0
     assert result["Negative"] == 0
     assert result["Neutral"] == 1
+
+
+def test_classify_headline_sentiment_bullish():
+    assert classify_headline_sentiment("Nifty rallies to record high") == "Bullish"
+
+
+def test_classify_headline_sentiment_bearish():
+    assert classify_headline_sentiment("Markets crash on weak data") == "Bearish"
+
+
+def test_classify_headline_sentiment_neutral_when_irrelevant():
+    assert classify_headline_sentiment("RBI holds policy meeting on Thursday") == "Neutral"
+
+
+def test_classify_headline_sentiment_neutral_when_mixed():
+    assert classify_headline_sentiment("Stock gains initially before crash in late trade") == "Neutral"

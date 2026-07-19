@@ -8,7 +8,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 
 from data.watchlist import NIFTY_50_SYMBOLS, INDICES
 from strategy.watchlist_scanner import scan_watchlist
-from strategy.news_engine import get_market_news_sentiment, score_sentiment
+from strategy.news_engine import get_market_news_sentiment, score_sentiment, classify_headline_sentiment
 from strategy.option_chain_engine import get_option_chain_analysis
 from strategy.options_decision_engine import get_options_decision
 
@@ -113,11 +113,20 @@ def main():
 
     shortlisted_stocks = [c for c in stock_candidates if c["Decision"] in ("BUY", "SELL")][:SHORTLIST_SIZE]
 
+    # Updated: 2026-07-19 - per-headline tags (not just the aggregate score
+    # already in news_sentiment_by_symbol) so the mobile app's News tab can
+    # show real headlines instead of only a per-stock number.
+    market_headlines = [
+        {"Headline": h, "Sentiment": classify_headline_sentiment(h)}
+        for h in headline_pool
+    ]
+
     shortlist = {
         "Generated At": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "Stocks": shortlisted_stocks,
         "Options": options_candidates,
         "News": news_sentiment_by_symbol,
+        "Market Headlines": market_headlines,
     }
 
     save_shortlist(shortlist)

@@ -129,6 +129,32 @@ def score_sentiment(headlines, keywords=None):
     }
 
 
+def classify_headline_sentiment(headline):
+    """
+    Single-headline Bullish/Bearish/Neutral tag using the same keyword
+    lexicon as score_sentiment(), for UI display (e.g. the mobile app's
+    News tab) where each headline needs its own tag rather than an
+    aggregate score.
+
+    Returns
+    -------
+    str
+    """
+
+    text = headline.lower()
+
+    is_positive = any(word in text for word in POSITIVE_WORDS)
+    is_negative = any(word in text for word in NEGATIVE_WORDS)
+
+    if is_positive and not is_negative:
+        return "Bullish"
+
+    if is_negative and not is_positive:
+        return "Bearish"
+
+    return "Neutral"
+
+
 def get_market_news_sentiment(keywords=None, limit=30):
     """
     I/O convenience wrapper: fetch + score in one call.
