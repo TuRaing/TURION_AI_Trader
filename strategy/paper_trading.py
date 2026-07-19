@@ -9,6 +9,41 @@ PORTFOLIO_FILE = "reports/paper_portfolio.json"
 INITIAL_CAPITAL = 100000
 QUANTITY = 1
 
+# Updated: 2026-07-19 - position sizing / portfolio-risk limits for the
+# Daily-timeframe watchlist strategy (the one with a proven backtest edge -
+# see doc/PROJECT_STATUS.md). Both only affect new entries; every already-
+# open position keeps whatever quantity it was opened with.
+BASE_RISK_PCT = 2.0
+CONFIDENCE_FLOOR = 60
+CONFIDENCE_CEILING = 100
+MAX_CONCURRENT_POSITIONS = 15
+
+
+def calculate_position_size(confidence, price, equity, base_risk_pct=BASE_RISK_PCT):
+    """
+    Risk a slice of current account equity per trade, scaled by how far
+    above the AI Decision Engine's 60% entry threshold the confidence is:
+    60% confidence risks half of base_risk_pct, 100% confidence risks the
+    full base_risk_pct. Equity (not the fixed starting capital) is used so
+    risk compounds with realized gains/losses, same as standard account
+    risk management.
+
+    Always returns at least 1 share - this is paper money, so the point
+    is behavioral realism about scaling risk with confidence, not
+    silently skipping a signal just because the stock is expensive.
+
+    Returns
+    -------
+    int
+    """
+
+    fraction = max(0.0, min(1.0, (confidence - CONFIDENCE_FLOOR) / (CONFIDENCE_CEILING - CONFIDENCE_FLOOR)))
+    scale = 0.5 + 0.5 * fraction
+
+    risk_amount = equity * (base_risk_pct / 100) * scale
+
+    return max(1, int(risk_amount // price))
+
 
 def load_portfolio():
 
@@ -128,9 +163,11 @@ def process_signal(portfolio, symbol, signal, price, stop_loss=None, target=None
 def run_watchlist_paper_trading(symbols, period="6mo", interval="1d"):
     """
     Scan every symbol in the watchlist and update the paper portfolio -
-    opens a new position on a BUY signal (if none open for that symbol),
-    or closes an existing one on Stop-Loss/Target/SELL. Each symbol's
-    position is independent, so several can be open at once.
+    opens a new position on a BUY signal (if none open for that symbol
+    and the portfolio is under MAX_CONCURRENT_POSITIONS), sized by
+    calculate_position_size(), or closes an existing one on Stop-Loss/
+    Target/SELL. Each symbol's position is independent, so several can
+    be open at once.
 
     Parameters
     ----------
@@ -164,15 +201,24 @@ def run_watchlist_paper_trading(symbols, period="6mo", interval="1d"):
             price = analysis["Price"]
             signal = analysis["Signal"]
 
-            if portfolio["Positions"].get(name) is None and signal == "BUY":
+            is_new_entry = portfolio["Positions"].get(name) is None and signal == "BUY"
+
+            if is_new_entry and len(portfolio["Positions"]) >= MAX_CONCURRENT_POSITIONS:
+
+                # At the portfolio-risk cap - skip this new entry (existing
+                # positions above/below still get checked normally).
+                continue
+
+            if is_new_entry:
 
                 stop_loss, target = calculate_atr_levels(price, analysis["ATR"], "BUY")
+                quantity = calculate_position_size(analysis["Confidence"], price, portfolio["Cash"])
 
             else:
 
-                stop_loss, target = None, None
+                stop_loss, target, quantity = None, None, QUANTITY
 
-            portfolio, action = process_signal(portfolio, name, signal, price, stop_loss, target)
+            portfolio, action = process_signal(portfolio, name, signal, price, stop_loss, target, quantity)
 
             if action != "HOLD":
                 events.append({"Name": name, "Action": action, "Price": price})
