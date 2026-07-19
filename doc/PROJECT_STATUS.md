@@ -448,6 +448,28 @@ KNOWN ISSUES
   Play Store dialog - worth reaching for first next
   time this happens instead of guessing.
 
+• CONFIRMED 20-Jul: GitHub Actions' free-tier cron
+  scheduler badly under-fires the Best Trade Entry
+  Scan workflow's every-5-min schedule (`*/5 3-9 * *
+  1-5`, meant to fire ~84x during 08:30-15:30 IST
+  market hours). Checked via the public GitHub REST
+  API (no login needed): only 3 runs actually fired
+  all day - 11:47 IST, 3:08 IST, and 5:33 IST (the
+  last one outside the configured 3-9 UTC window
+  entirely, meaning it was queued for hours before
+  running). Only one of those three landed inside the
+  10:00-14:15 IST entry window, which is almost
+  certainly why the Best Trade Engine has opened zero
+  real positions so far - it isn't getting the number
+  of chances the design assumes, not a strategy/logic
+  problem. This is a known GitHub Actions limitation
+  on low-traffic public repos with very frequent
+  schedules, not something fixable in our code -
+  likely needs an external trigger (e.g. a free
+  cron-ping service hitting workflow_dispatch via the
+  GitHub API) if reliable 5-min cadence is required
+  before pursuing broker integration.
+
 • A separate Claude session (branch
   claude/tula-repocha-actress-hob5j0) fixed the
   Telegram/cron issue in parallel - merged as PR #1.
