@@ -470,6 +470,29 @@ KNOWN ISSUES
   GitHub API) if reliable 5-min cadence is required
   before pursuing broker integration.
 
+• CONFIRMED 20-Jul: same under-firing pattern on
+  Watchlist Paper Trade Check (`paper_trade.yml`,
+  cron `7,22,37,52 3-10 * * 1-5` - every 15 min,
+  meant to fire ~32x during 08:30-16:00 IST). Checked
+  the last 15 runs via the public GitHub REST API:
+  every single trading day (15/16/17/20-Jul) got only
+  ~4 runs, roughly 2 hours apart, never the intended
+  15-min cadence - e.g. 20-Jul: 11:35, 15:13, 17:35
+  IST. This is consistent day over day, not a one-off
+  delay, so it looks like a hard ceiling GitHub applies
+  to this repo's scheduled-workflow frequency
+  regardless of the cron granularity requested (5 min
+  and 15 min schedules both landed at ~2-hour spacing).
+  Effect on Watchlist Paper Trading: Stop-Loss/Target
+  hits are still detected correctly (a breached level
+  is still a breached level whenever the next run
+  checks it), but the recorded Exit Time/Price can lag
+  the real intraday move by up to ~2 hours, and
+  Last Price/Last Checked on open positions is only as
+  fresh as the last run, not truly 15-min-live. Same
+  root cause and same possible fix (external trigger)
+  as the Best Trade Entry Scan issue above.
+
 • A separate Claude session (branch
   claude/tula-repocha-actress-hob5j0) fixed the
   Telegram/cron issue in parallel - merged as PR #1.
