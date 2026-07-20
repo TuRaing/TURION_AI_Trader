@@ -1,10 +1,20 @@
 {
-  "Generated At": "2026-07-20 06:27:54",
+  "Generated At": "2026-07-20 06:49:05",
   "Stocks": [
+    {
+      "Name": "ULTRACEMCO",
+      "Symbol": "ULTRACEMCO.NS",
+      "Price": 11815.0,
+      "Decision": "BUY",
+      "Bias": "Bullish",
+      "Confidence": 80.0,
+      "ATR": 206.5,
+      "Candle Pattern": "Hammer"
+    },
     {
       "Name": "APOLLOHOSP",
       "Symbol": "APOLLOHOSP.NS",
-      "Price": 8888.5,
+      "Price": 8885.0,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 80.0,
@@ -14,7 +24,7 @@
     {
       "Name": "BHARTIARTL",
       "Symbol": "BHARTIARTL.NS",
-      "Price": 1935.6,
+      "Price": 1934.3,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 60.0,
@@ -24,37 +34,27 @@
     {
       "Name": "LT",
       "Symbol": "LT.NS",
-      "Price": 3814.6,
+      "Price": 3817.7,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
       "ATR": 71.04,
-      "Candle Pattern": "Doji"
+      "Candle Pattern": "No Pattern"
     },
     {
       "Name": "SUNPHARMA",
       "Symbol": "SUNPHARMA.NS",
-      "Price": 1943.9,
+      "Price": 1948.7,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 60.0,
       "ATR": 31.24,
-      "Candle Pattern": "Doji"
-    },
-    {
-      "Name": "ULTRACEMCO",
-      "Symbol": "ULTRACEMCO.NS",
-      "Price": 11804.0,
-      "Decision": "BUY",
-      "Bias": "Bullish",
-      "Confidence": 60.0,
-      "ATR": 206.5,
       "Candle Pattern": "No Pattern"
     },
     {
       "Name": "NTPC",
       "Symbol": "NTPC.NS",
-      "Price": 346.05,
+      "Price": 345.9,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
@@ -79,6 +79,15 @@
     }
   ],
   "News": {
+    "ULTRACEMCO": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "APOLLOHOSP": {
       "Headlines": [],
       "Positive": 0,
@@ -122,15 +131,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "ULTRACEMCO": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "NTPC": {
       "Headlines": [],
       "Positive": 0,
@@ -149,25 +149,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "DIVISLAB": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "BAJAJ-AUTO": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "TECHM": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -195,6 +177,15 @@
       "Confidence": 0.0
     },
     "ITC": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "BAJFINANCE": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -259,7 +250,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "GRASIM": {
+    "DIVISLAB": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -269,6 +260,15 @@
       "Confidence": 0.0
     },
     "INDUSINDBK": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "TECHM": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -305,15 +305,6 @@
       "Confidence": 0.0
     },
     "INFY": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "BAJFINANCE": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -396,6 +387,15 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "GRASIM": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "BRITANNIA": {
       "Headlines": [
         "Britannia Share Price Live Updates: Britannia's Recent Performance Insights"
@@ -417,12 +417,10 @@
       "Confidence": 0.0
     },
     "UPL": {
-      "Headlines": [
-        "UPL Share Price Live Updates: UPL's Current Market Price"
-      ],
+      "Headlines": [],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 1,
+      "Neutral": 0,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -564,6 +562,22 @@
     },
     {
       "Headline": "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Paytm likely to announce its first-ever bonus issue today: What lies ahead for its 7.5 lakh retail shareholders?",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Global Market: Citi downgrades South Korea to neutral as AI chip volatility mounts",
+      "Sentiment": "Bearish"
+    },
+    {
+      "Headline": "Global Market: ASML's AI-fuelled rally raises prospects of becoming Europe's first trillion-dollar company",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "BHEL share price: Brokerages see up to 23% upside after Maharatna PSU posts first Q1 profit in 8 years",
       "Sentiment": "Bullish"
     },
     {
@@ -731,24 +745,8 @@
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Adani Ent Share Price Live Updates: Adani Enterprises  Trading Activity Overview",
+      "Headline": "Adani Ent Share Price Live Updates: Adani Enterprises  Price and Trend Overview",
       "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "HUL Share Price Live Updates: HUL Crosses Above 20-Day EMA",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Bharti Airtel Share Price Live Updates: Analyzing Bharti Airtel's Beta",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Infosys Share Price Live Updates: Infosys Current Price Update",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "UPL Share Price Live Updates: UPL's Current Market Price",
-      "Sentiment": "Neutral"
     }
   ]
 }
