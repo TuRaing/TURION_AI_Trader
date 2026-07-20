@@ -493,6 +493,32 @@ KNOWN ISSUES
   root cause and same possible fix (external trigger)
   as the Best Trade Entry Scan issue above.
 
+• MITIGATED 20-Jul: set up an external trigger via
+  cron-job.org (free tier) to work around the GitHub
+  Actions cron under-firing above. Two cron-job.org
+  jobs POST to GitHub's `workflow_dispatch` REST API
+  (both workflows already had `workflow_dispatch:` as
+  a trigger, so no workflow YAML changes were needed):
+  - "Best Trade Entry Scan Trigger" - every 1 min,
+    03-09 UTC, Mon-Fri (`* 3-9 * * 1-5`) - widened from
+    the original 5-min plan to maximize the Best Trade
+    Engine's chances of catching 15m/5m/1m alignment
+    before the 26-Jul review, since it still has zero
+    real trade outcomes
+  - "Watchlist Paper Trade Trigger" - every 15 min,
+    03-10 UTC, Mon-Fri (`7,22,37,52 3-10 * * 1-5`) -
+    matches the original intended cadence
+  Both verified working via TEST RUN (204 No Content)
+  and cross-checked on GitHub's Actions run history
+  (workflow_dispatch runs appeared immediately). Auth
+  is a fine-grained GitHub PAT scoped to only this repo,
+  Actions: Read and write, Metadata: Read-only, stored
+  only in cron-job.org's own header field. Native
+  GitHub `schedule:` triggers were left in place too
+  (harmless redundancy - `is_new_entry`/position checks
+  already guard against duplicate entries from
+  overlapping runs). Effective starting 21-Jul.
+
 • A separate Claude session (branch
   claude/tula-repocha-actress-hob5j0) fixed the
   Telegram/cron issue in parallel - merged as PR #1.
