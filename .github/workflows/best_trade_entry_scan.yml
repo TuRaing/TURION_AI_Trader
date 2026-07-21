@@ -1,15 +1,17 @@
 name: Best Trade Entry Scan
 
 on:
-  schedule:
-    # Every 5 min (GitHub's actual schedule floor), 03:50-09:15 UTC =
-    # ~09:20-14:45 IST, Mon-Fri. Runs from market open - the entry-timing
-    # gates (ENTRY_START 10:00 IST, LAST_ENTRY_CUTOFF 14:15 IST) live inside
-    # daily_best_trade.py itself, not in this cron schedule, so this can
-    # start as soon as the market opens and still do useful work (checking
-    # an already-open position's Stop Loss/Target, or just analysing without
-    # opening yet).
-    - cron: '*/5 3-9 * * 1-5'
+  # Updated: 2026-07-21 - dropped the native `schedule:` trigger. GitHub's
+  # free-tier cron scheduler was badly under-firing this (~3 runs/day
+  # instead of the intended ~84) regardless of granularity, and keeping it
+  # alongside the external cron-job.org trigger below just caused git-push
+  # races (two near-simultaneous runs both committing). cron-job.org now
+  # POSTs to this workflow's dispatch endpoint every 1 min, 03:00-09:00 UTC,
+  # Mon-Fri instead. The entry-timing gates (ENTRY_START 10:00 IST,
+  # LAST_ENTRY_CUTOFF 14:15 IST) live inside daily_best_trade.py itself, not
+  # in this trigger, so it can start as soon as the market opens and still
+  # do useful work (checking an already-open position's Stop Loss/Target,
+  # or just analysing without opening yet).
   workflow_dispatch:
 
 permissions:
