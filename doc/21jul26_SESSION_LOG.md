@@ -319,4 +319,54 @@ cron-job.org-only trigger going forward.
 
 ==================================================
 
+Intraday/Options Strategy Research (same day, 21-Jul)
+
+User asked to research intraday strategy candidates
+ahead of the 26-Jul review (study only - no code
+written, actual backtest work still waits for that
+review per the 19-Jul agreed sequence). Researched via
+WebSearch: Opening Range Breakout (ORB), VWAP-based,
+Momentum (RSI), and Gap-fill/Gap-and-Go, with published
+backtest stats for each (e.g. NIFTY ORB: 2,122 trades
+2017-2026, +91.6% return, Sharpe 1.16, sub-50% win rate;
+Momentum+VIX filter: 81.3% win rate but a small 91-trade
+US-options sample, not NIFTY-validated).
+
+Decided with the user:
+
+- Stocks (Best Trade Engine): ORB (entry) + VWAP
+  (direction filter) + Volume-spike (confirmation) - all
+  three building blocks already exist in this codebase
+  (ATR/Candlestick/Volume/Multi-Timeframe engines), so
+  this needs new entry/exit logic only, no new engine.
+
+- Options (NIFTY/BANKNIFTY): Momentum (RSI) + India VIX
+  filter, BUY CE/BUY PE only - fits the existing Options
+  Decision Engine's buy-only design and its 10:00-14:15
+  IST entry window better than Gap-and-Go (which is
+  time-boxed to roughly the first trading hour).
+
+- Explicitly discussed and rejected adopting an
+  option-SELLING strategy (the popular Indian retail
+  "9:20 short straddle") - flagged that selling naked
+  options is a fundamentally different risk profile
+  (margin required, theoretically unlimited loss without
+  a hedge) than the current buy-only architecture, and
+  would be a deliberate separate decision, not a drop-in
+  swap.
+
+- Reasoning for picking ONE approach per instrument type
+  rather than combining all four strategy types: avoids
+  overfitting risk and conflicting signals (e.g. Gap-fill
+  and Gap-and-Go take opposite theses on the same event).
+
+- Whatever gets backtested will be evaluated net of the
+  ~Rs 20-40/round-trip trade cost estimate from earlier
+  today, not gross PnL.
+
+Recorded in doc/PROJECT_STATUS.md's Priority 3 for the
+next session to pick up after the 26-Jul review.
+
+==================================================
+
 END OF SESSION

@@ -647,9 +647,42 @@ fixed and real data is actually flowing.
 Priority 3
 
 Once Priority 2 is reviewed: design + backtest an
-intraday strategy (Opening-Range-Breakout or
-VWAP-based, not the reused EMA/RSI swing logic -
-flagged earlier as a bigger, ~2-3 hour task)
+intraday strategy (not the reused EMA/RSI swing logic -
+flagged earlier as a bigger, ~2-3 hour task). Decided
+21-Jul (research only, no code written yet - waits for
+the 26-Jul review per the agreed sequence):
+
+- Stocks (Best Trade Engine): ORB (entry) + VWAP
+  (direction filter) + Volume-spike (confirmation).
+  Chosen over pure ORB or pure VWAP alone - research
+  found the combination outperforms either in isolation,
+  and all three building blocks (ATR/Candlestick/Volume
+  engines, Multi-Timeframe engine) already exist in this
+  codebase, so no new engine is needed, just new
+  entry/exit logic wired to them.
+
+- Options (NIFTY/BANKNIFTY): Momentum (RSI) + India VIX
+  filter, BUY CE/BUY PE only - matches the existing
+  Options Decision Engine's buy-only architecture and its
+  10:00-14:15 IST entry window (unlike Gap-and-Go, which
+  is time-boxed to roughly the first hour of trading).
+  Explicitly rejected option-SELLING strategies (e.g. the
+  well-known Indian retail "9:20 short straddle") - those
+  carry a fundamentally different risk profile (margin
+  required, theoretically unlimited loss without a hedge)
+  that doesn't fit the current buy-only design; adopting
+  one would be a deliberate, separate architecture
+  decision, not a drop-in strategy swap.
+
+- Explicitly NOT pursuing: Gap-fill (opposite thesis to
+  Gap-and-Go, fewer opportunities), combining all
+  strategy types into one signal (overfitting/conflicting-
+  signal risk - one clear approach per instrument type
+  instead).
+
+- Whatever gets backtested must be evaluated net of
+  estimated real trade costs (~Rs 20-40/round trip), not
+  gross PnL - see the transaction-cost note above.
 
 --------------------------------------------------
 
