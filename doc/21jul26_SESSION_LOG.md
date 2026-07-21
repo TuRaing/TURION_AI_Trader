@@ -210,4 +210,97 @@ Next Session
 
 ==================================================
 
+Session Continued (same day, 21-Jul, second session)
+
+Today's Achievements (part 2)
+
+✅ Verified via the public GitHub REST API that the
+   cron-job.org fix from 20-Jul is working as intended:
+   Best Trade Entry Scan got 100+ runs today at a genuine
+   ~1-min cadence (vs ~3/day before), Watchlist Paper
+   Trade got 35 runs at the intended 15-min offsets (vs
+   ~4/day before).
+
+✅ Independently found the same git-push race the other
+   session (this same day) had already found and fixed
+   more deeply - traced one Watchlist Paper Trade failure
+   to its "Commit updated portfolio state" step (the
+   trading logic itself succeeded; only the git push
+   failed, no data loss). Removed the now-redundant
+   native `schedule:` trigger from both
+   best_trade_entry_scan.yml and paper_trade.yml (cron-
+   job.org's workflow_dispatch fully replaces it, and
+   keeping both was the actual source of near-simultaneous
+   overlapping runs). Added the same pull-rebase-before-
+   push line to paper_trade.yml that the other session's
+   fix had already added to the three Best Trade
+   workflows (this was Next Session item 4 from their
+   log - now done). Pushed to main (6e248d9), cleanly
+   rebased on top of the other session's retry-loop
+   commits with no conflicts (touched different sections
+   of the same files).
+
+✅ Reconciled with the other session's mid-day work per
+   CLAUDE.md - reviewed their MultiIndex crash fix and
+   push-race retry logic (already on main), confirmed no
+   overlap/contradiction with this session's changes.
+
+✅ Reviewed the two remote branches flagged as unmerged:
+   - claude/doc-directory-madhil-sarva-lqg5lj - the other
+     session's own feature branch; content (MultiIndex fix
+     + retry logic) already landed on main via different
+     commit hashes. Stale, safe to ignore.
+   - claude/repo-access-61bplm ("Add end-of-day square-off
+     to watchlist paper trading", 14-Jul) - flagged this
+     to the user as a design conflict: it would force-close
+     all open Watchlist (Daily-timeframe swing) positions
+     every day at 3:20 PM IST, which contradicts the
+     strategy's intentional multi-day/week holding period.
+     End-of-day square-off is already a distinct, correct
+     behavior of the separate Best Trade Engine (intraday) -
+     conflating the two would break the swing strategy.
+     User agreed not to merge it; deleted the branch.
+
+✅ First real Best Trade Engine outcomes now visible after
+   the other session's MultiIndex fix + this session's
+   cron reliability work: ULTRACEMCO (-₹62.46, Stop Loss)
+   and ICICIBANK (-₹2.98, Stop Loss) both closed today.
+
+==================================================
+
+Bugs Fixed (part 2)
+
+• paper_trade.yml lacked the pull-rebase-before-push
+  safety net that best_trade_entry_scan.yml already had -
+  added it, and dropped both workflows' redundant native
+  `schedule:` trigger (cron-job.org's workflow_dispatch is
+  now the only trigger), removing the root cause of the
+  overlapping-run git-push races rather than just
+  retrying around them.
+
+==================================================
+
+Next Session (updated)
+
+1. Resume the FCM push-notification feature (paused,
+   carried over from part 1) - get google-services.json +
+   Firebase service-account key from the user first.
+
+2. Watch the two now-fixed Best Trade Engine positions'
+   real outcomes and the Watchlist Paper Trading results -
+   real data is now flowing reliably on both.
+
+3. Let the scheduled review (26-Jul 09:00 IST) run as
+   planned.
+
+4. Fix TATAMOTORS / LTIM ticker symbols (carried over).
+
+5. Commit Desktop App (PySide6), package as .exe (carried
+   over).
+
+6. claude/repo-access-61bplm reviewed and deleted (see
+   above) - no longer pending.
+
+==================================================
+
 END OF SESSION
