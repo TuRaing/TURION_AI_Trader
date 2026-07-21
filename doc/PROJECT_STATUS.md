@@ -12,7 +12,7 @@ TURION AI Trader
 
 Version
 
-v0.0.11
+v0.0.12
 
 --------------------------------------------------
 
@@ -30,7 +30,7 @@ Project Started
 
 Last Updated
 
-19-Jul-2026
+21-Jul-2026
 
 --------------------------------------------------
 
@@ -383,6 +383,17 @@ AUTOMATION (GitHub Actions - runs in cloud)
   try on an unrelated bug (see Known Issues → fixed),
   then succeeded once re-triggered after the fix.
 
+• FIRST REAL BEST TRADE ENGINE OUTCOMES, 21-Jul: after
+  the price-fetch crash fix (see Known Issues), the
+  engine produced its first two real results the same
+  day - ULTRACEMCO closed on Stop Loss (Entry
+  ₹12,105.00, Exit ₹12,042.54, PnL -₹62.46), then
+  ICICIBANK opened as a fresh position (Entry
+  ₹1,464.10, SL ₹1,461.12, Target ₹1,470.07). Zero
+  real outcomes from 17-Jul to 21-Jul were caused by
+  the crash, not by the strategy never finding an
+  aligned candidate.
+
 ==================================================
 
 KNOWN ISSUES
@@ -525,11 +536,80 @@ KNOWN ISSUES
   Watch for multiple sessions editing the same repo
   at once going forward.
 
+• FIXED 21-Jul: daily_best_trade.py and
+  square_off_best_trade.py crashed
+  (`TypeError: float() argument must be a string or a
+  real number, not 'Series'`) on every single run once
+  a real Best Trade position existed, because
+  yfinance's yf.download() now returns MultiIndex
+  columns even for a single-symbol request. This left
+  the very first real Best Trade position (ULTRACEMCO)
+  completely unmonitored for Stop Loss/Target from
+  ~10:01 IST until caught and fixed the same day -
+  every cron-job.org-triggered run in between failed,
+  which is what the user actually noticed first (the
+  failure emails). Fixed by flattening the Close
+  column before calling float() on it, same pattern
+  strategy/watchlist_scanner.py already used for a
+  different MultiIndex case. Pushed straight to main
+  (not a feature branch) given a real position was
+  unmonitored. See doc/21jul26_SESSION_LOG.md for the
+  full investigation.
+
+• FIXED 21-Jul: cron-job.org's 1-minute cadence on the
+  Best Trade Entry Scan trigger caused two kinds of git
+  push races between overlapping workflow runs - both
+  looked like job failures (more false-alarm emails)
+  but never actually lost committed data:
+  (1) simple fast-forward rejection, whichever run
+  pushed second - fixed with a push-retry loop (pull
+  --rebase + push, up to 3x) in all three Best Trade
+  workflows;
+  (2) genuine content conflicts, when two overlapping
+  runs both made a real, conflicting decision (e.g.
+  both tried to open a position independently) - a
+  plain rebase retry can't auto-merge that, so fixed
+  more deeply: on a push rejection the workflow now
+  discards its own local write, hard-resets to whatever
+  actually landed on origin, and re-runs the same
+  Python script against that real state (safe because
+  all three scripts already reload state from disk and
+  only act/notify on genuine changes - no duplicate
+  Telegram pings). Both fixes pushed to main.
+
+• PAUSED 21-Jul (not started): user asked for Best
+  Trade / Watchlist trade alerts to also appear as a
+  real push notification inside the TURION AI Trader
+  Android app (Firebase Cloud Messaging), Telegram
+  staying on alongside it. Plan agreed: user sets up a
+  Firebase project + hands over google-services.json
+  and a service-account key; Claude wires up
+  firebase_core/firebase_messaging in the Flutter app
+  (topic-based, no per-device token management) +
+  report/push_notifier.py + a new
+  FIREBASE_SERVICE_ACCOUNT GitHub secret across the
+  four trading workflows. This dev sandbox has no
+  Flutter SDK, so the final `flutter build apk` +
+  `adb install` step happens on the user's own machine,
+  same as the 19-Jul/20-Jul Android installs. Resuming
+  this evening per the user's request.
+
 ==================================================
 
 NEXT DEVELOPMENT PLAN
 
 Priority 1
+
+Resume the FCM push-notification feature (paused
+21-Jul, not started) - get google-services.json +
+Firebase service-account key from the user first,
+then wire up Flutter + report/push_notifier.py + the
+FIREBASE_SERVICE_ACCOUNT GitHub secret. Final APK
+build/install happens on the user's own machine.
+
+--------------------------------------------------
+
+Priority 2
 
 Run the Daily-timeframe watchlist paper trading
 (with confidence-based sizing + risk cap) for
@@ -537,34 +617,38 @@ Run the Daily-timeframe watchlist paper trading
 History tab / reports/paper_portfolio.json. Agreed
 with the user 19-Jul: don't start intraday-strategy
 design or broker/live-data work before this review.
+Now also watch the two real Best Trade Engine
+outcomes from 21-Jul (ULTRACEMCO closed on SL,
+ICICIBANK opened) now that the price-fetch crash is
+fixed and real data is actually flowing.
 
 --------------------------------------------------
 
-Priority 2
+Priority 3
 
-Once Priority 1 is reviewed: design + backtest an
+Once Priority 2 is reviewed: design + backtest an
 intraday strategy (Opening-Range-Breakout or
 VWAP-based, not the reused EMA/RSI swing logic -
 flagged earlier as a bigger, ~2-3 hour task)
 
 --------------------------------------------------
 
-Priority 3
+Priority 4
 
 Commit Desktop App (PySide6) to the repo,
 package as .exe (PyInstaller)
 
 --------------------------------------------------
 
-Priority 4
+Priority 5
 
 Fix TATAMOTORS / LTIM ticker symbols
 
 --------------------------------------------------
 
-Priority 5
+Priority 6
 
-Only after Priority 1 + 2: select Broker (Upstox /
+Only after Priority 2 + 3: select Broker (Upstox /
 Angel One - free API) → Broker Integration (also
 unlocks a paid/reliable Option Chain data source,
 and is the prerequisite for true live/real-time
@@ -574,7 +658,7 @@ roughly ₹0-2500/month depending on broker chosen)
 
 --------------------------------------------------
 
-Priority 6
+Priority 7
 
 Tune the News Engine's keyword lexicon and
 Best Trade Engine's weighting once 1-2 weeks
@@ -583,7 +667,7 @@ outcomes
 
 --------------------------------------------------
 
-Priority 7
+Priority 8
 
 Algorithmic Trading (after broker, user-supervised -
 Claude never executes a real trade regardless; this
@@ -639,11 +723,11 @@ Status
 
 Current Version
 
-v0.0.11
+v0.0.12
 
 Next Version
 
-v0.0.12
+v0.0.13
 
 ==================================================
 
