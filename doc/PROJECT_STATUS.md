@@ -676,6 +676,19 @@ data instead of the current 15-min GitHub Actions
 refresh - discussed cost with the user 19-Jul,
 roughly ₹0-2500/month depending on broker chosen)
 
+Before any real capital is used (raised 21-Jul):
+current paper-trading/backtest PnL is gross - it does
+not subtract real per-trade costs (brokerage, STT,
+exchange charges, GST, stamp duty - roughly ₹20-40
+per round trip even with a discount broker). Both the
+Watchlist and Best Trade Engine backtests/evaluations
+need to be re-checked net of an estimated cost-per-
+trade before trusting them as "profitable," since a
+strategy that nets small per-trade PnL (e.g. the fixed
+1-share Best Trade sizing - see Extra Features) can
+look profitable gross and be a net loser after real
+costs. Fix this before Broker Integration, not after.
+
 --------------------------------------------------
 
 Priority 7
