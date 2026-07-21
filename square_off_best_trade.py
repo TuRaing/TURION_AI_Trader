@@ -33,7 +33,12 @@ def main():
         print(f"Could not fetch a current price for {symbol} - skipping square-off this run.")
         return
 
-    current_price = float(data["Close"].iloc[-1])
+    close = data["Close"]
+
+    if hasattr(close, "columns"):
+        close = close.iloc[:, 0]
+
+    current_price = float(close.iloc[-1])
 
     portfolio, action = square_off_best_trade(portfolio, current_price)
 

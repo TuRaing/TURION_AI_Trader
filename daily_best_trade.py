@@ -85,7 +85,12 @@ def _fetch_current_price(symbol):
     if data is None or data.empty:
         return None
 
-    return float(data["Close"].iloc[-1])
+    close = data["Close"]
+
+    if hasattr(close, "columns"):
+        close = close.iloc[:, 0]
+
+    return float(close.iloc[-1])
 
 
 def main():
