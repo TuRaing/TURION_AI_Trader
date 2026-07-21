@@ -303,4 +303,20 @@ Next Session (updated)
 
 ==================================================
 
+Doc Correction
+
+PROJECT_STATUS.md's 20-Jul entry originally said the
+native GitHub `schedule:` triggers were left in place
+as "harmless redundancy" alongside the new cron-job.org
+triggers. That was wrong - it was the actual source of
+the git-push races found and partly fixed by the other
+session earlier today, and fully removed by this
+session (see Bugs Fixed above). Corrected the 20-Jul
+entry in place rather than leaving a stale claim, and
+updated the AUTOMATION section's Watchlist Paper Trade
+and Best Trade Entry Scan entries to reflect the
+cron-job.org-only trigger going forward.
+
+==================================================
+
 END OF SESSION

@@ -339,7 +339,15 @@ AUTOMATION (GitHub Actions - runs in cloud)
 
 • Watchlist Paper Trade  → every 15 min (offset
                            :07/:22/:37/:52),
-                           08:37-16:22 IST, Mon-Fri
+                           08:37-16:22 IST, Mon-Fri.
+                           UPDATE 21-Jul: native GitHub
+                           `schedule:` trigger removed
+                           (was under-firing to ~4x/day) -
+                           now triggered externally by
+                           cron-job.org hitting
+                           workflow_dispatch. Verified
+                           landing at the intended cadence
+                           (35 runs on 21-Jul).
 
 • Best Trade Shortlist    → every 30 min + one pre-market
                            run at 08:45 IST, Mon-Fri
@@ -356,7 +364,15 @@ AUTOMATION (GitHub Actions - runs in cloud)
                            (ENTRY_START) and 14:15 IST
                            (LAST_ENTRY_CUTOFF); monitors any
                            open position's Stop Loss/Target
-                           every run regardless of time
+                           every run regardless of time.
+                           UPDATE 21-Jul: native GitHub
+                           `schedule:` trigger removed (was
+                           under-firing to ~3x/day) - now
+                           triggered externally by
+                           cron-job.org every 1 min (widened
+                           from the original 5-min plan).
+                           Verified landing at the intended
+                           cadence (100+ runs on 21-Jul).
 
 • Best Trade Square-Off   → 14:45 IST, Mon-Fri (45 min
                            before NSE's 15:30 close)
@@ -525,10 +541,14 @@ KNOWN ISSUES
   is a fine-grained GitHub PAT scoped to only this repo,
   Actions: Read and write, Metadata: Read-only, stored
   only in cron-job.org's own header field. Native
-  GitHub `schedule:` triggers were left in place too
-  (harmless redundancy - `is_new_entry`/position checks
-  already guard against duplicate entries from
-  overlapping runs). Effective starting 21-Jul.
+  GitHub `schedule:` triggers were initially left in
+  place as "harmless redundancy" - UPDATE 21-Jul: this
+  was wrong, it was the actual source of the git-push
+  races documented below (two near-simultaneous runs
+  both committing). Removed the native `schedule:`
+  trigger from both workflows entirely once confirmed -
+  cron-job.org's workflow_dispatch is now each
+  workflow's only trigger. Effective starting 21-Jul.
 
 • A separate Claude session (branch
   claude/tula-repocha-actress-hob5j0) fixed the
