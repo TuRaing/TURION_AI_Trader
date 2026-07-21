@@ -42,4 +42,9 @@ jobs:
           git pull --rebase origin ${{ github.ref_name }} || true
           git add reports/best_trade_portfolio.json || true
           git diff --staged --quiet || git commit -m "Square off best trade [skip ci]"
-          git push
+          for i in 1 2 3; do
+            git push && break
+            echo "Push rejected (another run pushed first) - retrying ($i/3)..."
+            git pull --rebase origin ${{ github.ref_name }}
+            sleep 3
+          done
