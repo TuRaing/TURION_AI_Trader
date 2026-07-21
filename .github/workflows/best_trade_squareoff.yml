@@ -16,6 +16,9 @@ permissions:
 jobs:
   best-trade-squareoff:
     runs-on: ubuntu-latest
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
     steps:
       - name: Checkout repository
@@ -30,21 +33,33 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run best trade square-off
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python square_off_best_trade.py
 
       - name: Commit updated best trade portfolio state
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          commit_and_push() {
+            git add reports/best_trade_portfolio.json || true
+            git diff --staged --quiet && return 0
+            git commit -m "Square off best trade [skip ci]"
+            git push
+          }
+
           git pull --rebase origin ${{ github.ref_name }} || true
-          git add reports/best_trade_portfolio.json || true
-          git diff --staged --quiet || git commit -m "Square off best trade [skip ci]"
+
           for i in 1 2 3; do
-            git push && break
-            echo "Push rejected (another run pushed first) - retrying ($i/3)..."
-            git pull --rebase origin ${{ github.ref_name }}
+            if commit_and_push; then
+              exit 0
+            fi
+            echo "Push rejected - re-syncing to latest and re-running square-off against it ($i/3)..."
+            git rebase --abort 2>/dev/null || true
+            git fetch origin ${{ github.ref_name }}
+            git reset --hard origin/${{ github.ref_name }}
+            python square_off_best_trade.py
             sleep 3
           done
+
+          echo "Could not sync after 3 attempts - leaving it for the next scheduled run."
+          exit 1
