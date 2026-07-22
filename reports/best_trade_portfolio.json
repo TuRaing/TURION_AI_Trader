@@ -1,15 +1,6 @@
 {
-  "Cash": 99934.55500000001,
-  "Position": {
-    "Name": "ITC",
-    "Symbol": "ITC.NS",
-    "Direction": "SELL",
-    "Entry Time": "2026-07-22 04:42:43",
-    "Entry Price": 279.0,
-    "Quantity": 1,
-    "Stop Loss": 279.81,
-    "Target": 277.38
-  },
+  "Cash": 99933.74500000001,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -34,6 +25,18 @@
       "Quantity": 1,
       "Exit Reason": "Stop Loss",
       "PnL": -2.98
+    },
+    {
+      "Name": "ITC",
+      "Symbol": "ITC.NS",
+      "Direction": "SELL",
+      "Entry Time": "2026-07-22 04:42:43",
+      "Entry Price": 279.0,
+      "Exit Time": "2026-07-22 06:03:33",
+      "Exit Price": 279.81,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -0.81
     }
   ]
 }
