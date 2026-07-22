@@ -1,15 +1,6 @@
 {
-  "Cash": 99917.30500000001,
-  "Position": {
-    "Name": "BAJAJ-AUTO",
-    "Symbol": "BAJAJ-AUTO.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-07-22 07:26:38",
-    "Entry Price": 10975.0,
-    "Quantity": 1,
-    "Stop Loss": 10939.06,
-    "Target": 11046.88
-  },
+  "Cash": 99940.80500000001,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -58,6 +49,18 @@
       "Quantity": 1,
       "Exit Reason": "Stop Loss",
       "PnL": -16.44
+    },
+    {
+      "Name": "BAJAJ-AUTO",
+      "Symbol": "BAJAJ-AUTO.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-07-22 07:26:38",
+      "Entry Price": 10975.0,
+      "Exit Time": "2026-07-22 11:21:05",
+      "Exit Price": 10998.5,
+      "Quantity": 1,
+      "Exit Reason": "Intraday Square-Off",
+      "PnL": 23.5
     }
   ]
 }
