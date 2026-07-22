@@ -614,6 +614,52 @@ KNOWN ISSUES
   same as the 19-Jul/20-Jul Android installs. Resuming
   this evening per the user's request.
 
+• CONCLUSIVELY REJECTED 22-Jul: ORB (entry) + VWAP
+  (direction filter) + Volume-spike (confirmation) for
+  stocks, the intraday candidate researched 21-Jul (see
+  strategy/orb_vwap_backtest.py, analysis-only). Sweep of
+  48 parameter combos (4 volume-spike thresholds x 6
+  ATR SL/Target ratios x 2 Opening-Range lengths) across
+  6 NIFTY 50 stocks (ICICIBANK, RELIANCE, HDFCBANK, TCS,
+  BAJFINANCE, TITAN; 5m candles, 60d): every single combo
+  was net-negative after an estimated Rs 30/trade real
+  cost, ranging from -Rs 8,669 (best) to -Rs 41,645
+  (worst). Root cause: the entry fires far too often
+  (189-1,406 total trades across the 6 stocks depending
+  on parameters) for its tiny gross edge (best case only
+  +Rs 60.71 gross across all 6 stocks/60 days) to survive
+  transaction costs - not fixable by retuning, same
+  conclusion pattern as the 15m-strategy finding above.
+  Do not pursue this combination further for stocks.
+
+• PROMISING (not yet tradeable) 22-Jul: Momentum (RSI)
+  + India VIX filter for BUY CE/BUY PE, researched 21-Jul
+  (see strategy/momentum_vix_backtest.py, analysis-only).
+  No free historical option-premium data exists, so this
+  backtests directional accuracy on the underlying only
+  (NIFTY/BANKNIFTY spot) - a "win" means the underlying
+  moved far enough in the predicted direction to have
+  been a profitable CE/PE buy in principle, not a real
+  rupee P&L. Swept 42 combos (3 India-VIX percentile
+  bands x 14 ATR SL/Target ratios) on both indices
+  (15m candles, 60d):
+  - NIFTY: only 9/42 combos (21%) positive, best only
+    +524.26 points, most combos meaningfully negative
+    (down to -880.17) - no reliable edge, REJECTED.
+  - BANKNIFTY: 38/42 combos (90%) positive - a
+    consistent result, not a cherry-picked one. Best
+    found: VIX in its 30th-70th percentile band, 1.5x
+    ATR Stop-Loss / 4.0x ATR Target - 38 trades, 42.11%
+    win rate, +3,775.53 underlying points over 60 days
+    (roughly +6.6% of BANKNIFTY's ~57,127 spot level).
+  Before trusting the BANKNIFTY result as tradeable:
+  still needs a real option-premium/theta-decay cost
+  model (directional accuracy is necessary but not
+  sufficient - the edge could still be erased by premium
+  decay) and a net-of-costs check, same as the
+  transaction-cost note below. Not wired into any paper
+  trading yet.
+
 ==================================================
 
 NEXT DEVELOPMENT PLAN
@@ -646,43 +692,51 @@ fixed and real data is actually flowing.
 
 Priority 3
 
-Once Priority 2 is reviewed: design + backtest an
-intraday strategy (not the reused EMA/RSI swing logic -
-flagged earlier as a bigger, ~2-3 hour task). Decided
-21-Jul (research only, no code written yet - waits for
-the 26-Jul review per the agreed sequence):
+Intraday strategy design - not the reused EMA/RSI swing
+logic (flagged earlier as a bigger, ~2-3 hour task).
+Researched 21-Jul, backtested 22-Jul (analysis-only
+scripts, ahead of the 26-Jul review - safe to do early
+since nothing was wired into live paper trading; see
+Known Issues for full results):
 
-- Stocks (Best Trade Engine): ORB (entry) + VWAP
-  (direction filter) + Volume-spike (confirmation).
-  Chosen over pure ORB or pure VWAP alone - research
-  found the combination outperforms either in isolation,
-  and all three building blocks (ATR/Candlestick/Volume
-  engines, Multi-Timeframe engine) already exist in this
-  codebase, so no new engine is needed, just new
-  entry/exit logic wired to them.
+- Stocks (Best Trade Engine): ORB + VWAP + Volume-spike
+  - CONCLUSIVELY REJECTED, 22-Jul. 48-combo sweep across
+  6 stocks, every single combo net-negative after
+  transaction costs (best case -Rs 8,669). Do not pursue
+  further - see strategy/orb_vwap_backtest.py for the
+  (kept, analysis-only) implementation and Known Issues
+  for the numbers.
 
-- Options (NIFTY/BANKNIFTY): Momentum (RSI) + India VIX
-  filter, BUY CE/BUY PE only - matches the existing
-  Options Decision Engine's buy-only architecture and its
-  10:00-14:15 IST entry window (unlike Gap-and-Go, which
-  is time-boxed to roughly the first hour of trading).
-  Explicitly rejected option-SELLING strategies (e.g. the
-  well-known Indian retail "9:20 short straddle") - those
-  carry a fundamentally different risk profile (margin
-  required, theoretically unlimited loss without a hedge)
-  that doesn't fit the current buy-only design; adopting
-  one would be a deliberate, separate architecture
-  decision, not a drop-in strategy swap.
+- Options: Momentum (RSI) + India VIX filter, BUY CE/BUY
+  PE only (rejected option-selling strategies like the
+  "9:20 short straddle" - different risk profile, margin
+  required, doesn't fit the buy-only architecture).
+  Backtested 22-Jul on the underlying only (no free
+  option-premium history exists, so this measures
+  directional accuracy, not real premium P&L):
+  - NIFTY: REJECTED - only 9/42 parameter combos
+    positive, no reliable edge.
+  - BANKNIFTY: PROMISING - 38/42 combos positive (90%),
+    best found (VIX 30-70 percentile band, 1.5x SL/4.0x
+    Target ATR) gave 38 trades, 42.11% win rate, +3,775.53
+    underlying points over 60d. Consistent across nearly
+    every combo tested, not a cherry-picked result.
+    See strategy/momentum_vix_backtest.py.
+
+Next step for BANKNIFTY options: still needs (a) a real
+option-premium cost model before trusting this as
+tradeable (directional accuracy on the underlying is a
+necessary but not sufficient condition - premium/theta
+decay could still erase the edge), and (b) net-of-costs
+evaluation like the transaction-cost note below. Not yet
+wired into any paper trading - waits for the 26-Jul
+review before any live logic changes.
 
 - Explicitly NOT pursuing: Gap-fill (opposite thesis to
   Gap-and-Go, fewer opportunities), combining all
   strategy types into one signal (overfitting/conflicting-
   signal risk - one clear approach per instrument type
   instead).
-
-- Whatever gets backtested must be evaluated net of
-  estimated real trade costs (~Rs 20-40/round trip), not
-  gross PnL - see the transaction-cost note above.
 
 --------------------------------------------------
 

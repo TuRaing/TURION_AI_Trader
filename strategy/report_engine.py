@@ -338,6 +338,49 @@ def print_risk_levels(signal, stop_loss, target):
     print("----------------------------------------")
 
 
+def print_orb_vwap_backtest_report(symbol, result):
+
+    print("----------------------------------------")
+    print("       ORB + VWAP + VOLUME-SPIKE BACKTEST")
+    print("----------------------------------------")
+
+    print(f"Symbol : {symbol}")
+
+    if "Error" in result:
+
+        print(f"Error  : {result['Error']}")
+        print("----------------------------------------")
+        return
+
+    print(f"Total Trades : {result['Total Trades']}")
+
+    print()
+
+    print(f"Gross PnL         : {result['Gross PnL']:.2f}")
+    print(f"Wins (Gross)      : {result['Wins (Gross)']}")
+    print(f"Win Rate (Gross)  : {result['Win Rate (Gross)']}%")
+
+    print()
+
+    print(f"Cost Per Trade    : Rs {result['Cost Per Trade']:.2f} (round trip estimate)")
+    print(f"Net PnL           : {result['Net PnL']:.2f}")
+    print(f"Wins (Net)        : {result['Wins (Net of Costs)']}")
+    print(f"Win Rate (Net)    : {result['Win Rate (Net of Costs)']}%")
+
+    print("----------------------------------------")
+
+    print("Exit Breakdown")
+
+    for reason, count in result["Exit Reasons"].items():
+        print(f"  {reason} : {count}")
+
+    print("----------------------------------------")
+    print("Note: analysis only, not wired into any paper trading. Net PnL")
+    print("subtracts an estimated Rs 20-40/round-trip real trade cost from")
+    print("gross - see doc/PROJECT_STATUS.md's transaction-cost note.")
+    print("----------------------------------------")
+
+
 def print_multi_timeframe_backtest_report(symbol, result):
 
     print("----------------------------------------")
