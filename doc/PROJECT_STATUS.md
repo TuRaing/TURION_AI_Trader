@@ -732,11 +732,62 @@ evaluation like the transaction-cost note below. Not yet
 wired into any paper trading - waits for the 26-Jul
 review before any live logic changes.
 
+REGULATORY NOTE, 22-Jul: confirmed via NSE/SEBI rule
+changes (effective Nov-2024) that directly affect this
+BANKNIFTY finding's real-world tradeability -
+BANKNIFTY's WEEKLY options expiry was discontinued (NSE
+now allows only one benchmark index per exchange to have
+weekly expiry - that's NIFTY, not BANKNIFTY). BANKNIFTY
+options now only expire monthly, which changes theta
+decay dynamics significantly versus what a weekly-expiry
+assumption would imply - the option-premium cost model
+above must account for monthly-expiry theta, not
+weekly. Also: NIFTY/BANKNIFTY lot sizes increased
+substantially (NIFTY 25->75, BANKNIFTY 15->30), raising
+the real capital required per lot to trade this even in
+future live testing.
+
 - Explicitly NOT pursuing: Gap-fill (opposite thesis to
   Gap-and-Go, fewer opportunities), combining all
   strategy types into one signal (overfitting/conflicting-
   signal risk - one clear approach per instrument type
   instead).
+
+- Also tested and REJECTED 22-Jul (from a strategy list
+  the user got from another AI assistant and asked to
+  verify against our own backtests, rather than trust
+  blindly):
+  - Plain ORB (no VWAP/Volume filter) on the same 6
+    stocks - worse than the combined approach: 320-416
+    trades per stock (vs 189-252 combined), net loss
+    -Rs 9,500 to -Rs 12,500 per stock.
+  - VWAP Pullback (price pulls back to touch VWAP, then
+    bounces in the trend direction - a different entry
+    style than the ORB breakout) - 9-combo sweep across
+    the same 6 stocks, every combo gross-negative before
+    even subtracting costs. See
+    strategy/vwap_pullback_backtest.py.
+  - 50 EMA + Volume Breakout (swing, daily candles) -
+    small sample (2-9 trades/instrument over 2y) but
+    mostly negative, and clearly underperforms the
+    existing proven Daily/Watchlist strategy (which
+    combines EMA+RSI+Structure+S/R+Candlestick+Volume via
+    the AI Decision Engine, not just EMA+Volume alone) -
+    confirms the multi-engine weighted-scoring approach
+    matters, a single simple rule isn't enough. See
+    strategy/ema_volume_breakout_backtest.py.
+
+- Tested adding Candlestick-pattern confirmation
+  (strategy/candlestick_engine.py, already part of the
+  proven Daily strategy but unused in any 22-Jul intraday
+  backtest) to ORB, VWAP Pullback, and the BANKNIFTY
+  Momentum+VIX signal - it did NOT help any of them, and
+  measurably HURT the BANKNIFTY result (best combo
+  dropped from +3,775.53 to +179.48 points). Reason:
+  candlestick patterns (Hammer/Engulfing/Doji) are
+  reversal signals, logically mismatched with
+  continuation/momentum-style entries - don't require
+  candlestick confirmation on these strategy types.
 
 --------------------------------------------------
 

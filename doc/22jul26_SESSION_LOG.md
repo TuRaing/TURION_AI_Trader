@@ -161,4 +161,108 @@ Next Session
 
 ==================================================
 
+Session Continued (same day, 22-Jul, second part)
+
+Today's Achievements (part 2)
+
+✅ User shared a strategy list from another AI assistant
+   (ChatGPT) claiming win rates like "VWAP Pullback:
+   60-75%", "ORB: 55-70%" - reviewed critically rather
+   than adopting it. Flagged that our own same-day
+   backtest of a similar ORB+VWAP+Volume combination
+   showed only 35-41% win rate and was net-unprofitable,
+   directly contradicting the unsourced generic numbers -
+   reinforced why we backtest on our own data instead of
+   trusting claimed statistics.
+
+✅ Built and tested 3 more candidates from that list, all
+   REJECTED:
+   - Plain ORB (no VWAP/Volume filter): worse than the
+     combined approach (320-416 trades/stock, -Rs 9,500
+     to -Rs 12,500 net loss).
+   - VWAP Pullback (new entry style - bounce off VWAP in
+     an established trend, vs the ORB breakout): 9-combo
+     sweep across the same 6 stocks, every combo
+     gross-negative.
+   - 50 EMA + Volume Breakout (swing, daily candles):
+     small sample (2-9 trades/instrument, 2y), mostly
+     negative, underperforms the existing Daily strategy
+     (which uses 6 combined engines via the AI Decision
+     Engine, not just EMA+Volume) - confirms the
+     multi-engine weighted-scoring design is what makes
+     the Daily strategy work, not any single rule.
+
+✅ Tested adding Candlestick-pattern confirmation
+   (already part of the proven Daily strategy, but not
+   used in any of today's new intraday backtests) to ORB,
+   VWAP Pullback, and BANKNIFTY Momentum+VIX - hypothesis
+   was it would strengthen the signal like it does for
+   the Daily strategy. It didn't: no improvement on ORB
+   or VWAP Pullback, and it measurably HURT the BANKNIFTY
+   result (best combo dropped from +3,775.53 to +179.48
+   points). Reasoned why: candlestick patterns are
+   reversal signals, logically mismatched with
+   continuation/momentum-style entries - a good example
+   of a hypothesis that made sense but didn't pan out,
+   reported honestly rather than forced.
+
+✅ Confirmed the SL=1.5x/Target=4.0x, VIX 30-70 percentile
+   band combo (BANKNIFTY, no candlestick) as today's best
+   result: 38 trades, 42.11% win rate, +3,775.53
+   underlying points - re-verified directly (not just
+   from the sweep) at the user's request.
+
+✅ Researched current (2024-2026) SEBI/NSE F&O rules at
+   the user's request - found a regulatory change directly
+   relevant to the BANKNIFTY finding: NSE discontinued
+   BANKNIFTY's weekly options expiry (Nov-2024), now only
+   one benchmark index per exchange keeps weekly expiry
+   (NIFTY, not BANKNIFTY) - BANKNIFTY options are monthly-
+   expiry only now. This changes the theta-decay
+   assumptions any future option-premium cost model for
+   this strategy must use. Also noted NIFTY/BANKNIFTY lot
+   sizes increased substantially (NIFTY 25->75, BANKNIFTY
+   15->30), raising real capital requirements.
+
+✅ Explained FIFO (First-In-First-Out) trade matching to
+   the user - clarified their question about "averaging"
+   after buying an option, fully selling it for a profit,
+   then re-buying the same contract at a higher price:
+   confirmed no real averaging occurs once a position is
+   FULLY closed (FIFO matches the original buy/sell pair
+   permanently) - any later loss belongs only to the new,
+   separate trade. Averaging only applies if the earlier
+   position was partially (not fully) closed before
+   re-entering.
+
+==================================================
+
+Next Session (updated)
+
+1. Let the scheduled review (26-Jul 09:00 IST) run as
+   planned.
+
+2. If BANKNIFTY options gets pursued further: build an
+   option-premium/theta-decay cost model that accounts
+   for its now-monthly (not weekly) expiry cycle - see
+   the regulatory note above. No free option-chain
+   history exists, so this will need an estimate, not
+   real premiums.
+
+3. Resume the FCM push-notification feature (paused
+   21-Jul, not started) - get google-services.json +
+   Firebase service-account key from the user first.
+
+4. Commit Desktop App (PySide6), package as .exe (carried
+   over).
+
+5. Fix TATAMOTORS / LTIM ticker symbols (carried over).
+
+6. Supertrend and CPR indicators (from the same external
+   strategy list) not yet built - would need ~2-2.5 hours
+   for both indicators + backtests + tuning. Not started
+   this session - user chose to stop for today.
+
+==================================================
+
 END OF SESSION
