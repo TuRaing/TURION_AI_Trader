@@ -4,6 +4,7 @@ import pandas as pd
 from indicators.atr import calculate_atr
 from strategy.risk_engine import calculate_atr_levels
 from strategy.volume_engine import calculate_average_volume, build_volume_analysis
+from strategy.candlestick_engine import get_candlestick_pattern
 
 # Updated: 2026-07-22 - Opening Range Breakout (ORB) entry, filtered by VWAP
 # direction and a volume spike, researched 21-Jul as the intraday candidate
@@ -59,9 +60,9 @@ def _calculate_intraday_vwap(data):
     day = pd.Series(data.index.date, index=data.index)
 
     cum_pv = (typical_price * volume).groupby(day).cumsum()
-    cum_volume = volume.groupby(day).cumsum()
+    cum_volume = volume.groupby(day).cumsum().astype(float).replace(0.0, float("nan"))
 
-    return cum_pv / cum_volume.replace(0, pd.NA)
+    return cum_pv / cum_volume
 
 
 def close_trade(position, exit_time, exit_price, reason):
@@ -124,6 +125,9 @@ def run_orb_vwap_backtest(
     atr_target_mult=2.0,
     cost_per_trade=DEFAULT_COST_PER_TRADE,
     allow_short=True,
+    require_vwap_filter=True,
+    require_volume_filter=True,
+    require_candlestick_confirm=False,
 ):
     """
     Backtests an Opening Range Breakout entry, filtered by VWAP direction
@@ -131,6 +135,12 @@ def run_orb_vwap_backtest(
     addition to the Best Trade Engine's intraday entry logic. Every
     building block (ATR, Volume) already exists in this codebase - this
     just wires them into new entry/exit rules, no new engine.
+
+    require_vwap_filter / require_volume_filter : bool
+        Set either to False to test plain ORB without that filter - e.g.
+        require_vwap_filter=False, require_volume_filter=False tests a
+        pure Opening Range Breakout with no VWAP or volume confirmation,
+        for comparison against the combined approach.
 
     Rules
     -----
@@ -164,12 +174,14 @@ def run_orb_vwap_backtest(
     return _run_on_data(
         data, interval, orb_minutes, volume_spike_mult,
         atr_sl_mult, atr_target_mult, cost_per_trade, allow_short,
+        require_vwap_filter, require_volume_filter, require_candlestick_confirm,
     )
 
 
 def _run_on_data(
     data, interval, orb_minutes, volume_spike_mult,
     atr_sl_mult, atr_target_mult, cost_per_trade, allow_short,
+    require_vwap_filter=True, require_volume_filter=True, require_candlestick_confirm=False,
 ):
     """
     Core backtest loop, split out from run_orb_vwap_backtest() so a tuning
@@ -242,23 +254,36 @@ def _run_on_data(
             vwap_now = vwap.loc[timestamp]
             atr_now = atr.loc[timestamp]
 
-            if pd.isna(vwap_now) or pd.isna(atr_now):
+            if pd.isna(atr_now) or (require_vwap_filter and pd.isna(vwap_now)):
                 continue
 
-            volume_analysis = build_volume_analysis(
-                float(volume.loc[timestamp]), avg_volume.loc[timestamp], volume_spike_mult
-            )
+            if require_volume_filter:
 
-            if not volume_analysis["Spike"]:
-                continue
+                volume_analysis = build_volume_analysis(
+                    float(volume.loc[timestamp]), avg_volume.loc[timestamp], volume_spike_mult
+                )
+
+                if not volume_analysis["Spike"]:
+                    continue
 
             direction = None
+            vwap_ok_long = (not require_vwap_filter) or price > vwap_now
+            vwap_ok_short = (not require_vwap_filter) or price < vwap_now
 
-            if price > orb_high and price > vwap_now:
+            if price > orb_high and vwap_ok_long:
                 direction = "BUY"
 
-            elif allow_short and price < orb_low and price < vwap_now:
+            elif allow_short and price < orb_low and vwap_ok_short:
                 direction = "SELL"
+
+            if direction is not None and require_candlestick_confirm and i >= 1:
+
+                global_pos = data.index.get_loc(timestamp)
+                candle_bias = get_candlestick_pattern(data.iloc[global_pos - 1:global_pos + 1])["Bias"]
+                expected_bias = "Bullish" if direction == "BUY" else "Bearish"
+
+                if candle_bias != expected_bias:
+                    direction = None
 
             if direction is not None and not is_last_of_day:
 

@@ -4,6 +4,7 @@ import pandas as pd
 from indicators.rsi import calculate_rsi
 from indicators.atr import calculate_atr
 from strategy.risk_engine import calculate_atr_levels
+from strategy.candlestick_engine import get_candlestick_pattern
 
 # Updated: 2026-07-22 - Momentum (RSI) entry filtered by India VIX being in
 # a "normal" band, researched 21-Jul as the candidate for Options Decision
@@ -42,12 +43,21 @@ def run_momentum_vix_backtest(
     atr_target_mult=2.0,
     vix_percentile_low=VIX_PERCENTILE_LOW,
     vix_percentile_high=VIX_PERCENTILE_HIGH,
+    require_candlestick_confirm=False,
 ):
     """
     Backtests a Momentum(RSI)+India VIX-filtered directional signal -
     BUY CE when RSI crosses above 60 with India VIX inside its own recent
     [20th, 80th] percentile band (not the deadest or the most panicked
     conditions), BUY PE on the mirror-image RSI<40 condition.
+
+    require_candlestick_confirm : bool
+        If True, also require the entry candle's pattern (Doji/Hammer/
+        Shooting Star/Engulfing, via strategy.candlestick_engine) to match
+        the signal's bias - Bullish for a BUY, Bearish for a SELL. Tests
+        whether adding this existing engine (already part of the proven
+        Daily strategy's AI Decision Engine, but not used in any of the
+        22-Jul intraday backtests) strengthens the signal.
 
     See the module docstring above - this measures directional accuracy
     on the underlying only, not real option premium P&L.
@@ -68,11 +78,14 @@ def run_momentum_vix_backtest(
 
     return _run_on_data(
         price_data, vix_data, atr_sl_mult, atr_target_mult,
-        vix_percentile_low, vix_percentile_high,
+        vix_percentile_low, vix_percentile_high, require_candlestick_confirm,
     )
 
 
-def _run_on_data(price_data, vix_data, atr_sl_mult, atr_target_mult, vix_percentile_low, vix_percentile_high):
+def _run_on_data(
+    price_data, vix_data, atr_sl_mult, atr_target_mult, vix_percentile_low, vix_percentile_high,
+    require_candlestick_confirm=False,
+):
     """
     Core backtest loop, split out from run_momentum_vix_backtest() so a
     tuning sweep can download each symbol's data once and re-run this
@@ -102,7 +115,7 @@ def _run_on_data(price_data, vix_data, atr_sl_mult, atr_target_mult, vix_percent
     trades = []
     position = None
 
-    for timestamp, row in merged.iterrows():
+    for i, (timestamp, row) in enumerate(merged.iterrows()):
 
         if pd.isna(row["RSI"]) or pd.isna(row["VIX"]) or pd.isna(row["VIX Low Band"]):
             continue
@@ -149,6 +162,14 @@ def _run_on_data(price_data, vix_data, atr_sl_mult, atr_target_mult, vix_percent
             direction = "BUY"
         elif row["RSI"] < RSI_BEARISH:
             direction = "SELL"
+
+        if direction is not None and require_candlestick_confirm and i >= 1:
+
+            candle_bias = get_candlestick_pattern(price_data.iloc[i - 1:i + 1])["Bias"]
+            expected_bias = "Bullish" if direction == "BUY" else "Bearish"
+
+            if candle_bias != expected_bias:
+                direction = None
 
         if direction is not None and pd.notna(atr.loc[timestamp]):
 
