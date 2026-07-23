@@ -1,10 +1,10 @@
 {
-  "Generated At": "2026-07-23 06:11:50",
+  "Generated At": "2026-07-23 06:31:45",
   "Stocks": [
     {
       "Name": "DRREDDY",
       "Symbol": "DRREDDY.NS",
-      "Price": 1158.0,
+      "Price": 1155.8,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 70.0,
@@ -14,7 +14,7 @@
     {
       "Name": "LT",
       "Symbol": "LT.NS",
-      "Price": 3817.0,
+      "Price": 3817.7,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
@@ -24,41 +24,41 @@
     {
       "Name": "HCLTECH",
       "Symbol": "HCLTECH.NS",
-      "Price": 1241.4,
+      "Price": 1244.9,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 60.0,
       "ATR": 36.47,
+      "Candle Pattern": "Bullish Engulfing"
+    },
+    {
+      "Name": "SUNPHARMA",
+      "Symbol": "SUNPHARMA.NS",
+      "Price": 1936.0,
+      "Decision": "BUY",
+      "Bias": "Bullish",
+      "Confidence": 60.0,
+      "ATR": 33.04,
       "Candle Pattern": "No Pattern"
     },
     {
       "Name": "NTPC",
       "Symbol": "NTPC.NS",
-      "Price": 348.1,
+      "Price": 348.55,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
       "ATR": 5.77,
-      "Candle Pattern": "No Pattern"
+      "Candle Pattern": "Doji"
     },
     {
       "Name": "COALINDIA",
       "Symbol": "COALINDIA.NS",
-      "Price": 425.5,
+      "Price": 425.35,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
-      "ATR": 6.32,
-      "Candle Pattern": "No Pattern"
-    },
-    {
-      "Name": "TECHM",
-      "Symbol": "TECHM.NS",
-      "Price": 1559.5,
-      "Decision": "BUY",
-      "Bias": "Bullish",
-      "Confidence": 60.0,
-      "ATR": 44.99,
+      "ATR": 6.35,
       "Candle Pattern": "No Pattern"
     }
   ],
@@ -91,6 +91,7 @@
     "LT": {
       "Headlines": [
         "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
+        "Tesla Q2 Highlights: Bigger AI Bets, Thinner Margins, Mixed Results",
         "Adani Green shares tumble 5% after Q1 results. Here\u2019s why Bernstein has an Underperform rating",
         "Bluestone Jewellery shares rocket 36% in just three days after Q1 results. Can the momentum sustain?",
         "Q1 Results Live Updates: Infosys, IndiGo among key companies to announce Q1FY27 results today",
@@ -99,16 +100,25 @@
         "US Stock Market: CME shares jump 6% after Q2 profit beats estimates; strong hedging demand boosts results",
         "Global Market: Wellington, Vanguard, Blackstone launch hybrid public-private investment funds for wealthy clients",
         "Oracle Financial Services shares jump 5% on strong Q1 results; PAT soars 121%, revenue up 69%",
-        "Sensex Today | Nifty 50 | Stock Market Live Updates: Sensex falls over 100 pts, Nifty below 24,000; realty stocks struggle"
+        "Sensex Today | Nifty 50 | Stock Market Live Updates: Sensex falls over 150 pts, Nifty below 24,000; realty stocks struggle"
       ],
       "Positive": 4,
       "Negative": 2,
-      "Neutral": 4,
+      "Neutral": 5,
       "Sentiment": "Bullish",
       "Score": 0.33,
       "Confidence": 33.3
     },
     "HCLTECH": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "SUNPHARMA": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -127,6 +137,15 @@
       "Confidence": 0.0
     },
     "COALINDIA": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "BAJAJ-AUTO": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -198,15 +217,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "SUNPHARMA": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "TITAN": {
       "Headlines": [],
       "Positive": 0,
@@ -234,7 +244,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "TATASTEEL": {
+    "JSWSTEEL": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -253,15 +263,6 @@
       "Confidence": 0.0
     },
     "BRITANNIA": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "BAJAJ-AUTO": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -289,6 +290,15 @@
       "Confidence": 0.0
     },
     "ICICIBANK": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "INFY": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -342,7 +352,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "JSWSTEEL": {
+    "TATASTEEL": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -361,6 +371,24 @@
       "Confidence": 0.0
     },
     "SBILIFE": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "EICHERMOT": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "HEROMOTOCO": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -406,15 +434,6 @@
       "Confidence": 0.0
     },
     "HDFCBANK": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "INFY": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -504,27 +523,9 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "EICHERMOT": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "HEROMOTOCO": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "NIFTY 50": {
       "Headlines": [
-        "Sensex Today | Nifty 50 | Stock Market Live Updates: Sensex falls over 100 pts, Nifty below 24,000; realty stocks struggle"
+        "Sensex Today | Nifty 50 | Stock Market Live Updates: Sensex falls over 150 pts, Nifty below 24,000; realty stocks struggle"
       ],
       "Positive": 0,
       "Negative": 1,
@@ -561,7 +562,7 @@
       "Sentiment": "Bullish"
     },
     {
-      "Headline": "STOCK RADAR",
+      "Headline": "Tesla Q2 Highlights: Bigger AI Bets, Thinner Margins, Mixed Results",
       "Sentiment": "Neutral"
     },
     {
@@ -713,7 +714,7 @@
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Sensex Today | Nifty 50 | Stock Market Live Updates: Sensex falls over 100 pts, Nifty below 24,000; realty stocks struggle",
+      "Headline": "Sensex Today | Nifty 50 | Stock Market Live Updates: Sensex falls over 150 pts, Nifty below 24,000; realty stocks struggle",
       "Sentiment": "Bearish"
     },
     {
