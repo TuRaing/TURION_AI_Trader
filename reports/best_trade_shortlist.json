@@ -1,10 +1,20 @@
 {
-  "Generated At": "2026-07-23 06:31:45",
+  "Generated At": "2026-07-23 09:09:50",
   "Stocks": [
+    {
+      "Name": "HCLTECH",
+      "Symbol": "HCLTECH.NS",
+      "Price": 1245.6,
+      "Decision": "BUY",
+      "Bias": "Bullish",
+      "Confidence": 80.0,
+      "ATR": 36.67,
+      "Candle Pattern": "Bullish Engulfing"
+    },
     {
       "Name": "DRREDDY",
       "Symbol": "DRREDDY.NS",
-      "Price": 1155.8,
+      "Price": 1169.1,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 70.0,
@@ -12,53 +22,43 @@
       "Candle Pattern": "No Pattern"
     },
     {
-      "Name": "LT",
-      "Symbol": "LT.NS",
-      "Price": 3817.7,
-      "Decision": "SELL",
-      "Bias": "Bearish",
-      "Confidence": 60.0,
-      "ATR": 64.7,
+      "Name": "BAJAJ-AUTO",
+      "Symbol": "BAJAJ-AUTO.NS",
+      "Price": 11251.5,
+      "Decision": "BUY",
+      "Bias": "Bullish",
+      "Confidence": 70.0,
+      "ATR": 251.54,
       "Candle Pattern": "No Pattern"
     },
     {
-      "Name": "HCLTECH",
-      "Symbol": "HCLTECH.NS",
-      "Price": 1244.9,
-      "Decision": "BUY",
-      "Bias": "Bullish",
+      "Name": "LT",
+      "Symbol": "LT.NS",
+      "Price": 3789.8,
+      "Decision": "SELL",
+      "Bias": "Bearish",
       "Confidence": 60.0,
-      "ATR": 36.47,
-      "Candle Pattern": "Bullish Engulfing"
+      "ATR": 65.29,
+      "Candle Pattern": "No Pattern"
     },
     {
       "Name": "SUNPHARMA",
       "Symbol": "SUNPHARMA.NS",
-      "Price": 1936.0,
+      "Price": 1953.9,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 60.0,
-      "ATR": 33.04,
+      "ATR": 31.38,
       "Candle Pattern": "No Pattern"
-    },
-    {
-      "Name": "NTPC",
-      "Symbol": "NTPC.NS",
-      "Price": 348.55,
-      "Decision": "SELL",
-      "Bias": "Bearish",
-      "Confidence": 60.0,
-      "ATR": 5.77,
-      "Candle Pattern": "Doji"
     },
     {
       "Name": "COALINDIA",
       "Symbol": "COALINDIA.NS",
-      "Price": 425.35,
+      "Price": 425.4,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
-      "ATR": 6.35,
+      "ATR": 6.36,
       "Candle Pattern": "No Pattern"
     }
   ],
@@ -67,8 +67,8 @@
       "Name": "NIFTY 50",
       "Bias": "Bullish",
       "Decision": "NO TRADE",
-      "Confidence": 28.0,
-      "Reason": "Price action Bullish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 28.0% is below the 60% threshold."
+      "Confidence": 14.0,
+      "Reason": "Price action Bullish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 14.0% is below the 60% threshold."
     },
     {
       "Name": "BANK NIFTY",
@@ -79,7 +79,25 @@
     }
   ],
   "News": {
+    "HCLTECH": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "DRREDDY": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "BAJAJ-AUTO": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -90,33 +108,25 @@
     },
     "LT": {
       "Headlines": [
-        "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
+        "PVR Inox Q1 Results: Co swings to black, posts Rs 56 crore profit vs year-ago loss",
+        "Cipla Q1 Results: Cons profit drops 39% YoY to Rs 789 crore; revenue rises marginally",
+        "HDFC Bank shares slide 10% in four days after Q1 results but brokerages see up to 40% upside. Here\u2019s why",
         "Tesla Q2 Highlights: Bigger AI Bets, Thinner Margins, Mixed Results",
         "Adani Green shares tumble 5% after Q1 results. Here\u2019s why Bernstein has an Underperform rating",
         "Bluestone Jewellery shares rocket 36% in just three days after Q1 results. Can the momentum sustain?",
-        "Q1 Results Live Updates: Infosys, IndiGo among key companies to announce Q1FY27 results today",
+        "Q1 Results Live Updates: Cipla Q1 profit drops 39% YoY to Rs 789 crore, PVR Inox swings to black; Infosys, IndiGo to announce Q1 results today",
         "Up to 451% return in 6 months! 11 smallcap stocks turn multibaggers as FIIs raise stakes for 2 straight quarters",
         "Eternal shares jump 3% after Q1 results. Jefferies, CLSA and 4 other brokerages weigh in",
         "US Stock Market: CME shares jump 6% after Q2 profit beats estimates; strong hedging demand boosts results",
         "Global Market: Wellington, Vanguard, Blackstone launch hybrid public-private investment funds for wealthy clients",
-        "Oracle Financial Services shares jump 5% on strong Q1 results; PAT soars 121%, revenue up 69%",
-        "Sensex Today | Nifty 50 | Stock Market Live Updates: Sensex falls over 150 pts, Nifty below 24,000; realty stocks struggle"
+        "Oracle Financial Services shares jump 5% on strong Q1 results; PAT soars 121%, revenue up 69%"
       ],
-      "Positive": 4,
-      "Negative": 2,
-      "Neutral": 5,
+      "Positive": 3,
+      "Negative": 1,
+      "Neutral": 8,
       "Sentiment": "Bullish",
-      "Score": 0.33,
-      "Confidence": 33.3
-    },
-    "HCLTECH": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
+      "Score": 0.5,
+      "Confidence": 50.0
     },
     "SUNPHARMA": {
       "Headlines": [],
@@ -127,25 +137,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "NTPC": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "COALINDIA": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "BAJAJ-AUTO": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -181,7 +173,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "ITC": {
+    "ICICIBANK": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -189,6 +181,17 @@
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
+    },
+    "ITC": {
+      "Headlines": [
+        "Bitcoin trades near $65,700 as AI-led inflation concerns cap gains despite strong ETF demand"
+      ],
+      "Positive": 1,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Bullish",
+      "Score": 1.0,
+      "Confidence": 100.0
     },
     "BHARTIARTL": {
       "Headlines": [],
@@ -235,16 +238,18 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "WIPRO": {
-      "Headlines": [],
-      "Positive": 0,
+    "NTPC": {
+      "Headlines": [
+        "NTPC Green shares soar 9% after Q1 earnings. What\u2019s boosting investor sentiment?"
+      ],
+      "Positive": 1,
       "Negative": 0,
       "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
+      "Sentiment": "Bullish",
+      "Score": 1.0,
+      "Confidence": 100.0
     },
-    "JSWSTEEL": {
+    "TATASTEEL": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -262,7 +267,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "BRITANNIA": {
+    "EICHERMOT": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -280,7 +285,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "SHREECEM": {
+    "HEROMOTOCO": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -289,16 +294,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "ICICIBANK": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "INFY": {
+    "HINDUNILVR": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -325,7 +321,25 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "ASIANPAINT": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "MARUTI": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "WIPRO": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -352,7 +366,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "TATASTEEL": {
+    "JSWSTEEL": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -370,25 +384,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "SBILIFE": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "EICHERMOT": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "HEROMOTOCO": {
+    "BRITANNIA": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -415,11 +411,23 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "HINDALCO": {
+    "SHREECEM": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
       "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "CIPLA": {
+      "Headlines": [
+        "Cipla Q1 Results: Cons profit drops 39% YoY to Rs 789 crore; revenue rises marginally",
+        "Q1 Results Live Updates: Cipla Q1 profit drops 39% YoY to Rs 789 crore, PVR Inox swings to black; Infosys, IndiGo to announce Q1 results today"
+      ],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 2,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -442,16 +450,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "HINDUNILVR": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "ASIANPAINT": {
+    "INFY": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -505,7 +504,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "CIPLA": {
+    "SBILIFE": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -523,16 +522,23 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "NIFTY 50": {
-      "Headlines": [
-        "Sensex Today | Nifty 50 | Stock Market Live Updates: Sensex falls over 150 pts, Nifty below 24,000; realty stocks struggle"
-      ],
+    "HINDALCO": {
+      "Headlines": [],
       "Positive": 0,
-      "Negative": 1,
+      "Negative": 0,
       "Neutral": 0,
-      "Sentiment": "Bearish",
-      "Score": -1.0,
-      "Confidence": 100.0
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "NIFTY 50": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
     },
     "BANK NIFTY": {
       "Headlines": [],
@@ -546,20 +552,64 @@
   },
   "Market Headlines": [
     {
-      "Headline": "Taking Stock: Market fails to hold on to day#39;s gains, ends marginally higher",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Sensex, Nifty gain for third day in a row; easing volatility to support bull trend",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Mid-day Mood | Cooling volatility sparks market rally, India VIX sees steepest fall in 4 years",
+      "Headline": "PVR Inox Q1 Results: Co swings to black, posts Rs 56 crore profit vs year-ago loss",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
+      "Headline": "Radhakishan Damani picks up 2% stake in this NBFC stock, which fell 17% in 2026. Do you own it?",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Explainer: How the Clarity Act could transform crypto regulation in the US",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Global Market: European shares slip as tech stocks drag; ECB policy decision in focus",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Bitcoin trades near $65,700 as AI-led inflation concerns cap gains despite strong ETF demand",
       "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Domino effect: Gandhar Oil\u2019s 20% upper circuit spurs rally in Savita Oil and Panama Petro. Here\u2019s why",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Global Market: BNP Paribas Q2 profit jumps 33% on strong trading, retail rebound; beats estimates",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Indonesia's Danantara plans dollar bond sale worth at least $500 mln, sources say",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "NTPC Green shares soar 9% after Q1 earnings. What\u2019s boosting investor sentiment?",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Cipla Q1 Results: Cons profit drops 39% YoY to Rs 789 crore; revenue rises marginally",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Global Earnings | Hyundai Motor reports 21% drop in Q2 profit, misses forecasts",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Global Market: Nokia Q2 profit beats estimates on strong AI, cloud demand; raises full-year outlook",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Global Market: ECB seen holding rates steady while keeping September hike option open",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "HDFC Bank shares slide 10% in four days after Q1 results but brokerages see up to 40% upside. Here\u2019s why",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "BlackRock, Prashant Jain-backed 3P India among others invest in Indo MIM IPO anchor book of Rs 1,141 crore",
+      "Sentiment": "Neutral"
     },
     {
       "Headline": "Tesla Q2 Highlights: Bigger AI Bets, Thinner Margins, Mixed Results",
@@ -614,7 +664,7 @@
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Q1 Results Live Updates: Infosys, IndiGo among key companies to announce Q1FY27 results today",
+      "Headline": "Q1 Results Live Updates: Cipla Q1 profit drops 39% YoY to Rs 789 crore, PVR Inox swings to black; Infosys, IndiGo to announce Q1 results today",
       "Sentiment": "Neutral"
     },
     {
@@ -699,50 +749,6 @@
     },
     {
       "Headline": "Lohia Corp's Rs 1,100 crore IPO opens for subscription. Check GMP, issue size &amp; other key details",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Xtranet Technologies IPO opens today; grey market signals 10% listing premium",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Oil Price Today (July 23): Crude oil crosses $95 as US strikes enter 12th day. Why Goldman says $120 is possible?",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Indo-MIM IPO opens: Is this Rs 3,811 crore issue a long-term bet?",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Sensex Today | Nifty 50 | Stock Market Live Updates: Sensex falls over 150 pts, Nifty below 24,000; realty stocks struggle",
-      "Sentiment": "Bearish"
-    },
-    {
-      "Headline": "Dividend alert! Last day to buy Bharti Airtel, Hero MotoCorp, among 43 stocks for dividend payout worth Rs 1,127",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Negative Breakout: These 15 stocks cross below their 200 DMAs",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Oil prices rise to six-week high as US-Iran tensions escalate",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "US-Iran tensions underpin dollar as yen nears 40-year low",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Gold off two-week peak as oil advances, Fed meeting eyed",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Nestle India extends rally on stellar June quarter, higher costs may limit upside",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "FAR bonds lose their pull as tailwinds fade",
       "Sentiment": "Neutral"
     }
   ]
