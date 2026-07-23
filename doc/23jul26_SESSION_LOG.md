@@ -147,4 +147,121 @@ Next Session
 
 ==================================================
 
+Session Continued (same day, 23-Jul, second part)
+
+Today's Achievements (part 2)
+
+✅ User asked whether option "averaging" applies after
+   fully closing a profitable trade and re-buying the same
+   contract at a higher price - researched India's FIFO
+   (First-In-First-Out) trade-matching rule (Income Tax
+   Act 1961) and confirmed: no, once a position is fully
+   closed, FIFO permanently matches that buy/sell pair -
+   any later loss belongs only to the new, separate trade.
+   Averaging only applies to a position that was partially
+   (not fully) closed before re-entering.
+
+✅ Researched SEBI's Feb-2025 algo trading circular at the
+   user's request - the key retail-relevant rule is an
+   Orders-Per-Second (OPS) threshold: under 10 orders/sec
+   via API needs no formal algo registration, above it
+   does. Confirmed this project (and any future Broker
+   Integration) would stay well under that threshold
+   (at most a handful of orders per day, not per second),
+   so this regulatory framework doesn't apply to us.
+   Also confirmed no specific registration fee is publicly
+   documented for those who do cross the threshold, and
+   it's moot for our use case regardless.
+
+✅ Discussed a proposed 1-second-candle "cross the previous
+   candle's close, hold a few seconds, take profit" options
+   scalping idea - explained why this fails independent of
+   the cost-per-trade question: bid-ask spread (especially
+   wide on options), broker API execution latency
+   (100-1000ms, incompatible with a few-second hold), a
+   weak/noisy entry signal (crossing the previous candle's
+   Close, unlike crossing its High, triggers very often),
+   and the SEBI OPS threshold risk if fully automated at
+   that frequency.
+
+✅ MAJOR CORRECTION: user pointed out that a large
+   (~Rs 10 lakh) trade's transaction costs would be a much
+   smaller fraction of a few-thousand-rupee profit than
+   the flat ~Rs 30/trade guess implied for small trades -
+   researched Zerodha's actual published intraday equity
+   charges and confirmed the user was right: real costs
+   are almost entirely percentage-of-turnover (brokerage
+   capped at Rs 20/order, STT 0.025% sell-only, exchange
+   charges ~0.003%, stamp duty 0.003% buy-only, 18% GST),
+   not a flat rupee number.
+
+✅ Built strategy/transaction_costs.py implementing this
+   real cost model and wired it into every 22-Jul backtest
+   module (orb_vwap_backtest.py, vwap_pullback_backtest.py,
+   ema_volume_breakout_backtest.py, multi_timeframe_
+   backtest.py), replacing the flat-cost parameter
+   entirely. Verified the model against hand-calculated
+   examples (a ~Rs 11,000 trade, a Rs 10 lakh trade) before
+   trusting it.
+
+✅ Re-ran all of 22-Jul's key backtests with the corrected
+   model. Losses shrank dramatically for cheap stock
+   trades - e.g. ICICIBANK's ORB backtest: -Rs 6,583.76 ->
+   -Rs 298.95 (roughly 22x smaller loss), HDFCBANK's ORB
+   backtest landed near break-even at -Rs 144.20. VWAP
+   Pullback losses similarly shrank (-Rs 1,200/-3,900 ->
+   -Rs 46/-886 range). The Daily-aligned 15m/5m NIFTY combo
+   barely changed (-Rs 547 -> -Rs 461) since an index-level
+   "1 unit" position (~Rs 24,000+) makes percentage-based
+   cost land close to the old flat guess anyway - the flat
+   guess had mostly hidden the problem on cheap stocks, not
+   index-level trades. No strategy flipped to net-positive,
+   but the earlier "conclusively rejected" framing was more
+   pessimistic than the real numbers warrant.
+
+==================================================
+
+Bugs Fixed (part 2)
+
+• Every 22-Jul backtest module used a flat Rs 30/trade
+  cost guess instead of the real percentage-based Indian
+  equity transaction cost structure - not a code bug per
+  se, but a materially wrong assumption baked into the
+  Net PnL figures reported that day. Fixed by building
+  strategy/transaction_costs.py and wiring it into all
+  four affected modules.
+
+==================================================
+
+Next Session (updated)
+
+1. Let the scheduled review (26-Jul 09:00 IST) run as
+   planned.
+
+2. Apply the same real transaction-cost model
+   (strategy/transaction_costs.py) to the Watchlist and
+   Best Trade Engine's own live evaluations, not just the
+   22-Jul intraday-candidate backtests - carried over from
+   the 21-Jul transaction-cost note, now with a proper
+   model to use instead of a flat guess.
+
+3. If pursuing the Daily-alignment intraday candidate
+   further: sweep more SL/Target combos with the corrected
+   cost model, and try combining with the BANKNIFTY
+   Momentum+VIX options finding.
+
+4. Resume the FCM push-notification feature (paused
+   21-Jul, not started) - get google-services.json +
+   Firebase service-account key from the user first.
+
+5. Commit Desktop App (PySide6), package as .exe (carried
+   over).
+
+6. Fix TATAMOTORS / LTIM ticker symbols (carried over).
+
+7. Supertrend and CPR indicators (from the 22-Jul
+   external strategy list) not yet built - not started.
+
+==================================================
+
 END OF SESSION

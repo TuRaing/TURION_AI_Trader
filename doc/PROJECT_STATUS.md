@@ -471,13 +471,21 @@ KNOWN ISSUES
   NIFTY, 60d): trades dropped 67->20, win rate improved
   35.82%->45.0%, max drawdown dropped 118.21->43.29, and
   the net-of-transaction-cost loss shrank roughly 4x
-  (-Rs 1,950 -> -Rs 547 at Rs 30/trade). Still net-
-  negative, so not tradeable yet, but a real, measurable
-  improvement - unlike Candlestick confirmation (tested
-  earlier the same day), which hurt every strategy it was
-  added to. Worth pursuing further: try Daily-alignment
-  on more SL/Target combos, or combine it with the
-  BANKNIFTY Momentum+VIX options finding.
+  (-Rs 1,950 -> -Rs 547 at a flat Rs 30/trade guess).
+  Still net-negative, so not tradeable yet, but a real,
+  measurable improvement - unlike Candlestick confirmation
+  (tested earlier the same day), which hurt every strategy
+  it was added to. Worth pursuing further: try Daily-
+  alignment on more SL/Target combos, or combine it with
+  the BANKNIFTY Momentum+VIX options finding.
+  CORRECTED 23-Jul (real % cost model, see below):
+  re-checked with strategy/transaction_costs.py instead of
+  the flat guess - real cost was Rs 514.12 for these 20
+  trades (an index-level "1 unit" position is worth
+  ~Rs 24,000+, so % cost lands close to the earlier flat
+  guess here, unlike the cheap-stock cases below) - Net
+  PnL -Rs 460.73, similar conclusion (not yet profitable,
+  but a real improvement over the no-Daily-filter case).
 
 • Desktop App verified working locally, but not yet
   committed to the repo. (Android App committed
@@ -632,6 +640,25 @@ KNOWN ISSUES
   same as the 19-Jul/20-Jul Android installs. Resuming
   this evening per the user's request.
 
+• FIXED 23-Jul: every backtest's transaction-cost
+  assumption was a flat ~Rs 30/trade guess - user
+  correctly pointed out real broker charges are almost
+  entirely percentage-of-turnover (brokerage capped at
+  Rs 20/order, STT 0.025% sell-only, exchange charges
+  ~0.003%, stamp duty 0.003% buy-only, 18% GST on top),
+  not a flat rupee amount, so a flat guess badly
+  overstates cost on cheap/small trades and roughly
+  matches it on expensive/index-level ones. Built
+  strategy/transaction_costs.py modeling Zerodha's
+  published rates (representative of discount brokers)
+  and wired it into strategy/orb_vwap_backtest.py,
+  vwap_pullback_backtest.py, ema_volume_breakout_backtest.py,
+  and multi_timeframe_backtest.py, replacing every flat-
+  cost parameter. See the corrected figures inline below
+  and in the transaction-cost note under Priority 6 - none
+  of 22-Jul's rejected strategies flip to profitable, but
+  the losses are meaningfully smaller than first reported.
+
 • CONCLUSIVELY REJECTED 22-Jul: ORB (entry) + VWAP
   (direction filter) + Volume-spike (confirmation) for
   stocks, the intraday candidate researched 21-Jul (see
@@ -649,6 +676,19 @@ KNOWN ISSUES
   transaction costs - not fixable by retuning, same
   conclusion pattern as the 15m-strategy finding above.
   Do not pursue this combination further for stocks.
+
+  CORRECTED 23-Jul: the Rs 30/trade figure above was a
+  flat guess and overstated real cost for these small
+  (1-share) trades - see the real percentage-based
+  transaction-cost model below. Re-run with the corrected
+  model at default params: net loss per stock shrank from
+  roughly -Rs 6,500/-7,700 to just -Rs 144/-1,330 (e.g.
+  ICICIBANK -Rs 6,584 -> -Rs 299, HDFCBANK -Rs 6,497 ->
+  -Rs 144). Still net-negative on every stock, so the
+  REJECTED verdict stands, but nowhere near as
+  catastrophically as first reported - the real problem
+  is the gross edge being too small/inconsistent, not
+  overstated transaction costs.
 
 • PROMISING (not yet tradeable) 22-Jul: Momentum (RSI)
   + India VIX filter for BUY CE/BUY PE, researched 21-Jul
@@ -785,6 +825,14 @@ future live testing.
     the same 6 stocks, every combo gross-negative before
     even subtracting costs. See
     strategy/vwap_pullback_backtest.py.
+    CORRECTED 23-Jul (real % cost model, see below): at
+    default params (1.0x SL/2.0x Target), per-stock net
+    losses shrank to roughly -Rs 46 to -Rs 886 (from
+    -Rs 1,200 to -Rs 3,900 under the old flat-cost guess)
+    - REJECTED verdict unchanged since gross PnL itself
+    is already negative/near-zero in aggregate, which no
+    cost correction can fix, but confirming this wasn't
+    as catastrophic as first reported either.
   - 50 EMA + Volume Breakout (swing, daily candles) -
     small sample (2-9 trades/instrument over 2y) but
     mostly negative, and clearly underperforms the
@@ -834,16 +882,29 @@ roughly ₹0-2500/month depending on broker chosen)
 
 Before any real capital is used (raised 21-Jul):
 current paper-trading/backtest PnL is gross - it does
-not subtract real per-trade costs (brokerage, STT,
-exchange charges, GST, stamp duty - roughly ₹20-40
-per round trip even with a discount broker). Both the
-Watchlist and Best Trade Engine backtests/evaluations
-need to be re-checked net of an estimated cost-per-
-trade before trusting them as "profitable," since a
-strategy that nets small per-trade PnL (e.g. the fixed
-1-share Best Trade sizing - see Extra Features) can
-look profitable gross and be a net loser after real
-costs. Fix this before Broker Integration, not after.
+not subtract real per-trade costs. UPDATE 23-Jul: the
+initial ₹20-40/round-trip flat guess was itself wrong -
+user pointed out real broker charges are almost entirely
+percentage-of-turnover (brokerage capped at ₹20/order,
+STT 0.025% sell-only, exchange charges, stamp duty
+0.003% buy-only, 18% GST), not a flat rupee amount.
+Built strategy/transaction_costs.py modeling this
+properly (Zerodha's published rates) and re-ran the
+22-Jul intraday backtests with it - results are
+meaningfully less negative for cheap stock trades (a
+flat guess badly overstated cost when position value is
+small, e.g. ICICIBANK's ORB net loss shrank from -₹6,584
+to -₹299), while index-level trades stayed close to the
+earlier flat estimate (cost naturally scales with the
+~₹24,000+ per-unit value there). None of 22-Jul's
+strategies flip to net-positive with the corrected
+model, but the picture is much less pessimistic than
+first reported. Both the Watchlist and Best Trade
+Engine's own evaluations still need this same real-cost
+check before trusting them as "profitable" - not done
+yet for those two (only the new intraday-candidate
+backtests use strategy/transaction_costs.py so far).
+Fix this before Broker Integration, not after.
 
 --------------------------------------------------
 
