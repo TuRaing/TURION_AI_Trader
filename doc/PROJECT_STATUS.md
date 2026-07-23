@@ -461,6 +461,24 @@ KNOWN ISSUES
   candidates (adds selectivity), never creates false
   positives on its own.
 
+• IMPROVED (not yet profitable) 23-Jul: added an
+  optional Daily-timeframe alignment requirement to the
+  15m/5m backtest (strategy/multi_timeframe_backtest.py,
+  require_daily_alignment=True) - also require the Daily
+  candle's Bias to agree, at the user's suggestion since
+  Daily is the one timeframe with a proven edge. Tested
+  on the same best-known combo (0.5x SL/1.5x Target,
+  NIFTY, 60d): trades dropped 67->20, win rate improved
+  35.82%->45.0%, max drawdown dropped 118.21->43.29, and
+  the net-of-transaction-cost loss shrank roughly 4x
+  (-Rs 1,950 -> -Rs 547 at Rs 30/trade). Still net-
+  negative, so not tradeable yet, but a real, measurable
+  improvement - unlike Candlestick confirmation (tested
+  earlier the same day), which hurt every strategy it was
+  added to. Worth pursuing further: try Daily-alignment
+  on more SL/Target combos, or combine it with the
+  BANKNIFTY Momentum+VIX options finding.
+
 • Desktop App verified working locally, but not yet
   committed to the repo. (Android App committed
   19-Jul - see milestone above.)
