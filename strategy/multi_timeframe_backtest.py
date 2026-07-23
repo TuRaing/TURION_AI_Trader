@@ -72,6 +72,8 @@ def run_multi_timeframe_backtest(
     stop_loss_atr_mult=1.5,
     target_atr_mult=3.0,
     exit_on_alignment_break=True,
+    require_daily_alignment=False,
+    daily_period="2y",
 ):
     """
     Backtests the 15m(trend)/5m(entry) core of the alignment rule used
@@ -94,11 +96,20 @@ def run_multi_timeframe_backtest(
         If False, once in a trade, only Stop Loss/Target/End Of Data
         closes it - alignment breaking is ignored.
 
+    require_daily_alignment : bool
+        Updated: 2026-07-23 - if True, also require the Daily (1d)
+        timeframe's Bias to agree (non-Neutral, matching 15m/5m) before
+        entering - researched at the user's suggestion, since Daily is
+        the one timeframe with a proven backtest edge. Uses the most
+        recently *completed* daily candle (yesterday's close onward, via
+        the same as-of/backward join as 15m->5m) - never today's
+        still-forming daily candle, so no look-ahead.
+
     Returns
     -------
     dict (same shape as strategy.backtest_engine.summarize_trades, plus
-    an "Aligned Candles" diagnostic count), or {"Error": str} if either
-    timeframe returned no data.
+    an "Aligned Candles" diagnostic count), or {"Error": str} if any
+    required timeframe returned no data.
     """
 
     trend_data = _download(symbol, "15m", trend_period)
@@ -137,6 +148,31 @@ def run_multi_timeframe_backtest(
         direction="backward",
     ).set_index("Timestamp")
 
+    if require_daily_alignment:
+
+        daily_data = _download(symbol, "1d", daily_period)
+
+        if daily_data.empty or len(daily_data) < MIN_CANDLES:
+            return {"Error": f"No usable 1d data for {symbol}"}
+
+        # Daily candles come back tz-naive from yfinance while intraday
+        # candles are tz-aware (Asia/Kolkata) - merge_asof requires matching
+        # dtypes, so localize daily to the same tz as the intraday data.
+        if daily_data.index.tz is None:
+            daily_data.index = daily_data.index.tz_localize(entry_data.index.tz)
+
+        daily_signals = _analyze_series(daily_data)
+
+        if daily_signals.empty:
+            return {"Error": "Not enough daily candles after warmup to analyze"}
+
+        merged = pd.merge_asof(
+            merged.reset_index(),
+            daily_signals.reset_index().rename(columns={"Bias": "Daily Bias"})[["Timestamp", "Daily Bias"]],
+            on="Timestamp",
+            direction="backward",
+        ).set_index("Timestamp")
+
     trades = []
     position = None
     aligned_candles = 0
@@ -172,6 +208,11 @@ def run_multi_timeframe_backtest(
             and trend_bias != "Neutral"
             and trend_bias == entry_bias
         )
+
+        if aligned and require_daily_alignment:
+
+            daily_bias = row["Daily Bias"]
+            aligned = pd.notna(daily_bias) and daily_bias == trend_bias
 
         if aligned:
             aligned_candles += 1
