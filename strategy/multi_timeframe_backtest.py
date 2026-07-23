@@ -4,6 +4,7 @@ import pandas as pd
 from strategy.watchlist_scanner import analyze_symbol, MIN_CANDLES
 from strategy.risk_engine import calculate_atr_levels
 from strategy.backtest_engine import close_trade, summarize_trades
+from strategy.transaction_costs import calculate_round_trip_cost
 
 # Same windowed-recompute pattern as strategy/backtest_engine.py's
 # STRUCTURE_WINDOW - bounds Market Structure/Support-Resistance cost per
@@ -246,6 +247,14 @@ def run_multi_timeframe_backtest(
         trades.append(close_trade(position, last_timestamp, float(entry_close.iloc[-1]), "End Of Data"))
 
     summary = summarize_trades(trades)
+
+    # Updated: 2026-07-23 - real percentage-based cost (strategy/
+    # transaction_costs.py), not the flat guess used by the earlier
+    # ORB/VWAP-Pullback backtests before this same date's correction.
+    total_cost = sum(calculate_round_trip_cost(t["Entry Price"], t["Exit Price"], 1) for t in trades)
+    summary["Total Cost"] = round(total_cost, 2)
+    summary["Net PnL"] = round(summary["Total PnL"] - total_cost, 2)
+
     summary["Aligned Candles"] = aligned_candles
     summary["Total Entry Candles"] = len(merged)
 

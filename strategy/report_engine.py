@@ -362,7 +362,7 @@ def print_orb_vwap_backtest_report(symbol, result):
 
     print()
 
-    print(f"Cost Per Trade    : Rs {result['Cost Per Trade']:.2f} (round trip estimate)")
+    print(f"Total Cost        : Rs {result['Total Cost']:.2f} (real % of turnover, not flat)")
     print(f"Net PnL           : {result['Net PnL']:.2f}")
     print(f"Wins (Net)        : {result['Wins (Net of Costs)']}")
     print(f"Win Rate (Net)    : {result['Win Rate (Net of Costs)']}%")
@@ -376,8 +376,9 @@ def print_orb_vwap_backtest_report(symbol, result):
 
     print("----------------------------------------")
     print("Note: analysis only, not wired into any paper trading. Net PnL")
-    print("subtracts an estimated Rs 20-40/round-trip real trade cost from")
-    print("gross - see doc/PROJECT_STATUS.md's transaction-cost note.")
+    print("subtracts the real percentage-based cost per trade (brokerage +")
+    print("STT + exchange charges + stamp duty + GST) via")
+    print("strategy/transaction_costs.py, not a flat guess.")
     print("----------------------------------------")
 
 
@@ -408,6 +409,12 @@ def print_multi_timeframe_backtest_report(symbol, result):
 
     print(f"Total PnL    : {result['Total PnL']:.2f}")
     print(f"Max Drawdown : {result['Max Drawdown']:.2f}")
+
+    if "Total Cost" in result:
+
+        print()
+        print(f"Total Cost   : Rs {result['Total Cost']:.2f} (real % of turnover, not flat)")
+        print(f"Net PnL      : {result['Net PnL']:.2f}")
 
     print("----------------------------------------")
 

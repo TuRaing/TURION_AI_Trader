@@ -4,7 +4,7 @@ import pandas as pd
 from indicators.atr import calculate_atr
 from strategy.risk_engine import calculate_atr_levels
 from strategy.candlestick_engine import get_candlestick_pattern
-from strategy.orb_vwap_backtest import _flatten, _calculate_intraday_vwap, close_trade, summarize_trades, ATR_PERIOD, DEFAULT_COST_PER_TRADE
+from strategy.orb_vwap_backtest import _flatten, _calculate_intraday_vwap, close_trade, summarize_trades, ATR_PERIOD
 
 # Updated: 2026-07-22 - VWAP Pullback: price establishes a trend relative to
 # VWAP, pulls back to touch VWAP, then bounces back in the trend direction -
@@ -21,7 +21,6 @@ def run_vwap_pullback_backtest(
     interval="5m",
     atr_sl_mult=1.0,
     atr_target_mult=2.0,
-    cost_per_trade=DEFAULT_COST_PER_TRADE,
     allow_short=True,
     require_candlestick_confirm=False,
 ):
@@ -173,4 +172,4 @@ def run_vwap_pullback_backtest(
                         "Target": target,
                     }
 
-    return summarize_trades(trades, cost_per_trade)
+    return summarize_trades(trades)

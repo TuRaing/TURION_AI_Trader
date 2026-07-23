@@ -5,7 +5,7 @@ from indicators.ema import calculate_ema
 from indicators.atr import calculate_atr
 from strategy.risk_engine import calculate_atr_levels
 from strategy.volume_engine import calculate_average_volume, build_volume_analysis
-from strategy.orb_vwap_backtest import _flatten, close_trade, summarize_trades, DEFAULT_COST_PER_TRADE
+from strategy.orb_vwap_backtest import _flatten, close_trade, summarize_trades
 
 # Updated: 2026-07-22 - 50 EMA + Volume Breakout, a swing (daily-candle)
 # setup: long-only entry when price is above its 50 EMA (established
@@ -29,7 +29,6 @@ def run_ema_volume_breakout_backtest(
     volume_spike_mult=VOLUME_SPIKE_MULT,
     atr_sl_mult=1.5,
     atr_target_mult=3.0,
-    cost_per_trade=DEFAULT_COST_PER_TRADE,
 ):
     """
     Backtests a 50 EMA + Volume Breakout swing setup: long-only, enters
@@ -122,4 +121,4 @@ def run_ema_volume_breakout_backtest(
     if position is not None:
         trades.append(close_trade(position, close.index[-1], float(close.iloc[-1]), "End Of Data"))
 
-    return summarize_trades(trades, cost_per_trade)
+    return summarize_trades(trades)

@@ -5,6 +5,7 @@ from indicators.atr import calculate_atr
 from strategy.risk_engine import calculate_atr_levels
 from strategy.volume_engine import calculate_average_volume, build_volume_analysis
 from strategy.candlestick_engine import get_candlestick_pattern
+from strategy.transaction_costs import calculate_round_trip_cost
 
 # Updated: 2026-07-22 - Opening Range Breakout (ORB) entry, filtered by VWAP
 # direction and a volume spike, researched 21-Jul as the intraday candidate
@@ -16,10 +17,13 @@ VOLUME_SPIKE_MULT = 1.5
 ATR_PERIOD = 14
 VOLUME_AVG_PERIOD = 20
 
-# Rough real round-trip cost estimate (brokerage + STT + exchange charges +
-# GST + stamp duty) even with a discount broker - see doc/PROJECT_STATUS.md's
-# "Before any real capital is used" note, 21-Jul.
-DEFAULT_COST_PER_TRADE = 30.0
+# Updated: 2026-07-23 - kept only as the CLI's fallback quantity (all these
+# backtests trade 1 share, matching the rest of this codebase's paper-
+# trading convention). Net PnL now uses the real percentage-based cost
+# model (strategy/transaction_costs.py) per trade instead of a flat guess -
+# a flat number badly overstated cost on small/cheap trades and understated
+# it on large ones, since real charges are almost entirely turnover-based.
+DEFAULT_QUANTITY = 1
 
 
 def _flatten(series):
@@ -67,10 +71,14 @@ def _calculate_intraday_vwap(data):
 
 def close_trade(position, exit_time, exit_price, reason):
 
+    quantity = position.get("Quantity", DEFAULT_QUANTITY)
+
     if position["Direction"] == "BUY":
-        pnl = exit_price - position["Entry Price"]
+        pnl = (exit_price - position["Entry Price"]) * quantity
     else:
-        pnl = position["Entry Price"] - exit_price
+        pnl = (position["Entry Price"] - exit_price) * quantity
+
+    cost = calculate_round_trip_cost(position["Entry Price"], exit_price, quantity)
 
     return {
         "Direction": position["Direction"],
@@ -79,19 +87,23 @@ def close_trade(position, exit_time, exit_price, reason):
         "Exit Time": exit_time,
         "Exit Price": exit_price,
         "Exit Reason": reason,
+        "Quantity": quantity,
         "PnL": round(pnl, 2),
+        "Cost": round(cost, 2),
+        "Net PnL": round(pnl - cost, 2),
     }
 
 
-def summarize_trades(trades, cost_per_trade=DEFAULT_COST_PER_TRADE):
+def summarize_trades(trades):
 
     total_trades = len(trades)
 
     gross_pnl = sum(t["PnL"] for t in trades)
-    net_pnl = gross_pnl - (total_trades * cost_per_trade)
+    total_cost = sum(t["Cost"] for t in trades)
+    net_pnl = sum(t["Net PnL"] for t in trades)
 
     wins = [t for t in trades if t["PnL"] > 0]
-    net_wins = [t for t in trades if t["PnL"] > cost_per_trade]
+    net_wins = [t for t in trades if t["Net PnL"] > 0]
 
     win_rate = (len(wins) / total_trades * 100) if total_trades else 0
     net_win_rate = (len(net_wins) / total_trades * 100) if total_trades else 0
@@ -106,7 +118,7 @@ def summarize_trades(trades, cost_per_trade=DEFAULT_COST_PER_TRADE):
         "Wins (Gross)": len(wins),
         "Win Rate (Gross)": round(win_rate, 2),
         "Gross PnL": round(gross_pnl, 2),
-        "Cost Per Trade": cost_per_trade,
+        "Total Cost": round(total_cost, 2),
         "Net PnL": round(net_pnl, 2),
         "Wins (Net of Costs)": len(net_wins),
         "Win Rate (Net of Costs)": round(net_win_rate, 2),
@@ -123,7 +135,6 @@ def run_orb_vwap_backtest(
     volume_spike_mult=VOLUME_SPIKE_MULT,
     atr_sl_mult=1.0,
     atr_target_mult=2.0,
-    cost_per_trade=DEFAULT_COST_PER_TRADE,
     allow_short=True,
     require_vwap_filter=True,
     require_volume_filter=True,
@@ -173,14 +184,14 @@ def run_orb_vwap_backtest(
 
     return _run_on_data(
         data, interval, orb_minutes, volume_spike_mult,
-        atr_sl_mult, atr_target_mult, cost_per_trade, allow_short,
+        atr_sl_mult, atr_target_mult, allow_short,
         require_vwap_filter, require_volume_filter, require_candlestick_confirm,
     )
 
 
 def _run_on_data(
     data, interval, orb_minutes, volume_spike_mult,
-    atr_sl_mult, atr_target_mult, cost_per_trade, allow_short,
+    atr_sl_mult, atr_target_mult, allow_short,
     require_vwap_filter=True, require_volume_filter=True, require_candlestick_confirm=False,
 ):
     """
@@ -300,4 +311,4 @@ def _run_on_data(
                     "Target": target,
                 }
 
-    return summarize_trades(trades, cost_per_trade)
+    return summarize_trades(trades)
