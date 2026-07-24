@@ -487,6 +487,32 @@ KNOWN ISSUES
   PnL -Rs 460.73, similar conclusion (not yet profitable,
   but a real improvement over the no-Daily-filter case).
 
+  EXTENDED 24-Jul: added an optional trailing Stop-Loss
+  (use_trailing_stop=True, strategy/multi_timeframe_
+  backtest.py) that replaces the fixed Target - ratchets
+  the Stop-Loss up as the trade makes new highs, letting a
+  strong trend run further instead of capping out at a
+  fixed ATR-multiple Target. Tested three trail distances
+  on the same Daily-aligned NIFTY combo (0.5x initial SL):
+  - Trail = 0.5x ATR (same as initial SL): HURT results -
+    all 24 trades whipsawed out via the trail, gross PnL
+    flipped negative (-Rs 20.37).
+  - Trail = 1.0x ATR: BEST result found all week - gross
+    +Rs 62.58 (beats the fixed-target's +Rs 42.03), net
+    -Rs 450.95 (least negative net PnL of any NIFTY combo
+    tested this week, better than the fixed-target's
+    -Rs 460.73 too).
+  - Trail = 1.5x ATR: worse than 1.0x (+Rs 43.19 gross,
+    -Rs 470.33 net) - gives back too much profit before
+    exiting.
+  Lesson: trail distance needs its own tuning, independent
+  of the initial Stop-Loss distance - too tight whipsaws
+  out of real trends, too wide gives back too much of the
+  peak. Still net-negative after real transaction costs,
+  so not tradeable yet, but the best NIFTY intraday result
+  found to date. Worth sweeping more trail-distance values
+  and combining with other SL/Target starting points next.
+
 • Desktop App verified working locally, but not yet
   committed to the repo. (Android App committed
   19-Jul - see milestone above.)
