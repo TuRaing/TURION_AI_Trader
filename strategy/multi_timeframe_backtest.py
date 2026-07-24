@@ -75,6 +75,8 @@ def run_multi_timeframe_backtest(
     exit_on_alignment_break=True,
     require_daily_alignment=False,
     daily_period="2y",
+    use_trailing_stop=False,
+    trailing_atr_mult=None,
 ):
     """
     Backtests the 15m(trend)/5m(entry) core of the alignment rule used
@@ -105,6 +107,20 @@ def run_multi_timeframe_backtest(
         recently *completed* daily candle (yesterday's close onward, via
         the same as-of/backward join as 15m->5m) - never today's
         still-forming daily candle, so no look-ahead.
+
+    use_trailing_stop : bool
+        Updated: 2026-07-24 - if True, replaces the fixed Target with a
+        trailing Stop-Loss: as the trade's high makes new highs, the
+        Stop-Loss ratchets up to (highest high so far - trail distance),
+        but never moves down. Lets a strong trend run further than a
+        fixed ATR-multiple Target would allow, at the cost of giving back
+        more of the peak before exiting. Only ever moves the Stop-Loss in
+        the trade's favor - no look-ahead, since it only reacts to highs
+        already seen.
+    trailing_atr_mult : float or None
+        Trail distance as a multiple of the entry candle's ATR. Defaults
+        to stop_loss_atr_mult (same distance as the initial Stop-Loss)
+        when None.
 
     Returns
     -------
@@ -189,13 +205,20 @@ def run_multi_timeframe_backtest(
 
         if position is not None:
 
+            if use_trailing_stop:
+
+                position["Highest Price"] = max(position["Highest Price"], high)
+                trailed_stop = position["Highest Price"] - position["Trail Distance"]
+                position["Stop Loss"] = max(position["Stop Loss"], trailed_stop)
+
             if low <= position["Stop Loss"]:
 
-                trades.append(close_trade(position, timestamp, position["Stop Loss"], "Stop Loss"))
+                reason = "Trailing Stop" if use_trailing_stop else "Stop Loss"
+                trades.append(close_trade(position, timestamp, position["Stop Loss"], reason))
                 position = None
                 continue
 
-            if high >= position["Target"]:
+            if not use_trailing_stop and high >= position["Target"]:
 
                 trades.append(close_trade(position, timestamp, position["Target"], "Target"))
                 position = None
@@ -235,6 +258,11 @@ def run_multi_timeframe_backtest(
                 "Stop Loss": stop_loss,
                 "Target": target,
             }
+
+            if use_trailing_stop:
+
+                position["Highest Price"] = price
+                position["Trail Distance"] = atr * (trailing_atr_mult if trailing_atr_mult is not None else stop_loss_atr_mult)
 
         elif exit_on_alignment_break and position is not None and (not aligned or row["Entry Decision"] == "SELL"):
 
