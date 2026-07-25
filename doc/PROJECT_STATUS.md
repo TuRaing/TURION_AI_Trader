@@ -12,7 +12,7 @@ TURION AI Trader
 
 Version
 
-v0.0.12
+v0.0.13
 
 --------------------------------------------------
 
@@ -30,7 +30,7 @@ Project Started
 
 Last Updated
 
-21-Jul-2026
+25-Jul-2026
 
 --------------------------------------------------
 
@@ -381,7 +381,19 @@ AUTOMATION (GitHub Actions - runs in cloud)
 • Portfolio state auto-committed back to repo
 
 • All alerts delivered to Telegram (now logs
-  success/failure in the Action run output)
+  success/failure in the Action run output).
+  UPDATE 25-Jul: report/notifier.py now also fires a
+  Firebase Cloud Messaging push notification to the
+  TURION AI Trader app alongside every Telegram alert
+  (topic-based - "trade_alerts" - no per-device token
+  tracking needed). Code-complete and wired into all
+  four trading workflows via a new
+  FIREBASE_SERVICE_ACCOUNT secret, but not yet live -
+  waiting on the user to create a Firebase project and
+  hand over google-services.json + a service-account
+  key. Degrades silently (prints a skip message) until
+  then, so this shipped safely ahead of that setup.
+  Telegram is unaffected either way.
 
 • CONFIRMED WORKING 13-Jul: both workflows fired
   automatically on schedule and opened 7 real paper
@@ -750,12 +762,20 @@ NEXT DEVELOPMENT PLAN
 
 Priority 1
 
-Resume the FCM push-notification feature (paused
-21-Jul, not started) - get google-services.json +
-Firebase service-account key from the user first,
-then wire up Flutter + report/push_notifier.py + the
-FIREBASE_SERVICE_ACCOUNT GitHub secret. Final APK
-build/install happens on the user's own machine.
+FCM push-notification feature - CODE COMPLETE 25-Jul
+(report/push_notifier.py, report/notifier.py, Flutter
+firebase_core/firebase_messaging wiring, all four
+trading workflows' FIREBASE_SERVICE_ACCOUNT secret).
+Blocked on the user: create a Firebase project, add an
+Android app (package name com.turion.turion_ai_trader),
+hand over google-services.json (goes in
+mobile_app/android/app/, safe to commit - not a secret)
+and a service-account key (goes in the
+FIREBASE_SERVICE_ACCOUNT GitHub secret - never
+committed). Once both arrive: drop google-services.json
+in place, add the GitHub secret, then
+`flutter build apk` + `adb install` on the user's own
+machine (no Flutter SDK in this dev sandbox).
 
 --------------------------------------------------
 
@@ -999,11 +1019,11 @@ Status
 
 Current Version
 
-v0.0.12
+v0.0.13
 
 Next Version
 
-v0.0.13
+v0.0.14
 
 ==================================================
 
