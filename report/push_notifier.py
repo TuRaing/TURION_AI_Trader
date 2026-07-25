@@ -24,9 +24,16 @@ def _init_firebase():
     import firebase_admin
     from firebase_admin import credentials
 
-    if not firebase_admin._apps:
-        cred = credentials.Certificate(json.loads(service_account_json))
-        firebase_admin.initialize_app(cred)
+    try:
+        if not firebase_admin._apps:
+            cred = credentials.Certificate(json.loads(service_account_json))
+            firebase_admin.initialize_app(cred)
+    except Exception as e:
+        # A malformed/wrong FIREBASE_SERVICE_ACCOUNT secret must never take
+        # down the trading pipeline with it - same graceful-degradation
+        # rule as everything else in this module.
+        print(f"Firebase misconfigured (FIREBASE_SERVICE_ACCOUNT invalid) - skipping push notification: {e}")
+        return False
 
     BOT_INITIALIZED = True
     return True
