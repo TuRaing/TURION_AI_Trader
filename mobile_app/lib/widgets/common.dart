@@ -222,39 +222,164 @@ class ClosedTradeCard extends StatelessWidget {
     final exitReason = trade['Exit Reason'] ?? '';
     final exitTime = formatBackendTimestamp(trade['Exit Time'] as String?);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: bgColor,
-        border: Border.all(color: Colors.white12, width: 0.5),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
         borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+        onTap: () => _showTradeDetails(context, trade),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: bgColor,
+            border: Border.all(color: Colors.white12, width: 0.5),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 13,
-                backgroundColor: (win ? successColor : dangerColor).withValues(alpha: 0.18),
-                child: Icon(win ? Icons.check : Icons.close, size: 14, color: win ? successColor : dangerColor),
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 13,
+                    backgroundColor: (win ? successColor : dangerColor).withValues(alpha: 0.18),
+                    child: Icon(win ? Icons.check : Icons.close, size: 14, color: win ? successColor : dangerColor),
+                  ),
+                  const SizedBox(width: 8),
+                  Text('$symbol', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                  const Spacer(),
+                  Text(formatSignedRupees(pnl),
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: win ? successColor : dangerColor)),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.chevron_right, size: 16, color: mutedColor),
+                ],
               ),
-              const SizedBox(width: 8),
-              Text('$symbol', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
-              const Spacer(),
-              Text(formatSignedRupees(pnl),
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: win ? successColor : dangerColor)),
+              const SizedBox(height: 4),
+              Padding(
+                padding: const EdgeInsets.only(left: 34),
+                child: Text(
+                  '$exitReason · ${formatRupees(entryPrice)} to ${formatRupees(exitPrice)}${exitTime.isNotEmpty ? ' · $exitTime' : ''}',
+                  style: const TextStyle(fontSize: 11, color: mutedColor),
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 4),
-          Padding(
-            padding: const EdgeInsets.only(left: 34),
-            child: Text(
-              '$exitReason · ${formatRupees(entryPrice)} to ${formatRupees(exitPrice)}${exitTime.isNotEmpty ? ' · $exitTime' : ''}',
-              style: const TextStyle(fontSize: 11, color: mutedColor),
-            ),
+        ),
+      ),
+    );
+  }
+}
+
+void _showTradeDetails(BuildContext context, Map<String, dynamic> trade) {
+  final symbol = trade['Symbol'] ?? trade['Name'] ?? 'NIFTY 50';
+  final name = trade['Name'];
+  final direction = trade['Direction'];
+  final pnl = (trade['PnL'] as num).toDouble();
+  final win = pnl > 0;
+  final entryPrice = (trade['Entry Price'] as num).toDouble();
+  final exitPrice = (trade['Exit Price'] as num).toDouble();
+  final quantity = trade['Quantity'] as num?;
+  final exitReason = trade['Exit Reason'] ?? '—';
+  final entryTimeRaw = trade['Entry Time'] as String?;
+  final exitTimeRaw = trade['Exit Time'] as String?;
+  final entryTime = formatBackendTimestamp(entryTimeRaw);
+  final exitTime = formatBackendTimestamp(exitTimeRaw);
+
+  final returnPct = entryPrice == 0 ? null : (exitPrice - entryPrice) / entryPrice * 100;
+
+  Duration? holding;
+  if (entryTimeRaw != null && exitTimeRaw != null) {
+    try {
+      final entryDt = DateFormat('yyyy-MM-dd HH:mm:ss').parse(entryTimeRaw);
+      final exitDt = DateFormat('yyyy-MM-dd HH:mm:ss').parse(exitTimeRaw);
+      holding = exitDt.difference(entryDt);
+    } catch (_) {
+      holding = null;
+    }
+  }
+
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: surfaceColor,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    ),
+    builder: (context) {
+      return SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 15,
+                    backgroundColor: (win ? successColor : dangerColor).withValues(alpha: 0.18),
+                    child: Icon(win ? Icons.check : Icons.close, size: 16, color: win ? successColor : dangerColor),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text('$symbol', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                  ),
+                  Text(formatSignedRupees(pnl),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: win ? successColor : dangerColor)),
+                ],
+              ),
+              if (returnPct != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2, left: 40),
+                  child: Text(
+                    '${returnPct >= 0 ? '+' : ''}${returnPct.toStringAsFixed(2)}%',
+                    style: TextStyle(fontSize: 12, color: win ? successColor : dangerColor),
+                  ),
+                ),
+              const SizedBox(height: 16),
+              const Divider(color: Colors.white12, height: 1),
+              const SizedBox(height: 16),
+              if (name != null && name != symbol) _DetailRow(label: 'Name', value: '$name'),
+              if (direction != null) _DetailRow(label: 'Direction', value: '$direction'),
+              _DetailRow(label: 'Quantity', value: quantity != null ? '$quantity' : '—'),
+              _DetailRow(label: 'Entry Price', value: formatRupees(entryPrice)),
+              _DetailRow(label: 'Entry Time', value: entryTime.isNotEmpty ? entryTime : '—'),
+              _DetailRow(label: 'Exit Price', value: formatRupees(exitPrice)),
+              _DetailRow(label: 'Exit Time', value: exitTime.isNotEmpty ? exitTime : '—'),
+              _DetailRow(label: 'Exit Reason', value: '$exitReason'),
+              if (holding != null) _DetailRow(label: 'Held for', value: _formatDuration(holding)),
+            ],
           ),
+        ),
+      );
+    },
+  );
+}
+
+String _formatDuration(Duration d) {
+  final days = d.inDays;
+  final hours = d.inHours % 24;
+  final minutes = d.inMinutes % 60;
+
+  if (days > 0) return '$days d $hours h';
+  if (hours > 0) return '$hours h $minutes m';
+  return '$minutes m';
+}
+
+class _DetailRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _DetailRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 13, color: mutedColor)),
+          Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
         ],
       ),
     );
