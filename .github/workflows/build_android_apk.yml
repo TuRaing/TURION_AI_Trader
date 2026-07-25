@@ -1,0 +1,46 @@
+name: Build Android APK
+
+# Manual only - builds the Flutter app's release APK on GitHub's runner so
+# the user never needs Flutter/Android SDK installed locally just to get an
+# installable APK. Same debug-signed release config the app already uses
+# for local builds (see mobile_app/android/app/build.gradle.kts) - no
+# separate signing key needed. Download the APK from this run's "Artifacts"
+# section, then `adb install -r` it on the phone.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile_app
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build release APK
+        run: flutter build apk --release
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: turion-ai-trader-apk
+          path: mobile_app/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 14
