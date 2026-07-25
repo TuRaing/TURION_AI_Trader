@@ -526,6 +526,27 @@ KNOWN ISSUES
   found to date. Worth sweeping more trail-distance values
   and combining with other SL/Target starting points next.
 
+  FURTHER EXTENDED 25-Jul: added an optional ADX filter
+  (require_adx_above, strategy/multi_timeframe_backtest.py
+  + new indicators/adx.py) requiring the 15m trend
+  timeframe's ADX above a threshold before entering -
+  filters out weak/choppy conditions, the kind that
+  whipsawed the 1.0x-ATR trailing stop above. Swept 5
+  thresholds (no filter, 15, 20, 25, 30) on the same best-
+  known combo (Daily-aligned NIFTY, 0.5x initial SL, 1.0x
+  ATR trail): net loss shrank monotonically as the
+  threshold rose - -Rs 450.95 (no filter, 20 trades) ->
+  -Rs 428.10 (ADX>15) -> -Rs 243.94 (ADX>20) -> -Rs 99.33
+  (ADX>25, best found to date, 78% less negative than no
+  filter) -> -Rs 107.07 (ADX>30, worse than 25 - too
+  restrictive). Win rate rose alongside it, 45.0% (no
+  filter) to 83.33% (ADX>25). Still net-negative, so not
+  tradeable yet, but the clearest single improvement found
+  this week. CAVEAT: ADX>25's result comes from only 6
+  trades - too small a sample to trust on its own; treat
+  as a promising direction needing a longer test window,
+  not a confirmed edge.
+
 • Desktop App verified working locally, but not yet
   committed to the repo. (Android App committed
   19-Jul - see milestone above.)

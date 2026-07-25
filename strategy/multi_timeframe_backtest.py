@@ -5,6 +5,7 @@ from strategy.watchlist_scanner import analyze_symbol, MIN_CANDLES
 from strategy.risk_engine import calculate_atr_levels
 from strategy.backtest_engine import close_trade, summarize_trades
 from strategy.transaction_costs import calculate_round_trip_cost
+from indicators.adx import calculate_adx
 
 # Same windowed-recompute pattern as strategy/backtest_engine.py's
 # STRUCTURE_WINDOW - bounds Market Structure/Support-Resistance cost per
@@ -77,6 +78,8 @@ def run_multi_timeframe_backtest(
     daily_period="2y",
     use_trailing_stop=False,
     trailing_atr_mult=None,
+    require_adx_above=None,
+    adx_period=14,
 ):
     """
     Backtests the 15m(trend)/5m(entry) core of the alignment rule used
@@ -122,6 +125,15 @@ def run_multi_timeframe_backtest(
         to stop_loss_atr_mult (same distance as the initial Stop-Loss)
         when None.
 
+    require_adx_above : float or None
+        Updated: 2026-07-24 - if set, also require the 15m trend
+        timeframe's ADX (indicators/adx.py - trend STRENGTH, not
+        direction) to be above this value before entering. Researched
+        at the user's suggestion to filter out weak/choppy conditions,
+        the kind that whipsawed a too-tight trailing stop. ADX is an
+        EWM-based calculation (no look-ahead by construction - each
+        value only ever depends on candles up to and including it).
+
     Returns
     -------
     dict (same shape as strategy.backtest_engine.summarize_trades, plus
@@ -164,6 +176,19 @@ def run_multi_timeframe_backtest(
         on="Timestamp",
         direction="backward",
     ).set_index("Timestamp")
+
+    if require_adx_above is not None:
+
+        adx_series = calculate_adx(trend_data, period=adx_period)
+        adx_series.name = "ADX"
+        adx_series.index.name = "Timestamp"
+
+        merged = pd.merge_asof(
+            merged.reset_index(),
+            adx_series.reset_index(),
+            on="Timestamp",
+            direction="backward",
+        ).set_index("Timestamp")
 
     if require_daily_alignment:
 
@@ -237,6 +262,11 @@ def run_multi_timeframe_backtest(
 
             daily_bias = row["Daily Bias"]
             aligned = pd.notna(daily_bias) and daily_bias == trend_bias
+
+        if aligned and require_adx_above is not None:
+
+            adx_value = row["ADX"]
+            aligned = pd.notna(adx_value) and adx_value > require_adx_above
 
         if aligned:
             aligned_candles += 1

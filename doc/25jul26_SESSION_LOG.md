@@ -265,6 +265,18 @@ PART 3 (same day, continued)
    codebase as reusable building blocks even though this
    particular combination didn't work out.
 
+✅ Finished evaluating the ADX filter carried over
+   uncommitted from 24-Jul (strategy/
+   multi_timeframe_backtest.py's require_adx_above,
+   indicators/adx.py) - swept 5 thresholds on top of the
+   best-known combo (Daily-aligned NIFTY, 0.5x SL, 1.0x
+   ATR trail). Net loss shrank from -Rs 450.95 (no filter)
+   to -Rs 99.33 at ADX>25 - the best single result found
+   all week, though from only 6 trades (small-sample
+   caveat noted in PROJECT_STATUS.md). Kept and committed
+   rather than discarded, given the clear directional
+   improvement.
+
 ==================================================
 
 Next Session
