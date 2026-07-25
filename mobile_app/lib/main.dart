@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'theme.dart';
 import 'screens/portfolio_screen.dart';
@@ -7,7 +9,32 @@ import 'screens/watchlist_screen.dart';
 import 'screens/news_screen.dart';
 import 'screens/history_screen.dart';
 
-void main() {
+// Topic-based push - every install subscribes to the same topic, so the
+// backend (report/push_notifier.py) never needs to track individual device
+// tokens. Trade alerts still go to Telegram too (see report/notifier.py) -
+// this is an additional channel, not a replacement.
+const _tradeAlertsTopic = 'trade_alerts';
+
+Future<void> _setupPushNotifications() async {
+  await Firebase.initializeApp();
+
+  final messaging = FirebaseMessaging.instance;
+  await messaging.requestPermission();
+  await messaging.subscribeToTopic(_tradeAlertsTopic);
+}
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    await _setupPushNotifications();
+  } catch (e) {
+    // Missing/misconfigured google-services.json shouldn't block the app -
+    // it just means push notifications won't arrive, same graceful-
+    // degradation philosophy as the rest of the project.
+    debugPrint('Push notification setup skipped: $e');
+  }
+
   runApp(const TurionApp());
 }
 

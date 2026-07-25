@@ -12,7 +12,7 @@ from strategy.best_trade_paper_trading import (
 )
 from strategy.report_engine import print_best_trade_squareoff, format_best_trade_squareoff_message
 
-from report.telegram_notifier import send_telegram_message
+from report.notifier import notify
 
 
 def main():
@@ -49,7 +49,7 @@ def main():
     print_best_trade_squareoff(closed_trade, action)
 
     message = format_best_trade_squareoff_message(closed_trade)
-    send_telegram_message(message)
+    notify(message)
 
 
 if __name__ == "__main__":

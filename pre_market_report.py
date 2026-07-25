@@ -8,7 +8,7 @@ from strategy.watchlist_scanner import download_watchlist, analyze_symbol, MIN_C
 from strategy.support_resistance import get_support_resistance
 from strategy.paper_trading import load_portfolio
 
-from report.telegram_notifier import send_telegram_message
+from report.notifier import notify
 
 
 def build_index_section(name, frame):
@@ -71,7 +71,7 @@ def main():
 
     print(message)
 
-    send_telegram_message(message)
+    notify(message)
 
 
 if __name__ == "__main__":

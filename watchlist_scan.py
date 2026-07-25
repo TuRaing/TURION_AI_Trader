@@ -7,7 +7,7 @@ from data.watchlist import NIFTY_50_SYMBOLS, INDICES
 from strategy.watchlist_scanner import scan_watchlist
 from strategy.report_engine import print_watchlist_report, format_watchlist_message
 
-from report.telegram_notifier import send_telegram_message
+from report.notifier import notify
 
 
 def main():
@@ -25,7 +25,7 @@ def main():
 
     message = format_watchlist_message(results)
 
-    send_telegram_message(message)
+    notify(message)
 
 
 if __name__ == "__main__":

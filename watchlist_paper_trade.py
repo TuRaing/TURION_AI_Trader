@@ -7,7 +7,7 @@ from data.watchlist import NIFTY_50_SYMBOLS, INDICES
 from strategy.paper_trading import run_watchlist_paper_trading
 from strategy.report_engine import print_watchlist_paper_trade_report, format_watchlist_paper_trade_message
 
-from report.telegram_notifier import send_telegram_message
+from report.notifier import notify
 
 
 def main():
@@ -25,7 +25,7 @@ def main():
 
     message = format_watchlist_paper_trade_message(portfolio, events)
 
-    send_telegram_message(message)
+    notify(message)
 
 
 if __name__ == "__main__":

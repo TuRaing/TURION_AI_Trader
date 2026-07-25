@@ -20,7 +20,7 @@ from strategy.data_validator import validate_market_data
 from strategy.paper_trading import load_portfolio, save_portfolio, process_signal
 from strategy.report_engine import print_paper_portfolio, format_paper_trade_message
 
-from report.telegram_notifier import send_telegram_message
+from report.notifier import notify
 
 
 def main():
@@ -95,7 +95,7 @@ def main():
 
     message = format_paper_trade_message(price, signal, action, filter_notes, portfolio)
 
-    send_telegram_message(message)
+    notify(message)
 
 
 if __name__ == "__main__":

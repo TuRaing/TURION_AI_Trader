@@ -24,7 +24,7 @@ from strategy.report_engine import (
     format_best_trade_squareoff_message,
 )
 
-from report.telegram_notifier import send_telegram_message
+from report.notifier import notify
 from report.excel_report import save_best_trade
 
 from refresh_shortlist import SHORTLIST_FILE
@@ -171,7 +171,7 @@ def monitor_open_position(portfolio):
     print_best_trade_squareoff(closed_trade, action)
 
     message = format_best_trade_squareoff_message(closed_trade)
-    send_telegram_message(message)
+    notify(message)
 
 
 def load_shortlist():
@@ -228,7 +228,7 @@ def scan_for_entry(portfolio, shortlist):
     if opened:
 
         message = format_best_trade_message(result, position_note)
-        send_telegram_message(message)
+        notify(message)
 
     else:
 
