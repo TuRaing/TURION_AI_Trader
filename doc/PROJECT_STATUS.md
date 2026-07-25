@@ -729,6 +729,31 @@ KNOWN ISSUES
   is the gross edge being too small/inconsistent, not
   overstated transaction costs.
 
+• CONCLUSIVELY REJECTED 25-Jul: Supertrend trend-flip
+  entry, optionally filtered by CPR bias (close vs. the
+  previous calendar day's Pivot), researched from the
+  22-Jul external strategy list (see
+  strategy/supertrend_cpr_backtest.py, analysis-only; new
+  building-block indicators indicators/supertrend.py and
+  indicators/cpr.py, unit-tested, not yet used by any
+  other strategy). Swept 12 ATR SL/Target combos (0.5x/
+  1.0x/1.5x SL x 1.5x/2.0x/3.0x/4.0x Target) on both NIFTY
+  and BANKNIFTY (5m candles, 60d): every single combo net-
+  negative after real transaction costs, from -Rs 873
+  (best: NIFTY, 1.0x SL/2.0x Target, 44 trades, 34.09% win
+  rate) to -Rs 2,645 (worst: BANKNIFTY, 0.5x SL/2.0x
+  Target). The CPR bias filter roughly halved trade count
+  on NIFTY (98 -> 44) and reduced net loss at the same
+  1.0x/2.0x combo (-Rs 2,262 unfiltered -> -Rs 873
+  filtered), but never flipped net-positive. Same root
+  cause as every other rejected intraday candidate this
+  week: gross edge (NIFTY's best case only +Rs 238 across
+  all 44 trades) too small relative to trade frequency to
+  survive transaction costs. Do not pursue Supertrend+CPR
+  further as a standalone intraday entry for either index
+  - Supertrend/CPR remain available as building blocks for
+  a different combination if one is proposed later.
+
 • PROMISING (not yet tradeable) 22-Jul: Momentum (RSI)
   + India VIX filter for BUY CE/BUY PE, researched 21-Jul
   (see strategy/momentum_vix_backtest.py, analysis-only).
@@ -849,6 +874,11 @@ weekly. Also: NIFTY/BANKNIFTY lot sizes increased
 substantially (NIFTY 25->75, BANKNIFTY 15->30), raising
 the real capital required per lot to trade this even in
 future live testing.
+
+- Supertrend trend-flip + CPR bias filter (from the 22-Jul
+  external strategy list) - CONCLUSIVELY REJECTED 25-Jul
+  on both NIFTY and BANKNIFTY, every SL/Target combo
+  net-negative. See Known Issues for the full breakdown.
 
 - Explicitly NOT pursuing: Gap-fill (opposite thesis to
   Gap-and-Go, fewer opportunities), combining all

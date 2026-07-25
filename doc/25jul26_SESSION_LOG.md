@@ -240,6 +240,33 @@ indefinitely.
 
 ==================================================
 
+PART 3 (same day, continued)
+
+✅ First-time local Python setup on the user's actual
+   Windows machine too (Python 3.14.6, installed from an
+   installer already sitting in D:\download from an
+   earlier, unrelated download) - needed to actually run
+   and verify new code locally instead of only reasoning
+   about it. Full test suite: 126 passed, no regressions.
+
+✅ Built indicators/supertrend.py and indicators/cpr.py
+   (the two "not yet built" items carried over from every
+   prior session's Next Session list) - pure calculation
+   engines, unit-tested (6 new tests), not yet used by any
+   strategy. Supertrend reuses the existing ATR engine
+   rather than recomputing True Range.
+
+✅ Backtested them together (strategy/
+   supertrend_cpr_backtest.py, analysis-only, same pattern
+   as every other *_backtest.py in this repo) on NIFTY and
+   BANKNIFTY - CONCLUSIVELY REJECTED, see
+   PROJECT_STATUS.md Known Issues for the full 12-combo
+   sweep result. Indicators themselves stay in the
+   codebase as reusable building blocks even though this
+   particular combination didn't work out.
+
+==================================================
+
 Next Session
 
 1. FCM is now live - no longer blocked. Monitor a few real
@@ -271,8 +298,11 @@ Next Session
 
 6. Fix TATAMOTORS / LTIM ticker symbols (carried over).
 
-7. Supertrend and CPR indicators (from the 22-Jul
-   external strategy list) not yet built (carried over).
+7. Supertrend and CPR indicators - built and backtested
+   this session (Part 3), REJECTED as a standalone
+   intraday entry. No longer an open item; the indicators
+   remain available if a different combination is proposed
+   later.
 
 ==================================================
 
