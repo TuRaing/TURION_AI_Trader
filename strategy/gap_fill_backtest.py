@@ -19,6 +19,8 @@ GAP_THRESHOLD_PCT = 0.3  # minimum |gap| %, below this a gap is treated as noise
 def run_gap_fill_backtest(
     symbol="^NSEI",
     period="60d",
+    start=None,
+    end=None,
     interval="5m",
     gap_threshold_pct=GAP_THRESHOLD_PCT,
     atr_sl_mult=1.0,
@@ -42,18 +44,38 @@ def run_gap_fill_backtest(
     No look-ahead: the gap uses only the previous day's already-closed
     daily candle and the current day's first candle's own Open.
 
+    start / end : str or None
+        Explicit date range (passed to yfinance) for splitting Yahoo's
+        one available ~60-day 5m window into independent sub-periods -
+        e.g. to sanity-check whether a result holds in both halves of
+        the window rather than being concentrated in one lucky stretch.
+        Yahoo has no 5m history before ~60 days ago regardless of these
+        values, so this cannot reach further back than `period` already
+        does - it only re-slices the same available window. When set,
+        overrides `period` for the intraday download; the daily download
+        (needed for the previous-close gap reference) starts 10 calendar
+        days earlier than `start` so the very first day in range still
+        has a real previous close to compare against.
+
     Returns
     -------
     dict (see strategy.orb_vwap_backtest.summarize_trades), or
     {"Error": str} if no usable data.
     """
 
-    data = yf.download(symbol, period=period, interval=interval, progress=False)
+    if start is not None:
+        data = yf.download(symbol, start=start, end=end, interval=interval, progress=False)
+    else:
+        data = yf.download(symbol, period=period, interval=interval, progress=False)
 
     if data.empty:
         return {"Error": f"No usable {interval} data for {symbol}"}
 
-    daily = yf.download(symbol, period=period, interval="1d", progress=False)
+    if start is not None:
+        daily_start = (pd.Timestamp(start) - pd.Timedelta(days=10)).strftime("%Y-%m-%d")
+        daily = yf.download(symbol, start=daily_start, end=end, interval="1d", progress=False)
+    else:
+        daily = yf.download(symbol, period=period, interval="1d", progress=False)
 
     if daily.empty:
         return {"Error": f"No usable daily data for {symbol} (needed for the gap reference)"}

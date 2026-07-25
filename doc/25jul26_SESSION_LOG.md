@@ -291,6 +291,19 @@ PART 3 (same day, continued)
    yet (one 60-day test window is not enough to trust on
    its own) - not wired into any paper trading.
 
+✅ Split-window robustness check on the Gap-fill NIFTY
+   result, same day: added start/end parameters to
+   run_gap_fill_backtest() (Yahoo only serves the trailing
+   ~60 days of 5m data, so this re-slices the one available
+   window rather than reaching further back). First half
+   (31-May to 28-Jun) +Rs 290.71 (7 trades); second, more
+   recent half (28-Jun to 26-Jul) roughly flat at -Rs 18.04
+   (6 trades) - the edge was concentrated earlier in the
+   window, not spread evenly. Downgraded from "the strongest
+   finding this week" to "promising but no more proven than
+   the ADX filter or BANKNIFTY options findings" - all three
+   need more real trading days before trusting further.
+
 ==================================================
 
 Next Session

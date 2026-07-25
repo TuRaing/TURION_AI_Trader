@@ -584,6 +584,28 @@ KNOWN ISSUES
   make trading decisions and Claude never executes a real
   trade.
 
+  SPLIT-WINDOW CHECK, same day: Yahoo only ever serves the
+  trailing ~60 days of 5m data (no way to reach further
+  back for a truly independent window), so instead split
+  the one available window into two ~4-week halves and ran
+  each separately (strategy/gap_fill_backtest.py's new
+  start/end parameters) - a same-approach 44 more real
+  minutes vs. a check for whether the edge held steady
+  across the period, not proof of a longer track record.
+  Result: NOT uniform. First half (31-May to 28-Jun) was
+  strongly positive (+Rs 290.71, 7 trades, 57.14% win
+  rate); second half (28-Jun to 26-Jul, the more recent
+  one) was roughly flat (-Rs 18.04, 6 trades, 33.33% win
+  rate) - not a strong reversal, but not confirming the
+  full-window edge either. Revised read: the full-window
+  +Rs 413.45 was concentrated in the earlier half, not
+  spread evenly - weakens confidence that this is a stable,
+  ongoing edge rather than a stretch that happened to work.
+  Still worth tracking (nothing here rules it out), but
+  should not be treated as more proven than the ADX-filter
+  or BANKNIFTY-options findings above - all three are in
+  the same "promising, needs more real days" bucket now.
+
 • Desktop App verified working locally, but not yet
   committed to the repo. (Android App committed
   19-Jul - see milestone above.)
