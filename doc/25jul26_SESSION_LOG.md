@@ -131,25 +131,135 @@ always the user's.
 
 ==================================================
 
+PART 2 (same day, separate session)
+
+Session ID
+
+S20260725-002
+
+--------------------------------------------------
+
+Today's Achievements (Part 2)
+
+✅ MULTI-DEVICE SESSION CONTINUITY: user works on this
+   repo from more than one local copy - an older clone at
+   D:\Desktop\TURION_AI_Trader (git ownership not yet
+   trusted, no GitHub remote auth configured) and a fresh
+   copy at D:\TURION_AI_Trader. Verified both against
+   origin/main per this repo's CLAUDE.md rule before doing
+   anything else: found local main was 16 commits behind
+   origin/main (the Part-1 session's FCM work + Android
+   APK workflow + trade-detail UI + several [skip ci]
+   portfolio updates) with no conflicts against this
+   session's own pending uncommitted work, fast-forward
+   pulled cleanly. Also swept every claude/* remote branch
+   (doc-directory-madhil-sarva-lqg5lj,
+   tula-repocha-actress-hob5j0, tula-github-access-y1hlub)
+   - all three are stale/empty, nothing unmerged to
+   reconcile.
+
+✅ First-time local dev environment setup on the user's
+   actual Windows machine (not this dev sandbox): Git for
+   Windows was not installed at all - installed it
+   (defaults throughout, Git Credential Manager as the
+   credential helper), then authenticated GitHub push
+   access via GCM's browser-based OAuth flow (device had
+   no cached credential before this). Confirmed both read
+   and write access working (git pull, git push, and the
+   GitHub REST API via the same cached GCM token for
+   Actions calls below).
+
+✅ FCM push notification - LIVE AND VERIFIED END-TO-END,
+   first real confirmation since the feature went
+   code-complete in Part 1. Built the Android APK via the
+   build_android_apk.yml GitHub Actions workflow (avoids
+   needing Flutter SDK installed locally - none was
+   found), downloaded the artifact via the GitHub REST API
+   using the cached GCM token, and installed it on the
+   user's phone (Motorola Edge 20 Fusion) via adb.
+   Non-trivial along the way:
+   - adb wasn't installed either - downloaded Android
+     platform-tools directly from Google (no full Android
+     Studio needed just for adb).
+   - Phone wasn't detected by Windows at all at first
+     (not a driver/mode issue - literally no new USB
+     device enumerated on replug). Root cause was USB
+     debugging's per-computer authorization never having
+     been granted - toggling USB debugging off/on plus
+     "Revoke USB debugging authorizations" forced Android
+     to re-show the RSA-fingerprint "Allow USB debugging?"
+     prompt, after which adb devices listed the phone
+     immediately.
+   - Install failed with a raw
+     "Requested internal only, but not enough space"
+     installer exception - phone was at 100% storage
+     (469 MB free, then still only 472 MB after a first
+     round of cleanup). Needed a second, more aggressive
+     cleanup (clear all app caches + delete old WhatsApp
+     media) to get to ~994 MB free before install would
+     proceed - confirms the "few hundred MB is not enough"
+     lesson from the storage issue logged in Part 1's
+     Known Issues.
+   - Install then failed with
+     INSTALL_FAILED_UPDATE_INCOMPATIBLE (existing
+     com.turion.turion_ai_trader signed with a different
+     key than this GitHub Actions build). Uninstalled the
+     old copy first, then the new APK installed cleanly.
+   - Verified live: manually triggered
+     pre_market_report.yml (workflow_dispatch, always
+     calls notify() once regardless of trade signals) via
+     the GitHub REST API, watched the run reach
+     conclusion=success, and the user confirmed the push
+     notification actually arrived on the phone. Telegram
+     delivery unaffected (same notify() call).
+   Net effect: Priority 1 (FCM) in PROJECT_STATUS.md moves
+   from "code-complete, blocked on user" to "live and
+   confirmed working" - see there for the updated status.
+
+--------------------------------------------------
+
+Bugs Fixed (Part 2)
+
+(None - see the adb/storage/signature troubleshooting
+above, all environment setup rather than repo bugs.)
+
+--------------------------------------------------
+
+Known local-only state (not yet committed)
+
+D:\TURION_AI_Trader has an uncommitted, in-progress
+change: strategy/multi_timeframe_backtest.py gained an
+optional require_adx_above parameter (15m-trend ADX
+filter, indicators/adx.py, new file) to test filtering out
+weak/choppy conditions on the trailing-stop intraday
+candidate from Part 1/24-Jul. Not evaluated or committed
+yet this session - next session should either finish
+evaluating it (per Priority 3 below) or explicitly decide
+to discard it, rather than letting it sit uncommitted
+indefinitely.
+
+==================================================
+
 Next Session
 
-1. Get google-services.json + a Firebase service-account
-   key from the user (Firebase Console setup, package
-   name com.turion.turion_ai_trader) to finish the FCM
-   feature - add the file to mobile_app/android/app/, add
-   the FIREBASE_SERVICE_ACCOUNT GitHub secret, then the
-   user runs `flutter build apk` + `adb install` locally.
+1. FCM is now live - no longer blocked. Monitor a few real
+   trade alerts over the next few trading days to confirm
+   push notifications keep arriving reliably alongside
+   Telegram, not just this one manual test.
 
 2. Let the scheduled review (26-Jul 09:00 IST) run as
    planned - review real Daily-strategy + Best Trade
    Engine results (both producing real data reliably
    since 21-Jul).
 
-3. If pursuing the intraday candidate further: sweep more
-   trailing-stop distances/initial SL combos
-   (strategy/multi_timeframe_backtest.py,
-   use_trailing_stop) and BANKNIFTY Momentum+VIX
-   (carried over from 24-Jul).
+3. Finish or discard the uncommitted ADX-filter experiment
+   in strategy/multi_timeframe_backtest.py /
+   indicators/adx.py (see "Known local-only state" above)
+   before starting anything else in that file, to avoid a
+   third session finding it in a half-done state. If
+   pursuing the intraday candidate further generally:
+   sweep more trailing-stop distances/initial SL combos
+   and BANKNIFTY Momentum+VIX (carried over from 24-Jul).
 
 4. Apply strategy/transaction_costs.py's real cost model
    to the Watchlist and Best Trade Engine's own live

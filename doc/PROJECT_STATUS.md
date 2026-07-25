@@ -386,14 +386,15 @@ AUTOMATION (GitHub Actions - runs in cloud)
   Firebase Cloud Messaging push notification to the
   TURION AI Trader app alongside every Telegram alert
   (topic-based - "trade_alerts" - no per-device token
-  tracking needed). Code-complete and wired into all
-  four trading workflows via a new
-  FIREBASE_SERVICE_ACCOUNT secret, but not yet live -
-  waiting on the user to create a Firebase project and
-  hand over google-services.json + a service-account
-  key. Degrades silently (prints a skip message) until
-  then, so this shipped safely ahead of that setup.
-  Telegram is unaffected either way.
+  tracking needed). LIVE AND VERIFIED 25-Jul (same day,
+  second session): google-services.json committed,
+  FIREBASE_SERVICE_ACCOUNT GitHub secret set, new APK
+  built via the build_android_apk.yml GitHub Actions
+  workflow and installed on the user's phone via adb,
+  then confirmed end-to-end by manually triggering
+  pre_market_report.yml and having the user confirm the
+  push notification actually arrived. Telegram is
+  unaffected either way.
 
 • CONFIRMED WORKING 13-Jul: both workflows fired
   automatically on schedule and opened 7 real paper
@@ -762,20 +763,18 @@ NEXT DEVELOPMENT PLAN
 
 Priority 1
 
-FCM push-notification feature - CODE COMPLETE 25-Jul
+FCM push-notification feature - LIVE AND VERIFIED 25-Jul
 (report/push_notifier.py, report/notifier.py, Flutter
 firebase_core/firebase_messaging wiring, all four
-trading workflows' FIREBASE_SERVICE_ACCOUNT secret).
-Blocked on the user: create a Firebase project, add an
-Android app (package name com.turion.turion_ai_trader),
-hand over google-services.json (goes in
-mobile_app/android/app/, safe to commit - not a secret)
-and a service-account key (goes in the
-FIREBASE_SERVICE_ACCOUNT GitHub secret - never
-committed). Once both arrive: drop google-services.json
-in place, add the GitHub secret, then
-`flutter build apk` + `adb install` on the user's own
-machine (no Flutter SDK in this dev sandbox).
+trading workflows' FIREBASE_SERVICE_ACCOUNT secret,
+google-services.json committed). APK built via the
+build_android_apk.yml GitHub Actions workflow (no
+Flutter SDK needed on the user's machine) and installed
+via adb; a manual pre_market_report.yml trigger
+confirmed the push notification arrives on the user's
+phone alongside Telegram. Next: just monitor a few real
+trade alerts over the coming days to confirm it keeps
+working reliably, not just this one manual test.
 
 --------------------------------------------------
 
