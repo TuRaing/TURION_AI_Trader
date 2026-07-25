@@ -547,6 +547,43 @@ KNOWN ISSUES
   as a promising direction needing a longer test window,
   not a confirmed edge.
 
+• PROMISING (not yet tradeable) 25-Jul: Gap-fill - bet
+  that a significant open-vs-previous-close gap reverts
+  back toward the previous close during the day, the
+  opposite thesis to Gap-and-Go. Explicitly not pursued
+  earlier (see Priority 3's original reasoning below) -
+  tested now to check that assumption rather than leave it
+  unverified (see strategy/gap_fill_backtest.py, analysis-
+  only). Ran on NIFTY, BANKNIFTY, and 6 NIFTY 50 stocks
+  (same 6 as the ORB/VWAP sweep) at default params (0.3%
+  gap threshold, 1.0x ATR SL), then swept 5 gap thresholds
+  x 4 SL multiples on NIFTY specifically:
+  - NIFTY: the only clear winner - best combo (0.5% gap
+    threshold, 1.0x ATR SL) gave +Rs 413.45 net over 60d
+    (20 trades, 45.0% win rate) - the first backtested
+    intraday candidate to land net-positive after real
+    transaction costs. Several nearby combos (0.3-0.5%
+    threshold, 0.5-2.0x SL) also net-positive, not just
+    one cherry-picked cell.
+  - RELIANCE: also net-positive at the same NIFTY-tuned
+    params (+Rs 82.04, 25 trades, 56.0% win rate), though
+    weaker.
+  - BANKNIFTY: strongly net-negative (-Rs 778.55) even at
+    NIFTY's best params - does not generalize.
+  - ICICIBANK, HDFCBANK, TCS, BAJFINANCE, TITAN: all
+    mildly net-negative at the same params.
+  CAVEAT: only 20 trades over a 60-day window for the
+  NIFTY result - real, but a small sample from one backtest
+  period, the same caveat as every other single-window
+  result in this document. Before trusting this as
+  tradeable: re-test over a different/longer date range to
+  rule out a lucky 60-day window, and only then consider
+  paper-trading it live (never wire straight into real
+  capital). Not wired into any paper trading yet - this is
+  research only, per this repo's rule that engines don't
+  make trading decisions and Claude never executes a real
+  trade.
+
 • Desktop App verified working locally, but not yet
   committed to the repo. (Android App committed
   19-Jul - see milestone above.)
@@ -901,11 +938,15 @@ future live testing.
   on both NIFTY and BANKNIFTY, every SL/Target combo
   net-negative. See Known Issues for the full breakdown.
 
-- Explicitly NOT pursuing: Gap-fill (opposite thesis to
-  Gap-and-Go, fewer opportunities), combining all
-  strategy types into one signal (overfitting/conflicting-
-  signal risk - one clear approach per instrument type
-  instead).
+- Gap-fill (opposite thesis to Gap-and-Go) - UPDATE 25-Jul:
+  tested rather than left as an assumption, see Known
+  Issues. PROMISING on NIFTY specifically (+Rs 413.45 net,
+  60d), does not generalize to BANKNIFTY or most stocks.
+  Needs a second test window before trusting it further.
+
+- Explicitly NOT pursuing: combining all strategy types
+  into one signal (overfitting/conflicting-signal risk -
+  one clear approach per instrument type instead).
 
 - Also tested and REJECTED 22-Jul (from a strategy list
   the user got from another AI assistant and asked to

@@ -277,6 +277,20 @@ PART 3 (same day, continued)
    rather than discarded, given the clear directional
    improvement.
 
+✅ Backtested Gap-fill (strategy/gap_fill_backtest.py,
+   analysis-only) - the one item on the strategy list
+   marked "explicitly not pursued" rather than actually
+   tested. First genuinely net-positive intraday result
+   found in this project: NIFTY at 0.5% gap threshold /
+   1.0x ATR SL gave +Rs 413.45 net over 60d (20 trades,
+   45.0% win rate); RELIANCE also positive (+Rs 82.04) at
+   the same params; BANKNIFTY and 5 other stocks stayed
+   net-negative - a NIFTY-specific edge, not a general one.
+   See PROJECT_STATUS.md Known Issues for the full
+   threshold/SL sweep. Flagged as PROMISING, not tradeable
+   yet (one 60-day test window is not enough to trust on
+   its own) - not wired into any paper trading.
+
 ==================================================
 
 Next Session
