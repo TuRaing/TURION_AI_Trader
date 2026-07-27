@@ -1,15 +1,6 @@
 {
-  "Cash": 100057.425,
-  "Position": {
-    "Name": "DRREDDY",
-    "Symbol": "DRREDDY.NS",
-    "Direction": "SELL",
-    "Entry Time": "2026-07-27 04:36:06",
-    "Entry Price": 1151.0,
-    "Quantity": 1,
-    "Stop Loss": 1154.78,
-    "Target": 1143.44
-  },
+  "Cash": 100053.645,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -154,6 +145,18 @@
       "Quantity": 1,
       "Exit Reason": "Intraday Square-Off",
       "PnL": 26.5
+    },
+    {
+      "Name": "DRREDDY",
+      "Symbol": "DRREDDY.NS",
+      "Direction": "SELL",
+      "Entry Time": "2026-07-27 04:36:06",
+      "Entry Price": 1151.0,
+      "Exit Time": "2026-07-27 06:03:38",
+      "Exit Price": 1154.78,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -3.78
     }
   ]
 }
