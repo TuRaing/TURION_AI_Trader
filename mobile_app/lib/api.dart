@@ -8,6 +8,7 @@ const portfolioUrl = '$_repoRawBase/reports/paper_portfolio.json';
 const bestTradeShortlistUrl = '$_repoRawBase/reports/best_trade_shortlist.json';
 const bestTradePortfolioUrl = '$_repoRawBase/reports/best_trade_portfolio.json';
 const bestTradePickUrl = '$_repoRawBase/reports/best_trade_pick.json';
+const candlesUrl = '$_repoRawBase/reports/candles.json';
 
 /// Fetches and JSON-decodes a repo file, cache-busted with the current
 /// time so a phone's HTTP cache never shows stale data. Returns null (not

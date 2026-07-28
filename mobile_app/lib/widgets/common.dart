@@ -125,8 +125,19 @@ class OpenPositionCard extends StatelessWidget {
   final String symbol;
   final Map<String, dynamic> position;
   final double? currentPrice;
+  final String typeLabel;
+  final Color typeColor;
+  final VoidCallback? onTap;
 
-  const OpenPositionCard({super.key, required this.symbol, required this.position, this.currentPrice});
+  const OpenPositionCard({
+    super.key,
+    required this.symbol,
+    required this.position,
+    this.currentPrice,
+    this.typeLabel = 'Swing',
+    this.typeColor = mutedColor,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -134,6 +145,10 @@ class OpenPositionCard extends StatelessWidget {
     final stopLoss = (position['Stop Loss'] as num).toDouble();
     final quantity = (position['Quantity'] as num?)?.toInt() ?? 1;
     final entryTime = formatBackendTimestamp(position['Entry Time'] as String?);
+    // Watchlist (Swing) only ever opens BUY (see paper_trading.py); Best
+    // Trade (Intraday) positions carry their own real Direction (BUY/SELL).
+    final direction = position['Direction'] as String? ?? 'BUY';
+    final isBuy = direction == 'BUY';
 
     // Without a live quote we can only show cost basis, not live P&L -
     // callers that have a current price (none yet) can pass it in later.
@@ -141,7 +156,7 @@ class OpenPositionCard extends StatelessWidget {
     final moveRupees = currentPrice == null ? null : ((currentPrice! - entryPrice) * quantity);
     final isUp = (movePct ?? 0) >= 0;
 
-    return Container(
+    final card = Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -169,18 +184,25 @@ class OpenPositionCard extends StatelessWidget {
                   children: [
                     Text(symbol, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
                     const SizedBox(width: 6),
-                    // Updated: 2026-07-19 - the watchlist paper-trading engine
-                    // only ever opens on a BUY signal (paper_trading.py never
-                    // opens SELL/short), so every open position is long by
-                    // construction - this tag is a constant, not derived data.
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                       decoration: BoxDecoration(
-                        color: successColor.withValues(alpha: 0.18),
+                        color: (isBuy ? successColor : dangerColor).withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: const Text('BUY',
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: successColor)),
+                      child: Text(direction,
+                          style: TextStyle(
+                              fontSize: 10, fontWeight: FontWeight.w500, color: isBuy ? successColor : dangerColor)),
+                    ),
+                    const SizedBox(width: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: typeColor.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(typeLabel,
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: typeColor)),
                     ),
                   ],
                 ),
@@ -204,13 +226,29 @@ class OpenPositionCard extends StatelessWidget {
         ],
       ),
     );
+
+    if (onTap == null) return card;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(borderRadius: BorderRadius.circular(8), onTap: onTap, child: card),
+    );
   }
 }
 
 class ClosedTradeCard extends StatelessWidget {
   final Map<String, dynamic> trade;
+  final String typeLabel;
+  final Color typeColor;
+  final VoidCallback? onViewChart;
 
-  const ClosedTradeCard({super.key, required this.trade});
+  const ClosedTradeCard({
+    super.key,
+    required this.trade,
+    this.typeLabel = 'Swing',
+    this.typeColor = mutedColor,
+    this.onViewChart,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -226,7 +264,7 @@ class ClosedTradeCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(8),
-        onTap: () => _showTradeDetails(context, trade),
+        onTap: () => _showTradeDetails(context, trade, typeLabel, onViewChart),
         child: Container(
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.all(10),
@@ -247,6 +285,16 @@ class ClosedTradeCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text('$symbol', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: typeColor.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(typeLabel,
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: typeColor)),
+                  ),
                   const Spacer(),
                   Text(formatSignedRupees(pnl),
                       style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: win ? successColor : dangerColor)),
@@ -270,7 +318,8 @@ class ClosedTradeCard extends StatelessWidget {
   }
 }
 
-void _showTradeDetails(BuildContext context, Map<String, dynamic> trade) {
+void _showTradeDetails(
+    BuildContext context, Map<String, dynamic> trade, String typeLabel, VoidCallback? onViewChart) {
   final symbol = trade['Symbol'] ?? trade['Name'] ?? 'NIFTY 50';
   final name = trade['Name'];
   final direction = trade['Direction'];
@@ -338,6 +387,7 @@ void _showTradeDetails(BuildContext context, Map<String, dynamic> trade) {
               const SizedBox(height: 16),
               const Divider(color: Colors.white12, height: 1),
               const SizedBox(height: 16),
+              _DetailRow(label: 'Type', value: typeLabel),
               if (name != null && name != symbol) _DetailRow(label: 'Name', value: '$name'),
               if (direction != null) _DetailRow(label: 'Direction', value: '$direction'),
               _DetailRow(label: 'Quantity', value: quantity != null ? '$quantity' : '—'),
@@ -347,6 +397,20 @@ void _showTradeDetails(BuildContext context, Map<String, dynamic> trade) {
               _DetailRow(label: 'Exit Time', value: exitTime.isNotEmpty ? exitTime : '—'),
               _DetailRow(label: 'Exit Reason', value: '$exitReason'),
               if (holding != null) _DetailRow(label: 'Held for', value: _formatDuration(holding)),
+              if (onViewChart != null) ...[
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      onViewChart();
+                    },
+                    icon: const Icon(Icons.show_chart, size: 18),
+                    label: const Text('View Chart'),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

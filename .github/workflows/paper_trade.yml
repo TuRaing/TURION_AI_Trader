@@ -36,13 +36,22 @@ jobs:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: python watchlist_paper_trade.py
 
+      - name: Refresh candle data for the app's chart
+        # Updated: 2026-07-28 - piggybacks on this workflow's existing
+        # 15-min external trigger instead of setting up a separate
+        # cron-job.org job just for this. A candle-fetch failure here must
+        # never fail the whole run (trading state already committed above
+        # matters far more than the chart), hence continue-on-error.
+        continue-on-error: true
+        run: python refresh_candles.py
+
       - name: Commit updated portfolio state
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           commit_and_push() {
-            git add reports/paper_portfolio.json
+            git add reports/paper_portfolio.json reports/candles.json
             git diff --staged --quiet && return 0
             git commit -m "Update paper trading portfolio [skip ci]"
             git push
@@ -66,6 +75,7 @@ jobs:
             git fetch origin ${{ github.ref_name }}
             git reset --hard origin/${{ github.ref_name }}
             python watchlist_paper_trade.py
+            python refresh_candles.py || true
             sleep 3
           done
 

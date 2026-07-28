@@ -5,6 +5,7 @@ import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/disclaimer_banner.dart';
 import '../widgets/live_clock.dart';
+import 'chart_screen.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -15,6 +16,7 @@ class HistoryScreen extends StatefulWidget {
 
 class _HistoryScreenState extends State<HistoryScreen> {
   Map<String, dynamic>? _portfolio;
+  Map<String, dynamic>? _bestTradePortfolio;
   bool _loading = true;
   String? _error;
   DateTime? _lastFetched;
@@ -32,9 +34,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
     });
 
     try {
-      final data = await fetchJson(portfolioUrl);
+      final results = await Future.wait([fetchJson(portfolioUrl), fetchJson(bestTradePortfolioUrl)]);
       setState(() {
-        _portfolio = data ?? {'Cash': 100000, 'Positions': {}, 'Closed Trades': []};
+        _portfolio = results[0] ?? {'Cash': 100000, 'Positions': {}, 'Closed Trades': []};
+        _bestTradePortfolio = results[1];
         _lastFetched = DateTime.now();
         _loading = false;
       });
@@ -75,10 +78,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final wins = closedTrades.where((t) => (t['PnL'] as num) > 0).length;
     final winRate = closedTrades.isEmpty ? null : (wins / closedTrades.length * 100);
 
+    final intradayClosedTrades = List<Map<String, dynamic>>.from(
+        (_bestTradePortfolio?['Closed Trades'] ?? []).map((t) => Map<String, dynamic>.from(t)));
+    final intradayTotalPnl = intradayClosedTrades.fold<double>(0, (sum, t) => sum + (t['PnL'] as num).toDouble());
+    final intradayWins = intradayClosedTrades.where((t) => (t['PnL'] as num) > 0).length;
+    final intradayWinRate =
+        intradayClosedTrades.isEmpty ? null : (intradayWins / intradayClosedTrades.length * 100);
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        HeroStat(label: 'Total PnL', value: formatSignedRupees(totalPnl), color: pnlColor(totalPnl)),
+        HeroStat(label: 'Swing Total PnL', value: formatSignedRupees(totalPnl), color: pnlColor(totalPnl)),
         const SizedBox(height: 10),
         Row(
           children: [
@@ -93,9 +103,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ],
         ),
         const SizedBox(height: 10),
-        StatPill(label: 'Closed trades', value: '${closedTrades.length}'),
+        StatPill(label: 'Swing closed trades', value: '${closedTrades.length}'),
         const SizedBox(height: 16),
-        Text('Recent', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: mutedColor)),
+        Text('Swing (Closed)', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: mutedColor)),
         const SizedBox(height: 8),
         if (closedTrades.isEmpty)
           const Padding(
@@ -103,7 +113,45 @@ class _HistoryScreenState extends State<HistoryScreen> {
             child: Text('No closed trades yet', style: TextStyle(color: mutedColor)),
           )
         else
-          ...closedTrades.reversed.map((t) => ClosedTradeCard(trade: t)),
+          ...closedTrades.reversed.map((t) => ClosedTradeCard(
+                trade: t,
+                typeLabel: 'Swing',
+                typeColor: mutedColor,
+                onViewChart: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => ChartScreen(symbol: (t['Symbol'] ?? t['Name']).toString()))),
+              )),
+        const SizedBox(height: 24),
+        HeroStat(
+            label: 'Intraday Total PnL', value: formatSignedRupees(intradayTotalPnl), color: pnlColor(intradayTotalPnl)),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: StatPill(
+                label: 'Win rate',
+                value: intradayWinRate == null ? '—' : '${intradayWinRate.toStringAsFixed(0)}%',
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(child: StatPill(label: 'Closed trades', value: '${intradayClosedTrades.length}')),
+          ],
+        ),
+        const SizedBox(height: 16),
+        const Text('Intraday (Closed)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: accentColor)),
+        const SizedBox(height: 8),
+        if (intradayClosedTrades.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Text('No closed intraday trades yet', style: TextStyle(color: mutedColor)),
+          )
+        else
+          ...intradayClosedTrades.reversed.map((t) => ClosedTradeCard(
+                trade: t,
+                typeLabel: 'Intraday',
+                typeColor: accentColor,
+                onViewChart: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => ChartScreen(symbol: (t['Name'] ?? t['Symbol']).toString()))),
+              )),
       ],
     );
   }

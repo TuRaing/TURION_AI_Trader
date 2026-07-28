@@ -5,6 +5,7 @@ import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/disclaimer_banner.dart';
 import '../widgets/live_clock.dart';
+import 'chart_screen.dart';
 
 class PortfolioScreen extends StatefulWidget {
   const PortfolioScreen({super.key});
@@ -15,6 +16,7 @@ class PortfolioScreen extends StatefulWidget {
 
 class _PortfolioScreenState extends State<PortfolioScreen> {
   Map<String, dynamic>? _portfolio;
+  Map<String, dynamic>? _bestTradePortfolio;
   bool _loading = true;
   String? _error;
   DateTime? _lastFetched;
@@ -32,9 +34,13 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
     });
 
     try {
-      final data = await fetchJson(portfolioUrl);
+      // Swing (Watchlist) and Intraday (Best Trade) are two fully separate
+      // paper portfolios (own capital, own file) - fetched together here
+      // only so the app can show both, clearly labeled, in one place.
+      final results = await Future.wait([fetchJson(portfolioUrl), fetchJson(bestTradePortfolioUrl)]);
       setState(() {
-        _portfolio = data ?? {'Cash': 100000, 'Positions': {}, 'Closed Trades': []};
+        _portfolio = results[0] ?? {'Cash': 100000, 'Positions': {}, 'Closed Trades': []};
+        _bestTradePortfolio = results[1];
         _lastFetched = DateTime.now();
         _loading = false;
       });
@@ -78,6 +84,11 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
 
     final latestTrade = closedTrades.isNotEmpty ? closedTrades.last : null;
 
+    final intradayPosition = _bestTradePortfolio?['Position'] as Map<String, dynamic>?;
+    final intradaySymbol = intradayPosition == null
+        ? null
+        : (intradayPosition['Name'] ?? intradayPosition['Symbol'] ?? 'NIFTY 50').toString();
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -90,7 +101,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
             positive: (latestTrade['PnL'] as num) > 0,
           ),
         const SizedBox(height: 12),
-        HeroStat(label: 'Total PnL', value: formatSignedRupees(totalPnl), color: pnlColor(totalPnl)),
+        HeroStat(label: 'Swing Total PnL', value: formatSignedRupees(totalPnl), color: pnlColor(totalPnl)),
         const SizedBox(height: 10),
         Row(
           children: [
@@ -119,8 +130,12 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Open positions (${positions.length})',
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: mutedColor)),
+              Row(
+                children: [
+                  Text('Swing — Open Positions (${positions.length})',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: mutedColor)),
+                ],
+              ),
               const SizedBox(height: 8),
               if (positions.isEmpty)
                 const Padding(
@@ -132,7 +147,38 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                       symbol: e.key,
                       position: e.value,
                       currentPrice: (e.value['Last Price'] as num?)?.toDouble(),
+                      typeLabel: 'Swing',
+                      typeColor: mutedColor,
+                      onTap: () => Navigator.push(
+                          context, MaterialPageRoute(builder: (_) => ChartScreen(symbol: e.key))),
                     )),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(color: surfaceColor, borderRadius: BorderRadius.circular(12)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Intraday — Today\'s Position',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: accentColor)),
+              const SizedBox(height: 8),
+              if (intradayPosition == null)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Text('No open intraday position today', style: TextStyle(color: mutedColor)),
+                )
+              else
+                OpenPositionCard(
+                  symbol: intradaySymbol!,
+                  position: intradayPosition,
+                  typeLabel: 'Intraday',
+                  typeColor: accentColor,
+                  onTap: () => Navigator.push(
+                      context, MaterialPageRoute(builder: (_) => ChartScreen(symbol: intradaySymbol))),
+                ),
             ],
           ),
         ),
