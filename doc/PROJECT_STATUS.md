@@ -12,7 +12,7 @@ TURION AI Trader
 
 Version
 
-v0.0.13
+v0.0.14
 
 --------------------------------------------------
 
@@ -30,7 +30,7 @@ Project Started
 
 Last Updated
 
-25-Jul-2026
+28-Jul-2026
 
 --------------------------------------------------
 
@@ -742,22 +742,44 @@ KNOWN ISSUES
   only act/notify on genuine changes - no duplicate
   Telegram pings). Both fixes pushed to main.
 
-• PAUSED 21-Jul (not started): user asked for Best
-  Trade / Watchlist trade alerts to also appear as a
-  real push notification inside the TURION AI Trader
-  Android app (Firebase Cloud Messaging), Telegram
-  staying on alongside it. Plan agreed: user sets up a
-  Firebase project + hands over google-services.json
-  and a service-account key; Claude wires up
-  firebase_core/firebase_messaging in the Flutter app
-  (topic-based, no per-device token management) +
-  report/push_notifier.py + a new
-  FIREBASE_SERVICE_ACCOUNT GitHub secret across the
-  four trading workflows. This dev sandbox has no
-  Flutter SDK, so the final `flutter build apk` +
-  `adb install` step happens on the user's own machine,
-  same as the 19-Jul/20-Jul Android installs. Resuming
-  this evening per the user's request.
+• DONE 25-Jul (started 21-Jul, code-complete same day,
+  fully live 25-Jul): Best Trade / Watchlist trade alerts
+  now also fire as a real push notification inside the
+  TURION AI Trader Android app (Firebase Cloud Messaging,
+  topic-based - "trade_alerts" - no per-device token
+  management), alongside Telegram (unchanged). Backend
+  verified live via a manual workflow run (both channels
+  sent successfully). Along the way, found and fixed a
+  real bug in report/push_notifier.py: a malformed
+  FIREBASE_SERVICE_ACCOUNT secret raised uncaught instead
+  of degrading gracefully, which would have skipped the
+  "commit portfolio state" step on all four trading
+  workflows (GitHub Actions skips later steps after a
+  failed one) - fixed to always degrade to a skipped push
+  notification, never a crash. The final `flutter build
+  apk` + `adb install` step needed a **local** Claude Code
+  session (Desktop app, pointed at a local folder with Git
+  installed) - this dev sandbox has no Flutter SDK and no
+  access to the user's phone/USB, a hard boundary, not a
+  setup gap. Also added .github/workflows/
+  build_android_apk.yml (manual, builds the APK on
+  GitHub's runner as a downloadable artifact) as a
+  fallback that doesn't need local Flutter either.
+
+• FIXED 28-Jul: paper_trade.yml (Watchlist Paper Trade
+  Check) never received the 21-Jul git-race retry/resync
+  fix that the three Best Trade workflows got that day -
+  it only had the earlier `git pull --rebase` line. Caused
+  3 real consecutive failures the morning of 28-Jul
+  (03:07/03:22/03:37 UTC) - a ref-level race against Best
+  Trade Entry Scan's 1-min-cadence pushes to the same
+  `main` branch (not a same-file conflict, they touch
+  different report files). Applied the identical
+  discard-local-write/hard-reset/re-run-script fix used on
+  the other three workflows, verified live. No trading
+  data was lost (same as every prior instance of this bug
+  class), but 3 consecutive 15-min checks were skipped
+  that morning.
 
 • FIXED 23-Jul: every backtest's transaction-cost
   assumption was a flat ~Rs 30/trade guess - user
@@ -1132,11 +1154,11 @@ Status
 
 Current Version
 
-v0.0.13
+v0.0.14
 
 Next Version
 
-v0.0.14
+v0.0.15
 
 ==================================================
 
