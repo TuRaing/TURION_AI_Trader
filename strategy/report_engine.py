@@ -31,7 +31,7 @@ def format_watchlist_message(results, top_n=5):
     bullish = [r for r in results if r["Bias"] == "Bullish"][:top_n]
     bearish = [r for r in results if r["Bias"] == "Bearish"][:top_n]
 
-    lines = ["TURION AI Trader - Watchlist Scan", f"Scanned: {len(results)} symbols"]
+    lines = ["TURION AI Trader - Watchlist Scan (Swing)", f"Scanned: {len(results)} symbols"]
 
     lines.append("\nTop Bullish:")
 
@@ -82,7 +82,7 @@ def print_watchlist_paper_trade_report(portfolio, events):
 
 def format_watchlist_paper_trade_message(portfolio, events):
 
-    lines = ["TURION AI Trader - Watchlist Paper Trading"]
+    lines = ["TURION AI Trader - Watchlist Paper Trading (Swing)"]
 
     if events:
 
@@ -466,7 +466,7 @@ def print_best_trade_report(result):
 
 def format_best_trade_message(result, position_note=None):
 
-    lines = ["TURION AI Trader - Best Trade Of The Day"]
+    lines = ["TURION AI Trader - Best Trade Of The Day (Intraday)"]
 
     best = result["Best Trade"]
 
@@ -502,7 +502,7 @@ def print_best_trade_squareoff(closed_trade, action):
 
     if closed_trade is None:
 
-        print("No open Best Trade position to square off today.")
+        print("No open Best Trade (Intraday) position to square off today.")
 
     else:
 
@@ -517,10 +517,10 @@ def print_best_trade_squareoff(closed_trade, action):
 def format_best_trade_squareoff_message(closed_trade):
 
     if closed_trade is None:
-        return "TURION AI Trader - Best Trade Square-Off\nNo open Best Trade position to square off today."
+        return "TURION AI Trader - Best Trade Square-Off (Intraday)\nNo open Best Trade (Intraday) position to square off today."
 
     lines = [
-        "TURION AI Trader - Best Trade Square-Off",
+        "TURION AI Trader - Best Trade Square-Off (Intraday)",
         f"{closed_trade['Name']} ({closed_trade['Direction']})",
         f"Entry: {closed_trade['Entry Price']}  Exit: {closed_trade['Exit Price']} ({closed_trade['Exit Reason']})",
         f"PnL: {closed_trade['PnL']}",

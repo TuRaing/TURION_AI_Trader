@@ -70,7 +70,7 @@ class _HomeShellState extends State<HomeShell> {
     HistoryScreen(),
   ];
 
-  static const _titles = ['Turion AI trader', 'Best trade', 'Watchlist', 'News', 'History'];
+  static const _titles = ['Turion AI trader', 'Best Trade (Intraday)', 'Watchlist (Swing)', 'News', 'History'];
 
   @override
   Widget build(BuildContext context) {
@@ -82,8 +82,8 @@ class _HomeShellState extends State<HomeShell> {
         onTap: (i) => setState(() => _index = i),
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_outlined), label: 'Portfolio'),
-          BottomNavigationBarItem(icon: Icon(Icons.track_changes_outlined), label: 'Best trade'),
-          BottomNavigationBarItem(icon: Icon(Icons.list_alt_outlined), label: 'Watchlist'),
+          BottomNavigationBarItem(icon: Icon(Icons.track_changes_outlined), label: 'Intraday'),
+          BottomNavigationBarItem(icon: Icon(Icons.list_alt_outlined), label: 'Swing'),
           BottomNavigationBarItem(icon: Icon(Icons.newspaper_outlined), label: 'News'),
           BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
         ],
