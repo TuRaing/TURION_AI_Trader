@@ -150,7 +150,15 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                       typeLabel: 'Swing',
                       typeColor: mutedColor,
                       onTap: () => Navigator.push(
-                          context, MaterialPageRoute(builder: (_) => ChartScreen(symbol: e.key))),
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => ChartScreen(
+                                    symbol: e.key,
+                                    entryPrice: (e.value['Entry Price'] as num).toDouble(),
+                                    stopLoss: (e.value['Stop Loss'] as num?)?.toDouble(),
+                                    target: (e.value['Target'] as num?)?.toDouble(),
+                                    direction: e.value['Direction'] as String? ?? 'BUY',
+                                  ))),
                     )),
             ],
           ),
@@ -177,7 +185,15 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                   typeLabel: 'Intraday',
                   typeColor: accentColor,
                   onTap: () => Navigator.push(
-                      context, MaterialPageRoute(builder: (_) => ChartScreen(symbol: intradaySymbol))),
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => ChartScreen(
+                                symbol: intradaySymbol,
+                                entryPrice: (intradayPosition['Entry Price'] as num).toDouble(),
+                                stopLoss: (intradayPosition['Stop Loss'] as num?)?.toDouble(),
+                                target: (intradayPosition['Target'] as num?)?.toDouble(),
+                                direction: intradayPosition['Direction'] as String? ?? 'BUY',
+                              ))),
                 ),
             ],
           ),

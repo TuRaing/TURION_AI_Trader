@@ -3,6 +3,17 @@ import 'package:flutter/material.dart';
 import 'common.dart';
 import '../theme.dart';
 
+/// A horizontal reference line drawn across the chart - Entry/Stop Loss/
+/// Target/Exit price, so the trade is visible against the market, not
+/// just a bare price series.
+class ChartReferenceLine {
+  final double price;
+  final String label;
+  final Color color;
+
+  const ChartReferenceLine({required this.price, required this.label, required this.color});
+}
+
 /// Hand-rolled candlestick chart (CustomPainter, no chart package
 /// dependency) - wicks + bodies for a list of {Open, High, Low, Close}
 /// candles, oldest to newest left-to-right, auto-scaled to the visible
@@ -12,8 +23,14 @@ import '../theme.dart';
 class CandlestickChart extends StatefulWidget {
   final List<Map<String, dynamic>> candles;
   final ValueChanged<Map<String, dynamic>?>? onSelect;
+  final List<ChartReferenceLine> referenceLines;
 
-  const CandlestickChart({super.key, required this.candles, this.onSelect});
+  const CandlestickChart({
+    super.key,
+    required this.candles,
+    this.onSelect,
+    this.referenceLines = const [],
+  });
 
   @override
   State<CandlestickChart> createState() => _CandlestickChartState();
@@ -68,8 +85,19 @@ class _CandlestickChartState extends State<CandlestickChart> {
 
     final highs = widget.candles.map((c) => (c['High'] as num).toDouble());
     final lows = widget.candles.map((c) => (c['Low'] as num).toDouble());
-    final maxPrice = highs.reduce((a, b) => a > b ? a : b);
-    final minPrice = lows.reduce((a, b) => a < b ? a : b);
+    var maxPrice = highs.reduce((a, b) => a > b ? a : b);
+    var minPrice = lows.reduce((a, b) => a < b ? a : b);
+
+    for (final line in widget.referenceLines) {
+      if (line.price > maxPrice) maxPrice = line.price;
+      if (line.price < minPrice) minPrice = line.price;
+    }
+
+    // A little headroom so a reference line sitting exactly at the
+    // extreme doesn't get drawn flush against the chart edge.
+    final pad = (maxPrice - minPrice) * 0.04;
+    maxPrice += pad;
+    minPrice -= pad;
 
     return SizedBox(
       height: _height,
@@ -91,6 +119,7 @@ class _CandlestickChartState extends State<CandlestickChart> {
                     minPrice: minPrice,
                     maxPrice: maxPrice,
                     selectedIndex: _selectedIndex,
+                    referenceLines: widget.referenceLines,
                   ),
                 ),
               ),
@@ -147,6 +176,7 @@ class _CandlestickPainter extends CustomPainter {
   final double minPrice;
   final double maxPrice;
   final int? selectedIndex;
+  final List<ChartReferenceLine> referenceLines;
 
   _CandlestickPainter({
     required this.candles,
@@ -154,6 +184,7 @@ class _CandlestickPainter extends CustomPainter {
     required this.minPrice,
     required this.maxPrice,
     this.selectedIndex,
+    this.referenceLines = const [],
   });
 
   static const _marginTop = 12.0;
@@ -219,6 +250,38 @@ class _CandlestickPainter extends CustomPainter {
           ..strokeWidth = 1,
       );
     }
+
+    for (final line in referenceLines) {
+      final y = yFor(line.price);
+      _drawDashedLine(canvas, Offset(0, y), Offset(size.width, y), line.color);
+
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: ' ${line.label} ${formatRupees(line.price)}',
+          style: TextStyle(fontSize: 9, color: line.color, fontWeight: FontWeight.w600, backgroundColor: bgColor),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      textPainter.paint(canvas, Offset(2, y - textPainter.height - 1));
+    }
+  }
+
+  void _drawDashedLine(Canvas canvas, Offset start, Offset end, Color color) {
+    const dashWidth = 4.0;
+    const dashGap = 3.0;
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1;
+
+    final totalDistance = (end - start).distance;
+    final direction = (end - start) / totalDistance;
+    var distance = 0.0;
+
+    while (distance < totalDistance) {
+      final segmentEnd = (distance + dashWidth).clamp(0, totalDistance);
+      canvas.drawLine(start + direction * distance, start + direction * segmentEnd.toDouble(), paint);
+      distance += dashWidth + dashGap;
+    }
   }
 
   @override
@@ -226,5 +289,6 @@ class _CandlestickPainter extends CustomPainter {
       oldDelegate.candles != candles ||
       oldDelegate.selectedIndex != selectedIndex ||
       oldDelegate.minPrice != minPrice ||
-      oldDelegate.maxPrice != maxPrice;
+      oldDelegate.maxPrice != maxPrice ||
+      oldDelegate.referenceLines != referenceLines;
 }

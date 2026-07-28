@@ -9,10 +9,29 @@ import '../widgets/common.dart';
 /// position/trade on the Portfolio or History tab. Reads reports/
 /// candles.json, refreshed roughly every 15 min by paper_trade.yml
 /// (see refresh_candles.py) - not a tick-by-tick live feed.
+///
+/// entryPrice/stopLoss/target/exitPrice are optional - when the caller
+/// has them (every open position and closed trade does), they're drawn
+/// as reference lines on the chart and summarized against the latest
+/// price, so the chart shows where the trade sits against the market,
+/// not just a bare price series.
 class ChartScreen extends StatefulWidget {
   final String symbol;
+  final double? entryPrice;
+  final double? stopLoss;
+  final double? target;
+  final double? exitPrice;
+  final String direction;
 
-  const ChartScreen({super.key, required this.symbol});
+  const ChartScreen({
+    super.key,
+    required this.symbol,
+    this.entryPrice,
+    this.stopLoss,
+    this.target,
+    this.exitPrice,
+    this.direction = 'BUY',
+  });
 
   @override
   State<ChartScreen> createState() => _ChartScreenState();
@@ -91,9 +110,28 @@ class _ChartScreenState extends State<ChartScreen> {
     final lastClose = (candles.last['Close'] as num).toDouble();
     final periodChangePct = firstOpen == 0 ? null : (lastClose - firstOpen) / firstOpen * 100;
 
+    final referenceLines = <ChartReferenceLine>[
+      if (widget.entryPrice != null)
+        ChartReferenceLine(price: widget.entryPrice!, label: 'Entry', color: accentColor),
+      if (widget.stopLoss != null)
+        ChartReferenceLine(price: widget.stopLoss!, label: 'SL', color: dangerColor),
+      if (widget.target != null)
+        ChartReferenceLine(price: widget.target!, label: 'Target', color: successColor),
+      if (widget.exitPrice != null)
+        ChartReferenceLine(price: widget.exitPrice!, label: 'Exit', color: mutedColor),
+    ];
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        if (widget.entryPrice != null)
+          _TradeSummaryCard(
+            entryPrice: widget.entryPrice!,
+            comparePrice: widget.exitPrice ?? lastClose,
+            compareLabel: widget.exitPrice != null ? 'Exit price' : 'Current price',
+            direction: widget.direction,
+          ),
+        if (widget.entryPrice != null) const SizedBox(height: 10),
         if (_selected != null) _SelectedCandleInfo(candle: _selected!),
         const SizedBox(height: 10),
         Container(
@@ -102,6 +140,7 @@ class _ChartScreenState extends State<ChartScreen> {
           child: CandlestickChart(
             candles: candles,
             onSelect: (c) => setState(() => _selected = c),
+            referenceLines: referenceLines,
           ),
         ),
         const SizedBox(height: 12),
@@ -130,6 +169,66 @@ class _ChartScreenState extends State<ChartScreen> {
           style: const TextStyle(fontSize: 11, color: mutedColor),
         ),
       ],
+    );
+  }
+}
+
+class _TradeSummaryCard extends StatelessWidget {
+  final double entryPrice;
+  final double comparePrice;
+  final String compareLabel;
+  final String direction;
+
+  const _TradeSummaryCard({
+    required this.entryPrice,
+    required this.comparePrice,
+    required this.compareLabel,
+    required this.direction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isBuy = direction == 'BUY';
+    final diff = isBuy ? (comparePrice - entryPrice) : (entryPrice - comparePrice);
+    final diffPct = entryPrice == 0 ? null : (diff / entryPrice * 100);
+    final color = pnlColor(diff);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(12)),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Entry price', style: TextStyle(fontSize: 11, color: mutedColor)),
+                Text(formatRupees(entryPrice), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+          const Icon(Icons.arrow_forward, size: 16, color: mutedColor),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(compareLabel, style: const TextStyle(fontSize: 11, color: mutedColor)),
+                Text(formatRupees(comparePrice), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(formatSignedRupees(diff), style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: color)),
+              if (diffPct != null)
+                Text('${diffPct >= 0 ? '+' : ''}${diffPct.toStringAsFixed(2)}%',
+                    style: TextStyle(fontSize: 12, color: color)),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

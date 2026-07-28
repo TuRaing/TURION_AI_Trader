@@ -117,8 +117,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 trade: t,
                 typeLabel: 'Swing',
                 typeColor: mutedColor,
-                onViewChart: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => ChartScreen(symbol: (t['Symbol'] ?? t['Name']).toString()))),
+                onViewChart: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => ChartScreen(
+                              symbol: (t['Symbol'] ?? t['Name']).toString(),
+                              entryPrice: (t['Entry Price'] as num).toDouble(),
+                              exitPrice: (t['Exit Price'] as num).toDouble(),
+                              direction: t['Direction'] as String? ?? 'BUY',
+                            ))),
               )),
         const SizedBox(height: 24),
         HeroStat(
@@ -149,8 +156,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 trade: t,
                 typeLabel: 'Intraday',
                 typeColor: accentColor,
-                onViewChart: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => ChartScreen(symbol: (t['Name'] ?? t['Symbol']).toString()))),
+                onViewChart: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => ChartScreen(
+                              symbol: (t['Name'] ?? t['Symbol']).toString(),
+                              entryPrice: (t['Entry Price'] as num).toDouble(),
+                              exitPrice: (t['Exit Price'] as num).toDouble(),
+                              direction: t['Direction'] as String? ?? 'BUY',
+                            ))),
               )),
       ],
     );
