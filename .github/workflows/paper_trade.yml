@@ -40,7 +40,34 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          commit_and_push() {
+            git add reports/paper_portfolio.json
+            git diff --staged --quiet && return 0
+            git commit -m "Update paper trading portfolio [skip ci]"
+            git push
+          }
+
           git pull --rebase origin ${{ github.ref_name }} || true
-          git add reports/paper_portfolio.json
-          git diff --staged --quiet || git commit -m "Update paper trading portfolio [skip ci]"
-          git push
+
+          for i in 1 2 3; do
+            if commit_and_push; then
+              exit 0
+            fi
+            # Same fix as the Best Trade workflows (21-Jul) - a plain rebase
+            # retry can't always resolve a race against another workflow's
+            # push to the same branch (e.g. Best Trade Entry Scan fires
+            # every 1 min, so it can collide with this 15-min run even
+            # though they touch different files). Discard this run's local
+            # write, sync to whatever actually landed on origin, and
+            # re-run the check against that real state instead.
+            echo "Push rejected - re-syncing to latest and re-running the check against it ($i/3)..."
+            git rebase --abort 2>/dev/null || true
+            git fetch origin ${{ github.ref_name }}
+            git reset --hard origin/${{ github.ref_name }}
+            python watchlist_paper_trade.py
+            sleep 3
+          done
+
+          echo "Could not sync after 3 attempts - leaving it for the next scheduled run."
+          exit 1
