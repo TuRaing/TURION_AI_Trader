@@ -115,6 +115,121 @@ always the user's.
 
 ==================================================
 
+PART 2 (same day, separate session)
+
+Session ID
+
+S20260729-002 (local machine session - Claude Code
+Desktop, D:\TURION_AI_Trader - has Flutter/adb/USB
+access the cloud session in Part 1 does not)
+
+--------------------------------------------------
+
+Today's Achievements (Part 2)
+
+✅ User couldn't tell Watchlist ("Swing") from Best Trade
+   ("Intraday") apart in the app or in Telegram/push
+   messages - just the raw names weren't enough context.
+   Tagged both everywhere user-facing: Telegram/console
+   message headers (report/report_engine.py - "(Swing)"/
+   "(Intraday)" suffixes) and the Android app (AppBar
+   titles get the full tag, bottom-nav labels just say
+   "Swing"/"Intraday" given limited space). Display text
+   only - no file/function/JSON-key renames, so live
+   automation and the app's own data reads were unaffected.
+
+✅ Portfolio and History tabs previously only ever showed
+   Watchlist (Swing) data - Best Trade (Intraday)'s own
+   portfolio file was never read there at all, so a closed
+   intraday trade was invisible in the app once it left the
+   Best Trade tab's single "today's position" view. Both
+   tabs now fetch both portfolio files and show them in
+   clearly separated, badge-tagged sections (Swing/
+   Intraday), open positions and closed trades alike.
+
+✅ Built a candlestick chart (tap any position/trade to
+   open it) - three rounds of user feedback, each addressed
+   same day:
+   1. First version: bare candles, no numbers - useless per
+      the user. Added a price axis, a selected-candle OHLC
+      readout (defaults to the latest candle), tap/drag
+      crosshair to inspect any candle, and period High/Low/
+      Change stats.
+   2. User asked where the trade's own buy/current-price
+      comparison was - the chart had candles but no trade
+      context. Added ChartReferenceLine overlays (dashed
+      lines for Entry/Stop Loss/Target/Exit) plus a summary
+      card (Entry price -> Current/Exit price, Rs and %
+      difference, direction-aware so a SELL trade's math
+      isn't inverted).
+   Data source: a new backend engine (indicators-style -
+   strategy/candle_data_engine.py + root refresh_candles.py)
+   that fetches recent candles for every symbol referenced
+   in either portfolio and writes reports/candles.json,
+   piggybacked onto paper_trade.yml's existing 15-min
+   external trigger rather than a new cron-job.org job.
+   Periodic refresh (~15 min), not tick-by-tick live -
+   documented as such in the app itself. Hand-rolled
+   CustomPainter widget, no new pub.dev chart dependency
+   (avoids a build-time version-resolution risk that
+   couldn't be verified locally - no Flutter SDK on this
+   machine either, same constraint as every prior session).
+
+✅ Verified all of the above via 4 real GitHub Actions APK
+   builds + adb installs on the user's phone (Motorola Edge
+   20 Fusion) this session - each one caught something the
+   others couldn't: local Dart syntax review can't substitute
+   for an actual `flutter build apk` when there's no Flutter
+   SDK to run `flutter analyze` against directly.
+
+✅ CONFIRMED (3rd occurrence): every GitHub Actions APK
+   build produces a differently-signed debug APK (no stable
+   debug.keystore persisted across runners), so `adb install
+   -r` fails with INSTALL_FAILED_UPDATE_INCOMPATIBLE against
+   whatever was installed from the previous build - the old
+   copy must be uninstalled first every time. Worked around
+   manually again; a real fix (commit a fixed debug keystore,
+   point Gradle at it) is still outstanding - see Known
+   Issues in PROJECT_STATUS.md.
+
+✅ Diagnosed a real network outage mid-session: github.com/
+   api.github.com (and githubstatus.com) became unreachable
+   from this machine for an extended period while google.com
+   and raw.githubusercontent.com kept working - confirmed
+   consistent across curl, PowerShell's Invoke-WebRequest,
+   and the browser tool (ruling out a single-tool sandboxing
+   artifact), no proxy/hosts-file cause found. Resolved by
+   the user restarting their router - likely an ISP-side
+   routing issue specific to GitHub's IP range, not fixable
+   from software. Session date rolled from 28-Jul to 29-Jul
+   during the outage.
+
+--------------------------------------------------
+
+Bugs Fixed (Part 2)
+
+(None - see the recurring debug-keystore signing issue and
+the transient network outage above, environment/tooling
+friction rather than repo bugs.)
+
+--------------------------------------------------
+
+Next Session (Part 2 additions)
+
+6. Fix the recurring debug-keystore signing mismatch: commit
+   a fixed debug.keystore to the repo and point
+   mobile_app/android/app/build.gradle.kts at it, so
+   consecutive GitHub Actions APK builds can update in place
+   via `adb install -r` without an uninstall step first. Hit
+   for the 3rd time this session.
+
+7. Update the Android App milestone description in
+   PROJECT_STATUS.md - it still lists the old tab names
+   (Portfolio/Best trade/Watchlist/News/History) and doesn't
+   mention the chart screen added this session.
+
+==================================================
+
 Next Session
 
 1. USER TO DO (at home): add a third cron-job.org trigger

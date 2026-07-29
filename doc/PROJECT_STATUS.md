@@ -158,11 +158,21 @@ PROJECT MILESTONES
 
 🟡 Desktop Dashboard          (PySide6 built + verified, not committed)
 
-✅ Android App                (Flutter, 5 tabs - Portfolio/Best trade/
-                               Watchlist/News/History - committed and
-                               merged to main 19-Jul, installed on
-                               phone via adb, reads GitHub raw JSON,
-                               refreshed every 15 min by GitHub Actions)
+✅ Android App                (Flutter, 5 tabs - Portfolio/Intraday/
+                               Swing/News/History (renamed 29-Jul from
+                               Best trade/Watchlist for clarity) -
+                               committed and merged to main 19-Jul,
+                               installed on phone via adb, reads GitHub
+                               raw JSON, refreshed every 15 min by
+                               GitHub Actions. UPDATE 29-Jul: Portfolio
+                               and History now show both Swing and
+                               Intraday portfolios (previously
+                               Intraday's closed trades were invisible
+                               in the app); added a tap-to-open
+                               candlestick chart per position/trade with
+                               Entry/Stop Loss/Target/Exit overlays
+                               (reports/candles.json, refreshed
+                               ~15-min by paper_trade.yml).
 
 ⬜ Algorithmic Trading        (needs broker)
 
@@ -624,6 +634,20 @@ KNOWN ISSUES
   Android installer error instead of the generic
   Play Store dialog - worth reaching for first next
   time this happens instead of guessing.
+
+• NOT YET FIXED, confirmed 3x (25-Jul, 28-Jul, 29-Jul):
+  every GitHub Actions build_android_apk.yml run signs the
+  APK with a fresh, runner-local debug keystore (nothing
+  persists one across runs), so `adb install -r` against
+  the previous build always fails with
+  INSTALL_FAILED_UPDATE_INCOMPATIBLE ("signatures do not
+  match"). Worked around each time by uninstalling the old
+  copy first - harmless (app has no local state worth
+  keeping, everything lives in the GitHub-hosted JSON) but
+  repetitive. Real fix: commit a fixed debug.keystore to
+  the repo and point mobile_app/android/app/
+  build.gradle.kts at it so every build signs identically
+  and `adb install -r` can update in place. Not done yet.
 
 • CONFIRMED 20-Jul: GitHub Actions' free-tier cron
   scheduler badly under-fires the Best Trade Entry
