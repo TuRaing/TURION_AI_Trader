@@ -32,6 +32,62 @@ from refresh_shortlist import SHORTLIST_FILE
 IST = timezone(timedelta(hours=5, minutes=30))
 
 BEST_TRADE_PICK_FILE = "reports/best_trade_pick.json"
+ALIGNMENT_HISTORY_FILE = "reports/alignment_history.jsonl"
+ALIGNMENT_HISTORY_RETENTION_DAYS = 7
+
+
+def append_alignment_history(signals):
+    """
+    Appends one line (this run's full 15m/5m/1m alignment check for every
+    shortlisted symbol, aligned or not) to a rolling JSON Lines log -
+    researched at the user's suggestion after asking why a specific
+    symbol/candle didn't trigger a trade and finding there was no way to
+    look back and check. Unlike reports/best_trade_pick.json (overwritten
+    every run), this is the actual history: every symbol's Aligned/Reason/
+    Bias/Decision/Confidence at every ~1-min check, not just the day's
+    single locked pick.
+
+    Pruned to the last ALIGNMENT_HISTORY_RETENTION_DAYS on every write so
+    the file doesn't grow unbounded at this run cadence (~1/min during
+    market hours).
+    """
+
+    os.makedirs("reports", exist_ok=True)
+
+    now_ist = datetime.now(IST)
+
+    entry = {
+        "Checked At": now_ist.strftime("%Y-%m-%d %H:%M:%S"),
+        "Signals": signals,
+    }
+
+    cutoff = now_ist - timedelta(days=ALIGNMENT_HISTORY_RETENTION_DAYS)
+
+    kept_lines = []
+
+    if os.path.exists(ALIGNMENT_HISTORY_FILE):
+
+        with open(ALIGNMENT_HISTORY_FILE, "r") as f:
+
+            for line in f:
+
+                line = line.strip()
+
+                if not line:
+                    continue
+
+                try:
+                    checked_at = datetime.strptime(json.loads(line)["Checked At"], "%Y-%m-%d %H:%M:%S")
+                except Exception:
+                    continue
+
+                if checked_at.replace(tzinfo=IST) >= cutoff:
+                    kept_lines.append(line)
+
+    kept_lines.append(json.dumps(entry, default=str))
+
+    with open(ALIGNMENT_HISTORY_FILE, "w") as f:
+        f.write("\n".join(kept_lines) + "\n")
 
 
 def save_best_trade_pick(result):
@@ -188,10 +244,13 @@ def scan_for_entry(portfolio, shortlist):
     print(f"Checking {len(shortlist['Stocks'])} shortlisted symbols for 15m/5m/1m alignment...")
 
     aligned_candidates = []
+    all_signals = []
 
     for candidate in shortlist["Stocks"]:
 
         signal = get_multi_timeframe_signal(candidate["Name"], candidate["Symbol"])
+
+        all_signals.append(signal)
 
         if not signal["Aligned"]:
             continue
@@ -206,6 +265,8 @@ def scan_for_entry(portfolio, shortlist):
             "ATR": signal["ATR"],
             "Candle Pattern": signal["5m"]["Candle Pattern"],
         })
+
+    append_alignment_history(all_signals)
 
     ranked = rank_trade_candidates(aligned_candidates, shortlist["Options"], shortlist["News"])
     result = pick_best_trade(ranked)

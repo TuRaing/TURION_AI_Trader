@@ -281,6 +281,20 @@ EXTRA FEATURES (beyond original milestone list)
    with; only new entries going forward use the
    new sizing.
 
+✅ Alignment History Log (29-Jul, daily_best_trade.py's
+   append_alignment_history) - researched after the user
+   asked why a specific candle/symbol (TATASTEEL) didn't
+   trigger a trade and there was no way to check, since
+   reports/best_trade_pick.json only ever holds the latest
+   check. Every ~1-min entry-scan run now appends one line
+   to reports/alignment_history.jsonl with every shortlisted
+   symbol's full 15m/5m/1m Aligned/Reason/Bias/Decision/
+   Confidence - not just the aligned ones that made it into
+   that run's ranking. Rolling 7-day retention (pruned on
+   every write) so the file doesn't grow unbounded at this
+   run cadence. Answers "why didn't X trade at time Y" after
+   the fact instead of only in the moment.
+
 ==================================================
 
 CURRENT ARCHITECTURE

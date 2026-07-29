@@ -46,7 +46,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           commit_and_push() {
-            git add reports/best_trade_portfolio.json reports/best_trade_pick.json || true
+            git add reports/best_trade_portfolio.json reports/best_trade_pick.json reports/alignment_history.jsonl || true
             git diff --staged --quiet && return 0
             git commit -m "Update best trade portfolio [skip ci]"
             git push

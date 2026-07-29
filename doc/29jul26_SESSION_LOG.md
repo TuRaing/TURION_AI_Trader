@@ -261,7 +261,34 @@ and-not-adopted strategy idea rather than a bug.)
 
 --------------------------------------------------
 
-Next Session (Part 2/3 additions)
+PART 4 (same day, continued)
+
+✅ User looked at the new chart screen (TATASTEEL), spotted
+   what looked like a hammer candlestick right before a rally,
+   and asked why the engine didn't enter there. Explained: a
+   candlestick pattern alone is only one minor input into the
+   AI Decision Engine's weighted score, never a standalone
+   trigger by design - and candlestick confirmation was
+   explicitly tested and found to hurt other strategies
+   (22-Jul finding, see PROJECT_STATUS.md). Honestly flagged
+   that the *exact* historical confidence score at that moment
+   couldn't be answered - no history was kept, only the latest
+   check (reports/best_trade_pick.json is overwritten every
+   run).
+
+✅ Built exactly that missing history log rather than leave
+   the question unanswerable next time: daily_best_trade.py's
+   new append_alignment_history() appends every shortlisted
+   symbol's full 15m/5m/1m check (Aligned or not, with the
+   Reason string either way) to reports/alignment_history.jsonl
+   on every ~1-min entry-scan run, pruned to a rolling 7 days.
+   Wired into .github/workflows/best_trade_entry_scan.yml's
+   commit step. Verified locally end to end (write + prune +
+   re-read). Full test suite (126 tests) still passes.
+
+--------------------------------------------------
+
+Next Session (Part 2/3/4 additions)
 
 6. DONE this session: fixed the recurring debug-keystore
    signing mismatch (mobile_app/android/app/debug.keystore +
@@ -274,6 +301,13 @@ Next Session (Part 2/3 additions)
    cron-job.org trigger for best_trade_squareoff.yml - see
    Part 1's "PERMANENT FIX" for the exact setup. Steps were
    given to the user this session; not yet confirmed done.
+
+9. DONE this session: built reports/alignment_history.jsonl
+   (append_alignment_history in daily_best_trade.py) so future
+   "why didn't X trade" questions are answerable. Once it's
+   collected a few real days of data, worth a first look to
+   confirm it's capturing what's expected in practice, not
+   just in the local smoke test.
 
 ==================================================
 
