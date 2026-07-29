@@ -309,6 +309,24 @@ Next Session (Part 2/3/4 additions)
    confirm it's capturing what's expected in practice, not
    just in the local smoke test.
 
+--------------------------------------------------
+
+PART 5 (same day, continued)
+
+✅ User asked a sharp question right after Part 4 shipped:
+   won't logging every ~1-min run permanently grow GitHub's
+   git history, even with the 7-day file-size pruning already
+   in place? Correct - pruning only bounds the *working* file,
+   not git's permanently-retained commit history behind it.
+   Added ALIGNMENT_HISTORY_THROTTLE_MINUTES (5 min) to
+   daily_best_trade.py's append_alignment_history() - skips
+   writing entirely if the last logged entry is more recent
+   than that, cutting the growth rate ~5x before this ever
+   ran for real (no actual GitHub storage was at risk yet -
+   caught before the first live run). Verified locally: two
+   calls back-to-back only produced one written line. Full
+   test suite (126 tests) still passes.
+
 ==================================================
 
 Next Session

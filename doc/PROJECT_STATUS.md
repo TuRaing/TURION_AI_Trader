@@ -286,14 +286,24 @@ EXTRA FEATURES (beyond original milestone list)
    asked why a specific candle/symbol (TATASTEEL) didn't
    trigger a trade and there was no way to check, since
    reports/best_trade_pick.json only ever holds the latest
-   check. Every ~1-min entry-scan run now appends one line
-   to reports/alignment_history.jsonl with every shortlisted
+   check. The entry-scan run now appends one line to
+   reports/alignment_history.jsonl with every shortlisted
    symbol's full 15m/5m/1m Aligned/Reason/Bias/Decision/
    Confidence - not just the aligned ones that made it into
    that run's ranking. Rolling 7-day retention (pruned on
-   every write) so the file doesn't grow unbounded at this
-   run cadence. Answers "why didn't X trade at time Y" after
-   the fact instead of only in the moment.
+   every write that happens) so the working file doesn't
+   grow unbounded. Answers "why didn't X trade at time Y"
+   after the fact instead of only in the moment.
+   THROTTLED same day: the workflow itself still runs every
+   ~1 min, but every run is a permanent git commit regardless
+   of the file-size pruning above - so writes are now capped
+   to once per 5 min (ALIGNMENT_HISTORY_THROTTLE_MINUTES),
+   cutting the git-history growth rate ~5x. The shortlist
+   itself only refreshes every 30 min anyway, so 5-min
+   granularity loses little for the "why didn't X trade"
+   use case this exists for. Raised and fixed the same
+   session, before this ever ran for real - the user asked
+   "won't this fill up GitHub storage?" and was right to.
 
 ==================================================
 

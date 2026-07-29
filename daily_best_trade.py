@@ -35,6 +35,16 @@ BEST_TRADE_PICK_FILE = "reports/best_trade_pick.json"
 ALIGNMENT_HISTORY_FILE = "reports/alignment_history.jsonl"
 ALIGNMENT_HISTORY_RETENTION_DAYS = 7
 
+# Updated: 2026-07-29 - this workflow already commits every ~1 min, and
+# every commit is stored in git history forever regardless of the rolling
+# retention above (that only bounds the *working* file's size, not how
+# much new history git accumulates over time). Throttling writes to once
+# per ALIGNMENT_HISTORY_THROTTLE_MINUTES cuts that growth ~5x - the
+# shortlist itself only refreshes every 30 min anyway, so 1-min-fresh
+# history wasn't adding much over 5-min-fresh for the "why didn't X
+# trade" use case this exists for.
+ALIGNMENT_HISTORY_THROTTLE_MINUTES = 5
+
 
 def append_alignment_history(signals):
     """
@@ -44,26 +54,26 @@ def append_alignment_history(signals):
     symbol/candle didn't trigger a trade and finding there was no way to
     look back and check. Unlike reports/best_trade_pick.json (overwritten
     every run), this is the actual history: every symbol's Aligned/Reason/
-    Bias/Decision/Confidence at every ~1-min check, not just the day's
-    single locked pick.
+    Bias/Decision/Confidence at every check, not just the day's single
+    locked pick.
 
-    Pruned to the last ALIGNMENT_HISTORY_RETENTION_DAYS on every write so
-    the file doesn't grow unbounded at this run cadence (~1/min during
-    market hours).
+    Throttled to once per ALIGNMENT_HISTORY_THROTTLE_MINUTES (skips
+    writing anything if the last entry is more recent than that - see
+    the constant's comment for why) and pruned to the last
+    ALIGNMENT_HISTORY_RETENTION_DAYS on every write that does happen, so
+    the file - and the git history behind it - don't grow unbounded at
+    this workflow's ~1-min run cadence.
     """
 
     os.makedirs("reports", exist_ok=True)
 
     now_ist = datetime.now(IST)
 
-    entry = {
-        "Checked At": now_ist.strftime("%Y-%m-%d %H:%M:%S"),
-        "Signals": signals,
-    }
-
     cutoff = now_ist - timedelta(days=ALIGNMENT_HISTORY_RETENTION_DAYS)
+    throttle_cutoff = now_ist - timedelta(minutes=ALIGNMENT_HISTORY_THROTTLE_MINUTES)
 
     kept_lines = []
+    last_checked_at = None
 
     if os.path.exists(ALIGNMENT_HISTORY_FILE):
 
@@ -78,11 +88,26 @@ def append_alignment_history(signals):
 
                 try:
                     checked_at = datetime.strptime(json.loads(line)["Checked At"], "%Y-%m-%d %H:%M:%S")
+                    checked_at = checked_at.replace(tzinfo=IST)
                 except Exception:
                     continue
 
-                if checked_at.replace(tzinfo=IST) >= cutoff:
+                if checked_at >= cutoff:
                     kept_lines.append(line)
+
+                if last_checked_at is None or checked_at > last_checked_at:
+                    last_checked_at = checked_at
+
+    if last_checked_at is not None and last_checked_at >= throttle_cutoff:
+
+        print(f"Alignment history last logged at {last_checked_at} - "
+              f"skipping (throttled to every {ALIGNMENT_HISTORY_THROTTLE_MINUTES} min).")
+        return
+
+    entry = {
+        "Checked At": now_ist.strftime("%Y-%m-%d %H:%M:%S"),
+        "Signals": signals,
+    }
 
     kept_lines.append(json.dumps(entry, default=str))
 
