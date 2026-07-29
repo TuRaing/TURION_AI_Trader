@@ -12,3 +12,10 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+# Updated: 2026-07-29 - app/debug.keystore is deliberately committed, not a
+# secret. It's the standard Android debug keystore (well-known "android"
+# password, "androiddebugkey" alias) - the whole point is a fixed, shared
+# keystore so every CI build signs identically and adb install -r can
+# update in place. This is never used as a release-signing key.
+!app/debug.keystore

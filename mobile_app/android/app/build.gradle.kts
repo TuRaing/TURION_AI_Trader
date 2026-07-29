@@ -26,11 +26,29 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        // Updated: 2026-07-29 - a fixed, committed debug keystore (standard
+        // Android debug credentials - not a secret, this app is debug-signed
+        // only, never published to a store). Without this, Gradle's default
+        // "debug" signingConfig auto-generates a fresh keystore per machine/
+        // CI runner, so every GitHub Actions build was signed differently
+        // and `adb install -r` against the previous build kept failing with
+        // INSTALL_FAILED_UPDATE_INCOMPATIBLE - hit 3 times before this fix.
+        create("sharedDebug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // Signing with the shared debug key for now, so `flutter run
+            // --release` and repeated CI builds both work and stay
+            // install-compatible with each other.
+            signingConfig = signingConfigs.getByName("sharedDebug")
         }
     }
 }
