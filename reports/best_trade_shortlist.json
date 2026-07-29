@@ -1,10 +1,10 @@
 {
-  "Generated At": "2026-07-29 06:08:51",
+  "Generated At": "2026-07-29 06:33:11",
   "Stocks": [
     {
       "Name": "TCS",
       "Symbol": "TCS.NS",
-      "Price": 2451.0,
+      "Price": 2450.6,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 60.0,
@@ -14,7 +14,7 @@
     {
       "Name": "BHARTIARTL",
       "Symbol": "BHARTIARTL.NS",
-      "Price": 1944.4,
+      "Price": 1936.5,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 60.0,
@@ -24,7 +24,7 @@
     {
       "Name": "AXISBANK",
       "Symbol": "AXISBANK.NS",
-      "Price": 1222.6,
+      "Price": 1224.5,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
@@ -34,44 +34,44 @@
     {
       "Name": "BAJFINANCE",
       "Symbol": "BAJFINANCE.NS",
-      "Price": 1058.1,
+      "Price": 1057.7,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 60.0,
       "ATR": 23.76,
-      "Candle Pattern": "No Pattern"
+      "Candle Pattern": "Doji"
     },
     {
       "Name": "HCLTECH",
       "Symbol": "HCLTECH.NS",
-      "Price": 1348.0,
+      "Price": 1348.1,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 60.0,
-      "ATR": 38.87,
+      "ATR": 38.92,
       "Candle Pattern": "No Pattern"
     },
     {
       "Name": "TITAN",
       "Symbol": "TITAN.NS",
-      "Price": 4846.2,
+      "Price": 4842.0,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 60.0,
       "ATR": 65.95,
-      "Candle Pattern": "Doji"
+      "Candle Pattern": "No Pattern"
     }
   ],
   "Options": [
     {
-      "Name": "NIFTY 50",
+      "Name": "BANK NIFTY",
       "Bias": "Bullish",
       "Decision": "NO TRADE",
-      "Confidence": 14.0,
-      "Reason": "Price action Bullish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 14.0% is below the 60% threshold."
+      "Confidence": 28.0,
+      "Reason": "Price action Bullish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 28.0% is below the 60% threshold."
     },
     {
-      "Name": "BANK NIFTY",
+      "Name": "NIFTY 50",
       "Bias": "Bullish",
       "Decision": "NO TRADE",
       "Confidence": 14.0,
@@ -127,12 +127,10 @@
       "Confidence": 0.0
     },
     "TITAN": {
-      "Headlines": [
-        "Titan Company Share Price Live Updates: Titan Company  Stock Details"
-      ],
+      "Headlines": [],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 1,
+      "Neutral": 0,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -299,11 +297,13 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "BPCL": {
-      "Headlines": [],
+    "UPL": {
+      "Headlines": [
+        "UPL Share Price Live Updates: UPL's Market Update"
+      ],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 0,
+      "Neutral": 1,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -338,12 +338,12 @@
     "LT": {
       "Headlines": [
         "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
-        "HUL shares rebound 2% after Q1 results. Here's what Morgan Stanley, Motilal Oswal and other brokerages are saying",
-        "LTIMindtree Share Price Live Updates: LTIMindtree Sees Positive Movement Today"
+        "KPIT Technologies shares rise 4% ahead of Q1FY27 results",
+        "HUL shares rebound 2% after Q1 results. Here's what Morgan Stanley, Motilal Oswal and other brokerages are saying"
       ],
-      "Positive": 2,
+      "Positive": 3,
       "Negative": 0,
-      "Neutral": 1,
+      "Neutral": 0,
       "Sentiment": "Bullish",
       "Score": 1.0,
       "Confidence": 100.0
@@ -386,15 +386,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "ADANIPORTS": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "JSWSTEEL": {
       "Headlines": [],
       "Positive": 0,
@@ -413,7 +404,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "CIPLA": {
+    "DIVISLAB": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -424,7 +415,7 @@
     },
     "GRASIM": {
       "Headlines": [
-        "Grasim Inds Share Price Live Updates: Grasim Industries Breaks Above 20-Day SMA, Signaling Positive Momentum"
+        "Grasim Inds Share Price Live Updates: Grasim Industries Market Performance Snapshot"
       ],
       "Positive": 0,
       "Negative": 0,
@@ -451,13 +442,11 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "UPL": {
-      "Headlines": [
-        "UPL Share Price Live Updates: UPL's Market Update"
-      ],
+    "BPCL": {
+      "Headlines": [],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 1,
+      "Neutral": 0,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -519,7 +508,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "DIVISLAB": {
+    "ADANIPORTS": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -528,7 +517,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "NIFTY 50": {
+    "CIPLA": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -538,6 +527,15 @@
       "Confidence": 0.0
     },
     "BANK NIFTY": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "NIFTY 50": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -562,6 +560,18 @@
     },
     {
       "Headline": "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Rupee cushioned by state-run bank dollar offers as futures expiry bites",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "KPIT Technologies shares rise 4% ahead of Q1FY27 results",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Coforge shares rally 5% after strong Q1 earnings; net profit surges 63% YoY",
       "Sentiment": "Bullish"
     },
     {
@@ -685,6 +695,10 @@
       "Sentiment": "Bullish"
     },
     {
+      "Headline": "Nestle India Share Price Live Updates: Nestle India Stock Price Insights",
+      "Sentiment": "Neutral"
+    },
+    {
       "Headline": "UPL Share Price Live Updates: UPL's Market Update",
       "Sentiment": "Neutral"
     },
@@ -705,7 +719,11 @@
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Grasim Inds Share Price Live Updates: Grasim Industries Breaks Above 20-Day SMA, Signaling Positive Momentum",
+      "Headline": "Grasim Inds Share Price Live Updates: Grasim Industries Market Performance Snapshot",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Sun Pharma Share Price Live Updates: Sun Pharma's Daily Performance Update",
       "Sentiment": "Neutral"
     },
     {
@@ -726,26 +744,6 @@
     },
     {
       "Headline": "Adani Ports SEZ Share Price Live Updates: Adani Ports SEZ's Price Breakout Analysis",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Infosys Share Price Live Updates: Positive Momentum for Infosys",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Bharti Airtel Share Price Live Updates: Investors Take Note: Bharti Airtel's Positive Trend",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Adani Ent Share Price Live Updates: Adani Enterprises  Market Performance",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "LTIMindtree Share Price Live Updates: LTIMindtree Sees Positive Movement Today",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Titan Company Share Price Live Updates: Titan Company  Stock Details",
       "Sentiment": "Neutral"
     }
   ]
