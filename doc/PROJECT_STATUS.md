@@ -30,7 +30,7 @@ Project Started
 
 Last Updated
 
-28-Jul-2026
+29-Jul-2026
 
 --------------------------------------------------
 
@@ -376,7 +376,12 @@ AUTOMATION (GitHub Actions - runs in cloud)
 
 • Best Trade Square-Off   → 14:45 IST, Mon-Fri (45 min
                            before NSE's 15:30 close)
-                           (square_off_best_trade.py)
+                           (square_off_best_trade.py).
+                           BROKEN 29-Jul: still on GitHub's
+                           native `schedule:` trigger, never
+                           migrated to cron-job.org like the
+                           other two - see Known Issues, not
+                           yet fixed.
 
 • Portfolio state auto-committed back to repo
 
@@ -883,6 +888,29 @@ KNOWN ISSUES
   decay) and a net-of-costs check, same as the
   transaction-cost note below. Not wired into any paper
   trading yet.
+
+• NOT YET FIXED 29-Jul: best_trade_squareoff.yml still
+  uses GitHub's native `schedule:` trigger (`15 9 * * 1-5`
+  = 14:45 IST) - never migrated to cron-job.org like Best
+  Trade Entry Scan / Watchlist Paper Trade Check were on
+  20-Jul, on the assumption that a once-a-day job wouldn't
+  hit the same under-firing problem. It does: checked the
+  last 7 real runs via the GitHub Actions API, every one
+  fired 2-3.5 hours late (20-Jul +2h44m, 21-Jul +2h04m,
+  22-Jul +2h05m, 23-Jul +2h05m, 24-Jul +1h57m, 27-Jul
+  +3h22m, 28-Jul +2h13m), and on 29-Jul it didn't fire at
+  all - a real Best Trade position (TATASTEEL) sat open
+  more than an hour past NSE close before the user noticed
+  and it was manually closed via workflow_dispatch (Entry
+  Rs 186.89, Exit Rs 187.60, PnL +Rs 0.71 - no data lost,
+  same as every other instance of this bug class, but the
+  "never carries overnight" design guarantee came close to
+  breaking for the first time). FIX NOT YET APPLIED - needs
+  a third cron-job.org job (same pattern as the existing
+  two, see 20-Jul log for exact setup), deferred at the
+  user's request until they're back at their own computer.
+  Until then, watch for this recurring and recover the same
+  way (manual workflow_dispatch).
 
 ==================================================
 
