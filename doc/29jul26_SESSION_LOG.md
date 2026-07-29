@@ -214,19 +214,66 @@ friction rather than repo bugs.)
 
 --------------------------------------------------
 
-Next Session (Part 2 additions)
+PART 3 (same day, continued)
 
-6. Fix the recurring debug-keystore signing mismatch: commit
-   a fixed debug.keystore to the repo and point
-   mobile_app/android/app/build.gradle.kts at it, so
-   consecutive GitHub Actions APK builds can update in place
-   via `adb install -r` without an uninstall step first. Hit
-   for the 3rd time this session.
+✅ Fixed the recurring debug-keystore signing mismatch (item
+   6 below, done same session): generated a fixed
+   mobile_app/android/app/debug.keystore (standard Android
+   debug credentials, not a secret) and added a "sharedDebug"
+   signingConfig in build.gradle.kts pointing at it. Verified
+   properly - built twice in a row and the second `adb
+   install -r` succeeded with NO uninstall step first, unlike
+   every prior build this week.
 
-7. Update the Android App milestone description in
-   PROJECT_STATUS.md - it still lists the old tab names
-   (Portfolio/Best trade/Watchlist/News/History) and doesn't
-   mention the chart screen added this session.
+✅ Updated the Android App milestone in PROJECT_STATUS.md
+   (item 7 below, done same session) to reflect the renamed
+   tabs and the new chart screen.
+
+✅ User asked why Intraday (Best Trade Engine) positions
+   weren't closing on time - explained the real cause (see
+   Part 1: best_trade_squareoff.yml's GitHub-native schedule
+   under-firing, not yet fixed) - then user proposed a
+   *different*, strategy-level idea on top of that infra fix:
+   at the 14:45 cutoff, let a profitable position ride
+   (trailing Stop-Loss) until 5 min before close instead of
+   force-closing it, but still force-close a losing one at
+   14:45 and skip new entries the rest of that day. Backtested
+   rather than assumed - added intraday_squareoff_time (+
+   squareoff_trailing_atr_mult, block_reentry_after_loss_
+   squareoff) to strategy/multi_timeframe_backtest.py. Result:
+   NOT a real improvement over what's already known - Net PnL
+   landed within ~Rs 12 of the existing best trailing-stop and
+   ADX>25 results, and the "no re-entry after a loss" rule had
+   *zero* measurable effect (a trade surviving to 14:45 while
+   still in loss essentially never happens - Alignment Broke/
+   Stop Loss already close real losers earlier). See
+   PROJECT_STATUS.md Known Issues for the full breakdown. Not
+   adopted, but the feature stays in the backtest module in
+   case a different combination is worth trying later. Full
+   test suite (126 tests) still passes.
+
+--------------------------------------------------
+
+Bugs Fixed (Part 3)
+
+(None - see the intraday square-off finding above, a tested-
+and-not-adopted strategy idea rather than a bug.)
+
+--------------------------------------------------
+
+Next Session (Part 2/3 additions)
+
+6. DONE this session: fixed the recurring debug-keystore
+   signing mismatch (mobile_app/android/app/debug.keystore +
+   build.gradle.kts).
+
+7. DONE this session: updated the Android App milestone
+   description in PROJECT_STATUS.md.
+
+8. USER TO DO (carried over from Part 1): add the third
+   cron-job.org trigger for best_trade_squareoff.yml - see
+   Part 1's "PERMANENT FIX" for the exact setup. Steps were
+   given to the user this session; not yet confirmed done.
 
 ==================================================
 

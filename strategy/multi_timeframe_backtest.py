@@ -1,3 +1,5 @@
+import datetime
+
 import yfinance as yf
 import pandas as pd
 
@@ -80,6 +82,9 @@ def run_multi_timeframe_backtest(
     trailing_atr_mult=None,
     require_adx_above=None,
     adx_period=14,
+    intraday_squareoff_time=None,
+    squareoff_trailing_atr_mult=None,
+    block_reentry_after_loss_squareoff=True,
 ):
     """
     Backtests the 15m(trend)/5m(entry) core of the alignment rule used
@@ -133,6 +138,33 @@ def run_multi_timeframe_backtest(
         the kind that whipsawed a too-tight trailing stop. ADX is an
         EWM-based calculation (no look-ahead by construction - each
         value only ever depends on candles up to and including it).
+
+    intraday_squareoff_time : str or None
+        Updated: 2026-07-29 - if set (e.g. "14:45"), mirrors the live
+        Best Trade Engine's forced-intraday square-off, researched at
+        the user's suggestion after asking why positions weren't
+        closing on time (see the 29-Jul cron under-firing fix - this
+        parameter is the *strategy* question that prompted, separate
+        from that *infrastructure* bug). At the first candle at or
+        after this time each day: if the position is currently in
+        profit, it is NOT force-closed - instead it switches to a
+        trailing Stop-Loss (squareoff_trailing_atr_mult) for the rest
+        of that day, protecting the gain already made while leaving
+        room to run. If it's flat or in loss, it is force-closed
+        immediately ("Square-Off (Loss)"), and if
+        block_reentry_after_loss_squareoff is True, no new entry is
+        allowed for the remainder of that trading day. Any position
+        still open at the actual last candle of the day is force-
+        closed there regardless ("Day End Square-Off") - the
+        intraday-only guarantee always wins. No effect when None
+        (matches every existing backtest's behavior exactly).
+    squareoff_trailing_atr_mult : float or None
+        Trail distance (ATR multiple) used only for the post-cutoff
+        trailing Stop-Loss above. Defaults to trailing_atr_mult, then
+        stop_loss_atr_mult, when None.
+    block_reentry_after_loss_squareoff : bool
+        See intraday_squareoff_time. Only matters when
+        intraday_squareoff_time is set.
 
     Returns
     -------
@@ -215,14 +247,36 @@ def run_multi_timeframe_backtest(
             direction="backward",
         ).set_index("Timestamp")
 
+    cutoff_time = None
+
+    if intraday_squareoff_time is not None:
+        hh, mm = (int(part) for part in intraday_squareoff_time.split(":"))
+        cutoff_time = datetime.time(hh, mm)
+
+    day_last_timestamp = set()
+
+    if cutoff_time is not None:
+        day_series = pd.Series(merged.index.date, index=merged.index)
+        day_last_timestamp = {g.index[-1] for _, g in merged.groupby(day_series)}
+
     trades = []
     position = None
     aligned_candles = 0
+    current_day = None
+    blocked_today = False
 
     for timestamp, row in merged.iterrows():
 
         if timestamp not in entry_close.index:
             continue
+
+        if cutoff_time is not None:
+
+            this_day = timestamp.date()
+
+            if this_day != current_day:
+                current_day = this_day
+                blocked_today = False
 
         price = float(entry_close.loc[timestamp])
         high = float(entry_high.loc[timestamp])
@@ -230,22 +284,63 @@ def run_multi_timeframe_backtest(
 
         if position is not None:
 
-            if use_trailing_stop:
+            position["Highest Price"] = max(position.get("Highest Price", position["Entry Price"]), high)
 
-                position["Highest Price"] = max(position["Highest Price"], high)
+            trailing_active = use_trailing_stop or position.get("Post Cutoff Trailing", False)
+
+            if trailing_active:
+
                 trailed_stop = position["Highest Price"] - position["Trail Distance"]
                 position["Stop Loss"] = max(position["Stop Loss"], trailed_stop)
 
             if low <= position["Stop Loss"]:
 
-                reason = "Trailing Stop" if use_trailing_stop else "Stop Loss"
+                reason = "Trailing Stop" if trailing_active else "Stop Loss"
                 trades.append(close_trade(position, timestamp, position["Stop Loss"], reason))
                 position = None
                 continue
 
-            if not use_trailing_stop and high >= position["Target"]:
+            if not trailing_active and high >= position["Target"]:
 
                 trades.append(close_trade(position, timestamp, position["Target"], "Target"))
+                position = None
+                continue
+
+            if (
+                cutoff_time is not None
+                and not position.get("Squareoff Processed", False)
+                and timestamp.time() >= cutoff_time
+            ):
+
+                position["Squareoff Processed"] = True
+
+                if price > position["Entry Price"]:
+
+                    trail_mult = (
+                        squareoff_trailing_atr_mult
+                        if squareoff_trailing_atr_mult is not None
+                        else (trailing_atr_mult if trailing_atr_mult is not None else stop_loss_atr_mult)
+                    )
+
+                    position["Post Cutoff Trailing"] = True
+                    position["Trail Distance"] = position["Entry ATR"] * trail_mult
+
+                    trailed_stop = position["Highest Price"] - position["Trail Distance"]
+                    position["Stop Loss"] = max(position["Stop Loss"], trailed_stop)
+
+                else:
+
+                    trades.append(close_trade(position, timestamp, price, "Square-Off (Loss)"))
+                    position = None
+
+                    if block_reentry_after_loss_squareoff:
+                        blocked_today = True
+
+                    continue
+
+            if cutoff_time is not None and position is not None and timestamp in day_last_timestamp:
+
+                trades.append(close_trade(position, timestamp, price, "Day End Square-Off"))
                 position = None
                 continue
 
@@ -271,7 +366,7 @@ def run_multi_timeframe_backtest(
         if aligned:
             aligned_candles += 1
 
-        if position is None and aligned and row["Entry Decision"] == "BUY":
+        if position is None and aligned and row["Entry Decision"] == "BUY" and not blocked_today:
 
             atr = row["Entry ATR"]
 
@@ -287,14 +382,20 @@ def run_multi_timeframe_backtest(
                 "Quantity": 1,
                 "Stop Loss": stop_loss,
                 "Target": target,
+                "Highest Price": price,
+                "Entry ATR": atr,
             }
 
             if use_trailing_stop:
 
-                position["Highest Price"] = price
                 position["Trail Distance"] = atr * (trailing_atr_mult if trailing_atr_mult is not None else stop_loss_atr_mult)
 
-        elif exit_on_alignment_break and position is not None and (not aligned or row["Entry Decision"] == "SELL"):
+        elif (
+            exit_on_alignment_break
+            and position is not None
+            and not position.get("Post Cutoff Trailing", False)
+            and (not aligned or row["Entry Decision"] == "SELL")
+        ):
 
             trades.append(close_trade(position, timestamp, price, "Alignment Broke"))
             position = None

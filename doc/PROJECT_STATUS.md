@@ -562,6 +562,30 @@ KNOWN ISSUES
   as a promising direction needing a longer test window,
   not a confirmed edge.
 
+  TESTED 29-Jul: a profit-aware intraday square-off rule,
+  researched after the user asked why Best Trade Engine
+  positions weren't closing on time (that turned out to be
+  an infrastructure bug - see Known Issues below - but the
+  strategy question underneath was worth testing separately).
+  New intraday_squareoff_time parameter: at 14:45 IST, a
+  position in profit switches to a trailing Stop-Loss for the
+  rest of the day (protects the gain, lets it run) instead of
+  a hard close; a position in loss/flat closes immediately and
+  (optionally) blocks new entries for the rest of that day.
+  Result: NOT a real improvement. Net PnL (-Rs 438.29, 19
+  trades) landed within noise of the already-known trailing-
+  stop result (-Rs 450.95) and the ADX>25 combo (-Rs 99.07 vs
+  -Rs 99.33 previously) - a ~Rs 12 difference either way.
+  Blocking re-entry after a loss-at-cutoff had *zero* effect
+  (identical trades, identical PnL) because a trade surviving
+  to 14:45 while still in loss essentially never happened in
+  this data - Alignment Broke / Stop Loss had already closed
+  the real losers well before the cutoff, so the new "protect
+  the loser" branch had nothing left to protect against.
+  Conclusion: the idea doesn't add value on top of what
+  Alignment Broke + the existing trailing stop already do.
+  Not adopted.
+
 • PROMISING (not yet tradeable) 25-Jul: Gap-fill - bet
   that a significant open-vs-previous-close gap reverts
   back toward the previous close during the day, the
