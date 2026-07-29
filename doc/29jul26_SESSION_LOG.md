@@ -297,10 +297,9 @@ Next Session (Part 2/3/4 additions)
 7. DONE this session: updated the Android App milestone
    description in PROJECT_STATUS.md.
 
-8. USER TO DO (carried over from Part 1): add the third
-   cron-job.org trigger for best_trade_squareoff.yml - see
-   Part 1's "PERMANENT FIX" for the exact setup. Steps were
-   given to the user this session; not yet confirmed done.
+8. DONE this session (see Part 6): the third cron-job.org
+   trigger for best_trade_squareoff.yml is set up and
+   verified via a manual test run.
 
 9. DONE this session: built reports/alignment_history.jsonl
    (append_alignment_history in daily_best_trade.py) so future
@@ -327,17 +326,43 @@ PART 5 (same day, continued)
    calls back-to-back only produced one written line. Full
    test suite (126 tests) still passes.
 
+--------------------------------------------------
+
+PART 6 (same day, continued)
+
+✅ Walked the user through setting up the third cron-job.org
+   trigger live, screen-share style (screenshots back and
+   forth): cloned "Best Trade Entry Scan Trigger" (no direct
+   "Duplicate" button on the jobs list itself - had to open
+   the job and find it from there), renamed it "Best Trade
+   Square-Off Trigger", pointed the URL at
+   best_trade_squareoff.yml's workflow_dispatch endpoint, and
+   set the schedule. Learned along the way: cron-job.org's
+   crontab-expression field rejects standard `/N` step syntax
+   (`10-45/5 9 * * 1-5` showed a validation error) - had to
+   use the explicit comma-separated form instead
+   (`10,15,20,25,30,35,40,45 9 * * 1-5`), which its visual
+   picker (Days/Months/Hours/Minutes list boxes) accepted
+   cleanly. Also had to manually turn off a default "Schedule
+   expires" toggle (was set to expire in mid-2027) and
+   manually enable the cloned job (clones default to
+   disabled). Verified end to end: the user's manual test
+   produced a real workflow_dispatch event on GitHub within
+   seconds (204 response), which completed successfully.
+
+   NOT YET verified at the actual 14:40-15:15 IST live
+   trading window - that's the real test, next trading day.
+
 ==================================================
 
 Next Session
 
-1. USER TO DO (at home): add a third cron-job.org trigger
-   for best_trade_squareoff.yml's workflow_dispatch
-   endpoint - see "PERMANENT FIX" above for the exact
-   pattern to copy. Until then, watch for the position
-   silently carrying past 14:45 IST again and recover
-   manually the same way (workflow_dispatch via the GitHub
-   Actions API/UI).
+1. Confirm the new Square-Off Trigger actually fires during
+   the real 14:40-15:15 IST window on the next trading day
+   (set up and smoke-tested this session, but never seen at
+   its real scheduled time yet). If it doesn't, check
+   cron-job.org's own execution history for that job first
+   before assuming another workflow-side bug.
 
 2. Let the (still-overdue) 26-Jul-style review happen at
    the next opportunity - both engines now have several

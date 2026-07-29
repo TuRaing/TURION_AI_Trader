@@ -411,11 +411,27 @@ AUTOMATION (GitHub Actions - runs in cloud)
 • Best Trade Square-Off   → 14:45 IST, Mon-Fri (45 min
                            before NSE's 15:30 close)
                            (square_off_best_trade.py).
-                           BROKEN 29-Jul: still on GitHub's
-                           native `schedule:` trigger, never
-                           migrated to cron-job.org like the
-                           other two - see Known Issues, not
-                           yet fixed.
+                           BROKEN 29-Jul, FIXED same day: was
+                           still on GitHub's native `schedule:`
+                           trigger, never migrated to
+                           cron-job.org like the other two - see
+                           Known Issues for the full history. A
+                           third cron-job.org job ("Best Trade
+                           Square-Off Trigger") now POSTs to
+                           this workflow's workflow_dispatch
+                           every 5 min, 14:40-15:15 IST
+                           (`10,15,20,25,30,35,40,45 9 * * 1-5`
+                           UTC) Mon-Fri - a safety window around
+                           14:45 rather than the 1-min/15-min
+                           cadence the other two need, since
+                           this only ever needs to fire reliably
+                           once, not frequently. Verified
+                           working via a manual test run (204,
+                           then a real workflow_dispatch run
+                           completed successfully). Not yet
+                           confirmed at the real 14:45 IST
+                           cadence on a live trading day - first
+                           real firing will be the actual test.
 
 • Portfolio state auto-committed back to repo
 
@@ -961,28 +977,34 @@ KNOWN ISSUES
   transaction-cost note below. Not wired into any paper
   trading yet.
 
-• NOT YET FIXED 29-Jul: best_trade_squareoff.yml still
-  uses GitHub's native `schedule:` trigger (`15 9 * * 1-5`
-  = 14:45 IST) - never migrated to cron-job.org like Best
-  Trade Entry Scan / Watchlist Paper Trade Check were on
-  20-Jul, on the assumption that a once-a-day job wouldn't
-  hit the same under-firing problem. It does: checked the
-  last 7 real runs via the GitHub Actions API, every one
-  fired 2-3.5 hours late (20-Jul +2h44m, 21-Jul +2h04m,
-  22-Jul +2h05m, 23-Jul +2h05m, 24-Jul +1h57m, 27-Jul
-  +3h22m, 28-Jul +2h13m), and on 29-Jul it didn't fire at
-  all - a real Best Trade position (TATASTEEL) sat open
-  more than an hour past NSE close before the user noticed
-  and it was manually closed via workflow_dispatch (Entry
-  Rs 186.89, Exit Rs 187.60, PnL +Rs 0.71 - no data lost,
-  same as every other instance of this bug class, but the
-  "never carries overnight" design guarantee came close to
-  breaking for the first time). FIX NOT YET APPLIED - needs
-  a third cron-job.org job (same pattern as the existing
-  two, see 20-Jul log for exact setup), deferred at the
-  user's request until they're back at their own computer.
-  Until then, watch for this recurring and recover the same
-  way (manual workflow_dispatch).
+• FIXED 29-Jul (same day as found): best_trade_squareoff.yml
+  had been stuck on GitHub's native `schedule:` trigger
+  (`15 9 * * 1-5` = 14:45 IST) - never migrated to
+  cron-job.org like Best Trade Entry Scan / Watchlist Paper
+  Trade Check were on 20-Jul, on the assumption that a
+  once-a-day job wouldn't hit the same under-firing problem.
+  It does: checked the last 7 real runs via the GitHub
+  Actions API, every one fired 2-3.5 hours late (20-Jul
+  +2h44m, 21-Jul +2h04m, 22-Jul +2h05m, 23-Jul +2h05m, 24-Jul
+  +1h57m, 27-Jul +3h22m, 28-Jul +2h13m), and on 29-Jul it
+  didn't fire at all - a real Best Trade position (TATASTEEL)
+  sat open more than an hour past NSE close before the user
+  noticed and it was manually closed via workflow_dispatch
+  (Entry Rs 186.89, Exit Rs 187.60, PnL +Rs 0.71 - no data
+  lost, same as every other instance of this bug class, but
+  the "never carries overnight" design guarantee came close
+  to breaking for the first time). FIXED: user added a third
+  cron-job.org job ("Best Trade Square-Off Trigger") POSTing
+  to workflow_dispatch every 5 min, 14:40-15:15 IST
+  (`10,15,20,25,30,35,40,45 9 * * 1-5` UTC) - same pattern as
+  the existing two, walked through together this session
+  (cron-job.org's visual schedule builder rejected the `/5`
+  step syntax in the crontab-expression field, needed the
+  explicit comma-separated minute list instead). Verified via
+  a manual test run (204, then workflow_dispatch completed
+  successfully) - not yet confirmed at the real 14:45 IST
+  cadence on a live trading day, that's the real test still
+  to come.
 
 ==================================================
 
