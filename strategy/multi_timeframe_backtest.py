@@ -85,6 +85,11 @@ def run_multi_timeframe_backtest(
     intraday_squareoff_time=None,
     squareoff_trailing_atr_mult=None,
     block_reentry_after_loss_squareoff=True,
+    require_vix_in_band=False,
+    vix_symbol="^INDIAVIX",
+    vix_percentile_low=0.20,
+    vix_percentile_high=0.80,
+    vix_lookback_candles=125,
 ):
     """
     Backtests the 15m(trend)/5m(entry) core of the alignment rule used
@@ -166,6 +171,26 @@ def run_multi_timeframe_backtest(
         See intraday_squareoff_time. Only matters when
         intraday_squareoff_time is set.
 
+    require_vix_in_band : bool
+        Updated: 2026-07-30 - if True, also require India VIX to be
+        inside its own recent [vix_percentile_low, vix_percentile_high]
+        rolling percentile band (same methodology as
+        strategy/momentum_vix_backtest.py's 22-Jul BANKNIFTY options
+        finding, applied here to this file's *equity* entries instead -
+        researched at the user's suggestion to test the same regime-
+        filter idea on what's already a proven signal, rather than only
+        on a new one). Uses the most recently *completed* 15m VIX
+        candle relative to each entry candle (backward as-of join, same
+        no-look-ahead pattern as every other filter here).
+    vix_symbol : str
+    vix_percentile_low, vix_percentile_high : float
+        Rolling percentile band edges (0-1). Defaults match
+        momentum_vix_backtest.py's VIX_PERCENTILE_LOW/HIGH.
+    vix_lookback_candles : int
+        Rolling window (in 15m candles) the percentile band is computed
+        over. Default 125 (~5 trading days), matching
+        momentum_vix_backtest.py's VIX_LOOKBACK_CANDLES.
+
     Returns
     -------
     dict (same shape as strategy.backtest_engine.summarize_trades, plus
@@ -218,6 +243,31 @@ def run_multi_timeframe_backtest(
         merged = pd.merge_asof(
             merged.reset_index(),
             adx_series.reset_index(),
+            on="Timestamp",
+            direction="backward",
+        ).set_index("Timestamp")
+
+    if require_vix_in_band:
+
+        vix_data = _download(vix_symbol, "15m", trend_period)
+
+        if vix_data.empty or len(vix_data) < vix_lookback_candles:
+            return {"Error": f"No usable 15m data for {vix_symbol} (needed for the VIX filter)"}
+
+        vix_close = _flatten_close(vix_data)
+        vix_low_band = vix_close.rolling(vix_lookback_candles).quantile(vix_percentile_low)
+        vix_high_band = vix_close.rolling(vix_lookback_candles).quantile(vix_percentile_high)
+
+        vix_frame = pd.DataFrame({
+            "VIX": vix_close,
+            "VIX Low Band": vix_low_band,
+            "VIX High Band": vix_high_band,
+        })
+        vix_frame.index.name = "Timestamp"
+
+        merged = pd.merge_asof(
+            merged.reset_index(),
+            vix_frame.reset_index(),
             on="Timestamp",
             direction="backward",
         ).set_index("Timestamp")
@@ -362,6 +412,16 @@ def run_multi_timeframe_backtest(
 
             adx_value = row["ADX"]
             aligned = pd.notna(adx_value) and adx_value > require_adx_above
+
+        if aligned and require_vix_in_band:
+
+            vix_value = row["VIX"]
+            vix_low = row["VIX Low Band"]
+            vix_high = row["VIX High Band"]
+            aligned = (
+                pd.notna(vix_value) and pd.notna(vix_low) and pd.notna(vix_high)
+                and vix_low <= vix_value <= vix_high
+            )
 
         if aligned:
             aligned_candles += 1

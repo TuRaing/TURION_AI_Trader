@@ -626,6 +626,31 @@ KNOWN ISSUES
   Alignment Broke + the existing trailing stop already do.
   Not adopted.
 
+• PROMISING (not yet tradeable) 30-Jul: India VIX regime
+  filter, applied to this file's *equity* entries (first
+  August-plan candidate tested - see Priority 2) rather than
+  only the BANKNIFTY options case it was originally found for
+  (22-Jul). New require_vix_in_band parameter: only enter when
+  ^INDIAVIX is inside its own recent rolling percentile band
+  (same methodology, backward as-of joined - no look-ahead).
+  Tested on the Daily-aligned NIFTY, 0.5x SL combo (no
+  trailing stop, no ADX - a clean baseline for this specific
+  comparison): baseline 22 trades, 31.82% win rate, -Rs
+  614.57 net. VIX 20-80 percentile band: 11 trades, -Rs
+  312.82 (49% less negative). VIX 10-90 (wider): 14 trades,
+  -Rs 395.59 (weaker, as expected from a looser filter). VIX
+  30-70 (tight, matching the original BANKNIFTY band exactly):
+  6 trades, 50.0% win rate, -Rs 115.37 - an 81% reduction from
+  baseline, and landing within noise of the ADX>25 result
+  above (-Rs 99.33, also 6 trades) - two independently-found
+  filters converging on a similar magnitude of improvement is
+  a mildly reassuring signal, not just one cherry-picked
+  result. Stacking both filters together (VIX 20-80 + ADX>25)
+  over-restricts to a single trade - too small to mean
+  anything, don't combine them. Still net-negative and small
+  sample (6 trades), same caveat as every other finding this
+  week - promising, not confirmed.
+
 • PROMISING (not yet tradeable) 25-Jul: Gap-fill - bet
   that a significant open-vs-previous-close gap reverts
   back toward the previous close during the day, the
@@ -1052,10 +1077,12 @@ In parallel, keep researching new strategy candidates
 (see Priority 3) rather than waiting idle for August's
 data to accumulate - agreed direction, in priority
 order:
-1. India VIX regime filter applied to Best Trade
-   Engine's *equity* entries (not just the BANKNIFTY
-   options case it was originally found for, 22-Jul) -
-   reuse the same percentile-band methodology.
+1. DONE 30-Jul: India VIX regime filter applied to
+   equity entries - see Known Issues for the full
+   result (30-70 percentile band: -Rs 115.37 net, 6
+   trades, an 81% reduction from the no-filter
+   baseline). Promising, same small-sample caveat as
+   everything else - not wired into live paper trading.
 2. Option chain PCR/Max Pain levels as support/
    resistance zones for equity Best Trade picks (this
    data is already fetched for index options, currently
