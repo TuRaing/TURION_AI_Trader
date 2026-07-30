@@ -651,6 +651,32 @@ KNOWN ISSUES
   sample (6 trades), same caveat as every other finding this
   week - promising, not confirmed.
 
+• REJECTED 30-Jul: partial profit booking on the proven
+  Daily-timeframe strategy (August-plan candidate #4, see
+  Priority 2) - book half the position at a nearer 1x-ATR
+  target instead of the live strategy's single 3x-ATR
+  all-or-nothing Target, trail the other half with a Stop-
+  Loss instead of waiting for the full target (see
+  strategy/daily_partial_booking_backtest.py, analysis-only,
+  same entry signal as the live/proven strategy for a fair
+  like-for-like comparison). Tested against the existing
+  baseline (strategy/backtest_engine.py's run_backtest,
+  1.5x SL/3x Target, unchanged) on NIFTY + 3 stocks, 2y daily:
+  worse in 3 of 4 cases - NIFTY -Rs 87.75 -> -Rs 455.84,
+  ICICIBANK -Rs 117.45 -> -Rs 173.09, and notably RELIANCE
+  (baseline's one actually-profitable case, +Rs 167.16) cut
+  to +Rs 86.81 - halving the winner's gain. Only HDFCBANK
+  improved slightly (-Rs 72.48 -> -Rs 56.91). Win rate rose
+  everywhere (the nearer 1x target is easier to hit), but
+  that's a vanity metric here, not real profit - the trades
+  where the full 3x target would eventually have been reached
+  are exactly the trades this costs the most on, since booking
+  half early caps the upside from letting a real trend run.
+  Root cause is the mirror image of the reasoning behind the
+  ADX/VIX filters that *did* help: those cut bad trades before
+  they lost money; this cuts good trades before they made
+  their real money. Not adopted.
+
 • PROMISING (not yet tradeable) 25-Jul: Gap-fill - bet
   that a significant open-vs-previous-close gap reverts
   back toward the previous close during the day, the
@@ -1083,18 +1109,37 @@ order:
    trades, an 81% reduction from the no-filter
    baseline). Promising, same small-sample caveat as
    everything else - not wired into live paper trading.
-2. Option chain PCR/Max Pain levels as support/
-   resistance zones for equity Best Trade picks (this
-   data is already fetched for index options, currently
-   unused for stock-level decisions).
-3. Time-of-day entry filter - check whether Daily/Best
-   Trade signals' win rate varies by entry-time bucket
-   (first hour / midday / last hour) using data already
-   on hand, no new fetching needed.
-4. Partial profit booking on the Daily-timeframe
-   strategy - book half the position at 1x Target,
-   trail the rest, instead of a single all-or-nothing
-   Target.
+2. NOT TESTABLE 30-Jul: option chain PCR/Max Pain as
+   equity support/resistance - unlike every other
+   candidate here, NSE's option chain API has no
+   historical archive (only today's live snapshot), so
+   this cannot be backtested against past data the way
+   VIX/price data can. Confirmed the live fetch itself
+   is also currently failing (403 even from the user's
+   home network, not just the documented datacenter-IP
+   block) - see strategy/option_chain_engine.py. Only
+   testable prospectively (tracked live going forward),
+   not retroactively - shelved for now, not rejected on
+   the idea's merits.
+3. TESTED 30-Jul, inconclusive: time-of-day entry
+   filter on the Daily-aligned NIFTY baseline (22
+   trades, split into first-90-min/midday/last-stretch
+   buckets of 5-11 trades each) - all three buckets
+   landed within a similar range (-Rs 25 to -Rs 35 net
+   per trade), no bucket stood out as meaningfully
+   better or worse. Sample far too small per bucket to
+   be conclusive either way; also surfaced that this
+   combo's 31.82% *gross* win rate is 0% once real
+   transaction costs are applied per trade - the tight
+   0.5x-ATR stop makes individual wins smaller than the
+   round-trip cost on an index-sized position. Not
+   pursued further at this sample size.
+4. REJECTED 30-Jul: partial profit booking on the
+   Daily-timeframe strategy - see Known Issues for the
+   full breakdown. Worse than the existing 1.5x SL/3x
+   Target baseline in 3 of 4 tested symbols, notably
+   halving the gain on the one case (RELIANCE) where
+   the baseline was actually profitable. Not adopted.
 Two riskier, less-precedented directions flagged for
 later if the above don't pan out: sector momentum/
 sympathy moves, and a consolidation-breakout quality
