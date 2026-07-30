@@ -1040,6 +1040,39 @@ outcomes from 21-Jul (ULTRACEMCO closed on SL,
 ICICIBANK opened) now that the price-fetch crash is
 fixed and real data is actually flowing.
 
+UPDATE 29-Jul: agreed plan for August - let both
+engines run through the full month collecting real
+results before drawing firm conclusions (as of 29-Jul:
+Watchlist 8 closed trades since 11-Jul, Best Trade
+Engine 18 closed trades since 21-Jul - both still well
+short of the ~30-50 trades usually needed for
+statistical confidence; Watchlist accumulates much
+slower than Intraday given its swing-style hold times).
+In parallel, keep researching new strategy candidates
+(see Priority 3) rather than waiting idle for August's
+data to accumulate - agreed direction, in priority
+order:
+1. India VIX regime filter applied to Best Trade
+   Engine's *equity* entries (not just the BANKNIFTY
+   options case it was originally found for, 22-Jul) -
+   reuse the same percentile-band methodology.
+2. Option chain PCR/Max Pain levels as support/
+   resistance zones for equity Best Trade picks (this
+   data is already fetched for index options, currently
+   unused for stock-level decisions).
+3. Time-of-day entry filter - check whether Daily/Best
+   Trade signals' win rate varies by entry-time bucket
+   (first hour / midday / last hour) using data already
+   on hand, no new fetching needed.
+4. Partial profit booking on the Daily-timeframe
+   strategy - book half the position at 1x Target,
+   trail the rest, instead of a single all-or-nothing
+   Target.
+Two riskier, less-precedented directions flagged for
+later if the above don't pan out: sector momentum/
+sympathy moves, and a consolidation-breakout quality
+filter.
+
 --------------------------------------------------
 
 Priority 3
