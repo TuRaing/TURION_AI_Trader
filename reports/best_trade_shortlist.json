@@ -1,10 +1,10 @@
 {
-  "Generated At": "2026-07-30 06:00:56",
+  "Generated At": "2026-07-30 06:30:23",
   "Stocks": [
     {
       "Name": "BAJAJ-AUTO",
       "Symbol": "BAJAJ-AUTO.NS",
-      "Price": 11456.0,
+      "Price": 11472.0,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 80.0,
@@ -14,7 +14,7 @@
     {
       "Name": "COALINDIA",
       "Symbol": "COALINDIA.NS",
-      "Price": 414.5,
+      "Price": 414.35,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 70.0,
@@ -22,9 +22,29 @@
       "Candle Pattern": "No Pattern"
     },
     {
+      "Name": "EICHERMOT",
+      "Symbol": "EICHERMOT.NS",
+      "Price": 7852.5,
+      "Decision": "BUY",
+      "Bias": "Bullish",
+      "Confidence": 70.0,
+      "ATR": 145.79,
+      "Candle Pattern": "No Pattern"
+    },
+    {
+      "Name": "ASIANPAINT",
+      "Symbol": "ASIANPAINT.NS",
+      "Price": 2727.5,
+      "Decision": "BUY",
+      "Bias": "Bullish",
+      "Confidence": 60.0,
+      "ATR": 58.09,
+      "Candle Pattern": "Hammer"
+    },
+    {
       "Name": "HCLTECH",
       "Symbol": "HCLTECH.NS",
-      "Price": 1360.1,
+      "Price": 1361.9,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 60.0,
@@ -32,33 +52,13 @@
       "Candle Pattern": "No Pattern"
     },
     {
-      "Name": "SUNPHARMA",
-      "Symbol": "SUNPHARMA.NS",
-      "Price": 2006.0,
-      "Decision": "BUY",
-      "Bias": "Bullish",
-      "Confidence": 60.0,
-      "ATR": 29.02,
-      "Candle Pattern": "No Pattern"
-    },
-    {
       "Name": "TITAN",
       "Symbol": "TITAN.NS",
-      "Price": 4840.0,
+      "Price": 4853.2,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 60.0,
-      "ATR": 65.44,
-      "Candle Pattern": "No Pattern"
-    },
-    {
-      "Name": "NESTLEIND",
-      "Symbol": "NESTLEIND.NS",
-      "Price": 1520.0,
-      "Decision": "BUY",
-      "Bias": "Bullish",
-      "Confidence": 60.0,
-      "ATR": 35.14,
+      "ATR": 65.59,
       "Candle Pattern": "No Pattern"
     }
   ],
@@ -97,7 +97,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "HCLTECH": {
+    "EICHERMOT": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -106,7 +106,16 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "SUNPHARMA": {
+    "ASIANPAINT": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "HCLTECH": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -160,15 +169,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "EICHERMOT": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "HEROMOTOCO": {
       "Headlines": [],
       "Positive": 0,
@@ -207,6 +207,15 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "SBIN": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "BHARTIARTL": {
       "Headlines": [],
       "Positive": 0,
@@ -225,7 +234,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "ASIANPAINT": {
+    "SUNPHARMA": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -261,7 +270,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "SBILIFE": {
+    "DRREDDY": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -270,7 +279,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "DRREDDY": {
+    "DIVISLAB": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -342,24 +351,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "SBIN": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "KOTAKBANK": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "BAJFINANCE": {
       "Headlines": [],
       "Positive": 0,
@@ -396,6 +387,24 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "JSWSTEEL": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "SBILIFE": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "CIPLA": {
       "Headlines": [
         "Cipla Share Price Live Updates: Cipla's Performance Overview"
@@ -403,15 +412,6 @@
       "Positive": 0,
       "Negative": 0,
       "Neutral": 1,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "DIVISLAB": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -444,6 +444,15 @@
       "Confidence": 0.0
     },
     "ITC": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "KOTAKBANK": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -486,15 +495,6 @@
       "Positive": 0,
       "Negative": 0,
       "Neutral": 1,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "JSWSTEEL": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -563,6 +563,14 @@
     {
       "Headline": "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
       "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Global Market: China, Hong Kong stocks slip as AI selloff hits chip shares; defensive sectors gain",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Magnificent seven earnings to decide next move for Wall Street",
+      "Sentiment": "Neutral"
     },
     {
       "Headline": "Dabur India shares fall 4% even as Q1 earnings meet estimates. What\u2019s spooking investors?",
@@ -738,14 +746,6 @@
     },
     {
       "Headline": "Tata Consumer Share Price Live Updates: Tata Consumer Stock Details",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Sun Pharma Share Price Live Updates: Sun Pharma's Current Price Update",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Bajaj Finance Share Price Live Updates: Bajaj Finance Trading Insights",
       "Sentiment": "Neutral"
     }
   ]
