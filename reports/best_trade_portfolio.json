@@ -1,15 +1,6 @@
 {
-  "Cash": 100047.2450061035,
-  "Position": {
-    "Name": "HCLTECH",
-    "Symbol": "HCLTECH.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-07-30 04:31:18",
-    "Entry Price": 1366.5,
-    "Quantity": 1,
-    "Stop Loss": 1359.33,
-    "Target": 1380.84
-  },
+  "Cash": 100040.0750061035,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -226,6 +217,18 @@
       "Quantity": 1,
       "Exit Reason": "Intraday Square-Off",
       "PnL": 0.71
+    },
+    {
+      "Name": "HCLTECH",
+      "Symbol": "HCLTECH.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-07-30 04:31:18",
+      "Entry Price": 1366.5,
+      "Exit Time": "2026-07-30 05:29:42",
+      "Exit Price": 1359.33,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -7.17
     }
   ]
 }
