@@ -1354,6 +1354,65 @@ Live Trading (user-approved orders only)
 
 Algorithmic Trading (supervised)
 
+--------------------------------------------------
+
+STAGED CAPITAL PLAN (agreed 30-Jul)
+
+The user's own staged plan for how far paper trading needs
+to go before any real money, and how much:
+
+1. August: keep both engines running, tune strategies with
+   the real data as it accumulates (see Priority 2's four
+   candidates - VIX filter promising, PCR/Max Pain shelved,
+   time-of-day inconclusive, partial booking rejected).
+
+2. If results hold up: get a broker API (Priority 6 -
+   Upstox/Angel One, free-tier, still to be selected).
+
+3. One more month of paper trading, this time against the
+   broker's real data feed (not just yfinance) - checks
+   whether the strategy still holds up on the data source
+   it will actually trade against.
+
+4. If that holds up too: start with Rs 10,000 of real
+   capital - Claude still never executes a trade regardless
+   of this stage; the user places every real order.
+
+5. If Rs 10,000 is profitable: scale to Rs 1,00,000.
+
+6. Continue forward using that Rs 1,00,000.
+
+Process suggestions raised alongside the plan (not
+financial advice - risk/engineering process only):
+
+- Gate each stage on trade COUNT, not calendar time - a
+  calendar month gives the Intraday engine ~40-50 trades
+  (enough) but the slower Watchlist/Swing engine only
+  ~15-20 (probably not enough) at current pace. Judge the
+  two engines' readiness separately, not on one shared
+  clock.
+- Start the Rs 10,000 stage with only ONE engine (most
+  likely Intraday, given its faster feedback loop), not
+  both at once - less complexity and risk on the first real-
+  money test.
+- Define a stop/rollback rule up front, not just a scale-up
+  rule - e.g. an explicit loss threshold or a run of
+  consecutive losses that sends it back to paper trading,
+  decided before the money is on the line, not improvised
+  mid-drawdown.
+- Once on a real broker, compare actual fill prices against
+  this codebase's modeled transaction costs (strategy/
+  transaction_costs.py, built off Zerodha's published rates)
+  - real slippage may differ from the model.
+- Ramp into the Rs 1,00,000 stage gradually (reduced size for
+  the first couple of weeks, not full size immediately) -
+  same principle already built into the Watchlist strategy's
+  confidence-based position sizing.
+- Treat the system's signals mechanically through the Rs
+  10,000/Rs 1,00,000 stages too - no manual overrides based
+  on gut feel, or it becomes impossible to tell whether the
+  strategy itself is working.
+
 ==================================================
 
 DEVELOPMENT RULES
