@@ -1,15 +1,6 @@
 {
-  "Cash": 100107.59000610349,
-  "Position": {
-    "Name": "BAJAJFINSV",
-    "Symbol": "BAJAJFINSV.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-07-31 07:06:50",
-    "Entry Price": 2012.0,
-    "Quantity": 1,
-    "Stop Loss": 1998.725,
-    "Target": 2038.55
-  },
+  "Cash": 100118.89005493162,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -286,6 +277,18 @@
       "Quantity": 1,
       "Exit Reason": "Stop Loss",
       "PnL": -0.69
+    },
+    {
+      "Name": "BAJAJFINSV",
+      "Symbol": "BAJAJFINSV.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-07-31 07:06:50",
+      "Entry Price": 2012.0,
+      "Exit Time": "2026-07-31 09:11:20",
+      "Exit Price": 2023.300048828125,
+      "Quantity": 1,
+      "Exit Reason": "Intraday Square-Off",
+      "PnL": 11.3
     }
   ]
 }
