@@ -1,60 +1,60 @@
 {
-  "Generated At": "2026-07-31 06:25:02",
+  "Generated At": "2026-07-31 06:45:45",
   "Stocks": [
-    {
-      "Name": "M&M",
-      "Symbol": "M&M.NS",
-      "Price": 3424.5,
-      "Decision": "BUY",
-      "Bias": "Bullish",
-      "Confidence": 90.0,
-      "ATR": 82.74,
-      "Candle Pattern": "Hammer"
-    },
     {
       "Name": "HDFCBANK",
       "Symbol": "HDFCBANK.NS",
-      "Price": 748.7,
+      "Price": 749.65,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 80.0,
-      "ATR": 14.17,
+      "ATR": 14.18,
       "Candle Pattern": "Bearish Engulfing"
-    },
-    {
-      "Name": "EICHERMOT",
-      "Symbol": "EICHERMOT.NS",
-      "Price": 7867.5,
-      "Decision": "BUY",
-      "Bias": "Bullish",
-      "Confidence": 80.0,
-      "ATR": 146.43,
-      "Candle Pattern": "Hammer"
     },
     {
       "Name": "BAJFINANCE",
       "Symbol": "BAJFINANCE.NS",
-      "Price": 1131.0,
+      "Price": 1134.9,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 70.0,
-      "ATR": 28.76,
+      "ATR": 28.89,
+      "Candle Pattern": "No Pattern"
+    },
+    {
+      "Name": "M&M",
+      "Symbol": "M&M.NS",
+      "Price": 3435.1,
+      "Decision": "BUY",
+      "Bias": "Bullish",
+      "Confidence": 70.0,
+      "ATR": 82.81,
+      "Candle Pattern": "Hammer"
+    },
+    {
+      "Name": "BAJAJFINSV",
+      "Symbol": "BAJAJFINSV.NS",
+      "Price": 2004.2,
+      "Decision": "BUY",
+      "Bias": "Bullish",
+      "Confidence": 70.0,
+      "ATR": 42.14,
       "Candle Pattern": "No Pattern"
     },
     {
       "Name": "TCS",
       "Symbol": "TCS.NS",
-      "Price": 2377.9,
+      "Price": 2380.6,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 60.0,
       "ATR": 63.05,
-      "Candle Pattern": "No Pattern"
+      "Candle Pattern": "Doji"
     },
     {
       "Name": "BHARTIARTL",
       "Symbol": "BHARTIARTL.NS",
-      "Price": 1962.7,
+      "Price": 1963.2,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 60.0,
@@ -67,27 +67,18 @@
       "Name": "NIFTY 50",
       "Bias": "Bullish",
       "Decision": "NO TRADE",
-      "Confidence": 14.0,
-      "Reason": "Price action Bullish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 14.0% is below the 60% threshold."
+      "Confidence": 28.0,
+      "Reason": "Price action Bullish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 28.0% is below the 60% threshold."
     },
     {
       "Name": "BANK NIFTY",
-      "Bias": "Neutral",
+      "Bias": "Bullish",
       "Decision": "NO TRADE",
-      "Confidence": 0.0,
-      "Reason": "Index price action is Neutral - no directional bias to trade."
+      "Confidence": 14.0,
+      "Reason": "Price action Bullish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 14.0% is below the 60% threshold."
     }
   ],
   "News": {
-    "M&M": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "HDFCBANK": {
       "Headlines": [],
       "Positive": 0,
@@ -97,7 +88,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "EICHERMOT": {
+    "BAJFINANCE": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -106,7 +97,16 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "BAJFINANCE": {
+    "M&M": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "BAJAJFINSV": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -145,15 +145,6 @@
       "Confidence": 0.0
     },
     "HCLTECH": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "SUNPHARMA": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -207,15 +198,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "BAJAJFINSV": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "HDFCLIFE": {
       "Headlines": [],
       "Positive": 0,
@@ -232,6 +214,15 @@
       "Positive": 0,
       "Negative": 0,
       "Neutral": 1,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "EICHERMOT": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -272,7 +263,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "AXISBANK": {
+    "SUNPHARMA": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -504,6 +495,15 @@
       "Score": 0.67,
       "Confidence": 66.7
     },
+    "AXISBANK": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "GRASIM": {
       "Headlines": [
         "Grasim Inds Share Price Live Updates: Grasim Inds. Stock Details"
@@ -560,6 +560,18 @@
     },
     {
       "Headline": "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Bajaj Finance shares explode 7%, make investors Rs 46,445 crore richer. Is it still a buy?",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Why did Apple shares drop despite a stellar earnings beat",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "AI Boost: Amazon shares jump on blockbuster earnings, upbeat outlook",
       "Sentiment": "Bullish"
     },
     {
@@ -715,6 +727,10 @@
       "Sentiment": "Neutral"
     },
     {
+      "Headline": "Power Grid Share Price Live Updates: Power Grid's Daily Performance Update",
+      "Sentiment": "Neutral"
+    },
+    {
       "Headline": "HDFC Life Share Price Live Updates: HDFC Life's Daily Performance Update",
       "Sentiment": "Neutral"
     },
@@ -728,22 +744,6 @@
     },
     {
       "Headline": "Britannia Share Price Live Updates: Britannia's Current Price and Market Performance",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Bajaj Auto Share Price Live Updates: Bajaj Auto's Price Movement Today",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Balkrishna Industries among 4 stocks showing bullish RSI upswing",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Adani Ports SEZ Share Price Live Updates: Adani Ports SEZ Stock Details",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "SBI Share Price Live Updates: SBI Stock Details",
       "Sentiment": "Neutral"
     }
   ]
