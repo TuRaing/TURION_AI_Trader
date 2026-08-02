@@ -1057,7 +1057,7 @@ KNOWN ISSUES
   cadence on a live trading day, that's the real test still
   to come.
 
-• ADDED (not yet tested), 02-Aug: Crash Protection Engine
+• ADDED + TESTED, 02-Aug: Crash Protection Engine
   (strategy/crash_protection_engine.py, detect_crash_state) -
   researched after the user asked whether this project has
   any protection against a sudden market crash. It didn't -
@@ -1076,11 +1076,29 @@ KNOWN ISSUES
   all passing. Wired in as an optional require_no_crash_state
   parameter on strategy/multi_timeframe_backtest.py (default
   False/off) - only gates new entries, never touches an
-  already-open position's Stop-Loss. NOT yet backtested
-  against the existing best-known combos (Daily-aligned NIFTY,
-  ADX>25, VIX 30-70 band) and NOT wired into live paper
-  trading - analysis-only addition this session, same as every
-  other August research candidate.
+  already-open position's Stop-Loss.
+
+  TESTED same day against the VIX 30-70 combo (30-Jul's best
+  finding - Daily-aligned NIFTY, 0.5x SL, no trailing stop, no
+  ADX, VIX in its 30th-70th percentile band): re-ran the exact
+  combo first as a sanity check and reproduced the recorded
+  -Rs 115.37 net PnL / 6 trades / 50.0% win rate exactly, then
+  re-ran the same combo with require_no_crash_state=True added.
+  Result: IDENTICAL - same 6 trades, same -Rs 115.37 net PnL,
+  zero change. Cause: the 60-day window this backtest pulls
+  (yfinance's 15m/5m history limit) contained no single day
+  hitting -4% or 5-day window hitting -10% on NIFTY, so the new
+  filter never actually fired - a null result caused by the
+  test window being calm, not evidence the filter does nothing.
+  Consistent with the engine's own calibration note (~1.9
+  single-day-crash-grade days/year historically) - a 60-day
+  window without one is unsurprising, not a good window to
+  judge this filter's effect in. Would need either a historical
+  daily-only backtest spanning a real crash period (2008/2020/
+  Aug-2015/Jun-2024) or continued live/paper monitoring across
+  enough calendar time to actually hit a crash day to say
+  anything about its real effect. Still NOT wired into live
+  paper trading.
 
 ==================================================
 

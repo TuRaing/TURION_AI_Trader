@@ -62,6 +62,27 @@ Today's Achievements
    session (desktop or mobile) sees the crash-protection work
    without needing to re-discover it from a diff.
 
+✅ Committed and pushed both the docs (02aug26 log +
+   PROJECT_STATUS.md) and the code itself (strategy/
+   crash_protection_engine.py, tests/test_crash_protection_engine.py,
+   the require_no_crash_state wiring in strategy/
+   multi_timeframe_backtest.py) to main - confirmed default is
+   False/off, so this does not change any existing live/backtest
+   behavior.
+
+✅ Tested require_no_crash_state against the 30-Jul VIX 30-70
+   combo (Daily-aligned NIFTY, 0.5x SL, no trailing stop, no
+   ADX): first reproduced the recorded baseline exactly (-Rs
+   115.37 net, 6 trades, 50.0% win rate), then re-ran with the
+   crash filter added - IDENTICAL result, 0 change. The
+   backtest's 60-day data window (yfinance's 15m/5m history
+   limit) had no day hitting the -4%/-10% crash thresholds, so
+   the filter never fired - a null result from a calm test
+   window, not proof the filter has no effect. See
+   PROJECT_STATUS.md Known Issues for the full writeup and next
+   steps (needs either a real crash-period daily backtest or
+   more live/paper calendar time to say anything conclusive).
+
 ==================================================
 
 Bugs Fixed
