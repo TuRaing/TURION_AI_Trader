@@ -8,6 +8,7 @@ from strategy.risk_engine import calculate_atr_levels
 from strategy.backtest_engine import close_trade, summarize_trades
 from strategy.transaction_costs import calculate_round_trip_cost
 from indicators.adx import calculate_adx
+from strategy.crash_protection_engine import detect_crash_state
 
 # Same windowed-recompute pattern as strategy/backtest_engine.py's
 # STRUCTURE_WINDOW - bounds Market Structure/Support-Resistance cost per
@@ -90,6 +91,10 @@ def run_multi_timeframe_backtest(
     vix_percentile_low=0.20,
     vix_percentile_high=0.80,
     vix_lookback_candles=125,
+    require_no_crash_state=False,
+    crash_single_day_pct=-4.0,
+    crash_rolling_days=5,
+    crash_rolling_pct=-10.0,
 ):
     """
     Backtests the 15m(trend)/5m(entry) core of the alignment rule used
@@ -191,6 +196,22 @@ def run_multi_timeframe_backtest(
         over. Default 125 (~5 trading days), matching
         momentum_vix_backtest.py's VIX_LOOKBACK_CANDLES.
 
+    require_no_crash_state : bool
+        Updated: 2026-07-31 - if True, also require the symbol's own
+        daily price action to NOT be in a "crash state" (strategy/
+        crash_protection_engine.py) before entering - researched at the
+        user's suggestion after asking whether anything protects
+        against a sudden market crash (nothing did - every existing
+        safeguard limits one trade's/one day's loss, nothing pauses new
+        entries during a crash itself). Does not touch any position
+        already open - existing Stop-Losses still apply as-is, this
+        only gates new entries. Uses the most recently *completed*
+        daily candle, same no-look-ahead backward join as every other
+        daily-timeframe filter here.
+    crash_single_day_pct, crash_rolling_days, crash_rolling_pct :
+        See strategy/crash_protection_engine.py - defaults calibrated
+        against 19 years of real NIFTY daily history, not a guess.
+
     Returns
     -------
     dict (same shape as strategy.backtest_engine.summarize_trades, plus
@@ -272,7 +293,9 @@ def run_multi_timeframe_backtest(
             direction="backward",
         ).set_index("Timestamp")
 
-    if require_daily_alignment:
+    daily_data = None
+
+    if require_daily_alignment or require_no_crash_state:
 
         daily_data = _download(symbol, "1d", daily_period)
 
@@ -285,6 +308,8 @@ def run_multi_timeframe_backtest(
         if daily_data.index.tz is None:
             daily_data.index = daily_data.index.tz_localize(entry_data.index.tz)
 
+    if require_daily_alignment:
+
         daily_signals = _analyze_series(daily_data)
 
         if daily_signals.empty:
@@ -293,6 +318,26 @@ def run_multi_timeframe_backtest(
         merged = pd.merge_asof(
             merged.reset_index(),
             daily_signals.reset_index().rename(columns={"Bias": "Daily Bias"})[["Timestamp", "Daily Bias"]],
+            on="Timestamp",
+            direction="backward",
+        ).set_index("Timestamp")
+
+    if require_no_crash_state:
+
+        daily_close = _flatten_close(daily_data)
+
+        crash_state = detect_crash_state(
+            daily_close,
+            single_day_pct=crash_single_day_pct,
+            rolling_days=crash_rolling_days,
+            rolling_pct=crash_rolling_pct,
+        )
+        crash_frame = crash_state.rename("Crash State").to_frame()
+        crash_frame.index.name = "Timestamp"
+
+        merged = pd.merge_asof(
+            merged.reset_index(),
+            crash_frame.reset_index(),
             on="Timestamp",
             direction="backward",
         ).set_index("Timestamp")
@@ -422,6 +467,11 @@ def run_multi_timeframe_backtest(
                 pd.notna(vix_value) and pd.notna(vix_low) and pd.notna(vix_high)
                 and vix_low <= vix_value <= vix_high
             )
+
+        if aligned and require_no_crash_state:
+
+            crash_state = row["Crash State"]
+            aligned = pd.notna(crash_state) and not bool(crash_state)
 
         if aligned:
             aligned_candles += 1
