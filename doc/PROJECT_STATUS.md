@@ -30,7 +30,7 @@ Project Started
 
 Last Updated
 
-29-Jul-2026
+02-Aug-2026
 
 --------------------------------------------------
 
@@ -1056,6 +1056,31 @@ KNOWN ISSUES
   successfully) - not yet confirmed at the real 14:45 IST
   cadence on a live trading day, that's the real test still
   to come.
+
+• ADDED (not yet tested), 02-Aug: Crash Protection Engine
+  (strategy/crash_protection_engine.py, detect_crash_state) -
+  researched after the user asked whether this project has
+  any protection against a sudden market crash. It didn't -
+  every existing safeguard (per-trade Stop-Loss, position
+  sizing, MAX_CONCURRENT_POSITIONS cap, Best Trade Engine's
+  forced 14:45 square-off) limits how much any *one* trade or
+  *one* day can lose, but nothing looked at the market itself
+  and paused new entries during a crash. Flags a day as
+  "crash state" if either that day's own return is <= -4.0%
+  or the rolling 5-day cumulative return is <= -10.0% (both
+  trailing-only, no look-ahead) - thresholds calibrated
+  against 19 years of real NIFTY daily history (2007-2026,
+  yfinance period="max"), covering 2008, COVID-2020, the
+  24-Aug-2015 Black Monday, and the 4-Jun-2024 election-result
+  crash. 4 unit tests (tests/test_crash_protection_engine.py),
+  all passing. Wired in as an optional require_no_crash_state
+  parameter on strategy/multi_timeframe_backtest.py (default
+  False/off) - only gates new entries, never touches an
+  already-open position's Stop-Loss. NOT yet backtested
+  against the existing best-known combos (Daily-aligned NIFTY,
+  ADX>25, VIX 30-70 band) and NOT wired into live paper
+  trading - analysis-only addition this session, same as every
+  other August research candidate.
 
 ==================================================
 
