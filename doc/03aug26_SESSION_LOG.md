@@ -189,6 +189,31 @@ traded price. Every number below inherits that limitation.
    break invented for this task. Flagged as likely a fit to this
    one 60-day window, not a real edge, before testing further.
 
+   Full sweep (57 trading days, forced-entry mode) with a
+   simple (non-compounding - same fixed Rs 1,00,000 capital
+   reused every day, one day's PnL never feeds the next day's
+   position size) x21-trading-day monthly projection for
+   reference:
+
+   Target% | SL% | Avg %/day | Projected %/month | Projected Rs/month
+   2  | 3  | 0.754% | 15.8% | Rs 15,840
+   2  | 5  | 1.064% | 22.3% | Rs 22,340
+   2  | 8  | 0.736% | 15.5% | Rs 15,460
+   2  | 10 | 0.436% |  9.2% | Rs  9,160
+   3  | 3  | 0.474% | 10.0% | Rs  9,950
+   3  | 5  | 0.843% | 17.7% | Rs 17,700
+   3  | 8  | 0.486% | 10.2% | Rs 10,210
+   5  | 3  | 1.290% | 27.1% | Rs 27,090
+   5  | 5  | 1.862% | 39.1% | Rs 39,100
+   5  | 8  | 1.498% | 31.5% | Rs 31,460
+   5  | 10 | 1.187% | 24.9% | Rs 24,930
+
+   Best: Target 5%/SL 5%, ~Rs 39,100/month projected. Same
+   caveats as everything else in this section apply (Black-
+   Scholes-estimated premium, no bid-ask spread modeled, one
+   60-day window, forced-entry signal not the tested one) -
+   not tradeable as-is, kept for reference only.
+
 ✅ Re-ran using the REAL tested signal instead
    (strategy/momentum_vix_backtest.py's 22-Jul Momentum(RSI>60/
    <40)+VIX-percentile-band filter, added as
