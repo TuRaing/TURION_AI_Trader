@@ -120,33 +120,42 @@ the user's.
 
 ==================================================
 
+UPDATE (same day, local Claude Code Desktop session)
+
+✅ DONE: built the release APK locally (`flutter build apk
+   --release`, mobile_app/) and installed it on the user's
+   phone via `adb install -r` - no uninstall needed first,
+   confirming the signing-consistency fix from a prior
+   session (see 25/28/29-Jul logs re: the debug-keystore
+   mismatch that used to force an uninstall every time) is
+   still holding. Both of today's changes verified live by
+   the user on-device: History's Intraday Cash stat shows,
+   and trade timestamps now display correctly in IST (the
+   ~5.5-hour-early display bug is gone).
+
+==================================================
+
 Next Session
 
-1. New APK build+install needed for both of today's app
-   changes (Intraday Cash stat, timestamp fix) to actually
-   show on the user's phone - same build_android_apk.yml /
-   local Claude Code Desktop session path as every prior
-   Android change.
-
-2. Let August's data keep accumulating (carried over from
+1. Let August's data keep accumulating (carried over from
    02-Aug - Watchlist and Best Trade Engine both still well
    short of the ~30-50 trades usually needed for statistical
    confidence).
 
-3. Backtest require_no_crash_state on the best-known combos
+2. Backtest require_no_crash_state on the best-known combos
    found so far (carried over from 02-Aug).
 
-4. Decide on a path forward for option chain data (carried
+3. Decide on a path forward for option chain data (carried
    over from 30-Jul).
 
-5. Apply strategy/transaction_costs.py's real cost model to
+4. Apply strategy/transaction_costs.py's real cost model to
    the Watchlist and Best Trade Engine's own live
    evaluations (carried over from 23-Jul, still not done).
 
-6. Commit Desktop App (PySide6), package as .exe (carried
+5. Commit Desktop App (PySide6), package as .exe (carried
    over).
 
-7. Fix TATAMOTORS / LTIM ticker symbols (carried over).
+6. Fix TATAMOTORS / LTIM ticker symbols (carried over).
 
 ==================================================
 
