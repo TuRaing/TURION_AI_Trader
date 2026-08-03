@@ -1129,6 +1129,67 @@ KNOWN ISSUES
   never surfaced in the app. Added the same Cash StatPill
   Swing already has.
 
+• LEANING REJECTED, 03-Aug: NIFTY/BANKNIFTY options
+  money-management strategy (full Rs 1,00,000 capital in
+  one ATM option/day, fixed % net profit target, fixed %
+  Stop-Loss, one trade/day) - user-requested design, see
+  strategy/nifty_options_backtest.py (analysis-only),
+  indicators/black_scholes.py (premium ESTIMATE - no real
+  historical option premium data exists, confirmed 30-Jul),
+  strategy/options_transaction_costs.py (real options F&O
+  cost model, separate from the equity one). 8 new passing
+  unit tests.
+
+  FOUND AND FIXED a modeling bug along the way: repricing
+  off LIVE, continuously-updating India VIX every candle
+  made Stop-Loss exits overshoot their nominal threshold by
+  4-9x (nominal -0.5% SL realizing -4.48% avg/-13.76% worst
+  at 5m, still -2.20% avg/-3.92% worst at 1m). Freezing IV
+  at entry (hold_iv_fixed_at_entry=True, default) did NOT
+  fix it (-4.76% avg, unchanged) - disproving the VIX-noise
+  theory. Real cause: short-dated (3-day) ATM options are
+  inherently this leveraged (a routine 0.1% NIFTY move can
+  swing an ATM option's value ~8%) - not a bug. The
+  overshoot gap stayed ~constant (~4 percentage points)
+  regardless of the nominal SL tested (0.5-5%) - useful for
+  real risk-sizing (expect a "Stop Loss" day's real loss to
+  run ~4 points past whatever nominal SL is set).
+
+  TESTED three variants after widening target/SL to 2-5%
+  (to actually contain the leverage found above):
+  1. NIFTY, forced-entry (RSI>=50 tie-break, guarantees a
+     trade every day, NOT this repo's tested signal): broadly
+     positive (best: Target 5%/SL 5%, +106% over 57 days,
+     56% win rate) - but built on an invented, unvalidated
+     direction rule, likely fit to this one 60-day window.
+  2. NIFTY, REAL tested signal (momentum_vix_backtest.py's
+     Momentum(RSI>60/<40)+VIX-band filter, trades <1x/day):
+     INCONSISTENT - Target 3%/SL 5% alone lost Rs 13,219
+     while neighboring combos were positive. Confirms 30-Jul's
+     finding that this signal has no reliable edge on NIFTY.
+  3. BANKNIFTY, same real signal (the one index the 22-Jul
+     test found a strong 38/42-combo directional edge on):
+     CONSISTENTLY, substantially NEGATIVE on every combo
+     (worst: -Rs 1,14,539/-114.5% over 52 days). Important
+     finding on its own - correct DIRECTION does not equal
+     real option PROFIT once premium decay/leverage/costs
+     are modeled, exactly the gap 22-Jul's own caveat warned
+     about. CAVEAT: BANKNIFTY's weekly expiry was
+     discontinued Nov-2024 (monthly only) - this backtest's
+     fixed days_to_expiry=3 assumption is much less realistic
+     for BANKNIFTY than for NIFTY (still weekly), so some of
+     this negative result may be inflated leverage from the
+     approximation rather than pure proof the idea fails.
+
+  OVERALL: no tested variant showed a reliable, trustworthy
+  edge once real premium economics were modeled - the one
+  clean-looking result (NIFTY forced-entry) rests on a
+  direction rule already known to lack real edge. Leaning
+  REJECTED as currently designed; not wired into any paper
+  trading. Next step if revisited: a real BANKNIFTY expiry
+  calendar instead of the fixed 3-day approximation, before
+  treating the negative BANKNIFTY result as final.
+
 ==================================================
 
 NEXT DEVELOPMENT PLAN

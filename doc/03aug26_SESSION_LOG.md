@@ -135,27 +135,132 @@ UPDATE (same day, local Claude Code Desktop session)
 
 ==================================================
 
+UPDATE (same day) - NIFTY/BANKNIFTY options money-management
+research
+
+User asked to design and test a specific options money-
+management strategy: deploy the FULL Rs 1,00,000 capital into
+one ATM option per day, book a fixed % NET (after real costs)
+profit target, cut losses at a fixed % Stop-Loss, guarantee at
+least one trade per day. Analysis only, per this repo's rule
+that options logic stays separate from equity/index logic - new
+files strategy/nifty_options_backtest.py,
+indicators/black_scholes.py, strategy/options_transaction_costs.py,
+plus 8 new unit tests (tests/test_black_scholes.py,
+tests/test_options_transaction_costs.py), all passing.
+
+CAVEAT, upfront and unavoidable: no real historical NIFTY/
+BANKNIFTY option premium data exists (confirmed 30-Jul - NSE's
+option chain API only serves today's live snapshot), so premium
+is ESTIMATED via Black-Scholes off spot + India VIX (as an
+implied-vol proxy) - a theoretical approximation, not a real
+traded price. Every number below inherits that limitation.
+
+✅ FOUND AND FIXED a real modeling bug along the way: an early
+   version repriced the option off the LIVE, continuously-
+   updating VIX every candle. This made Stop-Loss exits
+   overshoot their nominal threshold by 4-9x (a nominal -0.5%
+   SL realizing -4.48% avg / -13.76% worst at 5m candles, still
+   -2.20% avg / -3.92% worst even at 1m candles) - traced to the
+   raw VIX index's own tick-to-tick calculation noise, not a
+   real market dynamic. Fixed by freezing IV at entry_time's VIX
+   reading for the rest of that day (hold_iv_fixed_at_entry=True,
+   default) - re-tested and the overshoot did NOT shrink
+   (-4.76% avg, near-identical), which disproved the VIX-noise
+   hypothesis and pointed to the REAL cause instead: short-dated
+   (3-day) ATM options are simply extremely leveraged by nature -
+   a routine 0.1% NIFTY move can swing an ATM option's value
+   ~8%, so a tight SL expressed as a % of total capital gets
+   blown through by ordinary market moves, not a bug. The
+   overshoot gap stayed roughly constant (~4 percentage points)
+   regardless of the nominal SL tested (0.5% up to 5%) - useful
+   for real risk-sizing (expect worst-case loss on a "Stop Loss"
+   day to run ~4 points past the nominal SL, whatever it's set
+   to).
+
+✅ Widened target/SL to realistic multiples (2-5% instead of the
+   original 0.5-2% idea, to actually contain the leverage found
+   above) and swept combos on NIFTY, forcing a trade every day
+   (direction: RSI >= 50 -> CE else PE, no VIX gate, guarantees
+   daily entry). Result: broadly positive across most combos
+   (best: Target 5%/SL 5%, 106% total return over 57 trading
+   days, 56% win rate) - BUT this direction-picking rule is NOT
+   this repo's actual tested signal, just an always-fire tie-
+   break invented for this task. Flagged as likely a fit to this
+   one 60-day window, not a real edge, before testing further.
+
+✅ Re-ran using the REAL tested signal instead
+   (strategy/momentum_vix_backtest.py's 22-Jul Momentum(RSI>60/
+   <40)+VIX-percentile-band filter, added as
+   use_momentum_vix_filter=True - trades less than once/day,
+   unlike the forced version). Result on NIFTY: INCONSISTENT
+   across combos - Target 3%/SL 5% alone lost Rs 13,219 while
+   neighboring combos (2%/5%, 5%/5%) were positive - confirms
+   the 30-Jul finding that this signal has no reliable edge on
+   NIFTY specifically (that test found only 9/42 combos
+   positive on directional accuracy alone).
+
+✅ Re-ran the same real signal + real premium/cost model on
+   BANKNIFTY (symbol="^NSEBANK", lot_size=30, strike_step=100)
+   - the one index where the original 22-Jul test found a
+   strong directional edge (38/42 combos positive). Result:
+   CONSISTENTLY and substantially NEGATIVE across every combo
+   tested (worst: Target 1%/SL 1%, -Rs 1,14,539 / -114.5% over
+   52 trading days). This is an important finding on its own:
+   correct DIRECTION (what the 22-Jul test measured) does not
+   equal real option PROFIT once premium decay/leverage/costs
+   are modeled - exactly the gap that test's own caveat warned
+   about ("still needs a real option-premium/theta-decay cost
+   model... directional accuracy is necessary but not
+   sufficient"). CAVEAT: BANKNIFTY's weekly expiry was
+   discontinued Nov-2024 (monthly only now), so this backtest's
+   fixed days_to_expiry=3 assumption is considerably less
+   realistic for BANKNIFTY than for NIFTY (which still has
+   weekly expiry) - some of this negative result may be an
+   artifact of assuming more leverage/gamma than a real
+   monthly-cycle BANKNIFTY option usually carries, not pure
+   proof the idea can't work.
+
+OVERALL CONCLUSION: across all three tested variants (NIFTY
+forced-entry, NIFTY real-signal, BANKNIFTY real-signal), no
+combination showed a reliable, trustworthy edge once real
+premium economics were modeled - the one variant with clean
+positive numbers (NIFTY forced-entry) is built on a
+direction-picking rule known to have no real edge. Leaning
+REJECTED / not tradeable as currently designed, same rigor as
+every other rejected candidate in this project - not wired into
+any paper trading.
+
+==================================================
+
 Next Session
 
-1. Let August's data keep accumulating (carried over from
+1. Decide whether to pursue the BANKNIFTY monthly-expiry
+   modeling gap further (a real expiry-calendar instead of the
+   fixed days_to_expiry=3 approximation) before treating the
+   negative BANKNIFTY options result as final, or shelve this
+   options money-management idea entirely (see today's
+   OVERALL CONCLUSION above).
+
+2. Let August's data keep accumulating (carried over from
    02-Aug - Watchlist and Best Trade Engine both still well
    short of the ~30-50 trades usually needed for statistical
    confidence).
 
-2. Backtest require_no_crash_state on the best-known combos
+3. Backtest require_no_crash_state on the best-known combos
    found so far (carried over from 02-Aug).
 
-3. Decide on a path forward for option chain data (carried
+4. Decide on a path forward for option chain data (carried
    over from 30-Jul).
 
-4. Apply strategy/transaction_costs.py's real cost model to
+5. Apply strategy/transaction_costs.py's real cost model to
    the Watchlist and Best Trade Engine's own live
    evaluations (carried over from 23-Jul, still not done).
 
-5. Commit Desktop App (PySide6), package as .exe (carried
+6. Commit Desktop App (PySide6), package as .exe (carried
    over).
 
-6. Fix TATAMOTORS / LTIM ticker symbols (carried over).
+7. Fix TATAMOTORS / LTIM ticker symbols (carried over).
 
 ==================================================
 
