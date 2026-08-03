@@ -1413,13 +1413,42 @@ Fix TATAMOTORS / LTIM ticker symbols
 
 Priority 6
 
-Only after Priority 2 + 3: select Broker (Upstox /
-Angel One - free API) → Broker Integration (also
-unlocks a paid/reliable Option Chain data source,
-and is the prerequisite for true live/real-time
-data instead of the current 15-min GitHub Actions
-refresh - discussed cost with the user 19-Jul,
-roughly ₹0-2500/month depending on broker chosen)
+DECIDED, 03-Aug: Broker = Fyers (free API tier), chosen
+over Upstox/Angel One after comparing API data-richness
+(historical options data especially - the exact gap this
+session's options-strategy research ran into), documentation
+quality, and cost. User already holds an unused Angel One
+account - kept in reserve as a free secondary data source if
+Fyers has reliability issues later, not for order execution
+(multi-broker execution explicitly rejected as unnecessary
+complexity at this paper-trading stage). Zerodha (Kite
+Connect, ₹2000/month, strongest ecosystem/community support
+for AI-driven algo trading specifically) deliberately
+deferred - user's own call: reconsider only once real AI/
+algo-trading logic is actually being implemented (not yet),
+not before.
+
+Account opening needs the user's own KYC (PAN, Aadhaar,
+bank details, signature, live-photo/video KYC, and - since
+this project trades Options - income proof: 6-month bank
+statement, salary slip, ITR, or Form 16, per SEBI's F&O
+requirement) - Claude cannot do this step (personal/financial
+documents), user must open the account themselves. Once API
+key/secret exist, the integration CODE can start immediately
+and safely even while Watchlist/Best Trade Engine trades are
+still open - it's a new, separate module (this repo's engine-
+separation rule), not a change to the existing yfinance-based
+paper trading engines. The actual cutover from yfinance to
+Fyers as the live data source is a later, separate step that
+will need care around open positions - just building/testing
+the integration does not.
+
+Broker Integration itself (once account+API ready) → also
+unlocks a paid/reliable Option Chain data source, and is the
+prerequisite for true live/real-time data instead of the
+current 15-min GitHub Actions refresh - discussed cost with
+the user 19-Jul, roughly ₹0-2500/month depending on broker
+chosen (now decided: ₹0, Fyers free tier).
 
 Before any real capital is used (raised 21-Jul):
 current paper-trading/backtest PnL is gross - it does
