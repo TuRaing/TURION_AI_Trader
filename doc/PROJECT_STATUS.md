@@ -1450,6 +1450,44 @@ current 15-min GitHub Actions refresh - discussed cost with
 the user 19-Jul, roughly ₹0-2500/month depending on broker
 chosen (now decided: ₹0, Fyers free tier).
 
+PLAN AGREED, 03-Aug, once the user has a Fyers account + API
+key/secret:
+
+1. Keep the existing yfinance-based engines (strategy/
+   paper_trading.py, strategy/best_trade_paper_trading.py)
+   completely untouched - they keep running exactly as now.
+2. Build a NEW, separate Fyers module/engine (working name:
+   strategy/fyers_options_engine.py or similar - a dedicated
+   options engine, on top of/alongside today's analysis-only
+   strategy/nifty_options_backtest.py) - reads/writes only its
+   own new files, never touches the yfinance engines' state.
+   First check empirically how far back Fyers' historical API
+   actually serves data for expired option contracts (may be
+   limited - if so, fall back to building our own archive by
+   polling the live option chain going forward, same pattern
+   as reports/alignment_history.jsonl).
+3. Two tracks, in parallel: (a) re-run existing/new strategies
+   (ADX filter, VIX filter, today's options money-management
+   idea, etc.) as backtests against real Fyers historical data
+   once available, to check today's yfinance/Black-Scholes-
+   estimate-based findings against real numbers; (b) a new
+   daily automated job (mirrors the existing GitHub Actions
+   paper-trading workflows) that takes real paper trades off
+   Fyers' LIVE data into a separate reports/fyers_test_
+   portfolio.json - both builds real-time track record AND
+   accumulates real historical premium data over time.
+4. Mobile app: no change needed to switch data sources (it
+   only ever reads whichever JSON file it's pointed at). A
+   toggle ("yfinance (Live)" / "Fyers (Test)") to view both
+   portfolios side by side in-app is a good later addition -
+   build it AFTER fyers_test_portfolio.json actually has data
+   in it, not before.
+5. Only after Fyers is proven reliable over real time: a
+   deliberate, separate cutover step moves live paper trading
+   from yfinance to Fyers - tag trades from that point with a
+   "Data Source" field so historical (yfinance-era) and new
+   (Fyers-era) trades stay distinguishable in the record.
+
 Before any real capital is used (raised 21-Jul):
 current paper-trading/backtest PnL is gross - it does
 not subtract real per-trade costs. UPDATE 23-Jul: the
