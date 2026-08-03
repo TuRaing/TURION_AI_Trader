@@ -12,7 +12,7 @@ TURION AI Trader
 
 Version
 
-v0.0.14
+v0.0.15
 
 --------------------------------------------------
 
@@ -30,7 +30,7 @@ Project Started
 
 Last Updated
 
-02-Aug-2026
+03-Aug-2026
 
 --------------------------------------------------
 
@@ -1100,6 +1100,35 @@ KNOWN ISSUES
   anything about its real effect. Still NOT wired into live
   paper trading.
 
+• FIXED 03-Aug: every timestamp shown in the Android app
+  (trade Entry/Exit times, chart "Updated ..." caption)
+  read ~5.5 hours earlier than it actually happened - the
+  user noticed the mismatch and asked for a check.
+  Root cause: reports/*.json's "Entry Time"/"Exit Time"/
+  "Generated At" fields are all plain Python
+  datetime.now() on a GitHub Actions runner (UTC) - every
+  engine's IST-aware datetime is only ever used internally
+  for market-hours gating, never for what actually gets
+  persisted. mobile_app's formatBackendTimestamp() parsed
+  that raw UTC string and displayed it as-is with no
+  timezone shift. Fixed by parsing as UTC and adding the
+  +5:30 IST offset before formatting (one shared function,
+  fixes Portfolio/History/trade-detail-sheet/chart-caption
+  everywhere at once) - see mobile_app/lib/widgets/
+  common.dart. The backend's own stored timestamps are
+  unchanged (still raw UTC, an internal detail) - this was
+  a display-only fix, deliberately not a data migration.
+
+• ADDED 03-Aug: History screen's Intraday section never
+  showed its own Cash figure the way the Swing section
+  does - Best Trade's portfolio has always tracked Cash
+  independently (two separate Rs 100,000 paper accounts,
+  not a shared pool - the user asked to confirm this same
+  session, see strategy/best_trade_paper_trading.py and
+  strategy/paper_trading.py's own INITIAL_CAPITAL), just
+  never surfaced in the app. Added the same Cash StatPill
+  Swing already has.
+
 ==================================================
 
 NEXT DEVELOPMENT PLAN
@@ -1483,11 +1512,11 @@ Status
 
 Current Version
 
-v0.0.14
+v0.0.15
 
 Next Version
 
-v0.0.15
+v0.0.16
 
 ==================================================
 
