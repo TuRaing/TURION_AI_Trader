@@ -16,12 +16,19 @@ String formatSignedRupees(num value) {
 /// Best-effort parse of the "YYYY-MM-DD HH:MM:SS" strings the Python
 /// backend writes - falls back to the raw string if parsing fails so a
 /// format drift never crashes the screen, it just looks a bit uglier.
+///
+/// These strings are the GitHub Actions runner's plain datetime.now(),
+/// which is UTC (the Python side only uses IST-aware datetimes for its
+/// own internal market-hours gating, never for what it actually persists
+/// to reports/*.json) - parse as UTC and shift to IST (UTC+5:30) before
+/// formatting, or every timestamp in the app reads ~5.5 hours early.
 String formatBackendTimestamp(String? raw) {
   if (raw == null || raw.isEmpty) return '';
 
   try {
-    final parsed = DateFormat('yyyy-MM-dd HH:mm:ss').parse(raw);
-    return _dateTimeFormat.format(parsed);
+    final parsedUtc = DateFormat('yyyy-MM-dd HH:mm:ss').parseUtc(raw);
+    final ist = parsedUtc.add(const Duration(hours: 5, minutes: 30));
+    return _dateTimeFormat.format(ist);
   } catch (_) {
     return raw;
   }

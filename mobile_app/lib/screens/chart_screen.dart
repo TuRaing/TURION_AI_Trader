@@ -165,7 +165,7 @@ class _ChartScreenState extends State<ChartScreen> {
         Text(
           _generatedAt == null
               ? 'Chart refreshes roughly every 15 min while the market is open, not tick-by-tick live. Tap or drag the chart to read a candle.'
-              : 'Updated $_generatedAt · refreshes roughly every 15 min while the market is open, not tick-by-tick live. Tap or drag the chart to read a candle.',
+              : 'Updated ${formatBackendTimestamp(_generatedAt)} · refreshes roughly every 15 min while the market is open, not tick-by-tick live. Tap or drag the chart to read a candle.',
           style: const TextStyle(fontSize: 11, color: mutedColor),
         ),
       ],
