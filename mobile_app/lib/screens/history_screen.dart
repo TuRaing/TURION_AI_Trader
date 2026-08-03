@@ -78,6 +78,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final wins = closedTrades.where((t) => (t['PnL'] as num) > 0).length;
     final winRate = closedTrades.isEmpty ? null : (wins / closedTrades.length * 100);
 
+    // Best Trade's own portfolio file starts at the same INITIAL_CAPITAL as
+    // the Watchlist one (strategy/best_trade_paper_trading.py) - defaults to
+    // that if the file doesn't exist yet (no Best Trade position has ever
+    // been opened), same fallback pattern as _portfolio in _fetch() above.
+    final intradayCash = (_bestTradePortfolio?['Cash'] as num?)?.toDouble() ?? 100000.0;
     final intradayClosedTrades = List<Map<String, dynamic>>.from(
         (_bestTradePortfolio?['Closed Trades'] ?? []).map((t) => Map<String, dynamic>.from(t)));
     final intradayTotalPnl = intradayClosedTrades.fold<double>(0, (sum, t) => sum + (t['PnL'] as num).toDouble());
@@ -133,16 +138,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
         const SizedBox(height: 10),
         Row(
           children: [
+            Expanded(child: StatPill(label: 'Cash', value: formatRupees(intradayCash))),
+            const SizedBox(width: 10),
             Expanded(
               child: StatPill(
                 label: 'Win rate',
                 value: intradayWinRate == null ? '—' : '${intradayWinRate.toStringAsFixed(0)}%',
               ),
             ),
-            const SizedBox(width: 10),
-            Expanded(child: StatPill(label: 'Closed trades', value: '${intradayClosedTrades.length}')),
           ],
         ),
+        const SizedBox(height: 10),
+        StatPill(label: 'Intraday closed trades', value: '${intradayClosedTrades.length}'),
         const SizedBox(height: 16),
         const Text('Intraday (Closed)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: accentColor)),
         const SizedBox(height: 8),
