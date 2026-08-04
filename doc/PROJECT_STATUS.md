@@ -1597,6 +1597,41 @@ data-source-agnostic - revised down to ~4-6 hours, which held):
   WebView login button that never handles PIN/password in our
   own code - undecided).
 
+STEP 4 EXECUTED, same day - real-premium options paper trading
++ app rewrite (user correction: the Fyers tab showing equity
+Swing/Intraday was redundant with what already works on
+yfinance - OPTIONS was the actual reason Fyers was integrated):
+
+• strategy/fyers_options_paper_trading.py - same money-
+  management rules researched 03-Aug (ATM strike, RSI-direction
+  CE/PE, NET %-of-capital Target/Stop-Loss/Square-Off), but now
+  using REAL Fyers quotes (bid/ask/LTP via /data/quotes for the
+  exact held contract) instead of the Black-Scholes ESTIMATE the
+  03-Aug backtest had to rely on. TESTED LIVE end-to-end: opened
+  a real CE 24600 position at real premium 103.25, then
+  correctly Square-Off closed it (net -Rs 219.95, real
+  transaction costs) on the next check. 3 new passing tests.
+
+• App: added the "Fyers" bottom-nav tab (6th tab; existing
+  "Portfolio" relabeled "yfinance" for clarity), then REWROTE it
+  same day per the user's correction to show this options
+  portfolio (reports/fyers_options_portfolio.json) instead of
+  equity data - custom cards in fyers_portfolio_screen.dart
+  (not reusing widgets/common.dart's equity-shaped cards, which
+  use different field names - that shared file stays untouched).
+  Built + installed on the user's phone via adb, twice (once per
+  rewrite), flutter analyze clean both times.
+
+• DECIDED: of the three daily-token-refresh automation options,
+  user chose the in-app WebView login button - weighed the
+  PAT-in-app residual risk (a scoped, Actions-only GitHub PAT
+  embedded in the APK, extractable if reverse-engineered, but
+  limited to triggering this repo's own workflows only) against
+  convenience, and confirmed the repo must stay PUBLIC either
+  way (the app's raw.githubusercontent.com fetches need it -
+  going private would break every existing screen). NOT YET
+  BUILT - next session's task.
+
 Before any real capital is used (raised 21-Jul):
 current paper-trading/backtest PnL is gross - it does
 not subtract real per-trade costs. UPDATE 23-Jul: the

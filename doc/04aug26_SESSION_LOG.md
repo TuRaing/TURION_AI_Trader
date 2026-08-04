@@ -206,6 +206,55 @@ Today's Achievements
    (same daily-token-refresh open question as the options
    collector - see Next Session).
 
+✅ ADDED THE APP TAB (user request, same day): the earlier plan
+   said "add an in-app toggle once real Fyers data exists" - it
+   now does, so built it. New bottom-nav tab "Fyers" (6th tab;
+   existing "Portfolio" tab relabeled "yfinance" so both data
+   sources are distinguishable at a glance) - mobile_app/lib/
+   screens/fyers_portfolio_screen.dart, api.dart's new
+   fyersPortfolioUrl/fyersBestTradePortfolioUrl. Built + tested
+   (flutter analyze clean, APK built, installed via adb, user
+   confirmed the 12 Swing positions showed correctly).
+
+✅ REWRITTEN SAME DAY, per user correction: the user pointed out
+   the Fyers tab showing equity Swing/Intraday was redundant -
+   that already works fine on yfinance; the actual reason Fyers
+   was integrated in the first place was OPTIONS (see 03-Aug).
+   Built strategy/fyers_options_paper_trading.py - real (not
+   Black-Scholes ESTIMATED) options paper trading: same money-
+   management idea researched 03-Aug (ATM strike, RSI-direction,
+   NET %-of-capital Target/Stop-Loss/Square-Off), but every
+   entry/exit price is now a REAL Fyers quote (bid/ask/LTP via
+   /data/quotes for an exact held contract, /data/options-
+   chain-v3 to pick ATM at entry). TESTED LIVE end-to-end: opened
+   a real CE 24600 position at real premium 103.25 (RSI 77.22),
+   then correctly Square-Off closed it on the next check (net
+   -Rs 219.95, real transaction costs) - the whole real-quote
+   pipeline confirmed working. 3 new passing unit tests for the
+   pure net-PnL calculation. Rewrote fyers_portfolio_screen.dart
+   to show this options portfolio (Today's Position + Closed
+   Trades, real premiums) instead of equity Swing/Intraday -
+   custom cards (not reusing widgets/common.dart's equity-shaped
+   ClosedTradeCard/OpenPositionCard, which use different field
+   names) so the shared widget file stays untouched. Rebuilt +
+   reinstalled the APK.
+
+✅ DECIDED (same day): of the three daily-token-refresh
+   automation options discussed, the user chose the in-app
+   WebView login button (over Telegram-reminder or full auto-
+   login with stored PIN+TOTP) - explicitly weighing convenience
+   against the PAT-in-app residual risk (a scoped, Actions-only
+   GitHub PAT embedded in the APK, extractable if reverse-
+   engineered, but limited to triggering this repo's own
+   workflows - not real account access). User confirmed this
+   repo staying PUBLIC is required either way (the app's
+   raw.githubusercontent.com fetches need it - going private
+   would break every existing screen, not just this feature) and
+   that repo visibility doesn't change the PAT's own risk profile.
+   NOT YET BUILT - only the login-flow work above (options paper
+   trading engine, app rewrite) happened this session; the
+   WebView button + GitHub Actions trigger workflow is next.
+
 ==================================================
 
 Bugs Fixed
@@ -242,10 +291,10 @@ logic.
 Claude never executes a real trade - final action is
 always the user's. Fyers integration makes only read-only
 market-data calls (profile check, historical candles, option
-chain) plus PAPER (not real) position tracking in reports/
-fyers_test_portfolio.json and reports/fyers_best_trade_
-portfolio.json - no real order-placement code exists or has
-been wired up.
+chain, live quotes) plus PAPER (not real) position tracking in
+reports/fyers_test_portfolio.json, reports/fyers_best_trade_
+portfolio.json, and reports/fyers_options_portfolio.json - no
+real order-placement code exists or has been wired up.
 
 ==================================================
 
@@ -255,18 +304,21 @@ Next Session
    tab (couldn't check it directly - site blocked/JS-heavy)
    and figure out if it's relevant to this project.
 
-2. Decide whether/how to automate the daily options-chain
-   snapshot (strategy/fyers_options_collector.py) AND the new
-   Fyers Swing/Intraday engines (fyers_paper_trading.py,
-   fyers_daily_best_trade.py) - all three currently manual by
-   choice; automating any of them needs a plan for the daily
-   access-token refresh (strategy/fyers_auth.py's login flow
-   needs a human in the loop today). Discussed three options
-   (full auto-login storing PIN+TOTP - real security risk since
-   it grants full account access if leaked; a Telegram 1-tap
-   reminder; an in-app WebView "Login" button that captures the
-   OAuth redirect automatically, never handling PIN/password in
-   our own code) - user hasn't picked one yet.
+2. BUILD the in-app WebView "Login to Fyers" button (DECIDED
+   same day, not yet built) - opens Fyers' OAuth login in an
+   in-app WebView (never handles PIN/password in our own code),
+   captures the redirect's auth_code automatically, sends it to
+   trigger a new GitHub Actions workflow (workflow_dispatch)
+   that exchanges it for an access_token and immediately runs
+   that day's data collection/paper-trading in the SAME job run
+   (token never persisted as a long-lived secret - exists only
+   in-memory for that one run). Needs: a fine-grained GitHub PAT
+   (Actions:write only, this repo only) embedded in the app, and
+   the new GitHub Actions workflow itself. This is what makes
+   strategy/fyers_options_collector.py, fyers_paper_trading.py,
+   fyers_daily_best_trade.py, and fyers_options_paper_trading.py
+   actually usable without the user manually running Python
+   commands each day.
 
 2b. Now that both new Fyers engines are built and tested: keep
    running them manually for a few weeks (per the already-
