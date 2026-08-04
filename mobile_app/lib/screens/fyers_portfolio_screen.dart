@@ -6,6 +6,7 @@ import '../widgets/common.dart';
 import '../widgets/disclaimer_banner.dart';
 import '../widgets/live_clock.dart';
 import 'chart_screen.dart';
+import 'fyers_login_screen.dart';
 
 // Added 04-Aug-2026 - Fyers-sourced counterpart to portfolio_screen.dart,
 // showing reports/fyers_test_portfolio.json / fyers_best_trade_
@@ -79,6 +80,11 @@ class _FyersPortfolioScreenState extends State<FyersPortfolioScreen> {
             style: TextStyle(fontSize: 12, color: accentColor),
           ),
         ),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          child: Align(alignment: Alignment.centerLeft, child: FyersLoginButton()),
+        ),
+        const SizedBox(height: 8),
         Expanded(
           child: LoadingErrorWrapper(
             loading: _loading,

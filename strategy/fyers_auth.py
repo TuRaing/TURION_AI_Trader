@@ -119,7 +119,17 @@ def generate_access_token(auth_code):
 
     access_token = data["access_token"]
 
-    set_key(ENV_PATH, "FYERS_ACCESS_TOKEN", access_token)
+    # Updated 04-Aug-2026 - always set the in-process env var (works
+    # whether or not a .env file exists - on a GitHub Actions runner
+    # there usually isn't one, credentials arrive as real env vars from
+    # repo secrets instead) so get_access_token() works immediately
+    # within the same run. Only ALSO persist to .env when one actually
+    # exists (local dev convenience) - on a runner this intentionally
+    # never touches disk, so the token never outlives that one job.
+    os.environ["FYERS_ACCESS_TOKEN"] = access_token
+
+    if ENV_PATH:
+        set_key(ENV_PATH, "FYERS_ACCESS_TOKEN", access_token)
 
     return access_token
 
