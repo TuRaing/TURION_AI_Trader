@@ -296,6 +296,19 @@ reports/fyers_test_portfolio.json, reports/fyers_best_trade_
 portfolio.json, and reports/fyers_options_portfolio.json - no
 real order-placement code exists or has been wired up.
 
+✅ SPLIT SAME DAY (user request via screenshot with a marked-up
+   bottom nav): the app now has 7 tabs, not 6 - "Fyers" reverted
+   to showing the equity Swing/Intraday Fyers engines (as it
+   originally did before this session's earlier rewrite), and a
+   new separate "Options" tab (mobile_app/lib/screens/
+   fyers_options_screen.dart) shows the real-premium options
+   portfolio instead. User had initially asked to remove the
+   original yfinance-based "Intraday"/"Swing" tabs entirely -
+   clarified those are the main, months-old LIVE paper trading
+   screens (not Fyers-related) before making any change; user
+   confirmed to leave those alone. Built + installed on the
+   user's phone via adb, flutter analyze clean.
+
 ==================================================
 
 Next Session
