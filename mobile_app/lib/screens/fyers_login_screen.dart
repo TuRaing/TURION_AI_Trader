@@ -64,6 +64,7 @@ class _FyersLoginScreenState extends State<FyersLoginScreen> {
   late final WebViewController _controller;
   _Stage _stage = _Stage.loadingLogin;
   String? _errorMessage;
+  bool _redirectHandled = false;
 
   @override
   void initState() {
@@ -94,6 +95,14 @@ class _FyersLoginScreenState extends State<FyersLoginScreen> {
   }
 
   void _handleRedirect(String url) {
+    // Updated 04-Aug-2026 - the WebView's navigation delegate can fire
+    // for the redirect URL more than once (seen live: two workflow
+    // triggers from what looked like one tap, the second failing with
+    // "invalid auth code" since Fyers auth codes are one-time-use).
+    // Guard so only the first redirect is ever acted on.
+    if (_redirectHandled) return;
+    _redirectHandled = true;
+
     final authCode = Uri.parse(url).queryParameters['auth_code'];
 
     if (authCode == null || authCode.isEmpty) {
