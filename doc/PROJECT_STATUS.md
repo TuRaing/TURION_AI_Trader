@@ -1629,8 +1629,31 @@ yfinance - OPTIONS was the actual reason Fyers was integrated):
   limited to triggering this repo's own workflows only) against
   convenience, and confirmed the repo must stay PUBLIC either
   way (the app's raw.githubusercontent.com fetches need it -
-  going private would break every existing screen). NOT YET
-  BUILT - next session's task.
+  going private would break every existing screen).
+
+STEP 5 EXECUTED, same day - the WebView login button BUILT and
+VERIFIED WORKING END-TO-END (not just designed):
+fyers_trigger_run.py + .github/workflows/fyers_trigger.yml +
+mobile_app's new FyersLoginScreen. User did the two setup-only-
+they-could-do steps (fine-grained GitHub PAT, 90-day expiry -
+their own choice after discussing the no-expiry risk; FYERS_
+APP_ID/FYERS_SECRET_KEY as GitHub repo secrets). Two real bugs
+surfaced only via live testing (not caught by analyze/local
+runs) and fixed: (1) a multi-path `git add file1 file2 file3 ||
+true` silently discards EVERYTHING if even one file doesn't
+exist yet (reports/fyers_best_trade_portfolio.json, until the
+first Fyers Intraday position ever opens) - cost two real runs'
+state before being caught and fixed (one `git add <file> ||
+true` per file); (2) the WebView fired the redirect callback
+twice from one tap, sending a second, always-failing trigger
+(auth codes are one-time-use) - fixed with a guard flag. Also
+hit a Windows-specific Kotlin/Gradle cross-drive (C: vs D:)
+compiler crash in webview_flutter_android twice - fixed with
+kotlin.incremental=false. FINAL VERIFIED RESULT: one tap -> real
+Fyers login -> GitHub Actions run -> real CE 24600 option
+position opened at real premium (Rs 103.25) -> correctly
+committed to reports/fyers_options_portfolio.json, fyers_test_
+portfolio.json, and options_premium_history.jsonl (44 records).
 
 Before any real capital is used (raised 21-Jul):
 current paper-trading/backtest PnL is gross - it does

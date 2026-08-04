@@ -278,6 +278,28 @@ Bugs Fixed
   proactive 0.3s delay between symbols (fyers_watchlist_
   scanner.py) - re-ran clean afterward.
 
+• .github/workflows/fyers_trigger.yml (found via two real live
+  runs, not local testing) - `git add file1 file2 file3 || true`
+  silently discards EVERYTHING, not just a missing file, if even
+  one pathspec doesn't match (confirmed in a local git sandbox).
+  reports/fyers_best_trade_portfolio.json doesn't exist until the
+  first-ever Fyers Intraday position opens, so this quietly
+  dropped two real runs' state (a real option position, a real
+  44-record premium snapshot) while the job still reported
+  "success". Fixed with one `git add <file> || true` per file.
+
+• mobile_app/lib/screens/fyers_login_screen.dart - the WebView's
+  navigation delegate fired for the redirect URL twice from one
+  tap, sending two workflow triggers (the second always failed,
+  "invalid auth code" - Fyers codes are one-time-use). Fixed with
+  a `_redirectHandled` guard.
+
+• mobile_app/android/gradle.properties - webview_flutter_android's
+  Kotlin compilation crashed twice ("this and base files have
+  different roots") - a known Windows bug when the project (D:)
+  and pub cache (C:) are on different drives. Fixed with
+  kotlin.incremental=false (slower clean builds, reliable).
+
 ==================================================
 
 Development Rule
@@ -309,6 +331,76 @@ real order-placement code exists or has been wired up.
    confirmed to leave those alone. Built + installed on the
    user's phone via adb, flutter analyze clean.
 
+✅ BUILT AND VERIFIED LIVE, same day: the in-app WebView "Login
+   to Fyers" button - what makes strategy/fyers_options_
+   collector.py, fyers_paper_trading.py, fyers_daily_best_trade.py,
+   and fyers_options_paper_trading.py runnable with one tap
+   instead of manual Python commands each day.
+
+   - fyers_trigger_run.py: takes a one-time auth_code, exchanges
+     it for today's access token, runs every Fyers task in one
+     job. strategy/fyers_auth.py updated so generate_access_token()
+     always sets the in-process env var (works with or without a
+     .env file - a GitHub Actions runner has none, credentials
+     arrive as real env vars from repo secrets instead).
+   - .github/workflows/fyers_trigger.yml: workflow_dispatch(auth_code),
+     reads FYERS_APP_ID/FYERS_SECRET_KEY from GitHub repo secrets
+     (user added these via GitHub's web UI - Claude cannot add
+     secrets on the user's behalf).
+   - mobile_app: new FyersLoginScreen opens Fyers' real OAuth
+     login in an in-app WebView (PIN/OTP typed directly into
+     Fyers' own page, never seen by our code), captures the
+     redirect's auth_code, POSTs it to GitHub's workflow_dispatch
+     API using a fine-grained, Actions-only, this-repo-only PAT
+     (90-day expiration, user's own choice after discussing the
+     risk of a no-expiry token baked into an APK) passed at build
+     time via --dart-define (never hardcoded/committed - read
+     from .env, embedded into the build command's env var only,
+     never printed).
+   - User did the two setup steps only they could do: created the
+     GitHub PAT, added FYERS_APP_ID/FYERS_SECRET_KEY as repo
+     secrets (screenshots showed the correct settings both times -
+     confirmed before proceeding).
+   - Windows-specific build issue hit twice: webview_flutter_
+     android's Kotlin compilation crashed ("this and base files
+     have different roots") because the project (D:) and pub
+     cache (C:) are on different drives - a known cross-drive
+     incremental-compiler bug. Fixed with kotlin.incremental=false
+     in android/gradle.properties (slower clean builds, but
+     reliable) after a `flutter clean` + Gradle daemon restart
+     alone didn't fully resolve it.
+
+   TWO REAL BUGS FOUND VIA LIVE TESTING (not caught by analyze/
+   local testing - only surfaced once real button-press triggers
+   actually ran):
+   1. `git add file1 file2 file3 || true` silently discards
+      EVERYTHING (not just the missing file) if even one pathspec
+      doesn't match - confirmed in a local git sandbox before
+      trusting the fix. reports/fyers_best_trade_portfolio.json
+      doesn't exist until the first-ever Fyers Intraday position
+      opens, so this cost two real runs' state (a real options
+      position, a real 44-record premium snapshot) - completely
+      silently, no error surfaced to the user, `|| true` made the
+      job still report "success". This is a stricter case of the
+      already-known 17-Jul git-add-missing-pathspec bug (that
+      fix's `|| true` per multi-file line turns out to only
+      suppress the shell error, not make git actually stage the
+      files that do exist) - switched to one `git add <file> ||
+      true` per file.
+   2. The WebView's navigation delegate fired for the redirect URL
+      twice from what looked like one tap, sending two triggers -
+      the second always failed ("invalid auth code", Fyers codes
+      are one-time-use). Fixed with a `_redirectHandled` guard so
+      only the first redirect is ever acted on.
+
+   VERIFIED WORKING END-TO-END after both fixes: one button tap ->
+   real Fyers login -> GitHub Actions run -> real CE 24600 option
+   position opened at real premium (Rs 103.25, RSI 77.22) -> state
+   correctly committed to reports/fyers_options_portfolio.json,
+   reports/fyers_test_portfolio.json, reports/options_premium_
+   history.jsonl (44 new records). The full pipeline this session
+   set out to build is now real and working, not just designed.
+
 ==================================================
 
 Next Session
@@ -317,24 +409,14 @@ Next Session
    tab (couldn't check it directly - site blocked/JS-heavy)
    and figure out if it's relevant to this project.
 
-2. BUILD the in-app WebView "Login to Fyers" button (DECIDED
-   same day, not yet built) - opens Fyers' OAuth login in an
-   in-app WebView (never handles PIN/password in our own code),
-   captures the redirect's auth_code automatically, sends it to
-   trigger a new GitHub Actions workflow (workflow_dispatch)
-   that exchanges it for an access_token and immediately runs
-   that day's data collection/paper-trading in the SAME job run
-   (token never persisted as a long-lived secret - exists only
-   in-memory for that one run). Needs: a fine-grained GitHub PAT
-   (Actions:write only, this repo only) embedded in the app, and
-   the new GitHub Actions workflow itself. This is what makes
-   strategy/fyers_options_collector.py, fyers_paper_trading.py,
-   fyers_daily_best_trade.py, and fyers_options_paper_trading.py
-   actually usable without the user manually running Python
-   commands each day.
+2. DONE, same day: the in-app WebView "Login to Fyers" button -
+   built, tested live, two real bugs found and fixed (see
+   Achievements above), verified working end-to-end (real
+   position opened, real state committed). One tap now runs
+   the full day's Fyers pipeline.
 
-2b. Now that both new Fyers engines are built and tested: keep
-   running them manually for a few weeks (per the already-
+2b. Keep tapping the login button daily for a few weeks (per the
+   already-
    agreed plan - a real proving period BEFORE any cutover from
    yfinance, not immediately after code works) and compare
    reports/fyers_test_portfolio.json / fyers_best_trade_
