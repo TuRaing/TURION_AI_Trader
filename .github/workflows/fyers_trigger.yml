@@ -55,7 +55,21 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           commit_and_push() {
-            git add reports/options_premium_history.jsonl reports/fyers_test_portfolio.json reports/fyers_best_trade_portfolio.json reports/fyers_options_portfolio.json || true
+            # Updated 04-Aug-2026 - a single multi-path `git add` aborts
+            # ENTIRELY (stages nothing at all, not even the files that do
+            # exist) if even one pathspec doesn't match - confirmed the
+            # hard way: reports/fyers_best_trade_portfolio.json doesn't
+            # exist until the first-ever Fyers Intraday position opens,
+            # and its absence silently discarded two real runs' state
+            # (a real options position, a real premium snapshot) even
+            # though `|| true` was on the line - it suppressed the shell
+            # from erroring out, but "nothing staged" still meant
+            # "nothing to commit". One `git add <file> || true` per file
+            # instead, so a missing file only skips itself.
+            git add reports/options_premium_history.jsonl || true
+            git add reports/fyers_test_portfolio.json || true
+            git add reports/fyers_best_trade_portfolio.json || true
+            git add reports/fyers_options_portfolio.json || true
             git diff --staged --quiet && return 0
             git commit -m "Update Fyers state (login trigger) [skip ci]"
             git push
