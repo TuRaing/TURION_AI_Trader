@@ -12,3 +12,10 @@ reports/*.json
 !reports/best_trade_shortlist.json
 !reports/best_trade_pick.json
 !reports/candles.json
+# Added 04-Aug-2026 - Fyers-sourced TEST portfolios (strategy/fyers_
+# paper_trading.py, strategy/fyers_best_trade_paper_trading.py) -
+# tracked for the same reason as the yfinance ones above (state
+# persistence across runs), kept in separate files so they never mix
+# with the live yfinance-based portfolios.
+!reports/fyers_test_portfolio.json
+!reports/fyers_best_trade_portfolio.json
