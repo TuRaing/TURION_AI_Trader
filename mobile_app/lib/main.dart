@@ -8,6 +8,7 @@ import 'screens/best_trade_screen.dart';
 import 'screens/watchlist_screen.dart';
 import 'screens/news_screen.dart';
 import 'screens/history_screen.dart';
+import 'screens/fyers_portfolio_screen.dart';
 
 // Topic-based push - every install subscribes to the same topic, so the
 // backend (report/push_notifier.py) never needs to track individual device
@@ -68,9 +69,17 @@ class _HomeShellState extends State<HomeShell> {
     WatchlistScreen(),
     NewsScreen(),
     HistoryScreen(),
+    FyersPortfolioScreen(),
   ];
 
-  static const _titles = ['Turion AI trader', 'Best Trade (Intraday)', 'Watchlist (Swing)', 'News', 'History'];
+  static const _titles = [
+    'Turion AI trader',
+    'Best Trade (Intraday)',
+    'Watchlist (Swing)',
+    'News',
+    'History',
+    'Fyers (Test)',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -80,12 +89,14 @@ class _HomeShellState extends State<HomeShell> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _index,
         onTap: (i) => setState(() => _index = i),
+        type: BottomNavigationBarType.fixed,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_outlined), label: 'Portfolio'),
+          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_outlined), label: 'yfinance'),
           BottomNavigationBarItem(icon: Icon(Icons.track_changes_outlined), label: 'Intraday'),
           BottomNavigationBarItem(icon: Icon(Icons.list_alt_outlined), label: 'Swing'),
           BottomNavigationBarItem(icon: Icon(Icons.newspaper_outlined), label: 'News'),
           BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
+          BottomNavigationBarItem(icon: Icon(Icons.bolt_outlined), label: 'Fyers'),
         ],
       ),
     );

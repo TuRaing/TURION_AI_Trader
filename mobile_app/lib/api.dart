@@ -10,6 +10,13 @@ const bestTradePortfolioUrl = '$_repoRawBase/reports/best_trade_portfolio.json';
 const bestTradePickUrl = '$_repoRawBase/reports/best_trade_pick.json';
 const candlesUrl = '$_repoRawBase/reports/candles.json';
 
+// Added 04-Aug-2026 - Fyers-sourced TEST portfolios (strategy/fyers_
+// paper_trading.py, strategy/fyers_best_trade_paper_trading.py), kept
+// fully separate from the live yfinance ones above - own files, own
+// screen (see fyers_portfolio_screen.dart), never mixed.
+const fyersPortfolioUrl = '$_repoRawBase/reports/fyers_test_portfolio.json';
+const fyersBestTradePortfolioUrl = '$_repoRawBase/reports/fyers_best_trade_portfolio.json';
+
 /// Fetches and JSON-decodes a repo file, cache-busted with the current
 /// time so a phone's HTTP cache never shows stale data. Returns null (not
 /// an exception) for a 404 - some files (e.g. best_trade_portfolio.json)
