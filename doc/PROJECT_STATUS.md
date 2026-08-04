@@ -30,7 +30,7 @@ Project Started
 
 Last Updated
 
-03-Aug-2026
+04-Aug-2026
 
 --------------------------------------------------
 
@@ -1487,6 +1487,82 @@ key/secret:
    from yfinance to Fyers - tag trades from that point with a
    "Data Source" field so historical (yfinance-era) and new
    (Fyers-era) trades stay distinguishable in the record.
+
+UPDATE 04-Aug - STEP 1-2 EXECUTED (account, auth, first real
+data check):
+
+• Fyers account opened + activated by the user (own KYC/income
+  proof), API app created, Primary IP whitelisted (flagged as
+  likely dynamic - a home-ISP IP, may need updating later).
+
+• strategy/fyers_auth.py built - login/access-token flow
+  against Fyers' raw REST API, not their official fyers-apiv3
+  SDK (its aiohttp dependency failed to build on this machine's
+  Python 3.14.6 - no prebuilt wheel, no MS C++ Build Tools).
+  Full login flow run live and VERIFIED via Fyers' /profile
+  endpoint (real account confirmed: TUSHAR RAJENDRA INGAVALE,
+  FAK37571). Access token is a DAILY token - needs the login
+  flow re-run each trading day; not yet automated (user chose
+  manual-first).
+
+• Data-coverage tested LIVE against the real API (not guessed):
+  - 1-min INDEX data: confirmed real candles back to ~9 years
+    (2017 ok, 2016 no_data - true cutoff somewhere between).
+    100-day max per request (120+ days = "Invalid input") -
+    needs pagination for a multi-year pull, straightforward.
+  - Daily INDEX data: confirmed back to at least 2006 (20y).
+  - THIS IS A MAJOR UPGRADE over yfinance's ~60-day intraday
+    limit that constrained nearly every backtest finding
+    recorded in this project to date - removes the recurring
+    "small sample, one window" caveat, once re-tested.
+  - Options: real live bid/ask/LTP/OI/volume confirmed working
+    (options-chain-v3). CONFIRMED (via Fyers' public NSE F&O
+    symbol master CSV, 75k+ rows) that EXPIRED option contracts
+    are structurally absent - not a Fyers-specific gap, a
+    property of how exchange-listed option symbols work (they
+    stop existing after expiry). No broker is expected to serve
+    genuinely old option premium data for this reason.
+  - Futures: cont_flag=1 (continuous futures) gave real data
+    back to at least Jan-2024 (1.5+ years, likely more, not
+    fully pushed) - futures get real multi-year history in a
+    way options structurally cannot (only the month changes,
+    no strike dimension). A new avenue worth considering for a
+    futures-based strategy.
+  - Charges: no live API found (published rate card only,
+    consistent with strategy/options_transaction_costs.py's
+    modeled approach).
+  - "AI connection"/MCP tab seen in Fyers' dashboard: NOT YET
+    checked (site is JS-heavy, WebFetch can't render it; the
+    Browser tool is policy-blocked from trading platforms) -
+    open question for next session.
+
+• Researched paid historical-options-data vendors (TrueData,
+  Global Datafeeds, Sensibull) via live WebFetch - none publish
+  exact historical depth on their public pages (gated behind
+  sales contact); TrueData's general pricing found (Rs 1,440-
+  2,796/month tiers) but not options-specific depth. NSE
+  Bhavcopy (free, nseindia.com) is the one confirmed FREE real
+  historical options source, though EOD-only (no intraday).
+  Decision: don't spend on paid vendors yet - use the free
+  Fyers-collection path below first.
+
+• strategy/fyers_options_collector.py built (STEP 3b's "build
+  our own archive" fallback) - manual-run script, snapshots the
+  live NIFTY+BANKNIFTY option chain (5 strikes around ATM,
+  nearest expiry) and appends every leg to reports/
+  options_premium_history.jsonl (real bid/ask/LTP/OI/volume).
+  First real snapshot taken and verified (44 records). Kept
+  MANUAL for now (not on GitHub Actions) - the daily-token
+  requirement above adds real complexity to automating this
+  compared to the existing yfinance workflows; revisit once the
+  manual version has proven itself useful.
+
+• CAUGHT A SECURITY NEAR-MISS: Notepad saved the user's first
+  .env edit as ".env.txt" (auto-appended extension) - a
+  duplicate secrets file NOT covered by .gitignore's exact
+  `.env` pattern, sitting untracked. Caught via `git status`
+  before any git add/commit touched it - deleted the duplicate,
+  added `.env.txt` to .gitignore as a safety net.
 
 Before any real capital is used (raised 21-Jul):
 current paper-trading/backtest PnL is gross - it does
