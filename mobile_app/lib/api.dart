@@ -16,6 +16,7 @@ const candlesUrl = '$_repoRawBase/reports/candles.json';
 // screen (see fyers_portfolio_screen.dart), never mixed.
 const fyersPortfolioUrl = '$_repoRawBase/reports/fyers_test_portfolio.json';
 const fyersBestTradePortfolioUrl = '$_repoRawBase/reports/fyers_best_trade_portfolio.json';
+const fyersOptionsPortfolioUrl = '$_repoRawBase/reports/fyers_options_portfolio.json';
 
 /// Fetches and JSON-decodes a repo file, cache-busted with the current
 /// time so a phone's HTTP cache never shows stale data. Returns null (not
