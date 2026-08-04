@@ -163,6 +163,49 @@ Today's Achievements
    .gitignore as a safety net against this exact mistake
    recurring.
 
+✅ BUILT AND TESTED Fyers-based Swing + Intraday paper trading
+   engines (same day, after the user pushed back on an over-
+   cautious multi-day time estimate and correctly pointed out
+   most of the existing analysis logic is data-source-agnostic
+   already - revised estimate down to ~4-6 hours, which held up):
+
+   - strategy/fyers_data.py - the one new piece actually needed:
+     an adapter returning Fyers candles in the exact shape
+     yf.download() does (DatetimeIndex, Open/High/Low/Close/
+     Volume, tz-aware Asia/Kolkata for intraday), paginating past
+     Fyers' 100-day/request intraday limit automatically. Every
+     existing analysis function (analyze_symbol, calculate_rsi,
+     calculate_atr, get_market_structure, etc.) works completely
+     unchanged against its output - verified directly.
+
+   - strategy/fyers_watchlist_scanner.py + strategy/fyers_paper_
+     trading.py: Fyers-sourced counterparts to the Swing engine,
+     reusing analyze_symbol/process_signal/position-sizing logic
+     as-is. Writes to reports/fyers_test_portfolio.json, never
+     touching the live yfinance portfolio (existing files
+     completely untouched, per this repo's engine-separation
+     rule). TESTED on the full 52-symbol NIFTY watchlist - opened
+     12 real BUY positions off real Fyers daily data. Same known
+     TATAMOTORS/LTIM symbol issue as yfinance (pre-existing, not
+     new - see Known Issues).
+
+   - strategy/fyers_multi_timeframe_engine.py + strategy/fyers_
+     best_trade_paper_trading.py + fyers_daily_best_trade.py:
+     Fyers-sourced counterpart to the 15m/5m/1m alignment engine
+     and Best Trade paper trading - deliberately SIMPLER than the
+     original (direct NIFTY-50 scan, no shortlist/news/option-
+     chain ranking, no Excel/Telegram) to test the core mechanism
+     first. Options picks stay on the separate strategy/
+     fyers_options_collector.py track, not merged into this.
+     TESTED live - correctly found RELIANCE aligned Bearish
+     (15m/5m/1m all agreeing) and correctly found no BUY-aligned
+     candidate in a small sample.
+
+   All new files, all existing yfinance-based engines completely
+   untouched - runs fully in parallel. Not yet on GitHub Actions
+   (same daily-token-refresh open question as the options
+   collector - see Next Session).
+
 ==================================================
 
 Bugs Fixed
@@ -179,6 +222,13 @@ Bugs Fixed
   bug, but a real near-miss caught before any git operation
   touched it.
 
+• strategy/fyers_data.py - scanning the full 52-symbol
+  watchlist back-to-back hit Fyers' rate limit on one symbol
+  (BAJAJFINSV, "request limit reached"). Fixed with a retry-
+  with-backoff on rate-limit responses (fyers_data.py) plus a
+  proactive 0.3s delay between symbols (fyers_watchlist_
+  scanner.py) - re-ran clean afterward.
+
 ==================================================
 
 Development Rule
@@ -190,10 +240,12 @@ logic kept fully separate from normal NIFTY/stock trading
 logic.
 
 Claude never executes a real trade - final action is
-always the user's. Fyers integration code makes read-only
-market-data calls only so far (profile check, historical
-candles, option chain) - no order-placement code has been
-written or wired up.
+always the user's. Fyers integration makes only read-only
+market-data calls (profile check, historical candles, option
+chain) plus PAPER (not real) position tracking in reports/
+fyers_test_portfolio.json and reports/fyers_best_trade_
+portfolio.json - no real order-placement code exists or has
+been wired up.
 
 ==================================================
 
@@ -204,11 +256,24 @@ Next Session
    and figure out if it's relevant to this project.
 
 2. Decide whether/how to automate the daily options-chain
-   snapshot (strategy/fyers_options_collector.py) - currently
-   manual by choice; automating it needs a plan for the daily
+   snapshot (strategy/fyers_options_collector.py) AND the new
+   Fyers Swing/Intraday engines (fyers_paper_trading.py,
+   fyers_daily_best_trade.py) - all three currently manual by
+   choice; automating any of them needs a plan for the daily
    access-token refresh (strategy/fyers_auth.py's login flow
-   needs a human in the loop today - a real blocker for
-   unattended GitHub Actions automation until solved).
+   needs a human in the loop today). Discussed three options
+   (full auto-login storing PIN+TOTP - real security risk since
+   it grants full account access if leaked; a Telegram 1-tap
+   reminder; an in-app WebView "Login" button that captures the
+   OAuth redirect automatically, never handling PIN/password in
+   our own code) - user hasn't picked one yet.
+
+2b. Now that both new Fyers engines are built and tested: keep
+   running them manually for a few weeks (per the already-
+   agreed plan - a real proving period BEFORE any cutover from
+   yfinance, not immediately after code works) and compare
+   reports/fyers_test_portfolio.json / fyers_best_trade_
+   portfolio.json against the live yfinance ones over time.
 
 3. Once a few days/weeks of real options_premium_history.jsonl
    data exists: compare it against indicators/black_scholes.py's

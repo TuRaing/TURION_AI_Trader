@@ -1564,6 +1564,39 @@ data check):
   before any git add/commit touched it - deleted the duplicate,
   added `.env.txt` to .gitignore as a safety net.
 
+STEP 3 EXECUTED, same day - Fyers-based Swing + Intraday
+paper trading engines built and tested (user pushed back on an
+initial over-cautious "1-2 days" coding estimate, correctly
+pointing out most of the existing analysis logic is already
+data-source-agnostic - revised down to ~4-6 hours, which held):
+
+• strategy/fyers_data.py - the one genuinely new piece: an
+  adapter returning Fyers candles in yf.download()'s exact
+  output shape, so analyze_symbol/calculate_rsi/calculate_atr/
+  get_market_structure/etc. all work completely unchanged
+  against it. Paginates past Fyers' 100-day/request intraday
+  limit automatically. Found and fixed a rate-limit issue
+  scanning 52 symbols back-to-back (retry-with-backoff +
+  proactive delay).
+
+• strategy/fyers_watchlist_scanner.py + strategy/fyers_paper_
+  trading.py (Swing) and strategy/fyers_multi_timeframe_engine.py
+  + strategy/fyers_best_trade_paper_trading.py + fyers_daily_
+  best_trade.py (Intraday, deliberately simpler than the
+  original - no shortlist/news/option-chain ranking yet) - both
+  TESTED LIVE on real Fyers data: Swing opened 12 real BUY
+  positions scanning the full NIFTY 50 watchlist (reports/
+  fyers_test_portfolio.json); Intraday correctly found RELIANCE
+  15m/5m/1m-aligned Bearish. All existing yfinance engines
+  completely untouched - runs fully in parallel, own files only,
+  same as the already-agreed plan above. Not yet on GitHub
+  Actions - same daily-token-refresh question as the options
+  collector (three options discussed: full auto-login with
+  stored PIN+TOTP - flagged as a real security-risk increase if
+  those ever leaked; a Telegram 1-tap reminder; an in-app
+  WebView login button that never handles PIN/password in our
+  own code - undecided).
+
 Before any real capital is used (raised 21-Jul):
 current paper-trading/backtest PnL is gross - it does
 not subtract real per-trade costs. UPDATE 23-Jul: the
