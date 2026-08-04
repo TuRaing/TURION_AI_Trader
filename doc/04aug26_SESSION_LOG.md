@@ -401,61 +401,92 @@ real order-placement code exists or has been wired up.
    history.jsonl (44 new records). The full pipeline this session
    set out to build is now real and working, not just designed.
 
+✅ IMPORTANT LIMITATION SURFACED (same day, right after the win
+   above): the user asked to confirm "just log in once each
+   morning, right?" - clarified that's NOT quite right as built.
+   Today's button press runs the whole pipeline exactly ONCE, at
+   whatever moment it's tapped - it does not continuously monitor
+   the day the way the existing yfinance workflows do (checked
+   every ~1-15 min via cron-job.org). A position opened at the
+   moment of the tap would not be checked again for Stop-Loss/
+   Target/Square-off until the button is tapped again.
+
+   User wants TRUE continuous same-day automation ("jevha tela
+   tred milele teva to gheil" - take a trade whenever one is
+   found, all day). Key insight found for NEXT SESSION: Fyers'
+   access token is valid for the WHOLE TRADING DAY once obtained,
+   not just one API call - so the fix is NOT logging in more
+   often, it's: (1) one morning login stores that day's token as
+   a GitHub Actions secret (updated via the API), (2) separate,
+   already-scheduled workflows (new cron-job.org triggers, same
+   pattern as the existing yfinance Watchlist/Best Trade
+   workflows) read that stored token every few minutes throughout
+   the day for continuous checks - no further login needed until
+   tomorrow. Deliberately NOT the full auto-login-with-stored-PIN/
+   TOTP option rejected earlier for its account-access risk - only
+   a short-lived (one trading day), narrowly-scoped access token
+   would be stored, not real login credentials. NOT YET BUILT -
+   next session's task (deferred same day, late night).
+
 ==================================================
 
 Next Session
 
-1. Ask the user what they saw under Fyers' "MCP" dashboard
+1. BUILD continuous same-day automation using a stored daily
+   access token (see the "IMPORTANT LIMITATION SURFACED" note
+   above) - one morning login stores that day's Fyers access
+   token as a GitHub Actions secret, new scheduled workflows
+   (cron-job.org-triggered, matching the existing yfinance
+   Watchlist/Best Trade pattern) read it every few minutes for
+   real continuous monitoring, not just a one-shot check at
+   whatever moment the button was tapped.
+
+2. Ask the user what they saw under Fyers' "MCP" dashboard
    tab (couldn't check it directly - site blocked/JS-heavy)
    and figure out if it's relevant to this project.
 
-2. DONE, same day: the in-app WebView "Login to Fyers" button -
-   built, tested live, two real bugs found and fixed (see
-   Achievements above), verified working end-to-end (real
-   position opened, real state committed). One tap now runs
-   the full day's Fyers pipeline.
+3. Once continuous automation (item 1) is working: keep it
+   running for a few weeks (per the already-agreed plan - a real
+   proving period BEFORE any cutover from yfinance, not
+   immediately after code works) and compare reports/fyers_test_
+   portfolio.json / fyers_best_trade_portfolio.json / fyers_
+   options_portfolio.json against the live yfinance ones over
+   time.
 
-2b. Keep tapping the login button daily for a few weeks (per the
-   already-
-   agreed plan - a real proving period BEFORE any cutover from
-   yfinance, not immediately after code works) and compare
-   reports/fyers_test_portfolio.json / fyers_best_trade_
-   portfolio.json against the live yfinance ones over time.
-
-3. Once a few days/weeks of real options_premium_history.jsonl
+4. Once a few days/weeks of real options_premium_history.jsonl
    data exists: compare it against indicators/black_scholes.py's
    estimates (from 03-Aug's research) to see how far off the
    estimate was - the original motivation for collecting this.
 
-4. Consider re-running existing index-based backtest findings
+5. Consider re-running existing index-based backtest findings
    (ADX filter, VIX filter, Daily-alignment, etc.) against
    Fyers' multi-year historical index data instead of
    yfinance's 60-day window, now that it's confirmed
    available - would finally remove the "small sample, one
    window" caveat attached to nearly every prior finding.
 
-5. Consider a futures-based strategy angle, now that real
+6. Consider a futures-based strategy angle, now that real
    multi-year futures history is confirmed available via
    cont_flag=1, unlike options.
 
-6. Optionally download NSE Bhavcopy history for a free,
+7. Optionally download NSE Bhavcopy history for a free,
    EOD-level real options backtest in the meantime (see
    today's Achievements) - not started yet.
 
-7. Let August's data keep accumulating (carried over from
+8. Let August's data keep accumulating (carried over from
    02-Aug/03-Aug).
 
-8. Backtest require_no_crash_state on the best-known combos
+9. Backtest require_no_crash_state on the best-known combos
    (carried over from 02-Aug).
 
-9. Apply strategy/transaction_costs.py's real cost model to
-   the Watchlist and Best Trade Engine's own live evaluations
-   (carried over from 23-Jul, still not done).
+10. Apply strategy/transaction_costs.py's real cost model to
+    the Watchlist and Best Trade Engine's own live evaluations
+    (carried over from 23-Jul, still not done).
 
-10. Commit Desktop App (PySide6), package as .exe (carried
+11. Commit Desktop App (PySide6), package as .exe (carried
     over).
 
-11. Fix TATAMOTORS / LTIM ticker symbols (carried over).
+12. Fix TATAMOTORS / LTIM ticker symbols (carried over).
 
 ==================================================
 

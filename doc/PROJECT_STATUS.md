@@ -1655,6 +1655,27 @@ position opened at real premium (Rs 103.25) -> correctly
 committed to reports/fyers_options_portfolio.json, fyers_test_
 portfolio.json, and options_premium_history.jsonl (44 records).
 
+LIMITATION SURFACED, same day (right after the win above): user
+asked to confirm "just log in once each morning, right?" - it's
+NOT quite that yet. Today's button press runs the whole pipeline
+exactly ONCE at the moment it's tapped - it does not continuously
+monitor the day the way the existing yfinance workflows do
+(checked every ~1-15 min via cron-job.org). A position opened at
+the moment of the tap would not be checked again for Stop-Loss/
+Target/Square-off until the button is tapped again. User wants
+TRUE continuous same-day automation. PLAN for next session (not
+yet built): Fyers' access token is valid for the WHOLE trading
+day once obtained, not just one call - so (1) one morning login
+stores that day's token as a GitHub Actions secret (updated via
+the API), (2) separate, already-scheduled workflows (new
+cron-job.org triggers, same pattern as the existing yfinance
+Watchlist/Best Trade workflows) read that stored token every few
+minutes for continuous checks, no further login needed until
+tomorrow. Deliberately NOT the full auto-login-with-stored-PIN/
+TOTP option rejected earlier (real account-access risk) - only a
+short-lived, narrowly-scoped access token gets stored, not login
+credentials.
+
 Before any real capital is used (raised 21-Jul):
 current paper-trading/backtest PnL is gross - it does
 not subtract real per-trade costs. UPDATE 23-Jul: the
