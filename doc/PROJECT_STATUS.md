@@ -1724,9 +1724,23 @@ to miss) - 403 on the public-key fetch step. Fixed by editing
 the token's permissions. FINAL VERIFICATION (via the real GitHub
 Actions API): after the fix, one more login shared the token
 successfully, then both new workflows were manually dispatched
-and BOTH succeeded reusing it, no fresh login needed. cron-job.org
-triggers for both are set up and will run automatically through
-market hours going forward.
+and BOTH succeeded reusing it, no fresh login needed.
+
+cron-job.org SETUP DONE AND VERIFIED, same session: both new
+jobs created (reusing the existing yfinance jobs' GitHub PAT for
+Authorization - Actions:write covers any workflow in the repo,
+no new cron-job.org-side PAT needed). Caught and fixed two real
+setup mistakes via the user's own screenshots: the Options Watch
+job's "Enable job" toggle was left off (cron-job.org saves a
+disabled job silently, no warning - caught via the dashboard
+showing it grayed out "Inactive"), and the Scheduled Check job
+simply didn't exist yet (only 4 of the expected 5 jobs showed on
+the dashboard). Both fixed, each re-verified with a manual TEST
+RUN checked against real GitHub Actions run history. END STATE:
+the full chain (one morning login -> shared token -> two
+independently-scheduled workflows checking options every ~1 min
+and Swing/Intraday every ~5 min, all day, no further login
+needed) is live and confirmed working, not just built.
 
 Before any real capital is used (raised 21-Jul):
 current paper-trading/backtest PnL is gross - it does

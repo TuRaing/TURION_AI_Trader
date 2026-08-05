@@ -167,6 +167,41 @@ madhil-sarva-lqg5lj), read it, merged its docs into main
    not just designed - cron-job.org will now keep both running
    automatically through market hours going forward.
 
+✅ cron-job.org SETUP COMPLETED AND VERIFIED, same session:
+   user created both new cron-job.org jobs (cloned from the
+   existing yfinance jobs' pattern) - "Fyers Options Watch
+   Trigger" (crontab `* 3-9 * * 1-5`, ~1 min) and "Fyers
+   Scheduled Check Trigger" (crontab `0,5,10,15,20,25,30,35,
+   40,45,50,55 3-9 * * 1-5`, ~5 min), both hitting their
+   respective workflow's workflow_dispatch endpoint with the
+   same existing GitHub PAT already used for the yfinance
+   jobs' Authorization header (Actions:write covers triggering
+   any workflow in the repo, no new PAT needed for cron-job.org
+   itself - only REPO_ADMIN_PAT, used server-side by the
+   trigger workflow, needed to be new).
+
+   TWO REAL SETUP MISTAKES CAUGHT AND FIXED, both via the
+   user's own screenshots (not assumed correct): (1) the
+   Options Watch job's "Enable job" toggle was left off after
+   the first save - cron-job.org happily saves a disabled job
+   with no warning, so it silently never fires; caught because
+   the dashboard listing showed it grayed out as "Inactive".
+   (2) the Scheduled Check job didn't exist at all initially -
+   only 4 jobs showed on the dashboard (3 old + Options Watch),
+   the 5-min one was simply never created. Both fixed by the
+   user, each verified afterward with a manual "TEST RUN" ->
+   checked against the real GitHub Actions run history (not
+   just cron-job.org's own "success" indicator) -> confirmed
+   success both times.
+
+   END STATE: both new cron-job.org jobs active and verified
+   firing real, successful GitHub Actions runs. The full
+   continuous-automation chain (one morning login -> shared
+   token -> two independently-scheduled workflows checking
+   options every ~1 min and Swing/Intraday every ~5 min, all
+   day, no further login needed) is real, tested, and live -
+   not just built and hoped to work.
+
 ==================================================
 
 Bugs Fixed
