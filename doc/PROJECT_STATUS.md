@@ -1676,6 +1676,37 @@ TOTP option rejected earlier (real account-access risk) - only a
 short-lived, narrowly-scoped access token gets stored, not login
 credentials.
 
+BUG FOUND 05-Aug (diagnosed, NOT fixed - user chose to defer
+the actual code change to later): the in-app "Login to Fyers"
+button gets stuck on "loading" forever right after typing the
+mobile number and tapping Continue - the embedded WebView never
+progresses past Fyers' own login form. ROOT CAUSE (confirmed
+live): Fyers' login page is protected by Google reCAPTCHA, which
+reliably hangs inside embedded WebViews (Google treats it as an
+automated/non-standard browser and never completes verification).
+Confirmed this is NOT a Fyers-account/credentials problem: the
+user opened the exact same login URL directly in their phone's
+Chrome browser and it worked fine, reaching the expected
+"127.0.0.1 refused to connect" redirect with a valid code visible
+in the address bar (the same benign error strategy/fyers_auth.py's
+desktop flow already documents as expected).
+
+SUGGESTED FIX (not implemented): rewrite mobile_app/lib/screens/
+fyers_login_screen.dart so the "Login to Fyers" button opens the
+login page in the device's real external browser (e.g. the
+url_launcher package) instead of an in-app WebView, then the user
+pastes the redirected URL (or bare auth_code) back into a text
+field in the app - the same manual-paste pattern
+strategy/fyers_auth.py's desktop __main__ flow already uses
+successfully. Would need: pubspec.yaml to add url_launcher (and
+drop webview_flutter, which would then be unused), and
+AndroidManifest.xml's <queries> block to add an ACTION_VIEW/https
+entry so url_launcher can resolve an external browser on
+Android 11+. Not yet built - a future session (local machine, so
+it can also rebuild/reinstall the APK to actually test it) should
+implement and verify this before the "Login to Fyers" button is
+usable again.
+
 Before any real capital is used (raised 21-Jul):
 current paper-trading/backtest PnL is gross - it does
 not subtract real per-trade costs. UPDATE 23-Jul: the
