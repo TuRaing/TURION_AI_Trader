@@ -1,50 +1,20 @@
 {
-  "Generated At": "2026-08-05 06:02:43",
+  "Generated At": "2026-08-05 06:30:17",
   "Stocks": [
-    {
-      "Name": "TITAN",
-      "Symbol": "TITAN.NS",
-      "Price": 4903.6,
-      "Decision": "BUY",
-      "Bias": "Bullish",
-      "Confidence": 80.0,
-      "ATR": 74.41,
-      "Candle Pattern": "Hammer"
-    },
-    {
-      "Name": "NESTLEIND",
-      "Symbol": "NESTLEIND.NS",
-      "Price": 1517.9,
-      "Decision": "BUY",
-      "Bias": "Bullish",
-      "Confidence": 80.0,
-      "ATR": 40.1,
-      "Candle Pattern": "Hammer"
-    },
-    {
-      "Name": "JSWSTEEL",
-      "Symbol": "JSWSTEEL.NS",
-      "Price": 1302.0,
-      "Decision": "BUY",
-      "Bias": "Bullish",
-      "Confidence": 80.0,
-      "ATR": 25.11,
-      "Candle Pattern": "Hammer"
-    },
     {
       "Name": "COALINDIA",
       "Symbol": "COALINDIA.NS",
-      "Price": 412.9,
+      "Price": 412.95,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 80.0,
-      "ATR": 6.28,
+      "ATR": 6.31,
       "Candle Pattern": "Bearish Engulfing"
     },
     {
       "Name": "BRITANNIA",
       "Symbol": "BRITANNIA.NS",
-      "Price": 5453.5,
+      "Price": 5470.0,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 80.0,
@@ -54,11 +24,41 @@
     {
       "Name": "HDFCBANK",
       "Symbol": "HDFCBANK.NS",
-      "Price": 738.8,
+      "Price": 736.7,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
       "ATR": 14.21,
+      "Candle Pattern": "No Pattern"
+    },
+    {
+      "Name": "BHARTIARTL",
+      "Symbol": "BHARTIARTL.NS",
+      "Price": 1966.4,
+      "Decision": "BUY",
+      "Bias": "Bullish",
+      "Confidence": 60.0,
+      "ATR": 32.05,
+      "Candle Pattern": "No Pattern"
+    },
+    {
+      "Name": "KOTAKBANK",
+      "Symbol": "KOTAKBANK.NS",
+      "Price": 396.05,
+      "Decision": "BUY",
+      "Bias": "Bullish",
+      "Confidence": 60.0,
+      "ATR": 7.64,
+      "Candle Pattern": "No Pattern"
+    },
+    {
+      "Name": "BAJFINANCE",
+      "Symbol": "BAJFINANCE.NS",
+      "Price": 1155.8,
+      "Decision": "BUY",
+      "Bias": "Bullish",
+      "Confidence": 60.0,
+      "ATR": 29.82,
       "Candle Pattern": "No Pattern"
     }
   ],
@@ -79,33 +79,6 @@
     }
   ],
   "News": {
-    "TITAN": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "NESTLEIND": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "JSWSTEEL": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "COALINDIA": {
       "Headlines": [],
       "Positive": 0,
@@ -171,7 +144,25 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "TITAN": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "ULTRACEMCO": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "NESTLEIND": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -190,6 +181,15 @@
       "Confidence": 0.0
     },
     "ADANIPORTS": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "JSWSTEEL": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -309,10 +309,12 @@
       "Confidence": 0.0
     },
     "ONGC": {
-      "Headlines": [],
+      "Headlines": [
+        "ONGC Share Price Live Updates: ONGC Faces Downward Price Breakout"
+      ],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 0,
+      "Neutral": 1,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -362,16 +364,27 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "ITC": {
+      "Headlines": [
+        "ITC Share Price Live Updates: ITC Stock Details"
+      ],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 1,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "LT": {
       "Headlines": [
         "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
+        "Manipal Health shares list at 11% premium to beat GMP estimates. What should allotted investors do?",
         "Nykaa shares dip 3% despite multifold jump in Q1 profit; analysts weigh in",
-        "Bharti Airtel shares jump 4% after Q1 results. Here\u2019s what Jefferies, CLSA, others are saying",
-        "ETMarkets NRI Talk | Alternatives can account for up to 20% of an NRI's India allocation: Shiv Gupta"
+        "Bharti Airtel shares jump 4% after Q1 results. Here\u2019s what Jefferies, CLSA, others are saying"
       ],
-      "Positive": 3,
+      "Positive": 4,
       "Negative": 0,
-      "Neutral": 1,
+      "Neutral": 0,
       "Sentiment": "Bullish",
       "Score": 1.0,
       "Confidence": 100.0
@@ -404,15 +417,6 @@
       "Confidence": 0.0
     },
     "ADANIENT": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "INDUSINDBK": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -479,17 +483,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "ITC": {
-      "Headlines": [
-        "ITC Share Price Live Updates: ITC Stock Details"
-      ],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 1,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "WIPRO": {
       "Headlines": [],
       "Positive": 0,
@@ -518,6 +511,15 @@
       "Confidence": 0.0
     },
     "CIPLA": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "INDUSINDBK": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -561,6 +563,22 @@
     {
       "Headline": "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
       "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Vedanta Aluminium shares can rally up to 28%? Why Systematix initiated coverage on the stock",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "AMD forecasts strong revenue growth on AI chip demand, but investors seek bigger gains",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Manipal Health shares list at 11% premium to beat GMP estimates. What should allotted investors do?",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "SoftBank-backed OfBusiness revives IPO plans, eyes up to $800 million issue",
+      "Sentiment": "Neutral"
     },
     {
       "Headline": "Protean eGov shares fall 6% despite 19% YoY jump in Q1 revenue. Should you buy, sell or hold?",
@@ -623,6 +641,10 @@
       "Sentiment": "Neutral"
     },
     {
+      "Headline": "SBI Life Share Price Live Updates: SBI Life's Price Movement Today",
+      "Sentiment": "Neutral"
+    },
+    {
       "Headline": "Canara Bank, Bank of Baroda among 7 bank stocks with up to 26% upside potential. Own any?",
       "Sentiment": "Neutral"
     },
@@ -647,7 +669,7 @@
       "Sentiment": "Bullish"
     },
     {
-      "Headline": "Sun Pharmaceutical Industries Share Price Live Updates: Announcement under Regulation 30 (LODR)-Credit Rating",
+      "Headline": "Sun Pharma Share Price Live Updates: Sun Pharma's Recent Trading Activity",
       "Sentiment": "Neutral"
     },
     {
@@ -677,6 +699,10 @@
     {
       "Headline": "KEI Industries among 6 stocks showing bullish RSI upswing",
       "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "ONGC Share Price Live Updates: ONGC Faces Downward Price Breakout",
+      "Sentiment": "Neutral"
     },
     {
       "Headline": "South Korea\u2019s Kospi climbs 5%, extending two-day rebound: 3 reasons fueling the rally after July selloff",
@@ -720,30 +746,6 @@
     },
     {
       "Headline": "Power Grid Share Price Live Updates: Power Grid's Price and Performance Overview",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Nestle India Share Price Live Updates: Nestle India Stock Update",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "SBI Share Price Live Updates: SBI's Price Movement Today",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Bajaj Auto Share Price Live Updates: Bajaj Auto's Stock Price Update",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "ETMarkets NRI Talk | Alternatives can account for up to 20% of an NRI's India allocation: Shiv Gupta",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Hero MotoCorp Share Price Live Updates: Hero MotoCorp's Current Price Update",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Jio Financial Services Share Price Live Updates: Jio Financial Services Sees Positive Movement",
       "Sentiment": "Neutral"
     }
   ]
