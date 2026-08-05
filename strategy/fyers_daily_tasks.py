@@ -4,14 +4,38 @@ from strategy.fyers_paper_trading import run_watchlist_paper_trading
 from fyers_daily_best_trade import main as run_best_trade_check
 from data.watchlist import NIFTY_50_SYMBOLS, INDICES
 
-# Added 05-Aug-2026 - the actual "run everything for today" task list,
-# split out of fyers_trigger_run.py so both that script (the one-shot
-# login trigger) and fyers_scheduled_run.py (the every-few-minutes
-# scheduled check, reusing that day's already-shared token) call the
-# exact same logic instead of two near-duplicate copies drifting apart.
+# Added 05-Aug-2026, split further same day - the "run everything for
+# today" task list, broken into pieces so each can run at its own
+# appropriate cadence instead of one heavy combined job:
+#
+# - run_options_check(): light (a couple of API calls), benefits from
+#   checking OFTEN - real option premium can move several % within a
+#   single minute (leverage - see 04-Aug's research), so a 1-min cron-
+#   job.org trigger (fyers_options_watch.yml) calls just this.
+# - run_options_snapshot(): the historical-archive collector, doesn't
+#   need to be as frequent as the position check itself.
+# - run_swing_and_intraday(): comparatively heavy (a full 52-symbol
+#   scan, Intraday's is a 3-timeframe alignment check per symbol) AND
+#   doesn't benefit from checking faster than the underlying data's own
+#   cadence (Swing is a daily-timeframe strategy; Intraday's entry
+#   timeframe is 5m) - a 5-min cron-job.org trigger
+#   (fyers_scheduled_check.yml) calls this + the snapshot together.
+#
+# run_all_tasks() (used by fyers_trigger_run.py, the one-shot morning
+# login trigger) still runs everything once, in one go.
 
 
-def run_all_tasks():
+def run_options_check():
+
+    print("\n--- Options paper trading check ---")
+    try:
+        _, action = check_options_position()
+        print(action)
+    except Exception as error:
+        print(f"Options paper trading check failed (continuing): {error}")
+
+
+def run_options_snapshot():
 
     print("\n--- Options premium snapshot ---")
     try:
@@ -20,12 +44,8 @@ def run_all_tasks():
     except Exception as error:
         print(f"Options snapshot failed (continuing): {error}")
 
-    print("\n--- Options paper trading check ---")
-    try:
-        _, action = check_options_position()
-        print(action)
-    except Exception as error:
-        print(f"Options paper trading check failed (continuing): {error}")
+
+def run_swing_and_intraday():
 
     print("\n--- Swing (Watchlist) paper trading ---")
     try:
@@ -42,3 +62,10 @@ def run_all_tasks():
         run_best_trade_check()
     except Exception as error:
         print(f"Intraday check failed (continuing): {error}")
+
+
+def run_all_tasks():
+
+    run_options_snapshot()
+    run_options_check()
+    run_swing_and_intraday()
