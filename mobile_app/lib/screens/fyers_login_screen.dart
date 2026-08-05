@@ -2,24 +2,32 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../theme.dart';
 
-// Added 04-Aug-2026 - the in-app "Login to Fyers" button. Opens Fyers'
-// real OAuth login page in an in-app WebView (PIN/OTP is typed
-// directly into Fyers' own page - this app's code never sees it),
-// detects the redirect containing auth_code, then triggers
-// .github/workflows/fyers_trigger.yml via GitHub's REST API, which
-// exchanges that one-time code for today's access token and runs every
-// Fyers data task in one job (see fyers_trigger_run.py) - the token
-// never persists anywhere beyond that single run.
+// Added 04-Aug-2026, REWRITTEN 05-Aug-2026 - the in-app "Login to
+// Fyers" button. Originally opened Fyers' login page in an embedded
+// WebView, but that hangs forever - Fyers' login is protected by
+// Google reCAPTCHA, which never completes inside an embedded WebView
+// (Google treats it as an automated/non-standard browser). Confirmed
+// live: the exact same URL works fine in the phone's real Chrome
+// browser. Fixed by opening the login page in the device's REAL
+// external browser (url_launcher) instead, then having the user paste
+// the redirected URL (or bare auth_code) back into this screen - the
+// same manual-paste pattern strategy/fyers_auth.py's desktop __main__
+// flow already uses successfully. PIN/OTP is still typed directly into
+// Fyers' own real browser page - this app's code never sees it.
+//
+// Sends the captured auth_code to .github/workflows/fyers_trigger.yml
+// via GitHub's REST API, which exchanges it for today's access token
+// and runs every Fyers data task - see fyers_trigger_run.py.
 //
 // GITHUB_PAT is a fine-grained, this-repo-only, Actions:write-only
 // token, passed at BUILD TIME via --dart-define (never hardcoded or
-// committed) - see the build command noted in doc/04aug26_SESSION_LOG.md.
-// A leaked build could only ever trigger this repo's own workflows,
-// not access the user's broader GitHub account or their Fyers account.
+// committed). A leaked build could only ever trigger this repo's own
+// workflows, not access the user's broader GitHub account or their
+// Fyers account.
 
 const _fyersAppId = 'YLG4M5K861-200';
 const _redirectUri = 'https://127.0.0.1';
@@ -58,65 +66,63 @@ class FyersLoginScreen extends StatefulWidget {
   State<FyersLoginScreen> createState() => _FyersLoginScreenState();
 }
 
-enum _Stage { loadingLogin, awaitingLogin, triggering, success, error }
+enum _Stage { idle, triggering, success, error }
 
 class _FyersLoginScreenState extends State<FyersLoginScreen> {
-  late final WebViewController _controller;
-  _Stage _stage = _Stage.loadingLogin;
+  final _pasteController = TextEditingController();
+  _Stage _stage = _Stage.idle;
   String? _errorMessage;
-  bool _redirectHandled = false;
 
   @override
-  void initState() {
-    super.initState();
-
-    if (_githubPat.isEmpty) {
-      _stage = _Stage.error;
-      _errorMessage = 'App was built without a GITHUB_PAT (--dart-define) - '
-          'the trigger cannot be sent. Rebuild with the token.';
-      return;
-    }
-
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onPageStarted: (_) => setState(() => _stage = _Stage.awaitingLogin),
-          onNavigationRequest: (request) {
-            if (request.url.startsWith(_redirectUri)) {
-              _handleRedirect(request.url);
-              return NavigationDecision.prevent;
-            }
-            return NavigationDecision.navigate;
-          },
-        ),
-      )
-      ..loadRequest(Uri.parse(_fyersLoginUrl));
+  void dispose() {
+    _pasteController.dispose();
+    super.dispose();
   }
 
-  void _handleRedirect(String url) {
-    // Updated 04-Aug-2026 - the WebView's navigation delegate can fire
-    // for the redirect URL more than once (seen live: two workflow
-    // triggers from what looked like one tap, the second failing with
-    // "invalid auth code" since Fyers auth codes are one-time-use).
-    // Guard so only the first redirect is ever acted on.
-    if (_redirectHandled) return;
-    _redirectHandled = true;
+  Future<void> _openLoginPage() async {
+    final uri = Uri.parse(_fyersLoginUrl);
 
-    final authCode = Uri.parse(url).queryParameters['auth_code'];
+    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+    if (!opened && mounted) {
+      setState(() {
+        _stage = _Stage.error;
+        _errorMessage = 'Could not open a browser. Copy this URL manually:\n$_fyersLoginUrl';
+      });
+    }
+  }
+
+  String? _extractAuthCode(String pasted) {
+    final trimmed = pasted.trim();
+
+    if (!trimmed.contains('auth_code=')) {
+      return trimmed.isEmpty ? null : trimmed; // assume they pasted the bare code
+    }
+
+    final uri = Uri.tryParse(trimmed);
+    return uri?.queryParameters['auth_code'];
+  }
+
+  Future<void> _submit() async {
+    final authCode = _extractAuthCode(_pasteController.text);
 
     if (authCode == null || authCode.isEmpty) {
       setState(() {
         _stage = _Stage.error;
-        _errorMessage = 'Login redirect did not contain an auth_code.';
+        _errorMessage = 'Paste the redirected URL (or the bare auth_code) first.';
       });
       return;
     }
 
-    _triggerWorkflow(authCode);
-  }
+    if (_githubPat.isEmpty) {
+      setState(() {
+        _stage = _Stage.error;
+        _errorMessage = 'App was built without a GITHUB_PAT (--dart-define) - '
+            'the trigger cannot be sent. Rebuild with the token.';
+      });
+      return;
+    }
 
-  Future<void> _triggerWorkflow(String authCode) async {
     setState(() => _stage = _Stage.triggering);
 
     try {
@@ -157,14 +163,13 @@ class _FyersLoginScreenState extends State<FyersLoginScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Login to Fyers')),
       body: switch (_stage) {
-        _Stage.loadingLogin || _Stage.awaitingLogin => WebViewWidget(controller: _controller),
         _Stage.triggering => const Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 CircularProgressIndicator(),
                 SizedBox(height: 16),
-                Text('Login captured - starting today\'s Fyers run...'),
+                Text('Starting today\'s Fyers run...'),
               ],
             ),
           ),
@@ -186,17 +191,60 @@ class _FyersLoginScreenState extends State<FyersLoginScreen> {
               ),
             ),
           ),
-        _Stage.error => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.error_outline, size: 48, color: dangerColor),
+        _Stage.idle || _Stage.error => Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  'Step 1: Open the Fyers login page in your browser and log in '
+                  '(PIN/OTP goes directly to Fyers, not this app).',
+                  style: TextStyle(fontSize: 14),
+                ),
+                const SizedBox(height: 12),
+                FilledButton.icon(
+                  onPressed: _openLoginPage,
+                  icon: const Icon(Icons.open_in_browser),
+                  label: const Text('Open Fyers Login'),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Step 2: After logging in, the browser will try to redirect and show '
+                  '"can\'t reach this page" - that\'s expected. Copy the FULL address-bar '
+                  'URL (or just the auth_code=... part) and paste it below.',
+                  style: TextStyle(fontSize: 14),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _pasteController,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: 'Paste the redirected URL or auth_code here',
+                  ),
+                  minLines: 1,
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 16),
+                FilledButton.icon(
+                  onPressed: _submit,
+                  icon: const Icon(Icons.send),
+                  label: const Text('Submit'),
+                ),
+                if (_stage == _Stage.error) ...[
                   const SizedBox(height: 16),
-                  Text(_errorMessage ?? 'Something went wrong.', textAlign: TextAlign.center),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: dangerColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      _errorMessage ?? 'Something went wrong.',
+                      style: const TextStyle(color: dangerColor, fontSize: 13),
+                    ),
+                  ),
                 ],
-              ),
+              ],
             ),
           ),
       },

@@ -43,5 +43,15 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+        <!-- Added 05-Aug-2026 - lets url_launcher find/open the device's
+             real external browser for Fyers login (an embedded WebView
+             hangs forever on Fyers' reCAPTCHA - see doc/05aug26_SESSION_LOG.md).
+             Required on Android 11+ (API 30+) due to package visibility
+             restrictions - without this, canLaunchUrl/launchUrl silently
+             fail to find any browser even though one is installed. -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
+        </intent>
     </queries>
 </manifest>
