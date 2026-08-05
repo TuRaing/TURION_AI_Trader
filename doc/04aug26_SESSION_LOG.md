@@ -439,7 +439,13 @@ Next Session
    (cron-job.org-triggered, matching the existing yfinance
    Watchlist/Best Trade pattern) read it every few minutes for
    real continuous monitoring, not just a one-shot check at
-   whatever moment the button was tapped.
+   whatever moment the button was tapped. CONFIRMED PRIORITY,
+   same day: user explicitly wants this done BEFORE item 5
+   (re-running strategies on Fyers data) - reasoning: there's
+   no real accumulated options data yet, and continuous
+   automation is what actually lets that data build up (via
+   the daily options-snapshot collector running unattended)
+   before backtesting against it is worthwhile.
 
 2. Ask the user what they saw under Fyers' "MCP" dashboard
    tab (couldn't check it directly - site blocked/JS-heavy)
