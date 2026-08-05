@@ -6,9 +6,12 @@ SESSION LOG
 
 Session ID
 
-S20260805-001 (cloud session - claude.ai/code, not a
-local machine session - see 25-Jul/28-Jul/29-Jul logs
-for why that distinction matters for this repo)
+S20260805-001 (cloud session - claude.ai/code) then
+S20260805-002 (local machine session - Claude Code
+Desktop, D:\TURION_AI_Trader) same day - see
+25-Jul/28-Jul/29-Jul logs for why the local-vs-cloud
+distinction matters for this repo (only a local session
+can rebuild/reinstall the Android APK).
 
 --------------------------------------------------
 
@@ -20,8 +23,9 @@ Date
 
 Version
 
-v0.0.15 (no version bump - diagnosis only this session,
-no code change shipped)
+v0.0.15 (no version bump - the login fix and continuous
+automation are new capability, not a milestone-numbered
+release)
 
 ==================================================
 
@@ -90,10 +94,97 @@ Today's Achievements
 
 ==================================================
 
+UPDATE (same day, local Claude Code Desktop session -
+S20260805-002)
+
+Started by fetching origin per CLAUDE.md's rule - found the
+cloud session's diagnostic branch (claude/doc-directory-
+madhil-sarva-lqg5lj), read it, merged its docs into main
+(reconciled, not overwritten) before starting new work.
+
+✅ IMPLEMENTED the login fix the cloud session diagnosed and
+   deferred: rewrote mobile_app/lib/screens/
+   fyers_login_screen.dart from the embedded-WebView flow to
+   an external-browser (url_launcher) + paste-code flow - the
+   user taps "Open Fyers Login", completes login in their
+   real Chrome, copies the redirected URL/auth_code, pastes
+   it back into the app, taps Submit. Dropped webview_flutter
+   (now unused), added url_launcher + the AndroidManifest.xml
+   <queries> ACTION_VIEW/https entry it needs on Android 11+.
+   Built, installed on the user's phone, TESTED LIVE - the
+   user completed a real login this way and the trigger
+   workflow ran successfully (confirmed via GitHub Actions
+   API, not just app UI).
+
+✅ BUILT AND VERIFIED continuous same-day Fyers automation
+   (04-Aug's deferred priority, now done):
+   - strategy/github_secrets.py - encrypts and writes a repo
+     Actions secret via GitHub's API (PyNaCl sealed-box
+     encryption, per GitHub's documented requirement).
+   - fyers_trigger_run.py (morning login trigger) now also
+     shares that day's access token as the FYERS_ACCESS_TOKEN
+     repo secret, using a separate REPO_ADMIN_PAT (Secrets:
+     write scope, server-side only - never embedded in the
+     app, unlike the Actions-only PAT the WebView/browser
+     login button uses).
+   - strategy/fyers_daily_tasks.py split into run_options_check
+     (light, benefits from checking often), run_options_snapshot,
+     and run_swing_and_intraday (heavier, doesn't benefit from
+     faster-than-5-min checking) - after the user pushed back
+     on an initial single-cadence design, correctly pointing
+     out real option premium can move several % within a
+     minute (matches 04-Aug's leverage finding) while Swing/
+     Intraday don't need checking faster than their own
+     underlying timeframes (daily, 5m).
+   - Two new workflows, both reusing the shared token (no
+     fresh login): .github/workflows/fyers_options_watch.yml
+     (~1 min, options position only) and fyers_scheduled_check.yml
+     (~5 min, snapshot + Swing + Intraday). No separate square-
+     off workflow needed - both fyers_daily_best_trade.py and
+     fyers_options_paper_trading.py already check their own
+     square-off time internally on every run.
+   - User set up cron-job.org triggers for both new workflows
+     (cloned from the existing yfinance jobs' pattern) and a
+     new fine-grained PAT (REPO_ADMIN_PAT, Secrets: write,
+     90-day expiry) added as a repo secret.
+
+   REAL BUG FOUND VIA LIVE TESTING: the first REPO_ADMIN_PAT
+   the user created only had "Actions: Read and write"
+   permission (a duplicate of the existing GITHUB_PAT's scope)
+   - "Secrets" is a SEPARATE permission category on GitHub's
+   fine-grained PAT form, easy to miss, and was never selected.
+   Surfaced as a 403 "Resource not accessible by personal
+   access token" on the public-key fetch step. Fixed by editing
+   the token's permissions to add Secrets: Read and write.
+
+   FINAL VERIFICATION (all via the real GitHub Actions API,
+   not assumed): after the PAT fix, one more real login ->
+   "Shared today's token as the FYERS_ACCESS_TOKEN repo
+   secret." confirmed in the run log -> manually dispatched
+   both fyers_options_watch.yml and fyers_scheduled_check.yml
+   -> BOTH succeeded reusing the shared token, no fresh login
+   needed. Continuous same-day automation is real and working,
+   not just designed - cron-job.org will now keep both running
+   automatically through market hours going forward.
+
+==================================================
+
 Bugs Fixed
 
-(none shipped this session - see "DIAGNOSED" above;
-fix intentionally deferred at the user's request)
+(none shipped by the cloud-session half of today - see
+"DIAGNOSED" above; fix intentionally deferred at the user's
+request, then implemented in the same-day local session
+update above)
+
+• mobile_app/lib/screens/fyers_login_screen.dart - embedded
+  WebView login hung forever (Fyers' reCAPTCHA can't complete
+  inside a WebView). Fixed with an external-browser + paste-
+  code flow (see UPDATE above).
+
+• The first REPO_ADMIN_PAT was missing the "Secrets"
+  permission entirely (only had Actions, a leftover habit from
+  creating the earlier Actions-only PAT) - 403 on the public-
+  key fetch. Fixed by editing the token's permissions.
 
 ==================================================
 
@@ -112,19 +203,21 @@ always the user's.
 
 Next Session
 
-1. Implement the Fyers login fix (see PROJECT_STATUS.md
-   for the full suggestion) - switch
-   fyers_login_screen.dart from an embedded WebView to an
-   external-browser + paste-code flow, since Fyers' login
-   reCAPTCHA cannot complete inside a WebView. Best done in
-   a local machine session so the APK can also be rebuilt
-   and actually retested on the user's phone in the same
-   session.
+1. DONE, same day (local session): Fyers login fix
+   implemented, tested live, and verified working.
+   Continuous same-day automation also DONE and verified
+   (see UPDATE above) - cron-job.org now runs both new
+   workflows automatically through market hours.
 
-2. Once that retest succeeds: continue 04-Aug's deferred
-   priority - continuous same-day Fyers automation via a
-   stored daily access token (see PROJECT_STATUS.md
-   Priority 6 for the full plan).
+2. Monitor the first few real trading-day runs of the new
+   continuous automation (fyers_options_watch.yml every
+   ~1 min, fyers_scheduled_check.yml every ~5 min) to
+   confirm cron-job.org's cadence lands as intended (this
+   repo has a documented history of GitHub's native
+   `schedule:` trigger under-firing - the external
+   cron-job.org trigger has worked reliably for the
+   existing yfinance workflows, but worth confirming here
+   too over a few real days).
 
 3. Ask the user for Fyers' account-verification outcome
    (24-48 hours from 04-Aug submission) and, once active,

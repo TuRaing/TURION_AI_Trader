@@ -30,7 +30,7 @@ Project Started
 
 Last Updated
 
-04-Aug-2026
+05-Aug-2026
 
 --------------------------------------------------
 
@@ -1691,21 +1691,42 @@ Chrome browser and it worked fine, reaching the expected
 in the address bar (the same benign error strategy/fyers_auth.py's
 desktop flow already documents as expected).
 
-SUGGESTED FIX (not implemented): rewrite mobile_app/lib/screens/
-fyers_login_screen.dart so the "Login to Fyers" button opens the
-login page in the device's real external browser (e.g. the
-url_launcher package) instead of an in-app WebView, then the user
-pastes the redirected URL (or bare auth_code) back into a text
-field in the app - the same manual-paste pattern
-strategy/fyers_auth.py's desktop __main__ flow already uses
-successfully. Would need: pubspec.yaml to add url_launcher (and
-drop webview_flutter, which would then be unused), and
-AndroidManifest.xml's <queries> block to add an ACTION_VIEW/https
-entry so url_launcher can resolve an external browser on
-Android 11+. Not yet built - a future session (local machine, so
-it can also rebuild/reinstall the APK to actually test it) should
-implement and verify this before the "Login to Fyers" button is
-usable again.
+FIXED, same day (local machine session): rewrote mobile_app/
+lib/screens/fyers_login_screen.dart exactly as suggested above -
+"Login to Fyers" now opens the login page via url_launcher in
+the device's real external browser, user pastes the redirected
+URL/auth_code back into a text field. Dropped webview_flutter,
+added url_launcher + the AndroidManifest.xml <queries> entry.
+Built, installed, TESTED LIVE - real login completed this way,
+trigger workflow ran successfully (confirmed via the GitHub
+Actions API).
+
+CONTINUOUS SAME-DAY AUTOMATION ALSO DONE, same session (04-Aug's
+deferred Priority 6 plan, now built and verified): strategy/
+github_secrets.py (PyNaCl sealed-box encryption per GitHub's
+Actions-secrets API) lets fyers_trigger_run.py share each
+morning's access token as the FYERS_ACCESS_TOKEN repo secret
+(via a separate REPO_ADMIN_PAT, Secrets:write, server-side
+only). Two new workflows reuse that shared token with no fresh
+login: fyers_options_watch.yml (~1 min - user correctly pushed
+back on an initial single 5-min-for-everything design, pointing
+out real option premium moves several % within a minute per
+04-Aug's leverage finding) and fyers_scheduled_check.yml (~5
+min - Swing/Intraday don't benefit from faster checks than
+their own timeframes). No separate square-off workflow needed -
+both fyers_daily_best_trade.py and fyers_options_paper_trading.py
+already self-check their square-off time on every run.
+
+REAL BUG caught via live testing: the user's first REPO_ADMIN_PAT
+was missing the "Secrets" permission entirely (a separate
+category from "Actions" on GitHub's fine-grained PAT form, easy
+to miss) - 403 on the public-key fetch step. Fixed by editing
+the token's permissions. FINAL VERIFICATION (via the real GitHub
+Actions API): after the fix, one more login shared the token
+successfully, then both new workflows were manually dispatched
+and BOTH succeeded reusing it, no fresh login needed. cron-job.org
+triggers for both are set up and will run automatically through
+market hours going forward.
 
 Before any real capital is used (raised 21-Jul):
 current paper-trading/backtest PnL is gross - it does
