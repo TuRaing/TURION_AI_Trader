@@ -1,64 +1,64 @@
 {
-  "Generated At": "2026-08-04 09:21:26",
+  "Generated At": "2026-08-05 06:02:43",
   "Stocks": [
     {
-      "Name": "HDFCLIFE",
-      "Symbol": "HDFCLIFE.NS",
-      "Price": 532.5,
+      "Name": "TITAN",
+      "Symbol": "TITAN.NS",
+      "Price": 4903.6,
+      "Decision": "BUY",
+      "Bias": "Bullish",
+      "Confidence": 80.0,
+      "ATR": 74.41,
+      "Candle Pattern": "Hammer"
+    },
+    {
+      "Name": "NESTLEIND",
+      "Symbol": "NESTLEIND.NS",
+      "Price": 1517.9,
+      "Decision": "BUY",
+      "Bias": "Bullish",
+      "Confidence": 80.0,
+      "ATR": 40.1,
+      "Candle Pattern": "Hammer"
+    },
+    {
+      "Name": "JSWSTEEL",
+      "Symbol": "JSWSTEEL.NS",
+      "Price": 1302.0,
+      "Decision": "BUY",
+      "Bias": "Bullish",
+      "Confidence": 80.0,
+      "ATR": 25.11,
+      "Candle Pattern": "Hammer"
+    },
+    {
+      "Name": "COALINDIA",
+      "Symbol": "COALINDIA.NS",
+      "Price": 412.9,
       "Decision": "SELL",
       "Bias": "Bearish",
-      "Confidence": 70.0,
-      "ATR": 11.31,
-      "Candle Pattern": "No Pattern"
+      "Confidence": 80.0,
+      "ATR": 6.28,
+      "Candle Pattern": "Bearish Engulfing"
+    },
+    {
+      "Name": "BRITANNIA",
+      "Symbol": "BRITANNIA.NS",
+      "Price": 5453.5,
+      "Decision": "BUY",
+      "Bias": "Bullish",
+      "Confidence": 80.0,
+      "ATR": 102.74,
+      "Candle Pattern": "Hammer"
     },
     {
       "Name": "HDFCBANK",
       "Symbol": "HDFCBANK.NS",
-      "Price": 738.9,
+      "Price": 738.8,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
-      "ATR": 14.43,
-      "Candle Pattern": "No Pattern"
-    },
-    {
-      "Name": "ICICIBANK",
-      "Symbol": "ICICIBANK.NS",
-      "Price": 1442.0,
-      "Decision": "BUY",
-      "Bias": "Bullish",
-      "Confidence": 60.0,
-      "ATR": 24.73,
-      "Candle Pattern": "No Pattern"
-    },
-    {
-      "Name": "BHARTIARTL",
-      "Symbol": "BHARTIARTL.NS",
-      "Price": 1955.8,
-      "Decision": "BUY",
-      "Bias": "Bullish",
-      "Confidence": 60.0,
-      "ATR": 27.53,
-      "Candle Pattern": "No Pattern"
-    },
-    {
-      "Name": "KOTAKBANK",
-      "Symbol": "KOTAKBANK.NS",
-      "Price": 393.85,
-      "Decision": "BUY",
-      "Bias": "Bullish",
-      "Confidence": 60.0,
-      "ATR": 7.81,
-      "Candle Pattern": "No Pattern"
-    },
-    {
-      "Name": "BAJFINANCE",
-      "Symbol": "BAJFINANCE.NS",
-      "Price": 1143.3,
-      "Decision": "BUY",
-      "Bias": "Bullish",
-      "Confidence": 60.0,
-      "ATR": 30.12,
+      "ATR": 14.21,
       "Candle Pattern": "No Pattern"
     }
   ],
@@ -67,37 +67,66 @@
       "Name": "NIFTY 50",
       "Bias": "Bullish",
       "Decision": "NO TRADE",
-      "Confidence": 28.0,
-      "Reason": "Price action Bullish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 28.0% is below the 60% threshold."
+      "Confidence": 42.0,
+      "Reason": "Price action Bullish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 42.0% is below the 60% threshold."
     },
     {
       "Name": "BANK NIFTY",
       "Bias": "Bullish",
       "Decision": "NO TRADE",
-      "Confidence": 14.0,
-      "Reason": "Price action Bullish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 14.0% is below the 60% threshold."
+      "Confidence": 28.0,
+      "Reason": "Price action Bullish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 28.0% is below the 60% threshold."
     }
   ],
   "News": {
-    "HDFCLIFE": {
+    "TITAN": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
       "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "NESTLEIND": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "JSWSTEEL": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "COALINDIA": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "BRITANNIA": {
+      "Headlines": [
+        "Britannia Share Price Live Updates: Britannia's Daily Performance Update"
+      ],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 1,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
     },
     "HDFCBANK": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "ICICIBANK": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -142,43 +171,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "TITAN": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "ULTRACEMCO": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "NESTLEIND": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "ONGC": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "POWERGRID": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -205,15 +198,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "JSWSTEEL": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "BAJAJFINSV": {
       "Headlines": [],
       "Positive": 0,
@@ -223,7 +207,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "BRITANNIA": {
+    "HDFCLIFE": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -231,6 +215,17 @@
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
+    },
+    "GRASIM": {
+      "Headlines": [
+        "Grasim Inds Share Price Live Updates: Grasim Industries falls below its 20-day Exponential Moving Average"
+      ],
+      "Positive": 0,
+      "Negative": 1,
+      "Neutral": 0,
+      "Sentiment": "Bearish",
+      "Score": -1.0,
+      "Confidence": 100.0
     },
     "EICHERMOT": {
       "Headlines": [],
@@ -260,12 +255,10 @@
       "Confidence": 0.0
     },
     "BPCL": {
-      "Headlines": [
-        "BPCL Share Price Live Updates: BPCL's Recent Performance"
-      ],
+      "Headlines": [],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 1,
+      "Neutral": 0,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -279,7 +272,16 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "ASIANPAINT": {
+    "ICICIBANK": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "SBIN": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -297,87 +299,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "NTPC": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "COALINDIA": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "DRREDDY": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "GRASIM": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "TECHM": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "HINDALCO": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "DIVISLAB": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "HINDUNILVR": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "AXISBANK": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "SUNPHARMA": {
       "Headlines": [],
       "Positive": 0,
@@ -387,16 +308,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "TATASTEEL": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "ADANIENT": {
+    "ONGC": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -414,7 +326,84 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "DRREDDY": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "DIVISLAB": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "APOLLOHOSP": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "TECHM": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "LT": {
+      "Headlines": [
+        "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
+        "Nykaa shares dip 3% despite multifold jump in Q1 profit; analysts weigh in",
+        "Bharti Airtel shares jump 4% after Q1 results. Here\u2019s what Jefferies, CLSA, others are saying",
+        "ETMarkets NRI Talk | Alternatives can account for up to 20% of an NRI's India allocation: Shiv Gupta"
+      ],
+      "Positive": 3,
+      "Negative": 0,
+      "Neutral": 1,
+      "Sentiment": "Bullish",
+      "Score": 1.0,
+      "Confidence": 100.0
+    },
+    "AXISBANK": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "ASIANPAINT": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "NTPC": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "ADANIENT": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -433,10 +422,32 @@
       "Confidence": 0.0
     },
     "UPL": {
+      "Headlines": [
+        "UPL Share Price Live Updates: UPL's Daily Performance Update"
+      ],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 1,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "SHREECEM": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
       "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "HINDALCO": {
+      "Headlines": [
+        "Hindalco Share Price Live Updates: Hindalco's Price Movement Today"
+      ],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 1,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -459,7 +470,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "ITC": {
+    "HINDUNILVR": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -468,11 +479,13 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "SBIN": {
-      "Headlines": [],
+    "ITC": {
+      "Headlines": [
+        "ITC Share Price Live Updates: ITC Stock Details"
+      ],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 0,
+      "Neutral": 1,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -486,7 +499,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "CIPLA": {
+    "POWERGRID": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -495,7 +508,16 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "SHREECEM": {
+    "TATASTEEL": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "CIPLA": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -525,204 +547,204 @@
   },
   "Market Headlines": [
     {
-      "Headline": "Global Market: European shares edge higher as earnings offset Middle East concerns; Lufthansa, Zalando slide",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Aimtron Electronics shares can rally to Rs 2,036? Here\u2019s why Nuvama initiated coverage on the platform stock",
+      "Headline": "Taking Stock: Market fails to hold on to day#39;s gains, ends marginally higher",
       "Sentiment": "Bullish"
     },
     {
-      "Headline": "Global Market: Saudi Aramco Q2 profit jumps 44% as Middle East conflict boosts oil prices",
+      "Headline": "Sensex, Nifty gain for third day in a row; easing volatility to support bull trend",
       "Sentiment": "Bullish"
     },
     {
-      "Headline": "Saudi Aramco supplier HD Fire plans to launch IPO in October",
+      "Headline": "Mid-day Mood | Cooling volatility sparks market rally, India VIX sees steepest fall in 4 years",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Global Market:  SoftBank earnings in focus as AI investment push raises funding, debt questions",
+      "Headline": "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Protean eGov shares fall 6% despite 19% YoY jump in Q1 revenue. Should you buy, sell or hold?",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "ICICI Securities initiates coverage on 7 PSU banks with positive valuations",
+      "Headline": "Nifty stuck in slow lane even as Sensex rallies 450 pts. How long can this divergence last?",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "LIC OFS: Non-retail portion booked 55% on Day 1. Here\u2019s what investors should know",
+      "Headline": "PNB Housing Finance shares rally 5% after Q1 profit rises 4% YoY, loan assets jump 15%",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Global Market: China optical stocks sink on reports of potential US import ban",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Global Market: Japan's 10-year bond yield climbs after weak auction signals soft demand",
+      "Headline": "Global Market: Japan's Nikkei jumps over 3% as AI stocks rally, upbeat earnings lift sentiment",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Global Market: Oracle's AI spending spree pushes credit rating to brink of junk status",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Deepak Nitrite shares jump 4% after Q1FY27 profit jumps 209%, revenue rises 36% YoY",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Ola Electric Mobility shares rally over 7%. What's boosting investor sentiment?",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Rupee sails past 95 to one-month high, premiums drop before RBI decision",
       "Sentiment": "Bearish"
     },
     {
-      "Headline": "Why stock market's CAS Day 1 hiccups will fade within a few sessions",
+      "Headline": "$25 billion FII comeback? HSBC explains why foreign money may return to India",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Global Market: South Korea plans stricter rules for leveraged ETFs as trading cools",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Epack Prefab Technologies shares rally 10% after Q1 revenue jumps 24%",
+      "Headline": "Nykaa shares dip 3% despite multifold jump in Q1 profit; analysts weigh in",
       "Sentiment": "Bullish"
     },
     {
-      "Headline": "Nifty's value doesn't change suddenly at 3:30 pm, NSE clarifies amid CAS confusion",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Explained: Why Dow Jones closed at lifetime high despite caution over AI frenzy",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Global Market: US-Japan coordinated yen intervention raises pressure on bears, but BOJ policy holds the key",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Global Market: China stocks rebound on AI, chip rally; Hong Kong shares slip",
+      "Headline": "Bharti Airtel shares jump 4% after Q1 results. Here\u2019s what Jefferies, CLSA, others are saying",
       "Sentiment": "Bullish"
     },
     {
-      "Headline": "Godfrey Phillips shares jump 7% as Samir Modi seeks peace with mother Bina Modi",
+      "Headline": "Why is market rising today? Sensex jumps over 400 pts, Nifty above 24,600. 8 factors behind D-St rebound",
       "Sentiment": "Bullish"
     },
     {
-      "Headline": "Ather Energy share price target goes up to Rs 1,714. What are CLSA, Nomura, and HSBC saying?",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "SpaceX heads into first earnings report. Here are 5 things Wall Street is watching",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Global Market: HSBC H1 profit jumps 23%, beats estimates on strong wealth, interest income",
+      "Headline": "Kalyan Jewellers slips 3% as Q1 margin pressure overshadows 32% jump in net profit",
       "Sentiment": "Bullish"
     },
     {
-      "Headline": "Global Market: South Korean shares slip nearly 2% as AI spending worries overshadow softer inflation",
+      "Headline": "H.R. Hygiene Products shares to list today on BSE SME. Here\u2019s what GMP suggests",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Dabur shares drop 3% after FSSAI bars FMCG major from selling products with '100%' guarantee claims",
+      "Headline": "Canara Bank, Bank of Baroda among 7 bank stocks with up to 26% upside potential. Own any?",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Noida, Gurugram lead India's housing boom with up to 125% price growth: ANAROCK",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "5 Nifty stocks trading at significant discounts of up to 36% to historical averages. How many do you have?",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "BSE shares fall 2% despite 62% jump in Q1 net profit to Rs 874 crore. Should you buy, sell or hold?",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "PVR Inox among 5 stocks flashing bullish signals, hinting at a possible uptrend",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Saregama India among 4 stocks closed above VWAP, signalling bullish shift",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Sun Pharmaceutical Industries Share Price Live Updates: Announcement under Regulation 30 (LODR)-Credit Rating",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Tata Consumer Share Price Live Updates: Tata Consumer Stock Analysis",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Axis Bank Share Price Live Updates: Axis Bank's Recent Performance",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Dr Reddys Share Price Live Updates: Dr. Reddys Stock Details",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Bajaj Finance Share Price Live Updates: Bajaj Finance Price Movement",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Grasim Inds Share Price Live Updates: Grasim Industries falls below its 20-day Exponential Moving Average",
       "Sentiment": "Bearish"
     },
     {
-      "Headline": "Thangamayil share selloff continues: Stock drops 5% despite Rs 344 crore sales in first 3 days of August",
-      "Sentiment": "Bearish"
+      "Headline": "UPL Share Price Live Updates: UPL's Daily Performance Update",
+      "Sentiment": "Neutral"
     },
     {
-      "Headline": "KEI Industries shares surge 7% after Q1FY27 profit jumps 40%, revenue rises 23%",
+      "Headline": "KEI Industries among 6 stocks showing bullish RSI upswing",
       "Sentiment": "Bullish"
     },
     {
-      "Headline": "Global Market: Japan's Nikkei slips as intervention fears weigh; Toyota earnings in focus",
+      "Headline": "South Korea\u2019s Kospi climbs 5%, extending two-day rebound: 3 reasons fueling the rally after July selloff",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Earnings Beat: Can Palantir sustain its explosive AI-driven growth?",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "GE Shipping shares rally 9% as Q1 net profit surges 160% YoY, revenue up 67%",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "US Stock Market: Treasury sees higher Q3 borrowing needs as cash flow outlook weakens",
-      "Sentiment": "Bearish"
-    },
-    {
-      "Headline": "Jio Financial Services Share Price Live Updates: Jio Financial Services sees a slight dip in price",
+      "Headline": "Britannia Share Price Live Updates: Britannia's Daily Performance Update",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "BPCL Share Price Live Updates: BPCL's Recent Performance",
+      "Headline": "HCL Tech Share Price Live Updates: HCL Tech Stock Details",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Eicher Motors Share Price Live Updates: Eicher Motors Price and Returns",
+      "Headline": "Tata Steel Share Price Live Updates: Tata Steel Stock Details",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Rupee opens on flat note, rises 3 paise to 95.34 against US dollar in early trade",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Ather Energy shares zoom 18% after Q1 results. Why is it Nomura's top 2-wheeler pick?",
+      "Headline": "ITC Share Price Live Updates: ITC Stock Details",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Global Market: South Korea's July inflation cools below expectations as oil prices ease; rate hike bets remain",
+      "Headline": "Inside LIC\u2019s Rs 16 lakh crore portfolio: Its biggest stock buys and sells in June quarter",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Manipal Health Enterprises IPO listing tomorrow: Here\u2019s what GMP indicates ahead of market debut",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Dhoot Transmission sets IPO price band at Rs 829-871; issue to open on Aug 10",
+      "Headline": "HUL Share Price Live Updates: HUL Stock Details",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Nazara Tech Q1 Results: Co posts Rs 82.5 crore loss; Nitish Mittersain steps down as CEO",
-      "Sentiment": "Bearish"
-    },
-    {
-      "Headline": "DLF shares dip 2% as Q1 revenue tumbles 53%, but Nomura and others maintain Buy. Here's why",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Sensex rises over 100 points, but Nifty50 slips near 24,600. What\u2019s driving the divergence?",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Top 10 stocks with 7-14% dividend yields. Do you own any?",
+      "Headline": "RIL Share Price Live Updates: RIL's Technical Breakout",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "FIIs build a new Banking XI without the usual heavyweights. Will the big banks return?",
+      "Headline": "Hindalco Share Price Live Updates: Hindalco's Price Movement Today",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Poojaa Precision Engg shares list at 56% premium over IPO price on BSE SME platform",
+      "Headline": "Infosys Share Price Live Updates: Infosys Stock Details",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "SBI Funds Management shares drop 2% after first earnings since IPO; net profit up 3% to Rs 873 crore",
+      "Headline": "Power Grid Share Price Live Updates: Power Grid's Price and Performance Overview",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Adani Ports SEZ Share Price Live Updates: Adani Ports SEZ News",
+      "Headline": "Nestle India Share Price Live Updates: Nestle India Stock Update",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "IndusInd Bank Share Price Live Updates: IndusInd Bank  Daily Performance Snapshot",
+      "Headline": "SBI Share Price Live Updates: SBI's Price Movement Today",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "HUL Share Price Live Updates: HUL Trading Below Key Support Level",
+      "Headline": "Bajaj Auto Share Price Live Updates: Bajaj Auto's Stock Price Update",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "LIC shares sink 9% as OFS opens at 11% discount. Here's all you need to know",
+      "Headline": "ETMarkets NRI Talk | Alternatives can account for up to 20% of an NRI's India allocation: Shiv Gupta",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Paytm jumps over 4% after Rs 2,038-crore block deal; Saif Partners, Elevation Capital likely sellers",
+      "Headline": "Hero MotoCorp Share Price Live Updates: Hero MotoCorp's Current Price Update",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Infosys Share Price Live Updates: Infosys market movement today",
+      "Headline": "Jio Financial Services Share Price Live Updates: Jio Financial Services Sees Positive Movement",
       "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Nalco among 5 stocks that closed above VWAP, signaling bullish shift",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "LTM among 5 stocks flashing bullish signals, indicating possible uptrend",
-      "Sentiment": "Bullish"
     }
   ]
 }
