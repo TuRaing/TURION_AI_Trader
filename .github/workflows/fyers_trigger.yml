@@ -47,6 +47,12 @@ jobs:
           FYERS_AUTH_CODE: ${{ inputs.auth_code }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          # Added 05-Aug-2026 - a "Secrets: write"-scoped PAT (set up by
+          # the user, server-side only) so this run can share today's
+          # access token with the separately-scheduled check/square-off
+          # workflows - see fyers_trigger_run.py. Not set yet = this
+          # step is skipped gracefully, the one-shot trigger still works.
+          REPO_ADMIN_PAT: ${{ secrets.REPO_ADMIN_PAT }}
         run: python fyers_trigger_run.py
 
       - name: Commit updated Fyers state

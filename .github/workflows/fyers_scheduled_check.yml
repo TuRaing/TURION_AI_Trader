@@ -1,0 +1,75 @@
+name: Fyers Scheduled Check
+
+# Added 05-Aug-2026 - the continuous, every-few-minutes half of the
+# automation: reuses the FYERS_ACCESS_TOKEN repo secret that fyers_
+# trigger_run.py shared after the user's ONE morning login (see
+# .github/workflows/fyers_trigger.yml) - no login here. Triggered
+# externally by cron-job.org hitting workflow_dispatch (same pattern
+# as the existing yfinance Watchlist/Best Trade Entry Scan workflows -
+# GitHub's own free-tier `schedule:` cron under-fires badly, already
+# documented in doc/PROJECT_STATUS.md's Known Issues).
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fyers-scheduled-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run scheduled Fyers check
+        env:
+          FYERS_APP_ID: ${{ secrets.FYERS_APP_ID }}
+          FYERS_ACCESS_TOKEN: ${{ secrets.FYERS_ACCESS_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python fyers_scheduled_run.py
+
+      - name: Commit updated Fyers state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          commit_and_push() {
+            # One `git add <file> || true` per file, not a combined
+            # multi-path line - see the 05-Aug fix in fyers_trigger.yml
+            # (a single missing file among several silently discards
+            # staging ALL of them, `|| true` alone doesn't prevent that).
+            git add reports/options_premium_history.jsonl || true
+            git add reports/fyers_test_portfolio.json || true
+            git add reports/fyers_best_trade_portfolio.json || true
+            git add reports/fyers_options_portfolio.json || true
+            git diff --staged --quiet && return 0
+            git commit -m "Update Fyers state (scheduled check) [skip ci]"
+            git push
+          }
+
+          git pull --rebase origin ${{ github.ref_name }} || true
+
+          for i in 1 2 3; do
+            if commit_and_push; then
+              exit 0
+            fi
+            echo "Push rejected - re-syncing to latest ($i/3)..."
+            git rebase --abort 2>/dev/null || true
+            git fetch origin ${{ github.ref_name }}
+            git reset --hard origin/${{ github.ref_name }}
+            sleep 3
+          done
+
+          echo "Could not sync after 3 attempts - leaving it for the next scheduled run."
+          exit 1
