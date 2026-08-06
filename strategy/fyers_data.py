@@ -21,11 +21,16 @@ from strategy.fyers_auth import _app_id, get_access_token
 DATA_BASE_URL = "https://api-t1.fyers.in/data"
 
 # Fyers' per-request day-limit for intraday resolutions (tested 04-Aug:
-# 100 days ok, 120+ days "Invalid input"). Daily ("D") has no such limit
-# in practice (tested 20 years in one request).
+# 100 days ok, 120+ days "Invalid input"). UPDATED 05-Aug: "D" is NOT
+# unlimited - Fyers caps it at 366 days/request too ("Date range cannot
+# exceed 366 days for 1D, 1W, and 1M resolutions"). 04-Aug's "tested 20
+# years, no issues" note was wrong - every daily test that day happened
+# to use a <=366-day single request (e.g. one calendar year at a time),
+# never an actual >366-day single call, so the real per-request limit
+# went unnoticed until a real multi-year backtest hit it here.
 MAX_DAYS_PER_REQUEST = {
     "1": 100, "3": 100, "5": 100, "10": 100, "15": 100, "30": 100, "60": 100,
-    "D": 366 * 20,
+    "D": 366,
 }
 
 RESOLUTION_MAP = {
