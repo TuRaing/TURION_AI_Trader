@@ -2174,6 +2174,16 @@ out, and gated on the equity engines' unresolved net-negative
 finding getting a real answer (not just more calendar time passing)
 as much as on the new options strategies accumulating enough trades.
 
+DECIDED, 06/07-Aug: give the equity engines (Swing/Watchlist and
+Intraday/Best Trade) exactly ONE MORE WEEK of live running as
+currently tuned, then review and either retune or change the
+strategy - not indefinite further waiting. Review point: 1 week
+from 07-Aug (~14-Aug) - check real trades accumulated that week
+against the already-known net-negative large-sample finding (Swing
+-Rs 1,28,490.80/49 symbols, Intraday -31,200.17pts/48 symbols, 0/48
+profitable) and decide then, don't let this drift past that date
+without a decision.
+
 LIVE-DATA ARCHITECTURE (VPS + Firebase) - discussed in depth 06/07-
 Aug, NOT built yet, deliberately deferred: do this about 1 WEEK
 BEFORE starting real-capital trading (once paper-trading results
