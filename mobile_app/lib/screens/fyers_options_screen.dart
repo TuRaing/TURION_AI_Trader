@@ -84,7 +84,9 @@ class _FyersOptionsScreenState extends State<FyersOptionsScreen> {
             error: _error,
             hasData: _portfolio != null,
             onRetry: _fetch,
-            child: RefreshIndicator(onRefresh: _fetch, child: _buildBody()),
+            child: _portfolio == null
+                ? const SizedBox.shrink()
+                : RefreshIndicator(onRefresh: _fetch, child: _buildBody()),
           ),
         ),
       ],

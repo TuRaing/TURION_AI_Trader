@@ -24,7 +24,7 @@ const fyersOptionsPortfolioUrl = '$_repoRawBase/reports/fyers_options_portfolio.
 /// legitimately don't exist yet until the first real trade happens.
 Future<Map<String, dynamic>?> fetchJson(String url) async {
   final uri = Uri.parse('$url?t=${DateTime.now().millisecondsSinceEpoch}');
-  final response = await http.get(uri);
+  final response = await http.get(uri).timeout(const Duration(seconds: 15));
 
   if (response.statusCode == 404) {
     return null;
