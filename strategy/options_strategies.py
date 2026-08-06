@@ -21,7 +21,20 @@ from strategy.fyers_options_engine import make_strategy
 SIMPLE_ST1_NIFTY = make_strategy("simple_st1", "NIFTY", target_net_pct=3.0, stop_loss_pct=3.0)
 SIMPLE_ST1_BANKNIFTY = make_strategy("simple_st1", "BANKNIFTY", target_net_pct=3.0, stop_loss_pct=3.0)
 
+# st2 - same RSI-momentum entry as simple_st1, but reusing the exact
+# Target 5% / Stop-Loss 2% ratio that strategy/nifty_options_
+# backtest.py's forced-entry NIFTY sweep found best-by-far on 06-Aug
+# (+50.45% over 57 days) - see doc/06aug26_SESSION_LOG.md. That sweep
+# used Black-Scholes-ESTIMATED premiums and an unvalidated forced-
+# entry direction rule, so this is testing whether the same ratio
+# still helps once real quotes replace the estimate - not a claim the
+# backtest number will repeat live.
+ST2_NIFTY = make_strategy("st2", "NIFTY", target_net_pct=5.0, stop_loss_pct=2.0)
+ST2_BANKNIFTY = make_strategy("st2", "BANKNIFTY", target_net_pct=5.0, stop_loss_pct=2.0)
+
 ALL_STRATEGIES = [
     SIMPLE_ST1_NIFTY,
     SIMPLE_ST1_BANKNIFTY,
+    ST2_NIFTY,
+    ST2_BANKNIFTY,
 ]
