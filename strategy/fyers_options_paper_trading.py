@@ -42,6 +42,10 @@ INDEX_SYMBOL_FOR_RSI = "^NSEI"  # yfinance-style symbol strategy/fyers_data.py e
 TARGET_NET_PCT = 2.0
 STOP_LOSS_PCT = 5.0
 SQUAREOFF_TIME = (15, 15)
+MARKET_OPEN_TIME = (9, 15)  # NSE regular trading start - before this is
+                             # only the pre-open auction session, where
+                             # quotes are indicative/illiquid, not real
+                             # tradeable continuous-market prices.
 
 IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
 
@@ -268,7 +272,11 @@ def check_or_open():
     if portfolio["Position"] is not None:
         portfolio, action = _check_position(portfolio)
     else:
-        portfolio, action = _open_position(portfolio)
+        now_ist = datetime.datetime.now(IST)
+        if (now_ist.hour, now_ist.minute) < MARKET_OPEN_TIME:
+            action = "SKIPPED (before market open, pre-open session quotes not tradeable)"
+        else:
+            portfolio, action = _open_position(portfolio)
 
     save_portfolio(portfolio)
 

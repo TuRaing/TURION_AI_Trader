@@ -1190,20 +1190,34 @@ KNOWN ISSUES
   calendar instead of the fixed 3-day approximation, before
   treating the negative BANKNIFTY result as final.
 
-• NOT YET DIAGNOSED, 06-Aug: user reports the Android app's
-  "yfinance" and "History" tabs show a blank/completely white
-  screen, while "Fyers" and "Options" tabs load and show trades
-  correctly. Checked so far, all clean: reports/paper_portfolio.
-  json, reports/best_trade_portfolio.json, reports/candles.json
-  all parse as valid JSON; every Closed Trade in both portfolio
-  files has its required PnL/Entry Price/Exit Price fields (no
-  nulls that would throw a Dart `as num` cast exception); every
-  Open Position has its required fields too. Read history_
-  screen.dart in full - no obvious mismatch against the current
-  data shape. portfolio_screen.dart (the actual "yfinance" tab
-  file) NOT YET read this investigation - next step, along with
-  getting an actual screenshot from the user (asked for, not yet
-  received - "पूर्ण पांढ" confirmed white but no image).
+• FIXED 06-Aug: Android app's "yfinance" and "History" tabs (and,
+  latently, "Fyers"/"Options" too) showed a blank flat-gray screen -
+  root cause found once the user sent a screenshot (a plain gray
+  box filling the whole body, no spinner/error/text - the exact
+  signature of Flutter's default release-mode ErrorWidget for an
+  uncaught build() exception, not a data problem, which is why the
+  earlier JSON/field-level checks turned up nothing). Real bug: in
+  portfolio_screen.dart / history_screen.dart / fyers_portfolio_
+  screen.dart / fyers_options_screen.dart, `child: RefreshIndicator
+  (onRefresh: _fetch, child: _buildBody())` calls _buildBody()
+  EAGERLY as a constructor argument - Dart evaluates it immediately,
+  before LoadingErrorWrapper's own loading/hasData check ever runs -
+  and _buildBody()'s first line (`final portfolio = _portfolio!;`)
+  null-check-crashes on every build where _portfolio is still null
+  (the first frame, or any build following a failed/slow fetch).
+  This turned what should have been a harmless spinner or a
+  friendly "Could not load data / Retry" screen into a permanent
+  crash whenever that screen's fetch had any hiccup - explains why
+  it was specifically paper_portfolio.json/best_trade_portfolio.json
+  (the latter rewritten very frequently by live automation, more
+  exposed to a transient fetch failure) that actually manifested it,
+  even though Fyers screens carried the identical latent bug. FIXED:
+  guard the call site so _buildBody() only runs once _portfolio is
+  actually non-null, in all 4 affected screens. Also added a 15s
+  timeout to api.dart's fetchJson so a stalled request resolves to a
+  retry-able error instead of hanging _loading forever. flutter
+  analyze clean; built a fresh release APK and installed it on the
+  user's phone via adb (device re-authorized this session).
 
 • TESTING ARTIFACT IDENTIFIED, 06-Aug: the Fyers Options
   portfolio's big +₹26,472.24 (+26.47%) "Target" win (Cash grew
@@ -1215,13 +1229,36 @@ KNOWN ISSUES
   recorded at a non-market moment (likely a stale last-close
   quote) compared against a later real intraday quote can produce
   an inflated-looking move that would not have been achievable as
-  an actual trade. The two OTHER closed trades that day (both
-  Square-Off, both small losses, -₹219.95 and -₹269.65) are more
-  representative of what the properly gated (market-hours-only)
-  automation should produce going forward. Do not count this one
-  trade as evidence the options strategy/automation works -
-  only trades opened during real market hours by the scheduled
-  workflows (not manual test triggers) should be trusted.
+  an actual trade. RESET, same day: cleared reports/fyers_options_
+  portfolio.json back to a fresh ₹1,00,000/no-trades state so the
+  record only reflects the properly-gated live automation going
+  forward, not this test artifact.
+
+• FIXED 06-Aug: FOUND AND FIXED (before real capital, but a real
+  correctness bug regardless) - strategy/fyers_options_paper_
+  trading.py had NO entry-time gate at all (unlike the equity
+  Best Trade engine's 10:00-14:15 IST window), so it could open
+  (and did open) a position during NSE's pre-open auction session
+  before regular continuous trading even starts at 09:15 IST.
+  Diagnosed after the user asked "is the options data real?"
+  following a day where 10 real trades ran 06-Aug: verified via
+  the real GitHub Actions run history (public API) that
+  fyers_options_watch.yml fired reliably every ~1 min all morning
+  with zero gaps (129 runs, all success) - ruling out a scheduling
+  gap as the cause of trade #1's outsized +24.03% "Target" hit in
+  under 6 minutes. Root cause instead: trade #1's Entry Time was
+  09:11:51 IST, before the 09:15 market open - pre-open auction
+  quotes are indicative, not real continuous-market prices, and
+  the auction-to-open transition produced a large, discontinuous,
+  not-really-achievable premium jump. All other trades that day
+  (entered after 09:15) showed normal-sized overshoot past the
+  2%/5% thresholds (2-8 points), consistent with the already-
+  documented ~1-min check cadence + short-dated-option leverage,
+  not a bug. FIXED: added MARKET_OPEN_TIME = (9, 15) - check_or_
+  open() now skips opening a new position before 09:15 IST
+  (an already-open position still gets checked/closed normally
+  regardless of time, same as before). 3 existing unit tests still
+  pass; module imports clean.
 
 ==================================================
 

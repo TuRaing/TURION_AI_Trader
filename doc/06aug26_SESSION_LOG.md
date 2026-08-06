@@ -6,7 +6,10 @@ SESSION LOG
 
 Session ID
 
-S20260806-001 (cloud session - claude.ai/code)
+S20260806-001 (cloud session - claude.ai/code) then
+S20260806-002 (local machine session - Claude Code Desktop,
+D:\TURION_AI_Trader) same day, once a Flutter build + adb
+install was needed to actually fix the reported app bug.
 
 --------------------------------------------------
 
@@ -18,8 +21,8 @@ Date
 
 Version
 
-v0.0.15 (no version bump - findings/investigation session,
-no new shipped feature)
+v0.0.15 (no version bump - a real bug fix + backtest findings
+shipped, but not milestone-numbered)
 
 ==================================================
 
@@ -51,18 +54,39 @@ Today's Achievements
    hours by the scheduled workflows (not manual triggers) should
    count as evidence.
 
-🔍 INVESTIGATED (not yet resolved): user reported the app's
-   "yfinance" and "History" tabs show a blank/white screen while
-   "Fyers"/"Options" load fine. Checked reports/paper_portfolio.
-   json, reports/best_trade_portfolio.json, reports/candles.json
-   for JSON validity and missing/null fields (PnL, Entry Price,
-   Exit Price on every Closed Trade; required keys on every Open
-   Position) - all structurally clean, no obvious cause found.
-   Read history_screen.dart in full against that data shape - no
-   mismatch spotted. portfolio_screen.dart (the actual "yfinance"
-   tab) not yet read. Asked the user for a screenshot - confirmed
-   "पूर्ण पांढ" (completely white) but no image received yet.
-   REMAINS OPEN - see Next Session Priorities.
+✅ FIXED: the app's "yfinance"/"History" blank-white-screen bug.
+   Data-level checks (JSON validity, missing/null fields) had found
+   nothing because the bug wasn't in the data - a screenshot from
+   the user (a flat gray box, no spinner/error/text) revealed it as
+   Flutter's default release-mode crash screen instead. Root cause:
+   portfolio_screen.dart / history_screen.dart / fyers_portfolio_
+   screen.dart / fyers_options_screen.dart all called `_buildBody()`
+   EAGERLY as a constructor argument to RefreshIndicator, before the
+   loading/hasData check that's meant to gate it - so `_portfolio!`
+   null-check-crashed on the first frame (or after any failed
+   fetch), every time. Fixed by guarding the call so _buildBody()
+   only runs once _portfolio is non-null, in all 4 screens; also
+   added a 15s timeout to api.dart's fetchJson so a stalled request
+   fails into a Retry button instead of hanging forever. flutter
+   analyze clean. Switched to a local machine session to actually
+   build + adb-install the fix (phone connected + authorized live
+   this session) - VERIFIED the new APK installs and the fetch/
+   timeout logic behaves as expected.
+
+✅ FIXED: strategy/fyers_options_paper_trading.py had no entry-time
+   gate (unlike the equity Best Trade engine's 10:00-14:15 IST
+   window) - found while answering the user's "is the options data
+   real?" question about a day with 10 real trades. Confirmed via
+   the real GitHub Actions run history (public API, 129 runs,
+   every ~1 min, zero gaps, all success) that the automation itself
+   was running exactly as designed - the outsized first trade
+   (+24.03% "Target" in under 6 min) traced instead to its Entry
+   Time being 09:11:51 IST, before NSE's 09:15 market open, meaning
+   it traded on pre-open auction quotes rather than real continuous-
+   market prices. Added MARKET_OPEN_TIME = (9, 15) - check_or_open()
+   now skips opening a new position before then (an already-open
+   position still gets checked/closed normally). 3 existing unit
+   tests still pass.
 
 ✅ Full-capital, real-rupee backtest completed: NIFTY 50 +
    Bank Nifty (^NSEBANK), ₹1,00,000 deployed independently per
@@ -99,38 +123,47 @@ Today's Achievements
    BHARTIARTL, KOTAKBANK, LT, AXISBANK, BAJFINANCE) - all 13
    net-negative so far, consistent with the Swing finding above.
 
+✅ Reset reports/fyers_options_portfolio.json back to a fresh
+   ₹1,00,000/no-trades state (the earlier testing-artifact trades
+   were cluttering the record) once the automation was confirmed
+   live and running properly on real market hours.
+
+✅ Reviewed Fyers Swing/Intraday status mid-session at the user's
+   request: Swing still 15 open positions, ₹1,00,000 cash, nothing
+   closed yet; Intraday still has never opened a position.
+
 ✅ Updated doc/PROJECT_STATUS.md with all of the above (full-
    capital Swing+BankNifty finding, Intraday resume status, the
-   testing-artifact trade caveat, the white-screen bug as an
-   open item).
+   testing-artifact trade caveat, the blank-screen bug fix, the
+   options entry-time-gate fix).
 
 ==================================================
 
 Next Session Priorities
 
-1. Diagnose the "yfinance"/"History" blank-screen bug - read
-   portfolio_screen.dart (not yet checked), get a screenshot
-   from the user if still reproducible, consider whether this
-   is a transient app-cache issue vs. a real code bug.
+1. Let the Intraday full-50-symbol backtest finish (was at
+   13/50 mid-session) and record the final aggregate in
+   PROJECT_STATUS.md.
 
-2. Let the Intraday full-50-symbol backtest finish (currently
-   13/50) and record the final aggregate in PROJECT_STATUS.md.
-
-3. Follow up on WHY the Daily-timeframe Swing strategy's
+2. Follow up on WHY the Daily-timeframe Swing strategy's
    original "proven" claim differs so much from today's large-
    sample real-rupee finding (-₹1,28,490.80 across 49 symbols,
    only 18 profitable) - not yet investigated.
 
-4. Build the STCG (~20%) after-tax column the user asked for,
+3. Build the STCG (~20%) after-tax column the user asked for,
    alongside the existing pre-tax transaction-cost model, and
    re-show the full-capital results as pre-tax vs. after-tax.
 
-5. Decide next strategy research direction now that the
+4. Decide next strategy research direction now that the
    "proven" baseline is in question: a futures-based approach
    (cont_flag=1 gives real multi-year continuous data, unlike
    options) or a symbol-selective approach based on which of
    the 18 profitable symbols actually showed a real edge,
    instead of treating the watchlist as one uniform strategy.
+
+5. Watch a few more real trading days on the now-fixed Options
+   engine (09:15 entry gate) to see whether removing the pre-open
+   trade changes the day's overall PnL character meaningfully.
 
 6. Carried over: apply strategy/transaction_costs.py's real
    cost model to the live Watchlist/Best Trade Engine's own
