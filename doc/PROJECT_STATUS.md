@@ -1190,6 +1190,39 @@ KNOWN ISSUES
   calendar instead of the fixed 3-day approximation, before
   treating the negative BANKNIFTY result as final.
 
+• NOT YET DIAGNOSED, 06-Aug: user reports the Android app's
+  "yfinance" and "History" tabs show a blank/completely white
+  screen, while "Fyers" and "Options" tabs load and show trades
+  correctly. Checked so far, all clean: reports/paper_portfolio.
+  json, reports/best_trade_portfolio.json, reports/candles.json
+  all parse as valid JSON; every Closed Trade in both portfolio
+  files has its required PnL/Entry Price/Exit Price fields (no
+  nulls that would throw a Dart `as num` cast exception); every
+  Open Position has its required fields too. Read history_
+  screen.dart in full - no obvious mismatch against the current
+  data shape. portfolio_screen.dart (the actual "yfinance" tab
+  file) NOT YET read this investigation - next step, along with
+  getting an actual screenshot from the user (asked for, not yet
+  received - "पूर्ण पांढ" confirmed white but no image).
+
+• TESTING ARTIFACT IDENTIFIED, 06-Aug: the Fyers Options
+  portfolio's big +₹26,472.24 (+26.47%) "Target" win (Cash grew
+  ₹1,00,000 -> ₹1,25,982.63) is NOT a trustworthy live result -
+  its Entry Time was 05-Aug 00:14:54 IST, well outside NSE market
+  hours (09:15-15:30), which only happened because of this
+  session's own manual fyers_trigger_run.py test runs overnight
+  while debugging the login/PAT/automation fixes. A price
+  recorded at a non-market moment (likely a stale last-close
+  quote) compared against a later real intraday quote can produce
+  an inflated-looking move that would not have been achievable as
+  an actual trade. The two OTHER closed trades that day (both
+  Square-Off, both small losses, -₹219.95 and -₹269.65) are more
+  representative of what the properly gated (market-hours-only)
+  automation should produce going forward. Do not count this one
+  trade as evidence the options strategy/automation works -
+  only trades opened during real market hours by the scheduled
+  workflows (not manual test triggers) should be trusted.
+
 ==================================================
 
 NEXT DEVELOPMENT PLAN
@@ -1765,13 +1798,51 @@ result came from a different (smaller/luckier) sample, a
 different exact parameter combo, or whether something about
 Fyers-vs-yfinance data itself differs enough to matter.
 
-Intraday (Best Trade core) full-50-symbol, 1-year test is IN
-PROGRESS as of this entry (see doc/05aug26_SESSION_LOG.md for
-the two real problems hit along the way - a premature process
-kill caused by buffered stdout looking like a hang, and Fyers'
-daily token expiring mid-run at midnight, both understood and
-recovered from). Partial result so far (5/50 symbols): all 5
-net-negative.
+Intraday (Best Trade core) full-50-symbol, 1-year test: hit
+Fyers' midnight daily-token expiry TWICE across two separate
+overnight attempts (see doc/05aug26_SESSION_LOG.md and
+doc/06aug26_SESSION_LOG.md) - each attempt's not-yet-run
+symbols failed with "Could not authenticate the user" once the
+token expired, requiring a fresh morning login and a resume
+script reusing already-completed results. 06-Aug: resumed again
+after the second token expiry, IN PROGRESS as of this entry
+(13/50 symbols done so far: RELIANCE, TCS, HDFCBANK, ICICIBANK,
+INFY, HINDUNILVR, ITC, SBIN, BHARTIARTL, KOTAKBANK, LT,
+AXISBANK, BAJFINANCE) - all 13 net-negative so far, consistent
+with the Swing finding below.
+
+MAJOR FINDING, 06-Aug - Swing (Watchlist) + Bank Nifty, REAL
+RUPEE position sizing (₹1,00,000 deployed independently per
+symbol, not split across the watchlist - user's explicit
+request), full NIFTY 50 + ^NSEBANK, 2 years real Fyers daily
+data, the same "proven" combo (1.5x SL/3x Target ATR, filters
+on): 477 trades across 49/51 symbols (TATAMOTORS.NS/LTIM.NS
+still fail - no valid Fyers symbol, same as the yfinance-era
+issue), 31.03% win rate, TOTAL NET PnL -₹1,28,490.80 (real
+rupees, transaction costs included). Only 18/49 symbols
+individually profitable. Bank Nifty specifically: 10 trades,
+20% win rate, -₹5,417.21. Top winners: ADANIPORTS.NS
+(+₹29,663.86), ADANIENT.NS (+₹26,471.54), HINDALCO.NS
+(+₹23,517.61), HEROMOTOCO.NS (+₹23,328.70), SBILIFE.NS
+(+₹13,387.77). Top losers: DRREDDY.NS (-₹24,033.36),
+COALINDIA.NS (-₹20,425.15), BAJAJFINSV.NS (-₹19,929.45),
+AXISBANK.NS (-₹19,267.09), TATASTEEL.NS (-₹18,859.40). This
+CONFIRMS the raw-points finding above (net-negative at real
+sample size) and makes it concrete in rupee terms - deploying
+the full staged-capital plan's ₹1,00,000 per symbol on this
+exact strategy across the real watchlist would have lost money
+over the last 2 years, not made it. STILL NEEDS FOLLOW-UP (not
+yet done): why does this contradict the document's own
+repeated "proven" framing from earlier (smaller-sample) tests -
+was that based on fewer symbols, a shorter window, different
+exact parameters, or something about yfinance-vs-Fyers data
+differing enough to matter. Do not treat the Daily-timeframe
+Watchlist strategy as validated for real capital until this is
+resolved. STCG tax (~20% on short-term equity gains) is NOT yet
+included in this figure - user asked for it to be shown as a
+separate after-tax column alongside pre-tax; strategy/
+transaction_costs.py currently models only broker/exchange
+charges, not capital-gains tax. Not yet built.
 
 Before any real capital is used (raised 21-Jul):
 current paper-trading/backtest PnL is gross - it does
