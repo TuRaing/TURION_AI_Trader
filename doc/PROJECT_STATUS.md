@@ -2143,6 +2143,102 @@ financial advice - risk/engineering process only):
   on gut feel, or it becomes impossible to tell whether the
   strategy itself is working.
 
+HOW MANY MORE DAYS OF PAPER TRADING (asked 06/07-Aug): no single
+fixed number - gated on trade COUNT per the rule above, not the
+calendar, and today's real findings push this out further than the
+original "one more month" plan assumed:
+
+- The two ORIGINAL equity engines (Swing/Watchlist and Intraday/
+  Best Trade) are now BOTH confirmed net-negative at real scale on
+  real Fyers data (Swing: -Rs 1,28,490.80 across 49 symbols, only
+  18 profitable; Intraday: -31,200.17 points across 48 symbols,
+  ZERO profitable) - see 06-Aug's Known Issues entries. Real capital
+  should NOT move forward on these two as currently tuned,
+  independent of how many calendar days pass - either a fix/re-tune
+  is needed, or the symbol-selective/futures-based redirection
+  already flagged as a next step.
+- The ORIGINAL single options strategy also closed today net-
+  negative (-Rs 3,128.35, 49 trades, 61.2% win rate but bad risk/
+  reward) and has now been retired (superseded by simple_st1,
+  archived - see below).
+- The 4 NEW options strategies (simple_st1/st2/st3/st4) only went
+  live 06-Aug and have zero real trades yet. simple_st1/st2/st3
+  trade multiple times/day (like the original) so could reach a
+  meaningful ~30-50 trade sample within 1-2 real trading weeks.
+  st4 (one high-confidence trade/day, selective by design) will
+  take much longer to reach the same sample size - possibly
+  30-60 trading days, since it may not fire every single day.
+
+Bottom line: real capital is realistically AT LEAST several weeks
+out, and gated on the equity engines' unresolved net-negative
+finding getting a real answer (not just more calendar time passing)
+as much as on the new options strategies accumulating enough trades.
+
+LIVE-DATA ARCHITECTURE (VPS + Firebase) - discussed in depth 06/07-
+Aug, NOT built yet, deliberately deferred: do this about 1 WEEK
+BEFORE starting real-capital trading (once paper-trading results
+look good enough to actually proceed to Rs 10,000), not now - it's
+real recurring cost and engineering effort with no benefit while
+still validating strategies on the current ~1-5 min periodic-check
+cadence.
+
+Why: the current cron-based automation only checks Target/Stop-Loss
+every ~1-5 min, so a real price crossing gets caught late - this
+IS a real, measured problem (today's options trades routinely
+overshot their nominal 2%/3%/5% thresholds by several points,
+sometimes 2-4x, purely from checking too infrequently, not from
+the strategy itself). A true live feed would fix this by checking
+on every real price tick instead of on a timer.
+
+Architecture agreed: Fyers WebSocket (live ticks) -> a small always-
+on VPS (GitHub Actions can't hold a persistent connection - every
+run is short-lived) runs the Target/SL/trailing logic on each tick
+-> pushes the result to Firebase Realtime Database (already used in
+this project for push notifications, no new account needed) -> the
+Flutter app subscribes directly, no more periodic HTTP polling.
+
+Region matters far more than which specific service: put the VPS
+AND Firebase project in the SAME region as each other AND close to
+Fyers (asia-south1 / Mumbai) - this is the single biggest latency
+lever, not which specific messaging service is used.
+- Different regions (VPS Mumbai, Firebase default US): ~450-650ms
+  end-to-end.
+- Same region (VPS + Firebase both asia-south1): ~50-135ms.
+- Self-hosted MQTT (Mosquitto) ON the VPS instead of Firebase:
+  ~20-75ms (VPS-to-broker hop becomes local/free, only one real
+  network hop left) - genuinely faster, but CONCLUSION: not worth
+  the extra security/reconnect-handling work (TLS via Let's
+  Encrypt, Mosquitto's built-in auth, systemd auto-restart) - once
+  the reaction time is already faster than the market's OWN tick
+  rate (NIFTY/BANKNIFTY options don't update meaningfully faster
+  than roughly every 200-500ms even when liquid), going faster
+  still changes nothing about which price tick gets caught. The
+  real, large win is "periodic (1-5 min) -> any live push" -
+  Firebase already captures that whole win. Chasing Firebase-vs-
+  self-hosted-MQTT's last ~50-80ms has ZERO measurable effect on
+  real trade outcomes and isn't worth the added complexity.
+  Managed MQTT clouds (HiveMQ Cloud, EMQX Cloud) were also
+  considered and rejected for the same reason - they have the same
+  two-hop topology as Firebase (VPS -> their broker -> app), so
+  give Firebase-like latency without Firebase's simplicity
+  advantage.
+
+DECISION: Firebase (not self-hosted MQTT, not a managed MQTT
+cloud) - same simplicity as what's already wired into this project,
+same-region setup gets it fast enough that the last bit of possible
+speed genuinely doesn't matter here.
+
+Estimated cost: VPS ~Rs 400-600/month (a small India-region
+instance - e.g. AWS Lightsail Mumbai), Firebase likely stays free
+at this single-user scale. First real recurring cost this project
+will have (everything so far is Rs 0).
+
+Estimated build time: ~15-25 hours of focused work (VPS setup +
+TLS/security if self-hosting is ever revisited + rewriting the
+options/Swing/Intraday check logic from periodic-poll to event-
+driven-on-tick + Flutter-side Firebase listener wiring + end-to-end
+testing) - roughly 2-4 focused days, not a quick add-on.
+
 ==================================================
 
 DEVELOPMENT RULES
