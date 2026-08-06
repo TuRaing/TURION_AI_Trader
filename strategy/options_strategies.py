@@ -1,4 +1,5 @@
-from strategy.fyers_options_engine import make_strategy
+from strategy.fyers_options_engine import make_strategy, check_or_open as check_or_open_generic
+from strategy.fyers_options_st4 import make_st4_config, check_or_open as check_or_open_st4
 
 # Added 06-Aug-2026 - the named-strategy roster for the multi-strategy
 # options paper trading the user asked for: several live strategies
@@ -41,11 +42,22 @@ ST2_BANKNIFTY = make_strategy("st2", "BANKNIFTY", target_net_pct=5.0, stop_loss_
 ST3_NIFTY = make_strategy("st3", "NIFTY", target_net_pct=5.0, stop_loss_pct=5.0)
 ST3_BANKNIFTY = make_strategy("st3", "BANKNIFTY", target_net_pct=5.0, stop_loss_pct=5.0)
 
+# st4 - materially different entry/exit logic (multi-timeframe + ADX
+# alignment, one trade/day, trailing stop after a rupee profit
+# threshold) - see strategy/fyers_options_st4.py for the full design
+# reasoning. Its check_or_open has a different signature source than
+# the generic engine's, so ALL_STRATEGIES pairs each config with the
+# function that actually runs it.
+ST4_NIFTY = make_st4_config("NIFTY")
+ST4_BANKNIFTY = make_st4_config("BANKNIFTY")
+
 ALL_STRATEGIES = [
-    SIMPLE_ST1_NIFTY,
-    SIMPLE_ST1_BANKNIFTY,
-    ST2_NIFTY,
-    ST2_BANKNIFTY,
-    ST3_NIFTY,
-    ST3_BANKNIFTY,
+    (check_or_open_generic, SIMPLE_ST1_NIFTY),
+    (check_or_open_generic, SIMPLE_ST1_BANKNIFTY),
+    (check_or_open_generic, ST2_NIFTY),
+    (check_or_open_generic, ST2_BANKNIFTY),
+    (check_or_open_generic, ST3_NIFTY),
+    (check_or_open_generic, ST3_BANKNIFTY),
+    (check_or_open_st4, ST4_NIFTY),
+    (check_or_open_st4, ST4_BANKNIFTY),
 ]
