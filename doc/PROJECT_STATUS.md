@@ -1297,6 +1297,49 @@ KNOWN ISSUES
   design), but is now actually getting checked every ~5 min for the
   first time since it was built.
 
+• FIXED 06-Aug (same day, right after the fix above): once the cron
+  job + git-race fixes let Intraday actually run, its first-ever
+  real position (SBIN, opened ~14:07 IST) still wouldn't close
+  despite being well past its 14:45 IST square-off time on every
+  5-min check since. Root cause in fyers_daily_best_trade.py's
+  monitor_open_position(): after a close, portfolio["Position"]
+  becomes None, but the status print read it back via
+  `portfolio.get('Position', {}).get('Name', symbol)` - dict.get()'s
+  default only applies when the KEY is missing, not when its value
+  is None, so this crashed with 'NoneType' object has no attribute
+  'get' on every close attempt, BEFORE save_best_trade_portfolio()
+  could persist it - the close was computed correctly in memory
+  every single time and silently thrown away every single time.
+  Fixed by reading the position's name before the close call
+  instead of after. VERIFIED live: SBIN closed for real on the next
+  trigger (Entry ₹1,081.90 -> Exit ₹1,085.00, Intraday Square-Off,
+  PnL +₹3.10) - the first complete, real Fyers Intraday trade this
+  project has ever produced.
+
+• FIXED 06-Aug: fyers_portfolio_screen.dart's "Fyers" tab only ever
+  showed the Intraday section's currently-OPEN position - once a
+  trade closed (see the SBIN fix above) it just reverted to "No
+  open intraday position today" with no way to see what had just
+  happened, which is what made the SBIN close look like it hadn't
+  worked even after the backend fix landed. Added a ClosedTradeCard
+  fallback showing the latest Intraday closed trade when there's no
+  open position, matching the pattern Swing's own EventBanner
+  already used. flutter analyze clean; rebuilt and reinstalled the
+  APK.
+
+• FOUND 06-Aug (not yet fixed - documented for follow-up): the
+  Options engine's real day-1 results expose an unfavorable risk/
+  reward ratio. 49 real trades, 61.2% win rate (30 wins/19 losses) -
+  but still a NET LOSS of -₹3,128.35 (Cash ₹1,00,000 -> ₹96,871.65).
+  TARGET_NET_PCT=2.0 vs STOP_LOSS_PCT=5.0 needs a win rate above
+  ~71% (5/(5+2)) just to break even at those exact nominal levels,
+  and real overshoot past the nominal Stop-Loss (leverage effect,
+  documented earlier this session) makes losses run even bigger in
+  practice - so today's respectable-looking 61.2% win rate still
+  wasn't enough. Worth testing a more symmetric target/stop ratio
+  (or target > stop) before trusting this strategy's real-money
+  potential - not changed yet, just documented.
+
 ==================================================
 
 NEXT DEVELOPMENT PLAN
@@ -1878,12 +1921,18 @@ overnight attempts (see doc/05aug26_SESSION_LOG.md and
 doc/06aug26_SESSION_LOG.md) - each attempt's not-yet-run
 symbols failed with "Could not authenticate the user" once the
 token expired, requiring a fresh morning login and a resume
-script reusing already-completed results. 06-Aug: resumed again
-after the second token expiry, IN PROGRESS as of this entry
-(13/50 symbols done so far: RELIANCE, TCS, HDFCBANK, ICICIBANK,
-INFY, HINDUNILVR, ITC, SBIN, BHARTIARTL, KOTAKBANK, LT,
-AXISBANK, BAJFINANCE) - all 13 net-negative so far, consistent
-with the Swing finding below.
+script reusing already-completed results. COMPLETED 06-Aug after
+the second resume: 48/50 symbols (TATAMOTORS.NS/LTIM.NS still
+have no valid Fyers symbol), 7,680 total trades, 29.48% win
+rate, TOTAL NET PnL -31,200.17 (raw points, not rupee-
+normalized). ZERO of 48 symbols profitable - worse than the
+Swing finding below (18/49 profitable). Worst 5: MARUTI.NS
+(-3,815.02), BAJAJ-AUTO.NS (-3,206.10), EICHERMOT.NS (-2,335.44),
+APOLLOHOSP.NS (-2,026.66), DIVISLAB.NS (-1,936.43). Combined with
+the Swing result below, this is now large-sample evidence that
+BOTH of this project's core engines - not just one - are net-
+negative on real Fyers data at real scale, not an isolated bad-
+window result.
 
 MAJOR FINDING, 06-Aug - Swing (Watchlist) + Bank Nifty, REAL
 RUPEE position sizing (₹1,00,000 deployed independently per

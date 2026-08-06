@@ -111,17 +111,20 @@ Today's Achievements
    alongside pre-tax; strategy/transaction_costs.py only models
    broker/exchange charges today, tax modeling not yet built.
 
-🔄 Intraday (Best Trade core) full-50-symbol, 1-year backtest:
-   hit Fyers' midnight daily-token expiry a SECOND time
-   overnight (first hit documented 05-Aug) - the resume attempt
-   itself failed entirely (all 45 remaining symbols errored
-   "Could not authenticate the user" since the token had already
-   expired before that script started). Resumed again this
-   morning after a fresh login, reusing the 5 already-completed
-   results; IN PROGRESS as of this log (13/50 done: RELIANCE,
-   TCS, HDFCBANK, ICICIBANK, INFY, HINDUNILVR, ITC, SBIN,
-   BHARTIARTL, KOTAKBANK, LT, AXISBANK, BAJFINANCE) - all 13
-   net-negative so far, consistent with the Swing finding above.
+✅ Intraday (Best Trade core) full-50-symbol, 1-year backtest
+   COMPLETED (after hitting Fyers' midnight daily-token expiry
+   TWICE overnight - first hit documented 05-Aug, second hit and
+   resumed earlier today - see above). Final result: 48/50 symbols
+   (TATAMOTORS.NS/LTIM.NS still have no valid Fyers symbol),
+   7,680 total trades, 29.48% win rate, TOTAL NET PnL -31,200.17
+   (raw points, not rupee-normalized). ZERO of 48 symbols
+   profitable - even worse than the Swing finding above (18/49
+   profitable). Worst 5: MARUTI.NS (-3,815), BAJAJ-AUTO.NS
+   (-3,206), EICHERMOT.NS (-2,335), APOLLOHOSP.NS (-2,027),
+   DIVISLAB.NS (-1,936). Combined with the Swing result, this is
+   now strong, large-sample evidence that BOTH of this project's
+   core engines - not just one - are net-negative on real Fyers
+   data at real scale, not just an isolated bad-window result.
 
 ✅ Reset reports/fyers_options_portfolio.json back to a fresh
    ₹1,00,000/no-trades state (the earlier testing-artifact trades
@@ -175,46 +178,91 @@ Today's Achievements
       after the fix, Last Checked timestamps advanced to today's
       real time for the first time.
 
+✅ FIXED a second real bug the same investigation surfaced: once
+   the cron job + git-race fixes above were live, the day's first-
+   ever real Fyers Intraday position (SBIN, opened 14:07 IST once
+   converted from the raw UTC-stored timestamp) still wouldn't
+   close despite being well past its 14:45 IST square-off time on
+   every 5-min check. Root cause in fyers_daily_best_trade.py's
+   monitor_open_position(): after a close, portfolio["Position"]
+   becomes None, but the status line read it back via
+   `portfolio.get('Position', {}).get('Name', symbol)` - dict.get()'s
+   default only applies when the KEY is missing, not when its
+   value is None, so this crashed with 'NoneType' object has no
+   attribute 'get' on every single close attempt. The close itself
+   computed correctly in memory every time, but the crash happened
+   BEFORE save_best_trade_portfolio() could persist it - so the
+   position kept reappearing as "still open" on the next check,
+   indefinitely. Fixed by reading the position's name before the
+   close call instead of after. VERIFIED live: re-triggered, SBIN
+   closed for real this time (Entry ₹1,081.90 -> Exit ₹1,085.00,
+   Intraday Square-Off, PnL +₹3.10) - the first real, complete
+   Fyers Intraday trade this project has ever produced.
+
+✅ FOUND AND FIXED a related app gap while confirming the SBIN
+   close: fyers_portfolio_screen.dart's "Fyers" tab only ever
+   showed the Intraday section's currently-OPEN position - once a
+   trade closed it just silently reverted to "No open intraday
+   position today" with no way to see what had just happened. Added
+   a ClosedTradeCard fallback showing the latest Intraday closed
+   trade when there's no open position, matching the pattern
+   Swing's own EventBanner already used. flutter analyze clean;
+   rebuilt and reinstalled the APK (second local build this
+   session).
+
+✅ Reviewed today's Fyers Options live results at the user's
+   request: 49 real trades, 61.2% win rate (30 wins/19 losses) -
+   but still a NET LOSS of -₹3,128.35 (Cash ₹1,00,000 -> 96,871.65).
+   Cause: TARGET_NET_PCT=2.0 vs STOP_LOSS_PCT=5.0 is an unfavorable
+   risk/reward ratio - breakeven needs >71% win rate at those exact
+   levels (5/(5+2)), and real overshoot past the nominal Stop-Loss
+   (documented earlier this session) makes losses run even bigger
+   in practice. Today's 61.2% win rate, while respectable-looking
+   on its own, isn't enough to overcome losses that are ~2.5x the
+   size of wins. Flagged as a real design issue worth revisiting
+   (e.g. a more symmetric or target>stop ratio) - not changed yet,
+   just documented.
+
 ✅ Updated doc/PROJECT_STATUS.md with all of the above (full-
-   capital Swing+BankNifty finding, Intraday resume status, the
-   testing-artifact trade caveat, the blank-screen bug fix, the
-   options entry-time-gate fix, the missing-cron-job + git-race
-   fixes).
+   capital Swing+BankNifty finding, completed Intraday 50-symbol
+   backtest, the testing-artifact trade caveat, the blank-screen
+   bug fix, the options entry-time-gate fix, the missing-cron-job +
+   git-race fixes, the Intraday close-crash fix, the app's Intraday-
+   closed-trade display fix, today's Options risk/reward finding).
 
 ==================================================
 
 Next Session Priorities
 
 1. Watch the now-fixed automation over the next few real trading
-   hours/days: confirm Intraday finally gets a real shot at
-   opening a position (15m/5m/1m alignment can still legitimately
-   not fire for a while - it's selective by design) and that
-   Swing's Last Checked keeps advancing every ~5 min without
-   another silent-loss regression.
+   days: confirm Swing's Last Checked keeps advancing every ~5 min
+   and Intraday keeps getting real, persisted open/close cycles
+   (not just the one SBIN trade) without another silent-loss
+   regression.
 
-2. Let the Intraday full-50-symbol backtest finish (was at
-   13/50 mid-session) and record the final aggregate in
-   PROJECT_STATUS.md.
+2. Reconsider the Options engine's TARGET_NET_PCT/STOP_LOSS_PCT
+   ratio (currently 2.0/5.0, needs >71% win rate to break even) -
+   today's 61.2% win rate still lost money. A more symmetric ratio
+   (or target > stop) is worth testing before trusting this
+   strategy's real-money potential.
 
-2. Follow up on WHY the Daily-timeframe Swing strategy's
-   original "proven" claim differs so much from today's large-
-   sample real-rupee finding (-₹1,28,490.80 across 49 symbols,
-   only 18 profitable) - not yet investigated.
+3. Follow up on WHY the Daily-timeframe Swing strategy's original
+   "proven" claim differs so much from today's large-sample real-
+   rupee finding (-₹1,28,490.80 across 49 symbols, only 18
+   profitable) - and now that Intraday's full-50-symbol result is
+   in too (0/48 profitable, -31,200 points), the same question
+   applies there even more strongly - not yet investigated.
 
-3. Build the STCG (~20%) after-tax column the user asked for,
+4. Build the STCG (~20%) after-tax column the user asked for,
    alongside the existing pre-tax transaction-cost model, and
    re-show the full-capital results as pre-tax vs. after-tax.
 
-4. Decide next strategy research direction now that the
-   "proven" baseline is in question: a futures-based approach
-   (cont_flag=1 gives real multi-year continuous data, unlike
-   options) or a symbol-selective approach based on which of
-   the 18 profitable symbols actually showed a real edge,
-   instead of treating the watchlist as one uniform strategy.
-
-5. Watch a few more real trading days on the now-fixed Options
-   engine (09:15 entry gate) to see whether removing the pre-open
-   trade changes the day's overall PnL character meaningfully.
+5. Decide next strategy research direction now that BOTH "proven"
+   baselines are in question: a futures-based approach (cont_flag=1
+   gives real multi-year continuous data, unlike options) or a
+   symbol-selective approach based on which of the profitable
+   symbols actually showed a real edge, instead of treating the
+   watchlist/intraday universe as one uniform strategy.
 
 6. Carried over: apply strategy/transaction_costs.py's real
    cost model to the live Watchlist/Best Trade Engine's own

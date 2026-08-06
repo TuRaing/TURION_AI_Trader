@@ -118,6 +118,10 @@ class _FyersPortfolioScreenState extends State<FyersPortfolioScreen> {
         ? null
         : (intradayPosition['Name'] ?? intradayPosition['Symbol'] ?? 'NIFTY 50').toString();
 
+    final intradayClosedTrades = List<Map<String, dynamic>>.from(
+        (_bestTradePortfolio?['Closed Trades'] ?? []).map((t) => Map<String, dynamic>.from(t)));
+    final latestIntradayTrade = intradayClosedTrades.isNotEmpty ? intradayClosedTrades.last : null;
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -198,10 +202,16 @@ class _FyersPortfolioScreenState extends State<FyersPortfolioScreen> {
               const Text('Intraday — Today\'s Position',
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: accentColor)),
               const SizedBox(height: 8),
-              if (intradayPosition == null)
+              if (intradayPosition == null && latestIntradayTrade == null)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 8),
                   child: Text('No open intraday position today', style: TextStyle(color: mutedColor)),
+                )
+              else if (intradayPosition == null)
+                ClosedTradeCard(
+                  trade: latestIntradayTrade!,
+                  typeLabel: 'Intraday',
+                  typeColor: accentColor,
                 )
               else
                 OpenPositionCard(
