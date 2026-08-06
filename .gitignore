@@ -20,6 +20,13 @@ reports/*.json
 !reports/fyers_test_portfolio.json
 !reports/fyers_best_trade_portfolio.json
 !reports/fyers_options_portfolio.json
+# Added 06-Aug-2026 - a frozen backup of the ORIGINAL single live
+# options strategy's final state before it was retired (superseded
+# by simple_st1, and its cron-job.org trigger disabled) - see
+# doc/06aug26_SESSION_LOG.md. reports/fyers_options_portfolio.json
+# itself is left in place too (also tracked above), just no longer
+# updated once the trigger is off.
+!reports/fyers_options_original_strategy_archive_06aug26.json
 # Added 06-Aug-2026 - multi-strategy options portfolios (strategy/
 # fyers_options_engine.py + strategy/options_strategies.py) - one
 # file per named strategy x index (simple_st1/st2/st3/st4 x NIFTY/
