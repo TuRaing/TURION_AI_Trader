@@ -39,17 +39,6 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python fyers_scheduled_run.py
 
-      - name: Refresh Fyers candles
-        # Added 06-Aug-2026 - feeds the app's candlestick-chart-on-tap
-        # for Fyers trades (Swing/Intraday equity + the multi-strategy
-        # options engines' underlying index). Runs at this workflow's
-        # ~5-min cadence, not the faster Options Watch one - candles
-        # are 15m-interval, no benefit to refreshing them every ~1 min.
-        env:
-          FYERS_APP_ID: ${{ secrets.FYERS_APP_ID }}
-          FYERS_ACCESS_TOKEN: ${{ secrets.FYERS_ACCESS_TOKEN }}
-        run: python refresh_fyers_candles.py
-
       - name: Commit updated Fyers state
         run: |
           git config user.name "github-actions[bot]"
@@ -63,7 +52,6 @@ jobs:
           git add reports/fyers_test_portfolio.json || true
           git add reports/fyers_best_trade_portfolio.json || true
           git add reports/fyers_options_portfolio.json || true
-          git add reports/fyers_candles.json || true
 
           if git diff --staged --quiet; then
             echo "No changes to commit."
