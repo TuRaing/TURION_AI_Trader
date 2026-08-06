@@ -1260,6 +1260,43 @@ KNOWN ISSUES
   regardless of time, same as before). 3 existing unit tests still
   pass; module imports clean.
 
+• FIXED 06-Aug: ROOT CAUSE of Intraday never opening a real
+  position + Swing's 15 open positions never getting fresh checks -
+  two compounding bugs, found by digging into the real GitHub
+  Actions run history (public API) instead of assuming the strategy
+  code was at fault:
+  1. The "Fyers Scheduled Check Trigger" cron-job.org job (meant to
+     hit fyers_scheduled_check.yml every ~5 min, running Swing +
+     Intraday together) had simply never been created - the
+     dashboard showed only 4 Fyers/yfinance jobs, no Scheduled
+     Check job. Confirmed via the workflow's run history: only 3
+     runs total ever, vs. Options Watch's 129 runs in one morning.
+     FIXED: user repurposed an inactive leftover duplicate job
+     (renamed, repointed at fyers_scheduled_check.yml/dispatches,
+     Mon-Fri ~5-min market-hours schedule, enabled) - verified via
+     Test Run landing on GitHub Actions.
+  2. Even the runs that DID fire weren't saving their results. All
+     3 Fyers workflows' commit step retried a rejected git push
+     with `git fetch` + `git reset --hard origin/main` - which
+     DISCARDS the just-computed local commit entirely instead of
+     just resyncing. Confirmed live in a real run's log: a real
+     commit ("2 files changed") got made, the push was rejected
+     (racing fyers_options_watch.yml's ~1-min-cadence pushes to the
+     same branch), reset --hard wiped that commit, and the retry
+     found nothing left to commit - the job still reported
+     "success" with nothing actually saved. This is why Swing's
+     Last Checked timestamps were stuck on 05-Aug despite the
+     workflow appearing to run fine. FIXED in all 3 workflows
+     (fyers_scheduled_check.yml, fyers_options_watch.yml, fyers_
+     trigger.yml): commit once up front, then on a push conflict,
+     rebase that commit onto latest origin and retry - never
+     discard it. VERIFIED live: re-triggered after both fixes,
+     Last Checked timestamps finally advanced to real time.
+  Both fixes are now live; Intraday still hadn't caught a 15m/5m/1m
+  alignment as of this entry (expected - the signal is selective by
+  design), but is now actually getting checked every ~5 min for the
+  first time since it was built.
+
 ==================================================
 
 NEXT DEVELOPMENT PLAN

@@ -132,16 +132,67 @@ Today's Achievements
    request: Swing still 15 open positions, ₹1,00,000 cash, nothing
    closed yet; Intraday still has never opened a position.
 
+✅ ROOT CAUSE FOUND AND FIXED: why Intraday has never opened a
+   position, and why Swing's 15 open positions weren't getting
+   fresh checks. Two compounding bugs, found by actually digging
+   into the real GitHub Actions run history instead of assuming
+   the code was the problem:
+
+   1. The "Fyers Scheduled Check Trigger" cron-job.org job (meant
+      to hit fyers_scheduled_check.yml every ~5 min, running
+      Swing + Intraday together) had simply never been created -
+      the cron-job.org dashboard showed only 4 Fyers/yfinance jobs
+      plus one unrelated inactive leftover ("Best Trade Entry Scan
+      Trigger (Copy)"), no Scheduled Check job at all. Confirmed
+      via the workflow's real run history: only 3 runs total ever
+      (vs. Options Watch's 129 runs that same morning alone).
+      FIXED: user repurposed the inactive leftover job - renamed
+      it, pointed its URL at fyers_scheduled_check.yml/dispatches,
+      set the Mon-Fri/~5-min/market-hours schedule, enabled it,
+      matching the working jobs' header/body pattern. Verified via
+      Test Run - landed on GitHub Actions successfully.
+
+   2. A second, more insidious bug: even the runs that DID fire
+      correctly weren't actually saving their results. Manually
+      triggered the workflow to check "is everything correct" -
+      it reported "success" and printed real output ("0 Swing
+      event(s)", "No aligned BUY candidates"), but reports/fyers_
+      test_portfolio.json's Last Checked timestamps stayed stuck
+      on 05-Aug. Pulled the actual run log (GitHub API) and found
+      why: all 3 Fyers workflows retried a rejected git push by
+      `git fetch` + `git reset --hard origin/main` - which
+      DISCARDS the just-computed results entirely (confirmed live:
+      "[main 70bf4e7] Update Fyers state... 2 files changed" then
+      "Push rejected" then "HEAD is now at 9e88c4e" - that commit,
+      and the real Swing/Intraday check it represented, gone).
+      This kept happening because fyers_options_watch.yml pushes
+      to the same branch every ~1 min, making a push conflict
+      likely on almost every 5-min Scheduled Check run. FIXED in
+      all 3 workflows (fyers_scheduled_check.yml, fyers_options_
+      watch.yml, fyers_trigger.yml): commit once up front, then on
+      a push conflict, rebase that commit onto the latest origin
+      and retry - never discard it. VERIFIED live: re-triggered
+      after the fix, Last Checked timestamps advanced to today's
+      real time for the first time.
+
 ✅ Updated doc/PROJECT_STATUS.md with all of the above (full-
    capital Swing+BankNifty finding, Intraday resume status, the
    testing-artifact trade caveat, the blank-screen bug fix, the
-   options entry-time-gate fix).
+   options entry-time-gate fix, the missing-cron-job + git-race
+   fixes).
 
 ==================================================
 
 Next Session Priorities
 
-1. Let the Intraday full-50-symbol backtest finish (was at
+1. Watch the now-fixed automation over the next few real trading
+   hours/days: confirm Intraday finally gets a real shot at
+   opening a position (15m/5m/1m alignment can still legitimately
+   not fire for a while - it's selective by design) and that
+   Swing's Last Checked keeps advancing every ~5 min without
+   another silent-loss regression.
+
+2. Let the Intraday full-50-symbol backtest finish (was at
    13/50 mid-session) and record the final aggregate in
    PROJECT_STATUS.md.
 
