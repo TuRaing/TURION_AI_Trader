@@ -30,7 +30,7 @@ Project Started
 
 Last Updated
 
-05-Aug-2026
+06-Aug-2026
 
 --------------------------------------------------
 
@@ -1741,6 +1741,37 @@ the full chain (one morning login -> shared token -> two
 independently-scheduled workflows checking options every ~1 min
 and Swing/Intraday every ~5 min, all day, no further login
 needed) is live and confirmed working, not just built.
+
+RE-TESTING PROVEN STRATEGIES ON REAL FYERS DATA, 05/06-Aug
+(the deferred priority, now underway): built strategy/fyers_
+multi_timeframe_backtest.py and strategy/fyers_backtest_engine.py
+(Fyers-sourced counterparts to the existing yfinance backtest
+tools) - found and fixed a real bug along the way (strategy/
+fyers_data.py wrongly assumed daily candles had no per-request
+range limit; Fyers actually caps at 366 days/request even for
+"D" resolution, same as intraday resolutions just larger).
+
+SIGNIFICANT FINDING - Swing (Watchlist), FULL 52 symbols, 2
+years real data, the "proven" Daily-timeframe combo (1.5x SL/
+3x Target ATR, filters on): 486 trades, 30.86% win rate, net
+-Rs 7,427 (raw points). Only 19/50 (38%) symbols individually
+profitable. This is a much larger, real sample than whatever
+originally established this strategy as "the one with a proven
+backtest edge" (repeated throughout this document's history) -
+with that larger sample, the aggregate looks net-negative, not
+clearly profitable. NEEDS FOLLOW-UP before fully trusting this
+over the original claim: check whether the original "proven"
+result came from a different (smaller/luckier) sample, a
+different exact parameter combo, or whether something about
+Fyers-vs-yfinance data itself differs enough to matter.
+
+Intraday (Best Trade core) full-50-symbol, 1-year test is IN
+PROGRESS as of this entry (see doc/05aug26_SESSION_LOG.md for
+the two real problems hit along the way - a premature process
+kill caused by buffered stdout looking like a hang, and Fyers'
+daily token expiring mid-run at midnight, both understood and
+recovered from). Partial result so far (5/50 symbols): all 5
+net-negative.
 
 Before any real capital is used (raised 21-Jul):
 current paper-trading/backtest PnL is gross - it does

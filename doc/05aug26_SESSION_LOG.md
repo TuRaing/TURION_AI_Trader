@@ -236,7 +236,99 @@ always the user's.
 
 ==================================================
 
+UPDATE (same session, crossing into 06-Aug) - re-testing
+proven strategies against real Fyers data
+
+Per the already-agreed priority order (automation before
+backtesting, confirmed same session), started re-running
+this project's existing strategy findings against Fyers'
+real multi-year history instead of yfinance's ~60-day
+window, now that continuous automation is done.
+
+✅ Built strategy/fyers_multi_timeframe_backtest.py
+   (monkey-patches strategy/multi_timeframe_backtest.py's
+   only yfinance-specific piece, its _download() helper -
+   ~500 lines of otherwise data-source-agnostic logic reused
+   unchanged) and strategy/fyers_backtest_engine.py
+   (near-duplicate of strategy/backtest_engine.py, whose
+   yfinance call is inline rather than separable).
+
+✅ FOUND AND FIXED a real bug: strategy/fyers_data.py's
+   MAX_DAYS_PER_REQUEST wrongly assumed daily ("D") candles
+   had no per-request range limit (04-Aug's "tested 20
+   years, no issues" note was based on tests that all
+   happened to use <=366-day single requests without
+   noticing it). A real multi-year request hit Fyers' actual
+   366-day/request cap for daily candles. Fixed.
+
+✅ SIGNIFICANT FINDING - Swing (Watchlist) strategy, FULL 52
+   symbols, 2 years of real data (strategy/fyers_backtest_
+   engine.py, the proven Daily-timeframe combo: 1.5x SL/3x
+   Target ATR, filters on): 486 trades, 30.86% win rate,
+   net -Rs 7,427 (raw points, not rupee-normalized across
+   symbols of different prices). Only 19/50 (38%) symbols
+   individually profitable. This is a MUCH larger, real
+   sample than whatever established this strategy as "the
+   one with a proven backtest edge" throughout this
+   project's history - with that larger sample, the
+   aggregate result is net-negative, not proven-profitable.
+   Worth a closer look at what the original "proven" claim
+   was actually based on before treating this new result as
+   final - but at minimum, it no longer looks as clearly
+   positive as the project's own documentation has assumed.
+
+🔄 IN PROGRESS - Intraday (Best Trade core) strategy, full
+   50 symbols, 1 year, best-known combo (Daily-aligned +
+   0.5x SL + 1.0x ATR trail + ADX>25): this is MUCH slower
+   than the Swing backtest - per-candle analysis (Market
+   Structure/S-R recomputed per candle) over ~24,000 candles
+   per symbol (15m+5m combined) takes real, substantial
+   compute time (~10 min/symbol observed), not just network
+   time. First attempt run overnight was killed PREMATURELY
+   by mistake - Python buffers stdout when redirected to a
+   file, so zero visible output for ~50 min looked like a
+   hang but may have actually been real (buffered) progress;
+   confirmed the process really was just slow (not hung) by
+   restarting with `python -u` (unbuffered) and watching a
+   real first-symbol result appear in ~10 min. Second overnight
+   attempt hit a SEPARATE real problem: Fyers' daily access
+   token expired at midnight mid-run, so only 5/50 symbols
+   (RELIANCE, TCS, HDFCBANK, ICICIBANK, INFY - all 5 net-
+   negative) completed before every remaining symbol failed
+   with "Could not authenticate the user". User did a fresh
+   login; resumed against only the 45 not-yet-done symbols
+   (reusing the 5 already-completed results, not re-fetching)
+   - running in background as of this log entry, expected to
+   take several more hours (started well before midnight this
+   time, so should complete within the day's token validity).
+
+   LESSON for future long-running background scripts: always
+   use unbuffered output (`python -u` or `flush=True` on
+   print) when redirecting to a file that will be polled for
+   progress - buffered output is indistinguishable from a
+   genuine hang until proven otherwise, and can cause a
+   working process to be killed by mistake (as it briefly
+   was here). Also: any single-login script expected to run
+   for many hours risks crossing midnight into the next
+   day's token invalidation - start early enough in the day,
+   or design for resumability (as this recovery did).
+
+==================================================
+
 Next Session
+
+0. Once the resumed 45-symbol Intraday backtest finishes:
+   report the full 50-symbol aggregate (see UPDATE above)
+   and record it in PROJECT_STATUS.md alongside the Swing
+   finding. Also worth investigating WHY the Swing/Intraday
+   full-symbol results look considerably worse than this
+   project's earlier, smaller-sample yfinance findings -
+   check whether it's a real regression-to-the-mean (small
+   samples were lucky) or something about the Fyers data/
+   indicator computation differing from yfinance's in a way
+   that matters (e.g. slightly different OHLC values,
+   timestamp alignment) before fully trusting the new
+   numbers over the old ones.
 
 1. DONE, same day (local session): Fyers login fix
    implemented, tested live, and verified working.
