@@ -22,6 +22,16 @@ import 'chart_screen.dart';
 
 const _strategyNames = ['simple_st1', 'st2', 'st3', 'st4'];
 
+// Added 06-Aug-2026 - one-line plain-language summary per strategy,
+// shown under its index tabs so it's clear what each is actually
+// doing without needing to read the backend code.
+const _strategyDescriptions = {
+  'simple_st1': 'RSI दिशा (CE/PE), ATM strike, समान 3% Target / 3% Stop-Loss.',
+  'st2': 'RSI दिशा, ATM strike, 5% Target / 2% Stop-Loss (backtest मध्ये सर्वोत्तम ठरलेला ratio).',
+  'st3': 'RSI दिशा, ATM strike, 5% Target / 5% Stop-Loss.',
+  'st4': 'दिवसातून फक्त १ high-confidence trade - 15m/5m/1m alignment + ADX>25 झाल्यावरच entry, ₹1,000 नफ्यानंतर ATR-आधारित trailing stop.',
+};
+
 class FyersMultiStrategyOptionsScreen extends StatefulWidget {
   const FyersMultiStrategyOptionsScreen({super.key});
 
@@ -107,6 +117,14 @@ class _IndexTabsState extends State<_IndexTabs> with SingleTickerProviderStateMi
   Widget build(BuildContext context) {
     return Column(
       children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+          child: Text(
+            _strategyDescriptions[widget.strategyName] ?? '',
+            style: const TextStyle(fontSize: 12, color: mutedColor),
+          ),
+        ),
+        const SizedBox(height: 4),
         TabBar(
           controller: _indexTabController,
           labelColor: successColor,

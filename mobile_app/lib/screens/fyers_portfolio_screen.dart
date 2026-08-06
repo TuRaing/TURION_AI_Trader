@@ -239,8 +239,15 @@ class _FyersPortfolioScreenState extends State<FyersPortfolioScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Intraday — Today\'s Position',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: accentColor)),
+              // Header text reflects what's actually shown below - a
+              // closed trade under a "Today's Position" label looked
+              // like an open position was still stuck ON (real user
+              // confusion, 06-Aug).
+              Text(
+                  intradayPosition == null && latestIntradayTrade != null
+                      ? 'Intraday — Today\'s Result (position closed)'
+                      : 'Intraday — Today\'s Position',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: accentColor)),
               const SizedBox(height: 8),
               if (intradayPosition == null && latestIntradayTrade == null)
                 const Padding(
