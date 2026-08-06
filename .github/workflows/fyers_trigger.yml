@@ -60,39 +60,41 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          commit_and_push() {
-            # Updated 04-Aug-2026 - a single multi-path `git add` aborts
-            # ENTIRELY (stages nothing at all, not even the files that do
-            # exist) if even one pathspec doesn't match - confirmed the
-            # hard way: reports/fyers_best_trade_portfolio.json doesn't
-            # exist until the first-ever Fyers Intraday position opens,
-            # and its absence silently discarded two real runs' state
-            # (a real options position, a real premium snapshot) even
-            # though `|| true` was on the line - it suppressed the shell
-            # from erroring out, but "nothing staged" still meant
-            # "nothing to commit". One `git add <file> || true` per file
-            # instead, so a missing file only skips itself.
-            git add reports/options_premium_history.jsonl || true
-            git add reports/fyers_test_portfolio.json || true
-            git add reports/fyers_best_trade_portfolio.json || true
-            git add reports/fyers_options_portfolio.json || true
-            git diff --staged --quiet && return 0
-            git commit -m "Update Fyers state (login trigger) [skip ci]"
-            git push
-          }
+          # Updated 04-Aug-2026 - a single multi-path `git add` aborts
+          # ENTIRELY (stages nothing at all, not even the files that do
+          # exist) if even one pathspec doesn't match - confirmed the
+          # hard way: reports/fyers_best_trade_portfolio.json doesn't
+          # exist until the first-ever Fyers Intraday position opens,
+          # and its absence silently discarded two real runs' state
+          # (a real options position, a real premium snapshot) even
+          # though `|| true` was on the line - it suppressed the shell
+          # from erroring out, but "nothing staged" still meant
+          # "nothing to commit". One `git add <file> || true` per file
+          # instead, so a missing file only skips itself.
+          git add reports/options_premium_history.jsonl || true
+          git add reports/fyers_test_portfolio.json || true
+          git add reports/fyers_best_trade_portfolio.json || true
+          git add reports/fyers_options_portfolio.json || true
 
-          git pull --rebase origin ${{ github.ref_name }} || true
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          # FIXED 06-Aug-2026 - reset --hard on a push conflict discards
+          # this run's real result instead of just losing time (found
+          # live in fyers_scheduled_check.yml, same pattern here).
+          # Commit first, then rebase-and-retry on conflict so the work
+          # survives.
+          git commit -m "Update Fyers state (login trigger) [skip ci]"
 
           for i in 1 2 3; do
-            if commit_and_push; then
+            if git push; then
               exit 0
             fi
-            echo "Push rejected - re-syncing to latest ($i/3)..."
-            git rebase --abort 2>/dev/null || true
-            git fetch origin ${{ github.ref_name }}
-            git reset --hard origin/${{ github.ref_name }}
-            sleep 3
+            echo "Push rejected - rebasing this run's commit onto latest ($i/3)..."
+            git pull --rebase origin ${{ github.ref_name }}
           done
 
-          echo "Could not sync after 3 attempts - state from this run may not be committed."
+          echo "Could not push after 3 attempts - commit still exists locally for the next run."
           exit 1
