@@ -292,28 +292,73 @@ Today's Achievements
    (simple_st1, st2+st3, st4) synced to local + GitHub as they
    landed, per the user's explicit request each time.
 
-   NOT YET DONE (deliberately deferred, phased): wiring any of this
-   into GitHub Actions/cron-job.org automation (still manual-run
-   only, matching how every other Fyers piece started); the app's
-   Options tab restructure into 4 strategy-tabs x 2 index-subtabs
-   with separate history each; separate Swing/Intraday closed-trade
-   HISTORY lists in the app (currently only shows the single latest
-   trade); newest-trade-on-top ordering (Fyers AND yfinance tabs);
-   the Fyers timestamp double-shift bug (Options/Intraday write real
-   IST already, but the app's shared formatBackendTimestamp() always
+   NOT YET DONE at this point (deliberately deferred, phased): wiring
+   any of this into GitHub Actions/cron-job.org automation - see
+   below, done later the same session; the app's Options tab
+   restructure into 4 strategy-tabs x 2 index-subtabs with separate
+   history each; separate Swing/Intraday closed-trade HISTORY lists
+   in the app (currently only shows the single latest trade);
+   newest-trade-on-top ordering (Fyers AND yfinance tabs); the Fyers
+   timestamp double-shift bug (Options/Intraday write real IST
+   already, but the app's shared formatBackendTimestamp() always
    adds +5:30 assuming raw UTC input - diagnosed, not fixed yet); and
    live candlestick+position charts on Fyers trades (feasible, but
    needs a Fyers-sourced candle-fetch the app doesn't have yet -
    current candles.json is yfinance-only).
 
+✅ Multi-strategy options AUTOMATION WIRED UP, same session: added
+   .github/workflows/fyers_multi_strategy_options.yml (workflow_
+   dispatch, same reuse-the-shared-token pattern as every other Fyers
+   workflow, commit-then-rebase-on-conflict from the start - not the
+   old reset --hard pattern fixed earlier today). Manually triggered
+   and verified on the real GitHub Actions runner: all 8 configs ran
+   cleanly (market was closed by then, so all correctly SKIPPED
+   rather than erroring).
+
+   REDESIGNED after the user pushed back on running all 8 configs
+   through one shared cron-job.org job: that makes it impossible to
+   pause/resume just one strategy (e.g. turn off st2) without
+   touching the other 3 - disabling the one job disables everything.
+   Added a STRATEGY_NAME filter (env var / workflow_dispatch `strategy`
+   input, default "all") to fyers_multi_strategy_options_run.py and
+   the workflow, so the SAME workflow can be triggered per-strategy.
+   User then set up 4 SEPARATE cron-job.org jobs (Fyers simple_st1/
+   st2/st3/st4 Trigger), each POSTing {"ref":"main","inputs":
+   {"strategy":"<name>"}} at 1-min cadence (`* 3-10 * * 1-5` UTC,
+   given in cron-expression form on request) - each independently
+   pausable now. Verified the filter works both locally (python -c
+   sanity check) and on the real GitHub Actions runner (dispatched
+   with strategy=st2, only st2's 2 configs ran).
+
+   OBSERVED, not fully explained: after this session's very high
+   volume of manual workflow_dispatch triggers (fired 20+ times
+   across various Fyers workflows in under an hour, testing each fix
+   live), 3 runs of fyers_multi_strategy_options.yml got stuck in
+   "queued" for 15-20+ minutes without ever starting, while 4 others
+   in the same window completed successfully. Also hit GitHub's
+   public API rate limit (60 req/hour unauthenticated) from checking
+   run status too often via plain curl - switched to the existing
+   GITHUB_PAT for authenticated checks (5,000 req/hour) partway
+   through. Most likely both are self-inflicted from this session's
+   own testing volume, not a real defect in the workflow - the 4
+   successful runs in the same window prove the logic itself is
+   correct. Left the stuck runs alone rather than re-triggering
+   further (would only add to the congestion) - real verification is
+   tomorrow's regular 1-min cron-job.org cadence during actual market
+   hours, not more manual bursts tonight.
+
 ==================================================
 
 Next Session Priorities
 
-1. Multi-strategy options Phase 2 (backend Phase 1 done - simple_st1/
-   st2/st3/st4, all 8 configs, committed and pushed):
-   a. Wire the 8 configs into GitHub Actions/cron-job.org automation
-      so they actually run live (still manual-run only right now).
+1. Multi-strategy options Phase 2 (backend Phase 1 + automation
+   wiring both done - simple_st1/st2/st3/st4, all 8 configs, 4
+   separate cron-job.org jobs live at 1-min cadence, committed and
+   pushed):
+   a. FIRST: check tomorrow morning's real trading-hours results -
+      confirm all 4 cron-job.org jobs actually fire every ~1 min
+      (not stuck like tonight's manual-trigger congestion), and that
+      each strategy only opens/manages its own 2 configs correctly.
    b. Restructure the app's Options tab: 4 strategy-tabs x 2 index-
       subtabs (NIFTY/BANKNIFTY), each with its own open+closed
       history.

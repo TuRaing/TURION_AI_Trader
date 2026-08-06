@@ -1363,15 +1363,33 @@ KNOWN ISSUES
   simple_st1 end-to-end against real Fyers quotes (both indices
   opened real ATM positions correctly); also found and fixed a
   related gap the same test surfaced (no gate against a NEW entry
-  after market close, only before open existed - added). NOT YET
-  DONE (deliberately phased): GitHub Actions/cron-job.org automation
-  wiring (still manual-run only), and the app's Options tab
-  restructure (4 strategy-tabs x 2 index-subtabs, separate history
-  each) - see doc/06aug26_SESSION_LOG.md's Next Session Priorities
-  for the full remaining list (also includes: separate Swing/
-  Intraday history lists in the app, newest-on-top ordering, a real
-  Fyers-timestamp double-shift bug diagnosed but not fixed, and a
-  Fyers-sourced candle-chart-on-tap design).
+  after market close, only before open existed - added).
+
+  AUTOMATION WIRED UP same session: .github/workflows/fyers_multi_
+  strategy_options.yml (workflow_dispatch, correct commit-then-
+  rebase-on-conflict pattern from the start). REDESIGNED after the
+  user pointed out one shared cron-job.org job for all 8 configs
+  means pausing it pauses every strategy at once - added a
+  STRATEGY_NAME filter (env var / `strategy` workflow_dispatch input,
+  default "all") so the SAME workflow can be triggered per-strategy.
+  User set up 4 separate cron-job.org jobs (one per strategy, both
+  indices together), each at 1-min cadence - independently pausable
+  now. Verified the filter on the real GitHub Actions runner
+  (dispatched with strategy=st2, only st2's 2 configs ran). NOTE: 3
+  of the many manual verification triggers fired this session got
+  stuck "queued" for 15-20+ min without starting, most likely from
+  this session's own unusually high trigger volume (20+ manual
+  dispatches across various Fyers workflows within an hour) rather
+  than a real defect - 4 other runs in the same window completed
+  successfully, proving the logic itself works. Real verification is
+  tomorrow's regular cadence during actual market hours, not more
+  manual bursts. STILL NOT DONE: the app's Options tab restructure
+  (4 strategy-tabs x 2 index-subtabs, separate history each) - see
+  doc/06aug26_SESSION_LOG.md's Next Session Priorities for the full
+  remaining list (also includes: separate Swing/Intraday history
+  lists in the app, newest-on-top ordering, a real Fyers-timestamp
+  double-shift bug diagnosed but not fixed, and a Fyers-sourced
+  candle-chart-on-tap design).
 
 ==================================================
 
