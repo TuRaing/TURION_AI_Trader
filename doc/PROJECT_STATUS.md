@@ -30,7 +30,7 @@ Project Started
 
 Last Updated
 
-06-Aug-2026
+07-Aug-2026
 
 --------------------------------------------------
 
@@ -154,34 +154,70 @@ PROJECT MILESTONES
 ✅ Best Trade Engine          (ranks stocks + index options +
                                news into one daily locked pick)
 
-⬜ Broker Integration         (broker not selected)
+✅ Broker Integration         (UPDATE 04/05/06-Aug: Fyers selected,
+                               account+API live. Full auth (raw REST
+                               OAuth, external-browser login + one-
+                               tap app trigger), real historical +
+                               live data (fyers_data.py), Swing +
+                               Intraday + Options paper trading
+                               engines all running on real Fyers
+                               quotes, a 4-strategy options engine
+                               (simple_st1/st2/st3/st4 x NIFTY/
+                               BANKNIFTY, 8 independent books), and
+                               continuous same-day automation (one
+                               morning login -> shared token -> GitHub
+                               Actions + cron-job.org triggers all
+                               day, no further login needed). This is
+                               real data/paper-trading integration -
+                               NOT real order placement yet, see
+                               Algorithmic Trading below.
 
-🟡 Desktop Dashboard          (PySide6 built + verified, not committed)
+🟡 Desktop Dashboard          (PySide6 built + verified, not committed
+                               - unchanged since 25-Jul, still pending)
 
-✅ Android App                (Flutter, 5 tabs - Portfolio/Intraday/
-                               Swing/News/History (renamed 29-Jul from
-                               Best trade/Watchlist for clarity) -
-                               committed and merged to main 19-Jul,
-                               installed on phone via adb, reads GitHub
-                               raw JSON, refreshed every 15 min by
-                               GitHub Actions. UPDATE 29-Jul: Portfolio
-                               and History now show both Swing and
-                               Intraday portfolios (previously
-                               Intraday's closed trades were invisible
-                               in the app); added a tap-to-open
-                               candlestick chart per position/trade with
-                               Entry/Stop Loss/Target/Exit overlays
-                               (reports/candles.json, refreshed
-                               ~15-min by paper_trade.yml).
+✅ Android App                (Flutter, now 7 tabs - yfinance/Intraday/
+                               Swing/News/History/Fyers/Options (grew
+                               from the original 5 as Fyers/Options
+                               were added 04-06-Aug). UPDATE 06-Aug:
+                               Options tab restructured into 4
+                               strategy-tabs x 2 index-subtabs, own
+                               history each; Fyers Swing/Intraday now
+                               show full closed-trade history (not
+                               just the latest); newest-trade-on-top
+                               ordering; Fyers-sourced candlestick
+                               chart-on-tap (separate from the
+                               yfinance one); a real timestamp double-
+                               shift bug fixed. See 06aug26_SESSION_
+                               LOG.md for the full list.
 
-⬜ Algorithmic Trading        (needs broker)
+⬜ Live Trading               (user-approved real orders via Fyers -
+                               NOT started: no real order-placement
+                               code exists yet, only paper trading.
+                               Needs the Rs 10,000 staged-capital gate
+                               to be reached first - see STAGED
+                               CAPITAL PLAN. Claude will still never
+                               execute a trade itself at this stage
+                               either - the user places every order,
+                               this milestone is about building the
+                               "review and approve" UI/flow.)
+
+⬜ Algorithmic Trading        (fully autonomous, still user-supervised
+                               - the final stage, after Live Trading
+                               proves out. Broker now exists, so this
+                               is no longer blocked on that - it's
+                               blocked on Live Trading being reached
+                               and proven first.)
 
 ⬜ TURION AI Trader v1.0
 
 --------------------------------------------------
 
-Progress: 24 / 29 milestones done (~83%), 1 more in-progress
-(Desktop App working locally, pending commit)
+Progress: 25 / 30 milestones done (~83%) - Broker Integration moved
+✅ this session; Algorithmic Trading's old single milestone split
+into Live Trading (manual-approved real orders) + Algorithmic
+Trading (autonomous) to reflect that broker data integration and
+real order execution are different-sized remaining steps. 1 more
+in-progress (Desktop App working locally, pending commit).
 
 ==================================================
 
