@@ -2120,6 +2120,61 @@ Live Trading (user-approved orders only)
 
 Algorithmic Trading (supervised)
 
+↓
+
+TURION AI Trader v1.0
+
+↓ (not yet defined in detail - see below)
+
+v2.0 (a real "understanding" AI, not just weighted rules)
+
+--------------------------------------------------
+
+WHAT "v1.0" ACTUALLY MEANS (asked 07-Aug) - not a new technical
+component, the checkpoint where every milestone above is not just
+built but PROVEN: equity strategy net-negative finding resolved,
+options strategies validated on real trades, Desktop Dashboard
+committed, Live Trading built and successful through the Rs 10,000
+-> Rs 1,00,000 staged plan, Algorithmic Trading running reliably
+with guardrails for months (not days). Realistically many months
+out from 07-Aug given Live Trading hasn't started and the equity
+engines still need a real fix.
+
+WHERE THE "AI" ALREADY IS (asked 07-Aug, since recent discussion
+had drifted into pure execution/plumbing) - the AI Decision Engine +
+Best Trade Engine already exist and run every real paper trade today
+- they combine EMA/RSI/Structure/S-R/Candlestick/Volume + News
+sentiment + Options chain data into one weighted score. This is the
+"brain" already live. What's NOT built is real Machine Learning
+("AI Intelligence: 70%, ML pending" in the Project Progress section
+above) - the current brain runs on hand-picked, fixed weights, not
+a model that learns.
+
+v2.0 VISION (asked 07-Aug, explicitly NOT started, not even
+designed in detail - just captured so the idea isn't lost): replace/
+augment the rule-based brain with a genuinely "understanding" AI -
+- Read news articles in FULL and reason about them (the current
+  News Engine only does free-RSS keyword sentiment counting - "how
+  many positive vs negative words" - not real comprehension).
+- Synthesize price action + news + options data + macro context
+  holistically (an LLM reasoning across all of it together) instead
+  of separate hand-weighted scores bolted together.
+- Learn from the system's OWN past trade outcomes and adjust its
+  own rules over time, instead of the user manually re-tuning
+  parameters by hand (like tonight's Target/Stop-Loss retuning).
+- Possibly: explain its own reasoning in plain language on request
+  ("why did you take this trade") instead of just a fixed log line.
+Most likely approach if pursued: an LLM (e.g. Claude via API) doing
+the news-reading/synthesis work, called at decision points (not
+continuously - real per-call cost). Real, unbudgeted recurring cost
+if built - needs its own scoping/cost discussion before starting,
+same as the VPS+Firebase live-data plan above.
+
+v3.0 and beyond: NOT defined, and deliberately not speculated on
+further (asked 07-Aug) - each stage should inform the next one's
+real design, and even v1.0 is many months out. Revisit only once
+v1.0/v2.0 are real, not before.
+
 --------------------------------------------------
 
 STAGED CAPITAL PLAN (agreed 30-Jul)
