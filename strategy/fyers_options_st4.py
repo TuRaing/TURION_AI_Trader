@@ -145,7 +145,10 @@ def _close_position(cfg, portfolio, exit_premium, reason):
         "Option Type": position["Option Type"],
         "Entry Time": position["Entry Time"],
         "Entry Premium": position["Entry Premium"],
-        "Exit Time": datetime.datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S"),
+        # Stored as naive/local time (UTC on the GitHub Actions runner),
+        # matching every other engine's convention - see the same-day
+        # fix note in fyers_options_paper_trading.py.
+        "Exit Time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "Exit Premium": exit_premium,
         "Lots": position["Lots"],
         "Exit Reason": reason,
@@ -154,6 +157,9 @@ def _close_position(cfg, portfolio, exit_premium, reason):
     })
 
     portfolio["Position"] = None
+    # Last Trade Date IS deliberately IST, unlike the timestamps above -
+    # it's compared against IST wall-clock "today" for the one-trade-
+    # per-day gate (check_or_open), never shown in the app.
     portfolio["Last Trade Date"] = datetime.datetime.now(IST).strftime("%Y-%m-%d")
 
     return portfolio, f"CLOSED ({reason}) net {round(net_pnl, 2)}"
@@ -202,7 +208,7 @@ def _check_position(cfg, portfolio):
 
     position["Last Premium"] = current_premium
     position["Last Spot"] = current_spot
-    position["Last Checked"] = now_ist.strftime("%Y-%m-%d %H:%M:%S")
+    position["Last Checked"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     trailing = position.get("Trailing Active", False)
     return portfolio, f"HOLD (net {round(net_pnl, 2)}, trailing={trailing})"
@@ -228,13 +234,16 @@ def _open_position(cfg, portfolio):
     if lots < 1:
         return portfolio, f"SKIPPED (capital insufficient for 1 lot at premium {entry_premium})"
 
-    now_ist = datetime.datetime.now(IST)
+    # Stored as naive/local time (UTC on the GitHub Actions runner),
+    # matching every other engine's convention - see the same-day fix
+    # note in fyers_options_paper_trading.py.
+    now = datetime.datetime.now()
 
     portfolio["Position"] = {
         "Symbol": leg["symbol"],
         "Strike": leg["strike_price"],
         "Option Type": option_type,
-        "Entry Time": now_ist.strftime("%Y-%m-%d %H:%M:%S"),
+        "Entry Time": now.strftime("%Y-%m-%d %H:%M:%S"),
         "Entry Spot": spot,
         "Entry Premium": entry_premium,
         "Entry ATR": entry["spot_atr"],
@@ -246,7 +255,7 @@ def _open_position(cfg, portfolio):
         "Trailing Active": False,
         "Last Premium": entry_premium,
         "Last Spot": spot,
-        "Last Checked": now_ist.strftime("%Y-%m-%d %H:%M:%S"),
+        "Last Checked": now.strftime("%Y-%m-%d %H:%M:%S"),
     }
 
     return portfolio, f"OPENED {option_type} {leg['strike_price']} @ {entry_premium} (ADX {entry['adx']})"

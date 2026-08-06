@@ -18,6 +18,14 @@ const fyersPortfolioUrl = '$_repoRawBase/reports/fyers_test_portfolio.json';
 const fyersBestTradePortfolioUrl = '$_repoRawBase/reports/fyers_best_trade_portfolio.json';
 const fyersOptionsPortfolioUrl = '$_repoRawBase/reports/fyers_options_portfolio.json';
 
+/// Added 06-Aug-2026 - one portfolio file per (strategy, index) pair
+/// for the multi-strategy options engine (strategy/fyers_options_
+/// engine.py / fyers_options_st4.py - simple_st1/st2/st3/st4 x
+/// NIFTY/BANKNIFTY, 8 files total). `index` is lowercase ("nifty" /
+/// "banknifty") matching the report filenames.
+String fyersOptionsStrategyUrl(String strategy, String index) =>
+    '$_repoRawBase/reports/fyers_options_${strategy}_${index}_portfolio.json';
+
 /// Fetches and JSON-decodes a repo file, cache-busted with the current
 /// time so a phone's HTTP cache never shows stale data. Returns null (not
 /// an exception) for a 404 - some files (e.g. best_trade_portfolio.json)

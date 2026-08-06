@@ -199,7 +199,11 @@ def _open_position(cfg, portfolio):
         "Symbol": leg["symbol"],
         "Strike": leg["strike_price"],
         "Option Type": option_type,
-        "Entry Time": datetime.datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S"),
+        # Stored as naive/local time (UTC on the GitHub Actions runner),
+        # matching every other engine's convention - see the same-day
+        # fix note in fyers_options_paper_trading.py. IST is only used
+        # for gating decisions, never for what gets persisted.
+        "Entry Time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "Entry Spot": spot,
         "Entry Premium": entry_premium,
         "Entry RSI": round(rsi_value, 2),
@@ -207,7 +211,7 @@ def _open_position(cfg, portfolio):
         "Quantity": lots * cfg["lot_size"],
         "Capital Deployed": round(entry_premium * lots * cfg["lot_size"], 2),
         "Last Premium": entry_premium,
-        "Last Checked": datetime.datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S"),
+        "Last Checked": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     }
 
     return portfolio, f"OPENED {option_type} {leg['strike_price']} @ {entry_premium}"
@@ -226,7 +230,7 @@ def _close_position(cfg, portfolio, exit_premium, reason):
         "Option Type": position["Option Type"],
         "Entry Time": position["Entry Time"],
         "Entry Premium": position["Entry Premium"],
-        "Exit Time": datetime.datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S"),
+        "Exit Time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "Exit Premium": exit_premium,
         "Lots": position["Lots"],
         "Exit Reason": reason,
@@ -261,7 +265,7 @@ def _check_position(cfg, portfolio):
         return _close_position(cfg, portfolio, current_premium, "Square-Off")
 
     position["Last Premium"] = current_premium
-    position["Last Checked"] = now_ist.strftime("%Y-%m-%d %H:%M:%S")
+    position["Last Checked"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     return portfolio, f"HOLD (net {round(net_pnl, 2)} / {round(net_pnl_pct, 3)}%)"
 

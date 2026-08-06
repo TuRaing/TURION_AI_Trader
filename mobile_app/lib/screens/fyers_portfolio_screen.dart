@@ -172,7 +172,12 @@ class _FyersPortfolioScreenState extends State<FyersPortfolioScreen> {
                   child: Text('No open positions', style: TextStyle(color: mutedColor)),
                 )
               else
-                ...positions.entries.map((e) => OpenPositionCard(
+                // Newest-opened position first - sort by Entry Time
+                // descending rather than relying on map insertion order.
+                ...(positions.entries.toList()
+                      ..sort((a, b) => (b.value['Entry Time'] as String? ?? '')
+                          .compareTo(a.value['Entry Time'] as String? ?? '')))
+                    .map((e) => OpenPositionCard(
                       symbol: e.key,
                       position: e.value,
                       currentPrice: (e.value['Last Price'] as num?)?.toDouble(),
@@ -187,6 +192,39 @@ class _FyersPortfolioScreenState extends State<FyersPortfolioScreen> {
                                     stopLoss: (e.value['Stop Loss'] as num?)?.toDouble(),
                                     target: (e.value['Target'] as num?)?.toDouble(),
                                     direction: e.value['Direction'] as String? ?? 'BUY',
+                                  ))),
+                    )),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(color: surfaceColor, borderRadius: BorderRadius.circular(12)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Swing — Closed Trades (${closedTrades.length})',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: mutedColor)),
+              const SizedBox(height: 8),
+              if (closedTrades.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Text('No closed trades yet', style: TextStyle(color: mutedColor)),
+                )
+              else
+                ...closedTrades.reversed.map((t) => ClosedTradeCard(
+                      trade: t,
+                      typeLabel: 'Swing',
+                      typeColor: mutedColor,
+                      onViewChart: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => ChartScreen(
+                                    symbol: (t['Symbol'] ?? 'NIFTY 50').toString(),
+                                    entryPrice: (t['Entry Price'] as num).toDouble(),
+                                    exitPrice: (t['Exit Price'] as num).toDouble(),
+                                    direction: t['Direction'] as String? ?? 'BUY',
                                   ))),
                     )),
             ],
@@ -230,6 +268,39 @@ class _FyersPortfolioScreenState extends State<FyersPortfolioScreen> {
                                 direction: intradayPosition['Direction'] as String? ?? 'BUY',
                               ))),
                 ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(color: surfaceColor, borderRadius: BorderRadius.circular(12)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Intraday — Closed Trades (${intradayClosedTrades.length})',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: accentColor)),
+              const SizedBox(height: 8),
+              if (intradayClosedTrades.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Text('No closed intraday trades yet', style: TextStyle(color: mutedColor)),
+                )
+              else
+                ...intradayClosedTrades.reversed.map((t) => ClosedTradeCard(
+                      trade: t,
+                      typeLabel: 'Intraday',
+                      typeColor: accentColor,
+                      onViewChart: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => ChartScreen(
+                                    symbol: (t['Name'] ?? t['Symbol'] ?? 'NIFTY 50').toString(),
+                                    entryPrice: (t['Entry Price'] as num).toDouble(),
+                                    exitPrice: (t['Exit Price'] as num).toDouble(),
+                                    direction: t['Direction'] as String? ?? 'BUY',
+                                  ))),
+                    )),
             ],
           ),
         ),

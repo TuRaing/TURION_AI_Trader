@@ -9,7 +9,7 @@ import 'screens/watchlist_screen.dart';
 import 'screens/news_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/fyers_portfolio_screen.dart';
-import 'screens/fyers_options_screen.dart';
+import 'screens/fyers_multi_strategy_options_screen.dart';
 
 // Topic-based push - every install subscribes to the same topic, so the
 // backend (report/push_notifier.py) never needs to track individual device
@@ -71,7 +71,7 @@ class _HomeShellState extends State<HomeShell> {
     NewsScreen(),
     HistoryScreen(),
     FyersPortfolioScreen(),
-    FyersOptionsScreen(),
+    FyersMultiStrategyOptionsScreen(),
   ];
 
   static const _titles = [

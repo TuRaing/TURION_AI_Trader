@@ -498,3 +498,107 @@ class LoadingErrorWrapper extends StatelessWidget {
     return child;
   }
 }
+
+/// Added 06-Aug-2026 - promoted from fyers_options_screen.dart's
+/// private _OptionPositionCard so the multi-strategy options screen
+/// (fyers_options_multi_screen.dart) can reuse it too, instead of
+/// duplicating ~40 lines per strategy tab. `underlyingLabel` replaces
+/// what used to be a hardcoded "NIFTY" - the original single-strategy
+/// screen still passes 'NIFTY' (it only ever traded NIFTY), the new
+/// multi-strategy screen passes 'NIFTY' or 'BANKNIFTY' per tab.
+class OptionPositionCard extends StatelessWidget {
+  final Map<String, dynamic> position;
+  final String underlyingLabel;
+
+  const OptionPositionCard({super.key, required this.position, this.underlyingLabel = 'NIFTY'});
+
+  @override
+  Widget build(BuildContext context) {
+    final optionType = position['Option Type'] as String? ?? '';
+    final strike = position['Strike'];
+    final entryPremium = (position['Entry Premium'] as num).toDouble();
+    final lastPremium = (position['Last Premium'] as num?)?.toDouble() ?? entryPremium;
+    final lots = position['Lots'];
+    final movePct = entryPremium == 0 ? 0.0 : (lastPremium - entryPremium) / entryPremium * 100;
+
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(color: bgColor, border: Border.all(color: Colors.white12, width: 0.5), borderRadius: BorderRadius.circular(8)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text('$underlyingLabel $strike $optionType', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+              const Spacer(),
+              Text('${lots}x lot', style: const TextStyle(fontSize: 12, color: mutedColor)),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text('Entry ${formatRupees(entryPremium)} → Last ${formatRupees(lastPremium)} (${movePct >= 0 ? '+' : ''}${movePct.toStringAsFixed(1)}%)',
+              style: TextStyle(fontSize: 12, color: movePct >= 0 ? successColor : dangerColor)),
+          const SizedBox(height: 4),
+          Text(
+              'Entered ${formatBackendTimestamp(position['Entry Time'] as String?)} · '
+              'Checked ${formatBackendTimestamp(position['Last Checked'] as String?)}',
+              style: const TextStyle(fontSize: 11, color: mutedColor)),
+        ],
+      ),
+    );
+  }
+}
+
+/// Added 06-Aug-2026 - promoted from fyers_options_screen.dart's
+/// private _OptionClosedTradeCard, same reasoning as OptionPositionCard
+/// above.
+class OptionClosedTradeCard extends StatelessWidget {
+  final Map<String, dynamic> trade;
+  final String underlyingLabel;
+
+  const OptionClosedTradeCard({super.key, required this.trade, this.underlyingLabel = 'NIFTY'});
+
+  @override
+  Widget build(BuildContext context) {
+    final pnl = (trade['Net PnL'] as num).toDouble();
+    final win = pnl > 0;
+    final optionType = trade['Option Type'] as String? ?? '';
+    final strike = trade['Strike'];
+    final entryPremium = (trade['Entry Premium'] as num).toDouble();
+    final exitPremium = (trade['Exit Premium'] as num).toDouble();
+    final exitReason = trade['Exit Reason'] ?? '';
+    final exitTime = formatBackendTimestamp(trade['Exit Time'] as String?);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(color: bgColor, border: Border.all(color: Colors.white12, width: 0.5), borderRadius: BorderRadius.circular(8)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 13,
+                backgroundColor: (win ? successColor : dangerColor).withValues(alpha: 0.18),
+                child: Icon(win ? Icons.check : Icons.close, size: 14, color: win ? successColor : dangerColor),
+              ),
+              const SizedBox(width: 8),
+              Text('$underlyingLabel $strike $optionType', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+              const Spacer(),
+              Text(formatSignedRupees(pnl),
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: win ? successColor : dangerColor)),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.only(left: 34),
+            child: Text(
+              '$exitReason · ${formatRupees(entryPremium)} to ${formatRupees(exitPremium)}${exitTime.isNotEmpty ? ' · $exitTime' : ''}',
+              style: const TextStyle(fontSize: 11, color: mutedColor),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -145,7 +145,12 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                   child: Text('No open positions', style: TextStyle(color: mutedColor)),
                 )
               else
-                ...positions.entries.map((e) => OpenPositionCard(
+                // Newest-opened position first - sort by Entry Time
+                // descending rather than relying on map insertion order.
+                ...(positions.entries.toList()
+                      ..sort((a, b) => (b.value['Entry Time'] as String? ?? '')
+                          .compareTo(a.value['Entry Time'] as String? ?? '')))
+                    .map((e) => OpenPositionCard(
                       symbol: e.key,
                       position: e.value,
                       currentPrice: (e.value['Last Price'] as num?)?.toDouble(),
