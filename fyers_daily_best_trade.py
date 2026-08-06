@@ -49,6 +49,7 @@ def _fetch_current_price(symbol):
 def monitor_open_position(portfolio):
 
     symbol = portfolio["Position"]["Symbol"]
+    name = portfolio["Position"].get("Name", symbol)
     current_price = _fetch_current_price(symbol)
 
     if current_price is None:
@@ -60,7 +61,13 @@ def monitor_open_position(portfolio):
     else:
         portfolio, action = check_open_position(portfolio, current_price)
 
-    print(f"Open position ({portfolio.get('Position', {}).get('Name', symbol)}): {action}")
+    # A close sets portfolio["Position"] = None - dict.get()'s default only
+    # applies when the KEY is missing, not when its value is None, so
+    # `portfolio.get("Position", {}).get(...)` crashed here on every close
+    # (caught upstream, but AFTER save_best_trade_portfolio never ran -
+    # the close was computed correctly every time but never persisted).
+    # Read the name from before the call instead of after.
+    print(f"Open position ({name}): {action}")
 
     save_best_trade_portfolio(portfolio)
 
