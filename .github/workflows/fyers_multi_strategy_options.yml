@@ -1,23 +1,33 @@
 name: Fyers Multi-Strategy Options Watch
 
-# Added 06-Aug-2026 - runs all 4 named options strategies (simple_st1,
-# st2, st3, st4) x 2 indices (NIFTY, BANKNIFTY) = 8 configs via
-# fyers_multi_strategy_options_run.py, reusing the FYERS_ACCESS_TOKEN
-# repo secret shared by the morning login (fyers_trigger_run.py) - no
-# fresh login here. Separate from fyers_options_watch.yml (the
-# original single live strategy, untouched) - own workflow, own
-# report files, per this repo's engine-separation rule. Heavier than
-# the single-strategy watch (8 configs' worth of option-chain/quote/
-# underlying-candle fetches per run, and st4 additionally needs a
-# 15m/5m/1m multi-timeframe + ADX check per index), so triggered at a
-# more moderate ~2-min cadence rather than the single-strategy watch's
-# ~1-min - see doc/06aug26_SESSION_LOG.md. Triggered externally by
-# cron-job.org, same pattern as every other Fyers workflow (GitHub's
-# free-tier native `schedule:` trigger badly under-fires, already
-# documented in doc/PROJECT_STATUS.md's Known Issues).
+# Added 06-Aug-2026 - runs the named options strategies (simple_st1,
+# st2, st3, st4) x 2 indices (NIFTY, BANKNIFTY), reusing the
+# FYERS_ACCESS_TOKEN repo secret shared by the morning login
+# (fyers_trigger_run.py) - no fresh login here. Separate from fyers_
+# options_watch.yml (the original single live strategy, untouched) -
+# own workflow, own report files, per this repo's engine-separation
+# rule.
+#
+# UPDATED 06-Aug-2026 (same day) - the `strategy` input lets the same
+# workflow be triggered per-strategy instead of only "all 8 at once",
+# so the user can independently pause/resume one strategy from cron-
+# job.org's dashboard (disable that one job) without touching the
+# others - set up 4 separate cron-job.org jobs, one per strategy, each
+# POSTing {"ref":"main","inputs":{"strategy":"<name>"}} at ~1-min
+# cadence (matching the single-strategy watch's cadence, since each
+# job now only does one strategy's worth of work, not all 8's) - see
+# doc/06aug26_SESSION_LOG.md. Triggered externally by cron-job.org,
+# same pattern as every other Fyers workflow (GitHub's free-tier
+# native `schedule:` trigger badly under-fires, already documented in
+# doc/PROJECT_STATUS.md's Known Issues).
 
 on:
   workflow_dispatch:
+    inputs:
+      strategy:
+        description: 'Strategy name to check (simple_st1/st2/st3/st4), or "all"'
+        required: false
+        default: 'all'
 
 permissions:
   contents: write
@@ -42,6 +52,7 @@ jobs:
         env:
           FYERS_APP_ID: ${{ secrets.FYERS_APP_ID }}
           FYERS_ACCESS_TOKEN: ${{ secrets.FYERS_ACCESS_TOKEN }}
+          STRATEGY_NAME: ${{ inputs.strategy }}
         run: python fyers_multi_strategy_options_run.py
 
       - name: Commit updated multi-strategy portfolios
