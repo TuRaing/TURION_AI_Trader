@@ -1340,6 +1340,39 @@ KNOWN ISSUES
   (or target > stop) before trusting this strategy's real-money
   potential - not changed yet, just documented.
 
+• PHASE 1 DONE, 06-Aug - multi-strategy options paper trading (user
+  request: several live strategies in parallel, each on NIFTY AND
+  BANKNIFTY, own full ₹1,00,000 each). Built strategy/fyers_options_
+  engine.py (one generalized, parameterized core, config-driven
+  Target/Stop-Loss/index/lot-size instead of near-duplicate files) -
+  original live strategy/fyers_options_paper_trading.py untouched.
+  3 strategies through it (simple_st1: retuned symmetric 3%/3%;
+  st2: Target 5%/SL 2%; st3: Target 5%/SL 5% - st2/st3 reuse the best
+  ratios nifty_options_backtest.py's 06-Aug sweep found on Black-
+  Scholes-estimated data, now testing them against real quotes). A
+  4th, materially different strategy (st4: strategy/fyers_options_
+  st4.py) needs its own module - one trade/day, entry requires BOTH
+  15m/5m/1m multi-timeframe alignment AND 15m ADX>25 (this project's
+  own two most-validated filters, reused rather than inventing an
+  untested one - user explicitly asked for a recommendation first),
+  then a trailing stop (1.0x the entry ATR, on the underlying's own
+  spot price since Fyers has no per-contract candle history to ATR
+  the premium itself) once net profit crosses ₹1,000. All 4 x 2
+  indices (8 configs) wired into fyers_multi_strategy_options_run.py.
+  9 new unit tests, full suite (152) passing. Manually verified
+  simple_st1 end-to-end against real Fyers quotes (both indices
+  opened real ATM positions correctly); also found and fixed a
+  related gap the same test surfaced (no gate against a NEW entry
+  after market close, only before open existed - added). NOT YET
+  DONE (deliberately phased): GitHub Actions/cron-job.org automation
+  wiring (still manual-run only), and the app's Options tab
+  restructure (4 strategy-tabs x 2 index-subtabs, separate history
+  each) - see doc/06aug26_SESSION_LOG.md's Next Session Priorities
+  for the full remaining list (also includes: separate Swing/
+  Intraday history lists in the app, newest-on-top ordering, a real
+  Fyers-timestamp double-shift bug diagnosed but not fixed, and a
+  Fyers-sourced candle-chart-on-tap design).
+
 ==================================================
 
 NEXT DEVELOPMENT PLAN

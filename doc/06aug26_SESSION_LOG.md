@@ -230,47 +230,139 @@ Today's Achievements
    git-race fixes, the Intraday close-crash fix, the app's Intraday-
    closed-trade display fix, today's Options risk/reward finding).
 
+✅ MAJOR NEW WORK, same session - built Phase 1 of a multi-strategy
+   live options paper-trading setup the user requested: several
+   named strategies running in parallel, each on both NIFTY and
+   BANKNIFTY with its own full ₹1,00,000 (8 independent paper books
+   total). Explicitly asked the user to confirm understanding before
+   building anything this large, since it touches trading logic,
+   automation, and the whole app UI - user confirmed a phased plan
+   (backend strategies first, one at a time, app UI later).
+
+   Ran strategy/nifty_options_backtest.py (03-Aug's Black-Scholes-
+   estimated research file, confirmed NOT what's live) at the user's
+   request first, both at default params and swept across Target/
+   Stop-Loss ratios (2-5% each) on the forced-entry NIFTY variant -
+   best combos: Target 5%/SL 2% (+50.45%/57 days) and Target 5%/SL 5%
+   (+69.03%/57 days). Same direction (5/5 best) as 03-Aug's original
+   sweep, though the magnitude differs (window has moved forward) -
+   clearly caveated both times that this is Black-Scholes-estimated,
+   not real premium data, and the direction rule (RSI>=50 forced
+   entry) was never validated - "interesting to test against real
+   quotes," not "proven."
+
+   Built strategy/fyers_options_engine.py - a generalized,
+   parameterized engine (one core, many configs) instead of near-
+   duplicate files, reusing the exact RSI-momentum/ATM-strike entry
+   the original live strategy/fyers_options_paper_trading.py uses
+   (untouched, kept as-is) - only Target %, Stop-Loss %, and index-
+   specific lot size/strike step differ per config. Built 3
+   strategies through it:
+   - simple_st1: a retuned version of the original live rules -
+     symmetric 3%/3% instead of the original 2%/5% (today's real
+     day showed 2%/5% needs >71% win rate just to break even).
+   - st2: reuses nifty_options_backtest's Target 5%/SL 2% combo.
+   - st3: reuses its Target 5%/SL 5% combo.
+
+   Built strategy/fyers_options_st4.py separately (materially
+   different entry/exit logic, not a fit for the generic engine).
+   Design discussed with the user first: asked for my recommendation
+   on direction/entry-quality and trailing-stop distance for "one
+   really good trade a day" rather than inventing something
+   untested - proposed reusing this project's own two most-validated
+   filters (15m/5m/1m multi-timeframe alignment + 15m ADX>25, the
+   "clearest single improvement found" in 25-Jul's research) for
+   entry, and the 24-Jul-tuned 1.0x ATR for the trailing distance -
+   user agreed. Trailing is tracked on the underlying's own spot
+   price (not the option premium, since Fyers has no reliable per-
+   contract candle history to compute a premium ATR from) - once net
+   profit crosses ₹1,000, switches from a fixed 3% initial Stop-Loss
+   to trailing 1.0x ATR behind the best spot price seen since entry.
+   Exactly one trade per calendar day.
+
+   All 4 strategies x 2 indices (8 configs) wired into one shared
+   runner, fyers_multi_strategy_options_run.py. 9 new unit tests (5
+   engine + 4 st4, including the pure trailing-stop-hit logic).
+   Manually verified simple_st1 end-to-end against REAL Fyers quotes
+   mid-session (both NIFTY and BANKNIFTY opened real ATM positions
+   correctly) - also found and fixed a related gap the same test
+   surfaced: no gate against opening a NEW position after market
+   close either (only the pre-open gate existed) - added, then reset
+   the after-hours test positions before committing. All 3 commits
+   (simple_st1, st2+st3, st4) synced to local + GitHub as they
+   landed, per the user's explicit request each time.
+
+   NOT YET DONE (deliberately deferred, phased): wiring any of this
+   into GitHub Actions/cron-job.org automation (still manual-run
+   only, matching how every other Fyers piece started); the app's
+   Options tab restructure into 4 strategy-tabs x 2 index-subtabs
+   with separate history each; separate Swing/Intraday closed-trade
+   HISTORY lists in the app (currently only shows the single latest
+   trade); newest-trade-on-top ordering (Fyers AND yfinance tabs);
+   the Fyers timestamp double-shift bug (Options/Intraday write real
+   IST already, but the app's shared formatBackendTimestamp() always
+   adds +5:30 assuming raw UTC input - diagnosed, not fixed yet); and
+   live candlestick+position charts on Fyers trades (feasible, but
+   needs a Fyers-sourced candle-fetch the app doesn't have yet -
+   current candles.json is yfinance-only).
+
 ==================================================
 
 Next Session Priorities
 
-1. Watch the now-fixed automation over the next few real trading
-   days: confirm Swing's Last Checked keeps advancing every ~5 min
-   and Intraday keeps getting real, persisted open/close cycles
-   (not just the one SBIN trade) without another silent-loss
-   regression.
+1. Multi-strategy options Phase 2 (backend Phase 1 done - simple_st1/
+   st2/st3/st4, all 8 configs, committed and pushed):
+   a. Wire the 8 configs into GitHub Actions/cron-job.org automation
+      so they actually run live (still manual-run only right now).
+   b. Restructure the app's Options tab: 4 strategy-tabs x 2 index-
+      subtabs (NIFTY/BANKNIFTY), each with its own open+closed
+      history.
+   c. Add real closed-trade HISTORY lists to the Fyers Swing/Intraday
+      views (currently only the single latest trade shows).
+   d. Newest-trade-on-top ordering, Fyers AND yfinance tabs both.
+   e. Fix the Fyers timestamp double-shift bug (Options/Intraday
+      already write real IST; the app's shared
+      formatBackendTimestamp() adds +5:30 again on top).
+   f. Design a Fyers-sourced candle-fetch so tapping a Fyers trade
+      can show a live candlestick + position chart (candles.json is
+      yfinance-only today).
 
-2. Reconsider the Options engine's TARGET_NET_PCT/STOP_LOSS_PCT
-   ratio (currently 2.0/5.0, needs >71% win rate to break even) -
-   today's 61.2% win rate still lost money. A more symmetric ratio
-   (or target > stop) is worth testing before trusting this
-   strategy's real-money potential.
+2. Watch the now-fixed Swing/Intraday automation over the next few
+   real trading days: confirm Swing's Last Checked keeps advancing
+   every ~5 min and Intraday keeps getting real, persisted open/
+   close cycles without another silent-loss regression.
 
-3. Follow up on WHY the Daily-timeframe Swing strategy's original
+3. Reconsider the ORIGINAL live Options engine's (fyers_options_
+   paper_trading.py) TARGET_NET_PCT/STOP_LOSS_PCT ratio (still 2.0/
+   5.0, needs >71% win rate to break even) - now partly superseded
+   by simple_st1's 3%/3% retune above, but the original file itself
+   is untouched and still whatever automation points at it today.
+
+4. Follow up on WHY the Daily-timeframe Swing strategy's original
    "proven" claim differs so much from today's large-sample real-
    rupee finding (-₹1,28,490.80 across 49 symbols, only 18
    profitable) - and now that Intraday's full-50-symbol result is
    in too (0/48 profitable, -31,200 points), the same question
    applies there even more strongly - not yet investigated.
 
-4. Build the STCG (~20%) after-tax column the user asked for,
+5. Build the STCG (~20%) after-tax column the user asked for,
    alongside the existing pre-tax transaction-cost model, and
    re-show the full-capital results as pre-tax vs. after-tax.
 
-5. Decide next strategy research direction now that BOTH "proven"
+6. Decide next strategy research direction now that BOTH "proven"
    baselines are in question: a futures-based approach (cont_flag=1
    gives real multi-year continuous data, unlike options) or a
    symbol-selective approach based on which of the profitable
    symbols actually showed a real edge, instead of treating the
    watchlist/intraday universe as one uniform strategy.
 
-6. Carried over: apply strategy/transaction_costs.py's real
+7. Carried over: apply strategy/transaction_costs.py's real
    cost model to the live Watchlist/Best Trade Engine's own
    ongoing evaluations (not just the new backtests).
 
-7. Carried over: Commit Desktop App (PySide6), package as .exe.
+8. Carried over: Commit Desktop App (PySide6), package as .exe.
 
-8. Carried over: Fix TATAMOTORS / LTIM ticker symbols (still no
+9. Carried over: Fix TATAMOTORS / LTIM ticker symbols (still no
    valid Fyers symbol either, same root problem as yfinance).
 
 ==================================================
