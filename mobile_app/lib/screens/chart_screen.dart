@@ -22,6 +22,10 @@ class ChartScreen extends StatefulWidget {
   final double? target;
   final double? exitPrice;
   final String direction;
+  // Added 06-Aug-2026 - lets Fyers screens point this at fyersCandlesUrl
+  // (refresh_fyers_candles.py's output) instead of the yfinance-only
+  // default, without duplicating this whole screen.
+  final String candleDataUrl;
 
   const ChartScreen({
     super.key,
@@ -31,6 +35,7 @@ class ChartScreen extends StatefulWidget {
     this.target,
     this.exitPrice,
     this.direction = 'BUY',
+    this.candleDataUrl = candlesUrl,
   });
 
   @override
@@ -57,7 +62,7 @@ class _ChartScreenState extends State<ChartScreen> {
     });
 
     try {
-      final data = await fetchJson(candlesUrl);
+      final data = await fetchJson(widget.candleDataUrl);
       final allCandles = Map<String, dynamic>.from(data?['Candles'] ?? {});
       final forSymbol = List<Map<String, dynamic>>.from(
           (allCandles[widget.symbol] ?? []).map((c) => Map<String, dynamic>.from(c)));

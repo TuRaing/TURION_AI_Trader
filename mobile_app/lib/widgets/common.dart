@@ -509,8 +509,9 @@ class LoadingErrorWrapper extends StatelessWidget {
 class OptionPositionCard extends StatelessWidget {
   final Map<String, dynamic> position;
   final String underlyingLabel;
+  final VoidCallback? onTap;
 
-  const OptionPositionCard({super.key, required this.position, this.underlyingLabel = 'NIFTY'});
+  const OptionPositionCard({super.key, required this.position, this.underlyingLabel = 'NIFTY', this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -521,7 +522,7 @@ class OptionPositionCard extends StatelessWidget {
     final lots = position['Lots'];
     final movePct = entryPremium == 0 ? 0.0 : (lastPremium - entryPremium) / entryPremium * 100;
 
-    return Container(
+    final card = Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(color: bgColor, border: Border.all(color: Colors.white12, width: 0.5), borderRadius: BorderRadius.circular(8)),
       child: Column(
@@ -542,8 +543,26 @@ class OptionPositionCard extends StatelessWidget {
               'Entered ${formatBackendTimestamp(position['Entry Time'] as String?)} · '
               'Checked ${formatBackendTimestamp(position['Last Checked'] as String?)}',
               style: const TextStyle(fontSize: 11, color: mutedColor)),
+          if (onTap != null) ...[
+            const SizedBox(height: 4),
+            const Row(
+              children: [
+                Spacer(),
+                Icon(Icons.show_chart, size: 14, color: mutedColor),
+                SizedBox(width: 4),
+                Text('View underlying chart', style: TextStyle(fontSize: 11, color: mutedColor)),
+              ],
+            ),
+          ],
         ],
       ),
+    );
+
+    if (onTap == null) return card;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(borderRadius: BorderRadius.circular(8), onTap: onTap, child: card),
     );
   }
 }
@@ -554,8 +573,9 @@ class OptionPositionCard extends StatelessWidget {
 class OptionClosedTradeCard extends StatelessWidget {
   final Map<String, dynamic> trade;
   final String underlyingLabel;
+  final VoidCallback? onViewChart;
 
-  const OptionClosedTradeCard({super.key, required this.trade, this.underlyingLabel = 'NIFTY'});
+  const OptionClosedTradeCard({super.key, required this.trade, this.underlyingLabel = 'NIFTY', this.onViewChart});
 
   @override
   Widget build(BuildContext context) {
@@ -568,7 +588,7 @@ class OptionClosedTradeCard extends StatelessWidget {
     final exitReason = trade['Exit Reason'] ?? '';
     final exitTime = formatBackendTimestamp(trade['Exit Time'] as String?);
 
-    return Container(
+    final card = Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(color: bgColor, border: Border.all(color: Colors.white12, width: 0.5), borderRadius: BorderRadius.circular(8)),
@@ -587,6 +607,10 @@ class OptionClosedTradeCard extends StatelessWidget {
               const Spacer(),
               Text(formatSignedRupees(pnl),
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: win ? successColor : dangerColor)),
+              if (onViewChart != null) ...[
+                const SizedBox(width: 4),
+                const Icon(Icons.chevron_right, size: 16, color: mutedColor),
+              ],
             ],
           ),
           const SizedBox(height: 4),
@@ -599,6 +623,13 @@ class OptionClosedTradeCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+
+    if (onViewChart == null) return card;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(borderRadius: BorderRadius.circular(8), onTap: onViewChart, child: card),
     );
   }
 }

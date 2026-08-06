@@ -188,6 +188,7 @@ class _FyersPortfolioScreenState extends State<FyersPortfolioScreen> {
                           MaterialPageRoute(
                               builder: (_) => ChartScreen(
                                     symbol: e.key,
+                                    candleDataUrl: fyersCandlesUrl,
                                     entryPrice: (e.value['Entry Price'] as num).toDouble(),
                                     stopLoss: (e.value['Stop Loss'] as num?)?.toDouble(),
                                     target: (e.value['Target'] as num?)?.toDouble(),
@@ -222,6 +223,7 @@ class _FyersPortfolioScreenState extends State<FyersPortfolioScreen> {
                           MaterialPageRoute(
                               builder: (_) => ChartScreen(
                                     symbol: (t['Symbol'] ?? 'NIFTY 50').toString(),
+                                    candleDataUrl: fyersCandlesUrl,
                                     entryPrice: (t['Entry Price'] as num).toDouble(),
                                     exitPrice: (t['Exit Price'] as num).toDouble(),
                                     direction: t['Direction'] as String? ?? 'BUY',
@@ -262,6 +264,7 @@ class _FyersPortfolioScreenState extends State<FyersPortfolioScreen> {
                       MaterialPageRoute(
                           builder: (_) => ChartScreen(
                                 symbol: intradaySymbol,
+                                candleDataUrl: fyersCandlesUrl,
                                 entryPrice: (intradayPosition['Entry Price'] as num).toDouble(),
                                 stopLoss: (intradayPosition['Stop Loss'] as num?)?.toDouble(),
                                 target: (intradayPosition['Target'] as num?)?.toDouble(),
@@ -296,6 +299,7 @@ class _FyersPortfolioScreenState extends State<FyersPortfolioScreen> {
                           MaterialPageRoute(
                               builder: (_) => ChartScreen(
                                     symbol: (t['Name'] ?? t['Symbol'] ?? 'NIFTY 50').toString(),
+                                    candleDataUrl: fyersCandlesUrl,
                                     entryPrice: (t['Entry Price'] as num).toDouble(),
                                     exitPrice: (t['Exit Price'] as num).toDouble(),
                                     direction: t['Direction'] as String? ?? 'BUY',

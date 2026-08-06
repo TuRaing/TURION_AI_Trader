@@ -230,6 +230,11 @@ def _close_position(cfg, portfolio, exit_premium, reason):
         "Option Type": position["Option Type"],
         "Entry Time": position["Entry Time"],
         "Entry Premium": position["Entry Premium"],
+        # Added 06-Aug-2026 - so the app can show the underlying's spot
+        # price as a chart reference line for closed trades too, not
+        # just open ones (this was dropped before, only kept on the
+        # live Position dict).
+        "Entry Spot": position.get("Entry Spot"),
         "Exit Time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "Exit Premium": exit_premium,
         "Lots": position["Lots"],

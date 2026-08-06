@@ -145,6 +145,12 @@ def _close_position(cfg, portfolio, exit_premium, reason):
         "Option Type": position["Option Type"],
         "Entry Time": position["Entry Time"],
         "Entry Premium": position["Entry Premium"],
+        # Added 06-Aug-2026 - so the app can show the underlying's spot
+        # price as a chart reference line for closed trades too. Also
+        # keep Peak Spot - the level the trailing stop was actually
+        # trailing behind, useful chart context for st4 specifically.
+        "Entry Spot": position.get("Entry Spot"),
+        "Peak Spot": position.get("Peak Spot"),
         # Stored as naive/local time (UTC on the GitHub Actions runner),
         # matching every other engine's convention - see the same-day
         # fix note in fyers_options_paper_trading.py.

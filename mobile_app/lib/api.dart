@@ -10,6 +10,13 @@ const bestTradePortfolioUrl = '$_repoRawBase/reports/best_trade_portfolio.json';
 const bestTradePickUrl = '$_repoRawBase/reports/best_trade_pick.json';
 const candlesUrl = '$_repoRawBase/reports/candles.json';
 
+// Added 06-Aug-2026 - Fyers-sourced counterpart to candlesUrl (see
+// refresh_fyers_candles.py) - own file so it never mixes with the
+// yfinance one above. Options strategies chart their underlying
+// index (NIFTY/BANKNIFTY spot), not the option contract itself - see
+// that script's module docstring for why.
+const fyersCandlesUrl = '$_repoRawBase/reports/fyers_candles.json';
+
 // Added 04-Aug-2026 - Fyers-sourced TEST portfolios (strategy/fyers_
 // paper_trading.py, strategy/fyers_best_trade_paper_trading.py), kept
 // fully separate from the live yfinance ones above - own files, own

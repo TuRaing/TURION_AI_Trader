@@ -5,6 +5,7 @@ import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/disclaimer_banner.dart';
 import '../widgets/live_clock.dart';
+import 'chart_screen.dart';
 
 // Added 06-Aug-2026 - shows the 4 named options strategies (simple_
 // st1, st2, st3, st4 - strategy/fyers_options_engine.py / fyers_
@@ -248,7 +249,24 @@ class _StrategyIndexPortfolioState extends State<_StrategyIndexPortfolio> {
                   child: Text('No open option position', style: TextStyle(color: mutedColor)),
                 )
               else
-                OptionPositionCard(position: position, underlyingLabel: widget.label),
+                OptionPositionCard(
+                  position: position,
+                  underlyingLabel: widget.label,
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => ChartScreen(
+                                symbol: widget.label,
+                                candleDataUrl: fyersCandlesUrl,
+                                // Charts the UNDERLYING's spot price, not the
+                                // option premium (different scale, and Fyers
+                                // has no reliable per-contract candle history
+                                // anyway) - Entry Spot is what the entry
+                                // decision was actually based on.
+                                entryPrice: (position['Entry Spot'] as num?)?.toDouble(),
+                                direction: position['Option Type'] == 'PE' ? 'SELL' : 'BUY',
+                              ))),
+                ),
             ],
           ),
         ),
@@ -262,7 +280,19 @@ class _StrategyIndexPortfolioState extends State<_StrategyIndexPortfolio> {
             child: Text('No closed trades yet', style: TextStyle(color: mutedColor)),
           )
         else
-          ...closedTrades.reversed.map((t) => OptionClosedTradeCard(trade: t, underlyingLabel: widget.label)),
+          ...closedTrades.reversed.map((t) => OptionClosedTradeCard(
+                trade: t,
+                underlyingLabel: widget.label,
+                onViewChart: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => ChartScreen(
+                              symbol: widget.label,
+                              candleDataUrl: fyersCandlesUrl,
+                              entryPrice: (t['Entry Spot'] as num?)?.toDouble(),
+                              direction: t['Option Type'] == 'PE' ? 'SELL' : 'BUY',
+                            ))),
+              )),
       ],
     );
   }
