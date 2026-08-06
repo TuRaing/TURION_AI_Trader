@@ -1,0 +1,87 @@
+name: Fyers Multi-Strategy Options Watch
+
+# Added 06-Aug-2026 - runs all 4 named options strategies (simple_st1,
+# st2, st3, st4) x 2 indices (NIFTY, BANKNIFTY) = 8 configs via
+# fyers_multi_strategy_options_run.py, reusing the FYERS_ACCESS_TOKEN
+# repo secret shared by the morning login (fyers_trigger_run.py) - no
+# fresh login here. Separate from fyers_options_watch.yml (the
+# original single live strategy, untouched) - own workflow, own
+# report files, per this repo's engine-separation rule. Heavier than
+# the single-strategy watch (8 configs' worth of option-chain/quote/
+# underlying-candle fetches per run, and st4 additionally needs a
+# 15m/5m/1m multi-timeframe + ADX check per index), so triggered at a
+# more moderate ~2-min cadence rather than the single-strategy watch's
+# ~1-min - see doc/06aug26_SESSION_LOG.md. Triggered externally by
+# cron-job.org, same pattern as every other Fyers workflow (GitHub's
+# free-tier native `schedule:` trigger badly under-fires, already
+# documented in doc/PROJECT_STATUS.md's Known Issues).
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fyers-multi-strategy-options:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run multi-strategy options check
+        env:
+          FYERS_APP_ID: ${{ secrets.FYERS_APP_ID }}
+          FYERS_ACCESS_TOKEN: ${{ secrets.FYERS_ACCESS_TOKEN }}
+        run: python fyers_multi_strategy_options_run.py
+
+      - name: Commit updated multi-strategy portfolios
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # One `git add <file> || true` per file, not a combined
+          # multi-path line - a single missing file among several
+          # silently discards staging ALL of them (see 05-Aug's fix in
+          # fyers_trigger.yml). All 8 files already exist (created by
+          # this session's manual test runs), but kept per-file for
+          # consistency/safety with every other Fyers workflow.
+          git add reports/fyers_options_simple_st1_nifty_portfolio.json || true
+          git add reports/fyers_options_simple_st1_banknifty_portfolio.json || true
+          git add reports/fyers_options_st2_nifty_portfolio.json || true
+          git add reports/fyers_options_st2_banknifty_portfolio.json || true
+          git add reports/fyers_options_st3_nifty_portfolio.json || true
+          git add reports/fyers_options_st3_banknifty_portfolio.json || true
+          git add reports/fyers_options_st4_nifty_portfolio.json || true
+          git add reports/fyers_options_st4_banknifty_portfolio.json || true
+
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          # Commit first, then rebase-and-retry on a push conflict -
+          # never git reset --hard, which discards this run's real
+          # result instead of just losing time (the exact bug found
+          # and fixed the same day in fyers_scheduled_check.yml).
+          git commit -m "Update multi-strategy options portfolios [skip ci]"
+
+          for i in 1 2 3; do
+            if git push; then
+              exit 0
+            fi
+            echo "Push rejected - rebasing this run's commit onto latest ($i/3)..."
+            git pull --rebase origin ${{ github.ref_name }}
+          done
+
+          echo "Could not push after 3 attempts - commit still exists locally for the next run (~2 min later)."
+          exit 1
