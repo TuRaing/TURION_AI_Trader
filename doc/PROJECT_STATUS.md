@@ -2275,6 +2275,44 @@ against the already-known net-negative large-sample finding (Swing
 profitable) and decide then, don't let this drift past that date
 without a decision.
 
+MAJOR FINDING, 07-Aug - the 4 new options strategies' FIRST real
+trading day was a large, broad loss, not just simple_st1/st2/st3's
+Target/Stop-Loss ratio being off:
+
+  simple_st1 NIFTY:      47 trades, 42.5% win rate, -Rs 23,237.07
+  simple_st1 BANKNIFTY:  23 trades, 39.1% win rate, -Rs 21,952.40
+  st2 NIFTY:              49 trades, 28.6% win rate, -Rs 30,987.29
+  st2 BANKNIFTY:          21 trades, 28.6% win rate,    -Rs 123.24
+  st3 NIFTY:              24 trades, 45.8% win rate, -Rs 23,946.12
+  st3 BANKNIFTY:          12 trades, 33.3% win rate, -Rs 19,018.45
+  st4 NIFTY:               1 trade,   0% win rate,   -Rs 5,400.02
+  st4 BANKNIFTY:           1 trade,   0% win rate,   -Rs 3,189.38
+  TOTAL across all 8 books: approximately -Rs 1,27,854 in ONE day
+  (on Rs 8,00,000 total deployed paper capital - roughly 16%).
+
+Why this matters more than a ratio problem: simple_st1 (3%/3%),
+st2 (5%/2%), st3 (5%/5%) all use DIFFERENT Target/Stop-Loss ratios
+- if the ratio were the main issue, at least one should have looked
+meaningfully better than the others. All three lost heavily instead
+(st2 NIFTY worst at -Rs 30,987 despite its ratio being the one
+nifty_options_backtest.py's sweep found "best" on Black-Scholes-
+estimated data). This points to the shared RSI-momentum ENTRY
+signal itself lacking real directional edge on real premiums -
+consistent with 22-Jul's original finding that "Momentum(RSI)+VIX
+had no reliable edge on NIFTY" (only BANKNIFTY showed one, and only
+on the underlying's direction, never checked against real premium
+economics until now). High trade frequency (up to 49 trades in one
+session) meant real transaction costs compounded quickly on top of
+that.
+
+DECIDED, 07-Aug: NOT stopping the 4 strategies early despite this -
+continuing the already-agreed 1-week test as planned. IN PARALLEL,
+build additional new strategy ideas (starting tomorrow, 08-Aug) with
+genuinely different entry logic - not more Target/Stop-Loss ratio
+variations on the same RSI-momentum signal, since today's result
+suggests that entry signal itself is the real problem, not the exit
+tuning.
+
 LIVE-DATA ARCHITECTURE (VPS + Firebase) - discussed in depth 06/07-
 Aug, NOT built yet, deliberately deferred: do this about 1 WEEK
 BEFORE starting real-capital trading (once paper-trading results
