@@ -1,3 +1,4 @@
+import math
 import os
 import json
 from datetime import datetime
@@ -104,6 +105,16 @@ def process_signal(portfolio, symbol, signal, price, stop_loss=None, target=None
 
     position = portfolio["Positions"].get(symbol)
     action = "HOLD"
+
+    # Guard against a NaN price (found live 07-Aug - yfinance's latest
+    # daily candle can come back with a NaN Close, e.g. a request made
+    # before that day's trading has actually produced data yet). json.
+    # dump() happily writes Python's non-standard NaN token, but that's
+    # not valid JSON - Dart's strict parser then fails to load the
+    # WHOLE file, breaking every screen that reads it, not just this
+    # one symbol. Never store or act on it - skip this check entirely.
+    if price is None or (isinstance(price, float) and math.isnan(price)):
+        return portfolio, "SKIPPED (invalid/NaN price this check)"
 
     if position is None:
 
