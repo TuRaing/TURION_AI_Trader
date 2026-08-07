@@ -1,15 +1,6 @@
 {
-  "Cash": 99995.06000000001,
-  "Position": {
-    "Name": "SBIN",
-    "Symbol": "SBIN.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-08-07 04:57:32",
-    "Entry Price": 1086.2,
-    "Quantity": 1,
-    "Stop Loss": 1081.46,
-    "Target": 1095.68
-  },
+  "Cash": 100004.54000000001,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -34,6 +25,18 @@
       "Quantity": 1,
       "Exit Reason": "Stop Loss",
       "PnL": -8.04
+    },
+    {
+      "Name": "SBIN",
+      "Symbol": "SBIN.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-08-07 04:57:32",
+      "Entry Price": 1086.2,
+      "Exit Time": "2026-08-07 08:16:39",
+      "Exit Price": 1095.68,
+      "Quantity": 1,
+      "Exit Reason": "Target",
+      "PnL": 9.48
     }
   ],
   "Data Source": "Fyers"
