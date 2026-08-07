@@ -1,15 +1,6 @@
 {
-  "Cash": 100138.17505493159,
-  "Position": {
-    "Name": "ULTRACEMCO",
-    "Symbol": "ULTRACEMCO.NS",
-    "Direction": "SELL",
-    "Entry Time": "2026-08-07 04:33:13",
-    "Entry Price": 11990.0,
-    "Quantity": 1,
-    "Stop Loss": 12033.71,
-    "Target": 11902.58
-  },
+  "Cash": 100094.46505493158,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -454,6 +445,18 @@
       "Quantity": 1,
       "Exit Reason": "Intraday Square-Off",
       "PnL": 19.0
+    },
+    {
+      "Name": "ULTRACEMCO",
+      "Symbol": "ULTRACEMCO.NS",
+      "Direction": "SELL",
+      "Entry Time": "2026-08-07 04:33:13",
+      "Entry Price": 11990.0,
+      "Exit Time": "2026-08-07 05:55:46",
+      "Exit Price": 12033.71,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -43.71
     }
   ]
 }
