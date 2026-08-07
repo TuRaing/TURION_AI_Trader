@@ -1,15 +1,6 @@
 {
-  "Cash": 100094.46505493158,
-  "Position": {
-    "Name": "M&M",
-    "Symbol": "M&M.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-08-07 06:06:49",
-    "Entry Price": 3461.4,
-    "Quantity": 1,
-    "Stop Loss": 3449.895,
-    "Target": 3484.4100000000003
-  },
+  "Cash": 100117.47505493158,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -466,6 +457,18 @@
       "Quantity": 1,
       "Exit Reason": "Stop Loss",
       "PnL": -43.71
+    },
+    {
+      "Name": "M&M",
+      "Symbol": "M&M.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-08-07 06:06:49",
+      "Entry Price": 3461.4,
+      "Exit Time": "2026-08-07 07:16:02",
+      "Exit Price": 3484.4100000000003,
+      "Quantity": 1,
+      "Exit Reason": "Target",
+      "PnL": 23.01
     }
   ]
 }
