@@ -1,19 +1,6 @@
 {
-  "Cash": 109730.89442988251,
-  "Position": {
-    "Symbol": "NSE:NIFTY2681124600CE",
-    "Strike": 24600,
-    "Option Type": "CE",
-    "Entry Time": "2026-08-07 05:56:04",
-    "Entry Spot": 24580.85,
-    "Entry Premium": 126.3,
-    "Entry RSI": 52.13,
-    "Lots": 11,
-    "Quantity": 825,
-    "Capital Deployed": 104197.5,
-    "Last Premium": 126.3,
-    "Last Checked": "2026-08-07 06:17:01"
-  },
+  "Cash": 107100.86846454752,
+  "Position": null,
   "Closed Trades": [
     {
       "Symbol": "NSE:NIFTY2681124600PE",
@@ -224,6 +211,20 @@
       "Exit Reason": "Stop Loss",
       "Net PnL": -4484.83,
       "Net PnL %": -4.485
+    },
+    {
+      "Symbol": "NSE:NIFTY2681124600CE",
+      "Strike": 24600,
+      "Option Type": "CE",
+      "Entry Time": "2026-08-07 05:56:04",
+      "Entry Premium": 126.3,
+      "Entry Spot": 24580.85,
+      "Exit Time": "2026-08-07 06:17:44",
+      "Exit Premium": 123.4,
+      "Lots": 11,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -2630.03,
+      "Net PnL %": -2.63
     }
   ],
   "Data Source": "Fyers (real premium)",
