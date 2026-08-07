@@ -1,15 +1,6 @@
 {
-  "Cash": 100004.54000000001,
-  "Position": {
-    "Name": "BHARTIARTL",
-    "Symbol": "BHARTIARTL.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-08-07 08:22:40",
-    "Entry Price": 1957.1,
-    "Quantity": 1,
-    "Stop Loss": 1953.3799999999999,
-    "Target": 1964.54
-  },
+  "Cash": 100000.82,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -46,6 +37,18 @@
       "Quantity": 1,
       "Exit Reason": "Target",
       "PnL": 9.48
+    },
+    {
+      "Name": "BHARTIARTL",
+      "Symbol": "BHARTIARTL.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-08-07 08:22:40",
+      "Entry Price": 1957.1,
+      "Exit Time": "2026-08-07 08:56:31",
+      "Exit Price": 1953.3799999999999,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -3.72
     }
   ],
   "Data Source": "Fyers"
