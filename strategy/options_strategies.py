@@ -1,5 +1,6 @@
 from strategy.fyers_options_engine import make_strategy, check_or_open as check_or_open_generic
 from strategy.fyers_options_st4 import make_st4_config, check_or_open as check_or_open_st4
+from strategy.fyers_options_gapfill import make_gapfill_config, check_or_open as check_or_open_gapfill
 
 # Added 06-Aug-2026 - the named-strategy roster for the multi-strategy
 # options paper trading the user asked for: several live strategies
@@ -51,6 +52,16 @@ ST3_BANKNIFTY = make_strategy("st3", "BANKNIFTY", target_net_pct=5.0, stop_loss_
 ST4_NIFTY = make_st4_config("NIFTY")
 ST4_BANKNIFTY = make_st4_config("BANKNIFTY")
 
+# gapfill - added 07/08-Aug-2026 after simple_st1/st2/st3/st4's first
+# real trading day (07-Aug) lost broadly across all 8 books despite
+# 3 different Target/Stop-Loss ratios - pointed at the shared RSI-
+# momentum ENTRY signal itself lacking edge, not the exit tuning.
+# This strategy deliberately uses a DIFFERENT entry mechanism (Gap-
+# Fill - see strategy/fyers_options_gapfill.py) instead of another
+# ratio variant on the same signal.
+GAPFILL_NIFTY = make_gapfill_config("NIFTY")
+GAPFILL_BANKNIFTY = make_gapfill_config("BANKNIFTY")
+
 ALL_STRATEGIES = [
     (check_or_open_generic, SIMPLE_ST1_NIFTY),
     (check_or_open_generic, SIMPLE_ST1_BANKNIFTY),
@@ -60,4 +71,6 @@ ALL_STRATEGIES = [
     (check_or_open_generic, ST3_BANKNIFTY),
     (check_or_open_st4, ST4_NIFTY),
     (check_or_open_st4, ST4_BANKNIFTY),
+    (check_or_open_gapfill, GAPFILL_NIFTY),
+    (check_or_open_gapfill, GAPFILL_BANKNIFTY),
 ]
