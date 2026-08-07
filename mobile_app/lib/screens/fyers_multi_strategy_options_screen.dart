@@ -6,6 +6,7 @@ import '../widgets/common.dart';
 import '../widgets/disclaimer_banner.dart';
 import '../widgets/live_clock.dart';
 import 'chart_screen.dart';
+import 'fyers_login_screen.dart';
 
 // Added 06-Aug-2026 - shows the 4 named options strategies (simple_
 // st1, st2, st3, st4 - strategy/fyers_options_engine.py / fyers_
@@ -70,6 +71,15 @@ class _FyersMultiStrategyOptionsScreenState extends State<FyersMultiStrategyOpti
             '4 strategies, each on NIFTY + BANKNIFTY with its own ₹1,00,000 - real live premium quotes, paper trades only.',
             style: TextStyle(fontSize: 12, color: accentColor),
           ),
+        ),
+        // Added 07-Aug-2026 - the login button was only ever on the
+        // "Fyers" tab; the one shared FYERS_ACCESS_TOKEN it produces
+        // already covers every Fyers workflow including these 4
+        // strategies, but not having a visible login entry point HERE
+        // was confusing (user asked "where do I log in for Options?").
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Align(alignment: Alignment.centerLeft, child: FyersLoginButton()),
         ),
         TabBar(
           controller: _strategyTabController,
