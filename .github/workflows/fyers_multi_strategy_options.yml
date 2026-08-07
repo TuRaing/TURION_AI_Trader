@@ -32,6 +32,19 @@ on:
 permissions:
   contents: write
 
+# Added 07-Aug-2026 - found live: 4 separate cron-job.org jobs firing
+# every ~1 min each meant a run could still be checking out/installing
+# deps/committing when the SAME strategy's next minute fired, causing
+# two runs to genuinely conflict writing the same 2 report files
+# (confirmed in a real failed run's log: "CONFLICT (content): Merge
+# conflict in reports/fyers_options_st2_..._portfolio.json" x2, from
+# an overlapping st2 run, not a different-strategy collision). This
+# queues same-strategy runs instead of letting them overlap - a run
+# for one strategy still proceeds independently of the other 3.
+concurrency:
+  group: fyers-multi-strategy-${{ inputs.strategy }}
+  cancel-in-progress: false
+
 jobs:
   fyers-multi-strategy-options:
     runs-on: ubuntu-latest
