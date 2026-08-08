@@ -12,7 +12,7 @@ TURION AI Trader
 
 Version
 
-v0.0.17
+v0.0.18
 
 --------------------------------------------------
 
@@ -161,19 +161,14 @@ PROJECT MILESTONES
                                live data (fyers_data.py), Swing +
                                Intraday + Options paper trading
                                engines all running on real Fyers
-                               quotes, a 5-strategy options engine
-                               (simple_st1/st2/st3/st4/gapfill x
-                               NIFTY/BANKNIFTY, 10 independent books -
-                               gapfill added 07/08-Aug with a genuinely
-                               different reversion-based entry signal
-                               after simple_st1-st4's shared RSI-
-                               momentum entry lost broadly on its
-                               first live day), PLUS a parallel
-                               "threshold" variant of all 5 (same
-                               logic + a daily Rs 2,000 profit-lock
-                               gate, added 08-Aug, 10 more books - 20
-                               total), and continuous same-day
-                               automation (one
+                               quotes. Options: 7 named strategies -
+                               simple_st1/st2/st3/st4/gapfill (10
+                               books, NIFTY+BANKNIFTY each), their
+                               "threshold" profit-lock variant (10
+                               more books), vix_filter (BANKNIFTY-
+                               only, 1 book), oi_footprint (2 books) -
+                               23 books total as of 08-Aug. Continuous
+                               same-day automation (one
                                morning login -> shared token -> GitHub
                                Actions + cron-job.org triggers all
                                day, no further login needed). This is
@@ -2630,6 +2625,28 @@ threshold + 1 vix_filter + 2 oi_footprint). 10 new tests, 207 project
 tests passing. 8th cron-job.org trigger set up and verified live via
 a real test run (no errors, correct STRATEGY_NAME).
 
+APP CATCH-UP, 08-Aug - user asked "is this strategy in the app?" for
+vix_filter and oi_footprint, and it wasn't - both had gone live on
+the backend the same day but were never wired into the Options tab
+(same class of gap as gapfill's earlier that same day). Fixed:
+FyersMultiStrategyOptionsScreen's _strategyNames grew to all 7
+(simple_st1/st2/st3/st4/gapfill/vix_filter/oi_footprint), and
+_IndexTabs was generalized to take a per-strategy list of indices
+(_strategyIndices map, default both) instead of hardcoding NIFTY+
+BANKNIFTY for every tab - needed since vix_filter is BANKNIFTY-only
+and showing an empty/error NIFTY subtab for it would have been
+confusing. Options Summary's table also grew from 20 to 23 rows for
+the same reason. APK rebuilt and reinstalled.
+
+DECIDED, 08-Aug: oi_footprint stays OUTSIDE the Threshold group -
+user explicitly declined adding a profit-lock variant for it (asked
+directly, chose "no, keep it as is"). Reasoning matches oi_footprint's
+own design: it's already a small, quick Rs 1,500 fixed Target/Stop-
+Loss strategy (see its 08-Aug entry above) - a daily profit-lock on
+top wasn't judged necessary. vix_filter also has no threshold variant
+(never offered one). The Threshold group remains exactly the 5
+original strategies' profit-lock variant, nothing more.
+
 LIVE-DATA ARCHITECTURE (VPS + Firebase) - discussed in depth 06/07-
 Aug, NOT built yet, deliberately deferred: do this about 1 WEEK
 BEFORE starting real-capital trading (once paper-trading results
@@ -2722,11 +2739,11 @@ Status
 
 Current Version
 
-v0.0.17
+v0.0.18
 
 Next Version
 
-v0.0.18
+v0.0.19
 
 ==================================================
 

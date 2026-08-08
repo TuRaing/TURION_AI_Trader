@@ -20,8 +20,9 @@ Date
 
 Version
 
-v0.0.15 -> v0.0.16 (bumped later same session - Gap-Fill strategy +
-daily profit-lock are real new features, not just bug fixes)
+v0.0.15 -> v0.0.18 (bumped several times same long session - Gap-
+Fill, Threshold group, VIX-filter, and OI-footprint strategies are
+each real new features, not just bug fixes)
 
 ==================================================
 
@@ -254,6 +255,17 @@ Today's Achievements
    design, not a big directional bet). Both indices, 23 books total
    now. 10 new tests, 207 passing. 8th cron-job.org trigger set up
    and verified live via a real test run.
+
+✅ Wired vix_filter and oi_footprint into the app (Options tab +
+   Options Summary) - both had gone live on the backend the same day
+   but were never added to the UI, same gap class as gapfill earlier.
+   Generalized _IndexTabs to support a per-strategy index list
+   (vix_filter is BANKNIFTY-only) instead of hardcoding NIFTY+
+   BANKNIFTY everywhere. APK rebuilt, reinstalled, verified.
+
+✅ Asked directly, user declined adding a daily profit-lock/Threshold
+   variant for oi_footprint - it stays outside the Threshold group,
+   its own small/quick Rs 1,500 design is enough as is.
 
 ==================================================
 
