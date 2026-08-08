@@ -6,9 +6,11 @@ import '../widgets/common.dart';
 import '../widgets/live_clock.dart';
 
 // Added 08-Aug-2026 - user's direct request: one combined table across
-// all 20 options paper-trading books (5 strategies x 2 indices x
-// {original, threshold} = 10 + 10), showing each book's Initial
-// Amount, Current Amount, Profit, plus totals across all of them.
+// every options paper-trading book (originally 20: 5 strategies x 2
+// indices x {original, threshold}; grew to 23 same day with vix_filter
+// (BANKNIFTY-only) and oi_footprint (both indices)), showing each
+// book's Initial Amount, Current Amount, Profit, plus totals across
+// all of them.
 // Every book starts with the same Rs 1,00,000 (cfg["initial_capital"]
 // default in strategy/fyers_options_engine.py/fyers_options_st4.py/
 // fyers_options_gapfill.py) - Initial Amount is hardcoded here to
@@ -41,6 +43,9 @@ const _books = [
   ('st4_threshold', 'BANKNIFTY', 'banknifty'),
   ('gapfill_threshold', 'NIFTY', 'nifty'),
   ('gapfill_threshold', 'BANKNIFTY', 'banknifty'),
+  ('vix_filter', 'BANKNIFTY', 'banknifty'),
+  ('oi_footprint', 'NIFTY', 'nifty'),
+  ('oi_footprint', 'BANKNIFTY', 'banknifty'),
 ];
 
 class FyersOptionsSummaryScreen extends StatefulWidget {

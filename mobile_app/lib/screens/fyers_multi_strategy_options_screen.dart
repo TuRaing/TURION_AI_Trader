@@ -21,7 +21,7 @@ import 'fyers_login_screen.dart';
 // TEST DATA ONLY - every price here is a real Fyers quote, but these
 // are paper trades only, not live trading.
 
-const _strategyNames = ['simple_st1', 'st2', 'st3', 'st4', 'gapfill'];
+const _strategyNames = ['simple_st1', 'st2', 'st3', 'st4', 'gapfill', 'vix_filter', 'oi_footprint'];
 
 // Added 06-Aug-2026 - one-line plain-language summary per strategy,
 // shown under its index tabs so it's clear what each is actually
@@ -32,7 +32,19 @@ const _strategyDescriptions = {
   'st3': 'RSI दिशा, ATM strike, 5% Target / 5% Stop-Loss.',
   'st4': 'दिवसातून फक्त १ high-confidence trade - 15m/5m/1m alignment + ADX>25 झाल्यावरच entry, ₹1,000 नफ्यानंतर ATR-आधारित trailing stop.',
   'gapfill': 'सकाळचा gap मागे prev close कडे परत येईल या अंदाजावर - gap up वर PE, gap down वर CE, फक्त सकाळी 10 वाजेपर्यंत entry.',
+  'vix_filter': 'RSI>60/<40 + India VIX त्याच्याच 30-70 percentile band मध्ये असेल तरच entry (फक्त BANKNIFTY - 22-Jul च्या research मध्ये validated).',
+  'oi_footprint': 'ATM strike वरचा Open Interest बदल (institutional footprint) बघून CE/PE - छोटा, पटकन ₹1,500 Target/Stop-Loss.',
 };
+
+// Added 08-Aug-2026 - vix_filter is BANKNIFTY-only (NIFTY was already
+// tested and rejected for that exact combo - see strategy/fyers_
+// options_vix_filter.py) - unlike every other strategy here, which
+// runs both indices. Default (any name not listed) is both.
+const _strategyIndices = {
+  'vix_filter': ['banknifty'],
+};
+
+List<String> _indicesFor(String strategyName) => _strategyIndices[strategyName] ?? ['nifty', 'banknifty'];
 
 // Made generic 08-Aug-2026 - the user asked for a SECOND tab
 // ("Threshold Options") showing the same 5 strategies but with a
@@ -53,7 +65,7 @@ class FyersMultiStrategyOptionsScreen extends StatefulWidget {
     this.strategyNames = _strategyNames,
     this.strategyDescriptions = _strategyDescriptions,
     this.bannerText =
-        '5 strategies, each on NIFTY + BANKNIFTY with its own ₹1,00,000 - real live premium quotes, paper trades only.',
+        '7 strategies, each with its own ₹1,00,000 (vix_filter is BANKNIFTY-only) - real live premium quotes, paper trades only.',
   });
 
   @override
@@ -133,11 +145,13 @@ class _IndexTabs extends StatefulWidget {
 
 class _IndexTabsState extends State<_IndexTabs> with SingleTickerProviderStateMixin {
   late final TabController _indexTabController;
+  late final List<String> _indices;
 
   @override
   void initState() {
     super.initState();
-    _indexTabController = TabController(length: 2, vsync: this);
+    _indices = _indicesFor(widget.strategyName);
+    _indexTabController = TabController(length: _indices.length, vsync: this);
   }
 
   @override
@@ -162,27 +176,21 @@ class _IndexTabsState extends State<_IndexTabs> with SingleTickerProviderStateMi
           controller: _indexTabController,
           labelColor: successColor,
           unselectedLabelColor: mutedColor,
-          tabs: const [Tab(text: 'NIFTY'), Tab(text: 'BANKNIFTY')],
+          tabs: _indices.map((i) => Tab(text: i.toUpperCase())).toList(),
         ),
         Expanded(
           child: TabBarView(
             controller: _indexTabController,
             // Own State per (strategy, index) tab, so switching tabs
             // doesn't lose each one's independently-fetched data.
-            children: [
-              _StrategyIndexPortfolio(
-                key: ValueKey('${widget.strategyName}_nifty'),
-                strategyName: widget.strategyName,
-                index: 'nifty',
-                label: 'NIFTY',
-              ),
-              _StrategyIndexPortfolio(
-                key: ValueKey('${widget.strategyName}_banknifty'),
-                strategyName: widget.strategyName,
-                index: 'banknifty',
-                label: 'BANKNIFTY',
-              ),
-            ],
+            children: _indices
+                .map((i) => _StrategyIndexPortfolio(
+                      key: ValueKey('${widget.strategyName}_$i'),
+                      strategyName: widget.strategyName,
+                      index: i,
+                      label: i.toUpperCase(),
+                    ))
+                .toList(),
           ),
         ),
       ],
