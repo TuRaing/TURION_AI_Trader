@@ -2716,6 +2716,62 @@ concrete need comes up (e.g. #4 becomes worth it once a premium-
 selling/theta engine exists, since that needs real margin-aware risk
 limits the current per-strategy approach doesn't provide).
 
+GAPS VS A PROFESSIONAL ALGO TRADING SYSTEM, 08-Aug - user asked what's
+missing compared to a real professional system, beyond the 6
+architecture patterns above. Full list, then split by how soon each
+is realistically actionable:
+
+- Order Execution / OMS - no real order-placement code exists at all
+  yet (paper only); single-broker (Fyers only, no redundancy); no
+  pre-trade checks (margin availability, position limits) before an
+  order would go out.
+- Kill Switch - no global "stop everything now" mechanism across all
+  23 books; only per-book profit-lock exists.
+- Data depth - only candle-level data (15m/5m), not tick-by-tick; no
+  automated data-quality validation (today's NaN corruption was
+  caught by hand, not by a systematic check).
+- Testing methodology - backtests use a single fixed historical
+  window, no formal walk-forward (train/test split, rolled forward)
+  discipline; the Threshold group is a crude A/B split, not a formal
+  statistical A/B framework.
+- Monitoring - no Sharpe ratio / Max Drawdown / Sortino ratio tracked
+  anywhere, only raw rupee PnL; GitHub Actions run logs are the only
+  log trail (ephemeral, hard to query historically).
+- Capital allocation - every book gets an equal flat Rs 1,00,000
+  regardless of performance; a real fund would allocate MORE to
+  strategies that are working and less to ones that aren't.
+- Compliance/Tax - STCG (~20%) after-tax column still not built
+  (long-standing backlog item); no automated regulatory-limit
+  checking.
+
+SPLIT BY TIMELINE, 08-Aug:
+
+QUICK (realistically doable ~1 week after the 14-Aug review, no new
+infrastructure needed):
+  - Kill Switch - one flag, checked at the top of every check_or_
+    open(), same shape as the daily profit-lock gate already built.
+  - Sharpe/Max Drawdown/Sortino tracking - pure calculation over
+    Closed Trades data every book already has, no new data collection.
+  - STCG tax column - narrow, self-contained, already backlogged.
+  - Walk-forward testing discipline - a coding convention for NEW
+    backtests going forward (train/test split), not a new system.
+  - Data-quality validation on fetched quotes - same shape as the
+    existing NaN guard in paper_trading.py, extended to more fields.
+  - Basic pre-trade position-limit checks - a lighter first step
+    toward the (deferred) centralized Risk Manager.
+
+BIG (genuinely months of work, should NOT be rushed):
+  - Real Order Execution/OMS - needs real broker order integration
+    and extensive safety testing before ANY real capital is at risk.
+  - Tick-level data storage - needs the VPS+WebSocket architecture
+    already deferred under "LIVE-DATA ARCHITECTURE" below.
+  - Multi-broker redundancy - not needed at current scale.
+  - Dynamic capital allocation - circularly depends on having enough
+    performance data to judge which strategies deserve more capital -
+    i.e. depends on the 14-Aug review's own findings first.
+  - Centralized Risk Manager - already flagged as a bigger, deferred
+    architecture change (see ARCHITECTURE PATTERNS above).
+
 LIVE-DATA ARCHITECTURE (VPS + Firebase) - discussed in depth 06/07-
 Aug, NOT built yet, deliberately deferred: do this about 1 WEEK
 BEFORE starting real-capital trading (once paper-trading results
