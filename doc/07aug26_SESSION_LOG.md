@@ -245,6 +245,16 @@ Today's Achievements
    BANKNIFTY entries. 6 new tests, 196 passing. 7th cron-job.org
    trigger set up and verified live via a real test run.
 
+✅ Built and deployed the OI-footprint options strategy (user's own
+   idea: follow institutional positioning via its Open Interest
+   footprint, since real-time institutional order flow itself isn't
+   public data). strategy/fyers_options_oi_footprint.py - OI+Price
+   "buildup" classification on the ATM strike's combined CE+PE OI,
+   fixed Rs 1,500 Target/Stop-Loss (small, quick - user's own explicit
+   design, not a big directional bet). Both indices, 23 books total
+   now. 10 new tests, 207 passing. 8th cron-job.org trigger set up
+   and verified live via a real test run.
+
 ==================================================
 
 Next Session Priorities

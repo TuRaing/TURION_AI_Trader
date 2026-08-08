@@ -2609,6 +2609,27 @@ another gate on today's still-small sample. Not rejected, just
 sequenced after more data exists - revisit at the 14-Aug review
 alongside the equity-engine decision.
 
+OI-FOOTPRINT STRATEGY BUILT + LIVE, 08-Aug - user's own idea, arising
+from the "can we follow big institutions without them detecting us"
+question: retail can never see real-time institutional order flow
+(that data isn't published anywhere), but a real position being built
+DOES leave a footprint in Open Interest - visible live via the option
+chain this project already collects. Built strategy/fyers_options_oi_
+footprint.py - adapts the classic OI+Price "buildup" framework
+(normally applied to futures OI; adapted here to the ATM strike's
+combined CE+PE OI since Fyers' chain doesn't expose futures OI
+directly): Price up+OI up -> Long Buildup -> CE; Price down+OI up ->
+Short Buildup -> PE; Price up+OI down -> Short Covering -> CE; Price
+down+OI down -> Long Unwinding -> PE. Only fires on a >=5% combined-OI
+change vs the last check (noise filter). Exit is deliberately small
+and quick - fixed Rs 1,500 Target/Stop-Loss (rupee-based, not
+percentage) per the user's own explicit design ("1k-2k profit, get
+in and out", not a big directional bet). Both indices, 2 more books -
+23 total across the whole options system now (10 original + 10
+threshold + 1 vix_filter + 2 oi_footprint). 10 new tests, 207 project
+tests passing. 8th cron-job.org trigger set up and verified live via
+a real test run (no errors, correct STRATEGY_NAME).
+
 LIVE-DATA ARCHITECTURE (VPS + Firebase) - discussed in depth 06/07-
 Aug, NOT built yet, deliberately deferred: do this about 1 WEEK
 BEFORE starting real-capital trading (once paper-trading results
