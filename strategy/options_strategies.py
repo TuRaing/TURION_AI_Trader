@@ -2,6 +2,7 @@ from strategy.fyers_options_engine import make_strategy, check_or_open as check_
 from strategy.fyers_options_st4 import make_st4_config, check_or_open as check_or_open_st4
 from strategy.fyers_options_gapfill import make_gapfill_config, check_or_open as check_or_open_gapfill
 from strategy.fyers_options_vix_filter import make_vix_filter_config, check_or_open as check_or_open_vix_filter
+from strategy.fyers_options_oi_footprint import make_oi_footprint_config, check_or_open as check_or_open_oi_footprint
 
 # Added 06-Aug-2026 - the named-strategy roster for the multi-strategy
 # options paper trading the user asked for: several live strategies
@@ -103,6 +104,18 @@ GAPFILL_TH_BANKNIFTY = make_gapfill_config("BANKNIFTY", name="gapfill_threshold"
 # that comparison.
 VIX_FILTER_BANKNIFTY = make_vix_filter_config()
 
+# oi_footprint - added 08-Aug-2026, user's own idea: retail can't see
+# WHICH institution traded WHAT in real time (that data isn't public),
+# but a real position being built leaves a footprint in Open Interest -
+# visible live via the option chain this project already collects. See
+# strategy/fyers_options_oi_footprint.py's module docstring for the
+# full OI+Price "buildup" signal and the deliberately small, quick Rs
+# 1,500 fixed Target/Stop-Loss (the user's own explicit "get in, get
+# out" design, not a big directional bet). Both indices - no prior
+# finding restricts this to one like vix_filter's BANKNIFTY-only rule.
+OI_FOOTPRINT_NIFTY = make_oi_footprint_config("NIFTY")
+OI_FOOTPRINT_BANKNIFTY = make_oi_footprint_config("BANKNIFTY")
+
 ALL_STRATEGIES = [
     (check_or_open_generic, SIMPLE_ST1_NIFTY),
     (check_or_open_generic, SIMPLE_ST1_BANKNIFTY),
@@ -125,4 +138,6 @@ ALL_STRATEGIES = [
     (check_or_open_gapfill, GAPFILL_TH_NIFTY),
     (check_or_open_gapfill, GAPFILL_TH_BANKNIFTY),
     (check_or_open_vix_filter, VIX_FILTER_BANKNIFTY),
+    (check_or_open_oi_footprint, OI_FOOTPRINT_NIFTY),
+    (check_or_open_oi_footprint, OI_FOOTPRINT_BANKNIFTY),
 ]

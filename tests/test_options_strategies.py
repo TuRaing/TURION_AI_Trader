@@ -1,20 +1,22 @@
 from strategy.options_strategies import ALL_STRATEGIES
 
 
-def test_all_strategies_has_21_books():
+def test_all_strategies_has_23_books():
     # 5 original strategies + 5 threshold variants (x 2 indices each) +
-    # 1 BANKNIFTY-only vix_filter book.
-    assert len(ALL_STRATEGIES) == 21
+    # 1 BANKNIFTY-only vix_filter book + 2 oi_footprint books.
+    assert len(ALL_STRATEGIES) == 23
 
 
 def test_original_books_have_no_daily_profit_lock():
-    # vix_filter has no daily_profit_lock key at all (a standalone
-    # strategy, not part of the make_strategy()/make_st4_config()/
-    # make_gapfill_config() family that offers that flag) - excluded
-    # here rather than asserting on a key it was never given.
+    # vix_filter and oi_footprint have no daily_profit_lock key at all
+    # (standalone strategies, not part of the make_strategy()/make_
+    # st4_config()/make_gapfill_config() family that offers that flag)
+    # - excluded here rather than asserting on a key they were never
+    # given.
+    standalone_names = {"vix_filter", "oi_footprint"}
     originals = [
         cfg for _, cfg in ALL_STRATEGIES
-        if cfg.get("group") != "threshold" and cfg["name"] != "vix_filter"
+        if cfg.get("group") != "threshold" and cfg["name"] not in standalone_names
     ]
 
     assert len(originals) == 10
@@ -26,6 +28,13 @@ def test_vix_filter_book_is_banknifty_only():
 
     assert len(vix_books) == 1
     assert vix_books[0]["index"] == "BANKNIFTY"
+
+
+def test_oi_footprint_runs_on_both_indices():
+    oi_books = [cfg for _, cfg in ALL_STRATEGIES if cfg["name"] == "oi_footprint"]
+
+    assert len(oi_books) == 2
+    assert {cfg["index"] for cfg in oi_books} == {"NIFTY", "BANKNIFTY"}
 
 
 def test_threshold_books_all_have_daily_profit_lock_on():

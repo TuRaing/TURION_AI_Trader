@@ -61,3 +61,8 @@ reports/*.json
 # Added 08-Aug-2026 - vix_filter (strategy/fyers_options_vix_filter.py),
 # BANKNIFTY only - same tracked-for-state-persistence reason as above.
 !reports/fyers_options_vix_filter_banknifty_portfolio.json
+# Added 08-Aug-2026 - oi_footprint (strategy/fyers_options_oi_
+# footprint.py), both indices - same tracked-for-state-persistence
+# reason as above.
+!reports/fyers_options_oi_footprint_nifty_portfolio.json
+!reports/fyers_options_oi_footprint_banknifty_portfolio.json
