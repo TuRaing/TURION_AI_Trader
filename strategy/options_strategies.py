@@ -1,6 +1,7 @@
 from strategy.fyers_options_engine import make_strategy, check_or_open as check_or_open_generic
 from strategy.fyers_options_st4 import make_st4_config, check_or_open as check_or_open_st4
 from strategy.fyers_options_gapfill import make_gapfill_config, check_or_open as check_or_open_gapfill
+from strategy.fyers_options_vix_filter import make_vix_filter_config, check_or_open as check_or_open_vix_filter
 
 # Added 06-Aug-2026 - the named-strategy roster for the multi-strategy
 # options paper trading the user asked for: several live strategies
@@ -91,6 +92,17 @@ GAPFILL_TH_NIFTY = make_gapfill_config("NIFTY", name="gapfill_threshold", daily_
 GAPFILL_TH_BANKNIFTY = make_gapfill_config("BANKNIFTY", name="gapfill_threshold", daily_profit_lock=True,
                                             group="threshold")
 
+# vix_filter - added 08-Aug-2026, user's direct request to bring back
+# 22-Jul's own validated-but-never-deployed finding: Momentum(RSI) +
+# India VIX percentile-band filter, BANKNIFTY ONLY (NIFTY was rejected
+# under this exact combo - see strategy/fyers_options_vix_filter.py's
+# module docstring for the full reasoning). Deliberately a SEPARATE
+# strategy/book, not a modification of simple_st1/st2/st3's existing
+# BANKNIFTY entries - those already have live trade history toward
+# the 1-week review; changing their signal mid-week would contaminate
+# that comparison.
+VIX_FILTER_BANKNIFTY = make_vix_filter_config()
+
 ALL_STRATEGIES = [
     (check_or_open_generic, SIMPLE_ST1_NIFTY),
     (check_or_open_generic, SIMPLE_ST1_BANKNIFTY),
@@ -112,4 +124,5 @@ ALL_STRATEGIES = [
     (check_or_open_st4, ST4_TH_BANKNIFTY),
     (check_or_open_gapfill, GAPFILL_TH_NIFTY),
     (check_or_open_gapfill, GAPFILL_TH_BANKNIFTY),
+    (check_or_open_vix_filter, VIX_FILTER_BANKNIFTY),
 ]

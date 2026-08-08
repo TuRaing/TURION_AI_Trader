@@ -1,16 +1,31 @@
 from strategy.options_strategies import ALL_STRATEGIES
 
 
-def test_all_strategies_has_20_books():
-    # 5 original strategies + 5 threshold variants, x 2 indices each.
-    assert len(ALL_STRATEGIES) == 20
+def test_all_strategies_has_21_books():
+    # 5 original strategies + 5 threshold variants (x 2 indices each) +
+    # 1 BANKNIFTY-only vix_filter book.
+    assert len(ALL_STRATEGIES) == 21
 
 
 def test_original_books_have_no_daily_profit_lock():
-    originals = [cfg for _, cfg in ALL_STRATEGIES if cfg.get("group") != "threshold"]
+    # vix_filter has no daily_profit_lock key at all (a standalone
+    # strategy, not part of the make_strategy()/make_st4_config()/
+    # make_gapfill_config() family that offers that flag) - excluded
+    # here rather than asserting on a key it was never given.
+    originals = [
+        cfg for _, cfg in ALL_STRATEGIES
+        if cfg.get("group") != "threshold" and cfg["name"] != "vix_filter"
+    ]
 
     assert len(originals) == 10
     assert all(cfg["daily_profit_lock"] is False for cfg in originals)
+
+
+def test_vix_filter_book_is_banknifty_only():
+    vix_books = [cfg for _, cfg in ALL_STRATEGIES if cfg["name"] == "vix_filter"]
+
+    assert len(vix_books) == 1
+    assert vix_books[0]["index"] == "BANKNIFTY"
 
 
 def test_threshold_books_all_have_daily_profit_lock_on():
