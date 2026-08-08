@@ -12,7 +12,7 @@ TURION AI Trader
 
 Version
 
-v0.0.15
+v0.0.16
 
 --------------------------------------------------
 
@@ -161,10 +161,15 @@ PROJECT MILESTONES
                                live data (fyers_data.py), Swing +
                                Intraday + Options paper trading
                                engines all running on real Fyers
-                               quotes, a 4-strategy options engine
-                               (simple_st1/st2/st3/st4 x NIFTY/
-                               BANKNIFTY, 8 independent books), and
-                               continuous same-day automation (one
+                               quotes, a 5-strategy options engine
+                               (simple_st1/st2/st3/st4/gapfill x
+                               NIFTY/BANKNIFTY, 10 independent books -
+                               gapfill added 07/08-Aug with a genuinely
+                               different reversion-based entry signal
+                               after simple_st1-st4's shared RSI-
+                               momentum entry lost broadly on its
+                               first live day), and continuous same-day
+                               automation (one
                                morning login -> shared token -> GitHub
                                Actions + cron-job.org triggers all
                                day, no further login needed). This is
@@ -179,8 +184,9 @@ PROJECT MILESTONES
                                Swing/News/History/Fyers/Options (grew
                                from the original 5 as Fyers/Options
                                were added 04-06-Aug). UPDATE 06-Aug:
-                               Options tab restructured into 4
-                               strategy-tabs x 2 index-subtabs, own
+                               Options tab restructured into strategy-
+                               tabs x 2 index-subtabs (5 strategy-tabs
+                               as of 07/08-Aug's gapfill addition), own
                                history each; Fyers Swing/Intraday now
                                show full closed-trade history (not
                                just the latest); newest-trade-on-top
@@ -2313,6 +2319,106 @@ variations on the same RSI-momentum signal, since today's result
 suggests that entry signal itself is the real problem, not the exit
 tuning.
 
+GAP-FILL STRATEGY BUILT, 07/08-Aug - the first "different entry
+signal" strategy promised right after the finding above. Added as a
+5th named strategy (10th/11th book pair: reports/fyers_options_
+gapfill_nifty_portfolio.json, fyers_options_gapfill_banknifty_
+portfolio.json), its own Rs 1,00,000 x 2 indices, wired into
+strategy/options_strategies.py's ALL_STRATEGIES and the app's
+Options tab like the other 4.
+
+Entry logic (strategy/fyers_options_gapfill.py) is genuinely
+different from simple_st1/st2/st3 (RSI-momentum) and st4 (multi-
+timeframe+ADX trend-continuation): bets that a significant open-vs-
+previous-close gap REVERTS back toward the previous close during the
+day, instead of continuing. Gap up -> buy PE (bet on reversion
+down); gap down -> buy CE (bet on reversion up). Adapted from
+strategy/gap_fill_backtest.py's exact rule (25-Jul research - the
+ONE intraday candidate in this project's whole history that landed
+net-positive after real transaction costs on NIFTY, +Rs 413.45/60d,
+45% win rate - caveat: a split-window check found the edge
+concentrated in the earlier half, not stable across the whole
+window, so "promising", not "proven"). Target = previous close,
+Stop-Loss = ATR-based on the side away from target, tracked on the
+underlying's spot (not premium - same reasoning as st4, no reliable
+per-contract premium history exists to compute levels directly).
+Entry only allowed in an early-morning window (market open to
+10:00 IST) - a gap-fill bet only makes sense taken early, by mid-
+morning the day's real intraday action has already moved past the
+at-open gap dynamics it counts on. One trade/day like st4. Tested
+(tests/test_fyers_options_gapfill.py, all passing) before going
+live. No trades yet as of 07-Aug (no qualifying gap that morning).
+
+OPTIONS DATA VOLUME CHECK, 07-Aug - user asked how much real
+options data exists. Two separate things:
+- reports/options_premium_history.jsonl (raw option-chain snapshots,
+  collected by strategy/fyers_options_collector.py): 5,808 records
+  across 04-07-Aug, but very unevenly spread - 04-Aug (2 snapshots)
+  and 05-Aug (4) are unusable, 06-Aug (32, uneven, some outside
+  market hours) is thin, only 07-Aug (94 snapshots, ~4-5 min apart)
+  has real density. Effectively 1 backtest-usable day exists so far.
+- Actual live paper trades across all options books: 227 closed
+  trades total (simple_st1/st2/st3/st4: 178 from 06/07-Aug combined
+  + the retired original strategy's 49 frozen trades). Still far too
+  few for a reliable per-strategy statistical read - consistent with
+  the already-decided ~1-week review point.
+
+07-AUG COARSE REPLAY (curiosity check, not a decision input) - user
+asked to replay 07-Aug's first trade of each of the 6 simple_st1/
+st2/st3 x NIFTY/BANKNIFTY books using ONLY the archived ~4-5 min
+snapshots, instead of the live bots' continuous real-time quote
+checks, to see how much the finer checking resolution actually
+mattered. Result: exit reason (Target vs Stop-Loss) matched the
+live outcome in 4/6 books, but FLIPPED in 2/6 (st2 BANKNIFTY: live
+Target +Rs 6,234.81 vs coarse-replay Stop-Loss -Rs 2,238.37; st3
+NIFTY: live Stop-Loss -Rs 5,750.16 vs coarse-replay Target +Rs
+5,002.94) - a brief intraday spike/dip that the live bot's frequent
+checking caught was invisible to the sparser archive, flipping the
+outcome entirely in those 2 cases. Confirms the premium-history
+archive is not reliable enough for a real backtest yet (too coarse,
+one bad snapshot gap can invert a trade's result) - the right path
+stays "keep collecting daily, revisit once several weeks of denser
+data exist," not attempting a backtest on the current archive.
+
+GITHUB CONNECTIVITY FAILURE (LOCAL MACHINE), 07-Aug - `git push`/
+`git fetch` started failing with "Failed to connect to github.com:
+443 ... Could not connect to server" mid-session, blocking the push
+of the completed Gap-Fill commit. Diagnosed: DNS resolved fine
+(20.207.73.82) but the TCP connection itself timed out; general
+internet worked (google.com fine); switching networks (home WiFi ->
+mobile hotspot) made no difference, ruling out an ISP-level block.
+Root cause confirmed: local Windows Defender Firewall on this
+specific machine. Toggling the Private-network firewall Off then
+back On cleared whatever was blocking github.com specifically (both
+`git fetch` and `git push` worked normally again with the firewall
+back On afterward) - most likely a stale blocked-connection state/
+cache rather than an active permanent rule, since it resolved itself
+once toggled rather than needing an explicit allow-rule added. Noted
+here in case it recurs - the fix is: temporarily turn off Windows
+Defender Firewall (Private network, active profile) via Windows
+Security > Firewall & network protection, retry, then turn it back
+on immediately after.
+
+DAILY PROFIT-LOCK ADDED, 08-Aug - after seeing st4's two trades (both
+failed within 5-7 minutes) and simple_st1/st2/st3's high trade counts
+(up to 49 in one day) on 07-Aug, user asked for every options
+strategy to stop opening NEW trades for the rest of the day once
+that day's already-REALIZED profit reaches Rs 2,000 - locks in a
+good day instead of risking giving it back on a later trade.
+Implemented as a shared helper (strategy/fyers_options_engine.py's
+_today_realized_pnl(), summing Closed Trades' Net PnL whose Exit
+Time falls on today's IST calendar day) plus one constant
+(DAILY_PROFIT_LOCK_RS = 2000), reused by all 3 check_or_open
+functions (the generic engine for simple_st1/st2/st3, fyers_options_
+st4.py, fyers_options_gapfill.py) so the threshold only needs
+changing in one place. Deliberately does NOT touch an already-open
+position - that still runs to its own Target/Stop-Loss/Square-Off as
+normal, only new entries are gated. For st4/gapfill (already one-
+trade/day) this is a no-op today but kept for consistency if that
+cap is ever relaxed. 9 new tests added (test_fyers_options_engine.py
+- _today_realized_pnl sums only today's trades, ignores older ones,
+zero when none), all 161 project tests passing.
+
 LIVE-DATA ARCHITECTURE (VPS + Firebase) - discussed in depth 06/07-
 Aug, NOT built yet, deliberately deferred: do this about 1 WEEK
 BEFORE starting real-capital trading (once paper-trading results
@@ -2405,11 +2511,11 @@ Status
 
 Current Version
 
-v0.0.15
+v0.0.16
 
 Next Version
 
-v0.0.16
+v0.0.17
 
 ==================================================
 

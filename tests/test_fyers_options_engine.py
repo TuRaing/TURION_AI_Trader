@@ -1,4 +1,6 @@
-from strategy.fyers_options_engine import make_strategy, _net_pnl
+import datetime
+
+from strategy.fyers_options_engine import make_strategy, _net_pnl, _today_realized_pnl, IST, DAILY_PROFIT_LOCK_RS
 
 
 def test_make_strategy_nifty_uses_nifty_lot_and_strike():
@@ -45,3 +47,32 @@ def test_net_pnl_uses_banknifty_lot_size():
     # Same premium move, but NIFTY's lot size (75) is larger than
     # BANKNIFTY's (30), so 1 NIFTY lot's gross P&L is bigger.
     assert nifty_pnl > banknifty_pnl
+
+
+def _exit_time_str(days_ago=0):
+    """Exit Time is stored naive/UTC (see fyers_options_engine.py's
+    convention) - build a value that round-trips to the right IST
+    calendar day regardless of when this test actually runs."""
+
+    ist_dt = datetime.datetime.now(IST) - datetime.timedelta(days=days_ago)
+    return ist_dt.astimezone(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+
+
+def test_today_realized_pnl_sums_only_todays_closed_trades():
+    portfolio = {
+        "Closed Trades": [
+            {"Exit Time": _exit_time_str(0), "Net PnL": 1500},
+            {"Exit Time": _exit_time_str(0), "Net PnL": 800},
+            {"Exit Time": _exit_time_str(2), "Net PnL": 9999},
+        ]
+    }
+
+    assert _today_realized_pnl(portfolio) == 2300
+
+
+def test_today_realized_pnl_zero_when_no_closed_trades():
+    assert _today_realized_pnl({"Closed Trades": []}) == 0
+
+
+def test_daily_profit_lock_threshold_is_2000_rupees():
+    assert DAILY_PROFIT_LOCK_RS == 2000

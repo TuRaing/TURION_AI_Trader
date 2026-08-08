@@ -33,6 +33,18 @@ MARKET_OPEN_TIME = (9, 15)  # NSE regular trading start - before this is
                              # quotes are indicative/illiquid, not real
                              # tradeable continuous-market prices.
 
+# Added 08-Aug-2026 - the user asked, after seeing st4's two trades and
+# simple_st1/st2/st3's high trade counts on 07-Aug, for every strategy to
+# stop opening NEW trades for the rest of the day once that day's already-
+# REALIZED profit reaches this much - locks in a good day instead of
+# risking giving it back on a later trade. Deliberately does not touch an
+# already-open position (that still runs to its own Target/Stop-Loss/
+# Square-Off) - it only gates new entries. Shared across all 5 strategy
+# modules (this generic engine + fyers_options_st4.py + fyers_options_
+# gapfill.py), one constant so the threshold only needs changing in one
+# place.
+DAILY_PROFIT_LOCK_RS = 2000
+
 INDEX_CONFIG = {
     "NIFTY": {
         "underlying_symbol": "NSE:NIFTY50-INDEX",
@@ -136,6 +148,34 @@ def _fetch_quote(fyers_symbol):
         raise RuntimeError(f"Fyers quote fetch failed for {fyers_symbol}: {data}")
 
     return data["d"][0]["v"]
+
+
+def _today_realized_pnl(portfolio):
+    """
+    Sums Net PnL of trades already closed TODAY (IST calendar day).
+    Exit Time is stored naive (UTC clock value on the GitHub Actions
+    runner, per this repo's timestamp convention - see the 07-Aug fix
+    note in fyers_options_paper_trading.py), so it's interpreted as
+    UTC and converted to IST before comparing dates.
+    """
+
+    today_str = datetime.datetime.now(IST).strftime("%Y-%m-%d")
+    total = 0.0
+
+    for trade in portfolio.get("Closed Trades", []):
+
+        exit_time_str = trade.get("Exit Time")
+
+        if not exit_time_str:
+            continue
+
+        exit_utc = datetime.datetime.strptime(exit_time_str, "%Y-%m-%d %H:%M:%S").replace(
+            tzinfo=datetime.timezone.utc)
+
+        if exit_utc.astimezone(IST).strftime("%Y-%m-%d") == today_str:
+            total += trade.get("Net PnL", 0)
+
+    return total
 
 
 def _get_direction(cfg):
@@ -301,6 +341,8 @@ def check_or_open(cfg):
             action = "SKIPPED (before market open, pre-open session quotes not tradeable)"
         elif now_hm >= cfg["squareoff_time"]:
             action = "SKIPPED (past square-off time, market closed or about to close)"
+        elif _today_realized_pnl(portfolio) >= DAILY_PROFIT_LOCK_RS:
+            action = f"SKIPPED (today's profit already Rs {DAILY_PROFIT_LOCK_RS}+, no more new trades today)"
         else:
             portfolio, action = _open_position(cfg, portfolio)
 

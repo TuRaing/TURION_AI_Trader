@@ -21,7 +21,7 @@ import 'fyers_login_screen.dart';
 // TEST DATA ONLY - every price here is a real Fyers quote, but these
 // are paper trades only, not live trading.
 
-const _strategyNames = ['simple_st1', 'st2', 'st3', 'st4'];
+const _strategyNames = ['simple_st1', 'st2', 'st3', 'st4', 'gapfill'];
 
 // Added 06-Aug-2026 - one-line plain-language summary per strategy,
 // shown under its index tabs so it's clear what each is actually
@@ -31,6 +31,7 @@ const _strategyDescriptions = {
   'st2': 'RSI दिशा, ATM strike, 5% Target / 2% Stop-Loss (backtest मध्ये सर्वोत्तम ठरलेला ratio).',
   'st3': 'RSI दिशा, ATM strike, 5% Target / 5% Stop-Loss.',
   'st4': 'दिवसातून फक्त १ high-confidence trade - 15m/5m/1m alignment + ADX>25 झाल्यावरच entry, ₹1,000 नफ्यानंतर ATR-आधारित trailing stop.',
+  'gapfill': 'सकाळचा gap मागे prev close कडे परत येईल या अंदाजावर - gap up वर PE, gap down वर CE, फक्त सकाळी 10 वाजेपर्यंत entry.',
 };
 
 class FyersMultiStrategyOptionsScreen extends StatefulWidget {

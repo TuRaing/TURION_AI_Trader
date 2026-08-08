@@ -8,9 +8,11 @@ from strategy.fyers_options_engine import (
     IST,
     MARKET_OPEN_TIME,
     INDEX_CONFIG,
+    DAILY_PROFIT_LOCK_RS,
     _fetch_quote,
     _pick_atm_leg,
     _net_pnl,
+    _today_realized_pnl,
 )
 from strategy.fyers_data import fyers_download
 from strategy.fyers_multi_timeframe_engine import get_multi_timeframe_signal
@@ -296,6 +298,8 @@ def check_or_open(cfg):
             action = "SKIPPED (before market open, pre-open session quotes not tradeable)"
         elif now_hm >= SQUAREOFF_TIME:
             action = "SKIPPED (past square-off time, market closed or about to close)"
+        elif _today_realized_pnl(portfolio) >= DAILY_PROFIT_LOCK_RS:
+            action = f"SKIPPED (today's profit already Rs {DAILY_PROFIT_LOCK_RS}+, no more new trades today)"
         else:
             portfolio, action = _open_position(cfg, portfolio)
 
