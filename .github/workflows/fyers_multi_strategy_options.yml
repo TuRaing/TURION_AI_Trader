@@ -134,12 +134,47 @@ jobs:
           # and fixed the same day in fyers_scheduled_check.yml).
           git commit -m "Update multi-strategy options portfolios [skip ci]"
 
+          # Added 08-Aug-2026 - 169 real failures on 07-Aug traced to a
+          # genuine REBASE CONTENT CONFLICT in reports/fyers_candles.json
+          # specifically (not a simple fast-forward-needed case the retry
+          # loop already handled) - two overlapping runs both rewrote the
+          # whole file, so git's line-based merge couldn't reconcile them.
+          # fyers_candles.json is a pure CACHE (fully regenerated fresh by
+          # every relevant run, nothing authoritative lives only there),
+          # so on a conflict limited to just that file, it's always safe
+          # to keep whatever's already on origin and move on - this run's
+          # own candle data is superseded again within ~1 minute anyway.
+          # Any OTHER conflicted file (real portfolio/trade state) is NOT
+          # auto-resolved this way - the loop aborts and fails loudly, so
+          # a genuine state conflict still surfaces instead of silently
+          # picking a side.
+          export GIT_EDITOR=true
+
           for i in 1 2 3; do
+
             if git push; then
               exit 0
             fi
+
             echo "Push rejected - rebasing this run's commit onto latest ($i/3)..."
-            git pull --rebase origin ${{ github.ref_name }}
+
+            if git pull --rebase origin ${{ github.ref_name }}; then
+              continue
+            fi
+
+            conflicted=$(git diff --name-only --diff-filter=U)
+            echo "Rebase conflict in: $conflicted"
+
+            if [ "$conflicted" = "reports/fyers_candles.json" ]; then
+              echo "Only the candle cache conflicted - keeping the already-pushed version and continuing."
+              git checkout --theirs reports/fyers_candles.json
+              git add reports/fyers_candles.json
+              git rebase --continue
+            else
+              echo "Conflict outside the safe-to-discard cache file - aborting, not auto-resolving."
+              git rebase --abort
+              break
+            fi
           done
 
           echo "Could not push after 3 attempts - commit still exists locally for the next run (~2 min later)."
