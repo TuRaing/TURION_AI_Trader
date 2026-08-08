@@ -2647,30 +2647,74 @@ top wasn't judged necessary. vix_filter also has no threshold variant
 (never offered one). The Threshold group remains exactly the 5
 original strategies' profit-lock variant, nothing more.
 
-ARCHITECTURE PATTERNS DISCUSSED, 08-Aug - user asked about design
-patterns beyond the check_or_open() polling pattern every strategy
-here uses. Identified 4 real gaps against a more mature system:
-event-driven/reactive (needs a persistent process, not compatible
-with GitHub Actions - covered under the milliseconds/VPS discussion
-above), a formal Strategy-pattern interface (currently just naming
-convention, not an enforced contract), a centralized Risk Manager
-(currently scattered per-strategy - transaction costs, DAILY_PROFIT_
-LOCK_RS - not unified), Portfolio-level risk aggregation (23 books
-are fully independent, so real correlated exposure across strategies
-- e.g. many simultaneously long BANKNIFTY CE - is invisible), and a
-shared Backtest-Live engine (backtest scripts and live strategy
-modules duplicate logic separately, risking divergence - already
-burned once: Black-Scholes-estimated backtest vs real premium live
-results disagreed).
+ARCHITECTURE PATTERNS, 08-Aug - user asked what design patterns exist
+beyond check_or_open() (the polling pattern every strategy here
+uses), for reference/decision-making going forward. Full list, what
+each is, and where this project stands against it:
+
+1. Polling / Check-based (WHAT WE USE) - check_or_open() is called
+   periodically by an external trigger (cron-job.org), reads state
+   from a JSON file, either manages an open position or looks for a
+   new entry, always saves. Stateless between calls - all state lives
+   in the file, not in memory - which is exactly why it works on
+   GitHub Actions' ephemeral runners (no persistent process needed).
+   Downside: a real price move between checks can be missed or
+   overshot (already measured live - Target/SL overshoot by several
+   points on the ~1-5 min cadence).
+
+2. Event-driven / Reactive - react the INSTANT a price tick arrives
+   instead of polling on a timer. Needs an always-on process (WebSocket
+   listener on a VPS), not compatible with GitHub Actions. This is the
+   same ground covered in the "milliseconds" discussion above -
+   concluded NOT worth it for this project's holding-period style
+   (minutes to hours), only matters for a fundamentally different
+   strategy category (market-making/scalping) this project isn't
+   pursuing.
+
+3. Strategy Pattern (formal interface) - right now each strategy
+   module just HAPPENS to define matching function names (_entry_
+   signal, _check_position, check_or_open) by convention, not an
+   enforced contract (no shared abstract base class/interface). A
+   formal version would catch a missing/mismatched function at
+   import time instead of at runtime. NOT built - convention has
+   worked so far across 12 named strategies.
+
+4. Centralized Risk Manager - Target/Stop-Loss/position-sizing/daily
+   profit-lock logic currently lives INSIDE each strategy module
+   separately (options_transaction_costs.py, DAILY_PROFIT_LOCK_RS are
+   shared building blocks, but nothing routes every order through one
+   common risk layer). A mature system has ONE risk layer every
+   strategy's orders must pass through, enforcing rules across all of
+   them at once. NOT built.
+
+5. Portfolio-level Aggregation - the 23 options books are fully
+   independent by design (for clean per-strategy comparison), so real
+   CORRELATED exposure across strategies is invisible - e.g. if 6
+   different strategies are all long BANKNIFTY CE at the same time,
+   each looks like an independent small position, but the combined
+   real risk is much larger than any one book shows. NOT built -
+   DEFERRED to after the 14-Aug review (see below).
+
+6. Shared Backtest-Live Engine - backtest scripts (strategy/*_
+   backtest.py) and live strategy modules (strategy/fyers_options_*.py)
+   duplicate the entry/exit logic separately by hand instead of
+   sharing one engine that both backtesting AND live trading run
+   through. Risk: the two can silently diverge - already happened
+   once (nifty_options_backtest.py's Black-Scholes-estimated sweep
+   showed +69%/57d, real-premium live results showed a large loss).
+   NOT built - DEFERRED (see below).
 
 DECIDED, 08-Aug: do NOT retrofit the 23 already-running books with
-either the shared Backtest-Live engine or Portfolio-level aggregation
-right now - user chose to defer both until after the 14-Aug review,
-same reasoning as the loss-lock/trade-frequency deferral above (don't
-change code that's mid-way through accumulating real trade data for a
-decision point). Backtest-Live engine unification, when it happens,
-should apply to NEW strategies going forward rather than rewriting
-the existing ones.
+either #5 (Portfolio-level Aggregation) or #6 (shared Backtest-Live
+Engine) right now - user chose to defer both until after the 14-Aug
+review, same reasoning as the loss-lock/trade-frequency deferral
+above (don't change code that's mid-way through accumulating real
+trade data for a decision point). When #6 happens, it should apply to
+NEW strategies going forward rather than rewriting the existing ones.
+#2, #3, #4 were discussed but not explicitly scheduled - revisit if a
+concrete need comes up (e.g. #4 becomes worth it once a premium-
+selling/theta engine exists, since that needs real margin-aware risk
+limits the current per-strategy approach doesn't provide).
 
 LIVE-DATA ARCHITECTURE (VPS + Firebase) - discussed in depth 06/07-
 Aug, NOT built yet, deliberately deferred: do this about 1 WEEK
