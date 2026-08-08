@@ -2598,6 +2598,17 @@ running 1-week review. 6 new tests, 196 project tests passing.
 7th cron-job.org trigger set up and verified live (workflow_dispatch
 logs confirmed correct STRATEGY_NAME, no errors).
 
+DECIDED, 08-Aug: loss-lock (mirror of the daily profit-lock - stop
+new trades for the day after N consecutive Stop-Losses) and reducing
+options trade frequency (a cooldown between entries) were both
+identified as quick, cheap next steps in the same "why is everything
+failing" review that led to the VIX-filter strategy - but user chose
+to DEFER both until after the already-agreed 1-week review point
+(~14-Aug), to let more real trades accumulate first rather than add
+another gate on today's still-small sample. Not rejected, just
+sequenced after more data exists - revisit at the 14-Aug review
+alongside the equity-engine decision.
+
 LIVE-DATA ARCHITECTURE (VPS + Firebase) - discussed in depth 06/07-
 Aug, NOT built yet, deliberately deferred: do this about 1 WEEK
 BEFORE starting real-capital trading (once paper-trading results
