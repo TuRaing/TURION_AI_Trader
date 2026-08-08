@@ -281,18 +281,17 @@ Next Session Priorities
    cron-job.org jobs fire reliably, confirm Swing/Intraday keep
    getting fresh checks without another NaN-class corruption.
 
-2. Carried over from 06-Aug: 1-week review checkpoint for the
-   equity engines (~14-Aug) - Swing/Intraday still net-negative at
-   large sample as of 06-Aug, decide retune vs. redirect then.
+2. 14-Aug review checkpoint (carried over from 06-Aug) - now covers
+   FOUR items together, all explicitly deferred to this date: equity
+   engines retune-vs-redirect decision, loss-lock, reduced options
+   trade frequency, and the shared Backtest-Live engine / Portfolio-
+   level aggregation architecture changes.
 
-3. Carried over: build the STCG (~20%) after-tax column.
-
-4. Carried over: apply real transaction-cost model to the live
-   Watchlist/Best Trade Engine's own ongoing evaluations.
-
-5. Carried over: Commit Desktop App (PySide6), package as .exe.
-
-6. Carried over: Fix TATAMOTORS / LTIM ticker symbols.
+3-6. DONE, 08-Aug (closed out same session): STCG (~20%) after-tax
+   column, real transaction-cost model on the live Watchlist/Best
+   Trade engines, Desktop App packaged as TURION_Desktop.exe, and
+   TATAMOTORS/LTIM ticker symbols fixed. See PROJECT_STATUS.md's
+   "3 CARRIED-OVER ITEMS CLOSED OUT" entry for full detail.
 
 7. Deferred (documented, not started): live-data VPS+Firebase
    architecture - do ~1 week before real-capital trading starts,

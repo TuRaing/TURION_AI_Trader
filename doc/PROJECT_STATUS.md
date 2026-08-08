@@ -12,7 +12,7 @@ TURION AI Trader
 
 Version
 
-v0.0.18
+v0.0.19
 
 --------------------------------------------------
 
@@ -2772,6 +2772,51 @@ BIG (genuinely months of work, should NOT be rushed):
   - Centralized Risk Manager - already flagged as a bigger, deferred
     architecture change (see ARCHITECTURE PATTERNS above).
 
+3 CARRIED-OVER ITEMS CLOSED OUT, 08-Aug - user asked to finish the
+remaining pending backlog from earlier sessions, same evening:
+
+1. TATAMOTORS/LTIM Fyers symbols - FIXED. Root cause found by
+   checking Fyers' own public symbol master files (NSE_CM.csv,
+   NSE_FO.csv, both fetchable without auth): TATAMOTORS demerged into
+   two listed entities (TMCV - Commercial Vehicles, TMPV - Passenger
+   Vehicles) - only TMPV is F&O-eligible, so that's the one now
+   mapped. LTIM (LTIMindtree) is listed on Fyers as "LTM" now, old
+   ticker doesn't resolve. Both added as explicit overrides in
+   strategy/fyers_data.py's symbol_to_fyers() (checked before the
+   generic ".NS" rule), not changes to data/watchlist.py's shared
+   symbol list. 7 new tests.
+
+2. Real transaction-cost model + STCG tax - DONE for both live equity
+   engines. strategy/paper_trading.py (Swing, multi-day delivery
+   holds) gained a genuinely delivery-specific cost model (strategy/
+   delivery_transaction_costs.py - STT on both sides not sell-only,
+   DP charges, zero brokerage, different stamp duty rate from
+   intraday) plus STCG (~20%) tax on gains, since delivery equity
+   trades are actually subject to that tax. Cash now reflects real
+   Net PnL; After-Tax PnL is a separate informational figure, not
+   deducted from Cash (real tax is paid annually, not per-trade).
+   strategy/best_trade_paper_trading.py (genuinely intraday) reuses
+   the existing intraday cost model (transaction_costs.py) but
+   deliberately shows NO STCG figure - intraday gains are speculative
+   business income taxed at the trader's own income-slab rate in
+   India, not the flat STCG rate, so no single number would be
+   correct there. App's closed-trade detail view shows Cost/Net PnL/
+   STCG Tax/After-Tax PnL when present. 10 new tests.
+
+3. Desktop App packaged as .exe - DONE. desktop_app.py (PySide6
+   dashboard) was already committed 14-Jul but never actually
+   packaged - built and smoke-tested TURION_Desktop.exe (PyInstaller,
+   --onefile --windowed, ~99MB) - launched cleanly, confirmed showing
+   real live Watchlist/Paper Trading data via a screenshot. TURION_
+   Desktop.spec (the reproducible build recipe) is tracked in git;
+   build/ and dist/ (the actual .exe, too large for git history) are
+   gitignored. Sent the built .exe directly to the user - run it from
+   D:\TURION_AI_Trader (or copy it there first) since it reads
+   reports/paper_portfolio.json via a relative path, same convention
+   as every other script in this repo.
+
+222 project tests passing after all 3.
+
 LIVE-DATA ARCHITECTURE (VPS + Firebase) - discussed in depth 06/07-
 Aug, NOT built yet, deliberately deferred: do this about 1 WEEK
 BEFORE starting real-capital trading (once paper-trading results
@@ -2864,11 +2909,11 @@ Status
 
 Current Version
 
-v0.0.18
+v0.0.19
 
 Next Version
 
-v0.0.19
+v0.0.20
 
 ==================================================
 
