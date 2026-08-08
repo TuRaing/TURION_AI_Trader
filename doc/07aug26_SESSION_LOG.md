@@ -293,7 +293,17 @@ Next Session Priorities
    TATAMOTORS/LTIM ticker symbols fixed. See PROJECT_STATUS.md's
    "3 CARRIED-OVER ITEMS CLOSED OUT" entry for full detail.
 
-7. Deferred (documented, not started): live-data VPS+Firebase
+7. NEXT SESSION, 08-Aug: user wants the Desktop App (desktop_app.py)
+   expanded toward Android-app feature parity (Options tabs, News,
+   History, Fyers-sourced Swing/Intraday, all currently missing from
+   the desktop app's 4 tabs). Scoped down to start with just an
+   Options tab (all 23 books) - estimated ~2.5-3.5 hours since the
+   desktop app reads local reports/*.json files directly (no fetch
+   layer or login flow needed, unlike the Flutter app) - reuse
+   strategy/options_strategies.py's ALL_STRATEGIES list. User said
+   "udya banau" (build tomorrow) - start here next session.
+
+8. Deferred (documented, not started): live-data VPS+Firebase
    architecture - do ~1 week before real-capital trading starts,
    not now. v2.0 "real understanding AI" vision - not designed in
    detail yet, captured so the idea isn't lost.
