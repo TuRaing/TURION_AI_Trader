@@ -226,6 +226,25 @@ Today's Achievements
    documented, tested, analysis-only reference (not deleted), same
    convention as the project's other rejected-candidate backtests.
 
+✅ Gave a thorough "why is everything failing" diagnosis across all
+   11 tested approaches so far (equity engines, simple_st1-st4,
+   gapfill, ORB, VWAP+EMA+Volume, ICT/SMC - all net-negative), user
+   asked for a 35-year-veteran-trader-style read. Root causes
+   identified: single/dual-factor technical patterns without real
+   edge on liquid instruments; overtrading (up to 49 trades/day)
+   compounding costs; no regime filter; buy-only options architecture
+   fighting theta/IV on every trade; and one concrete miss - 22-Jul's
+   own validated Momentum+VIX filter finding for BANKNIFTY was never
+   actually deployed into the live strategies.
+
+✅ Built and deployed the fix: strategy/fyers_options_vix_filter.py -
+   BANKNIFTY-only Momentum(RSI)+India VIX percentile-band filter,
+   porting 22-Jul's validated combo (38/42 backtested combos
+   positive) into real premiums for the first time. New, separate
+   book (21st total) - didn't touch simple_st1/st2/st3's existing
+   BANKNIFTY entries. 6 new tests, 196 passing. 7th cron-job.org
+   trigger set up and verified live via a real test run.
+
 ==================================================
 
 Next Session Priorities

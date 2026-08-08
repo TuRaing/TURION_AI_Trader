@@ -2576,6 +2576,28 @@ wait after login before the very next automated check picks up the
 new token. Confirmed fine on the next test run once that time had
 passed.
 
+VIX FILTER STRATEGY BUILT + LIVE, 08-Aug - after a thorough "why is
+everything failing" review (user asked for a 35-year-trader-style
+diagnosis across all 11 tested approaches so far, all net-negative),
+one concrete, evidence-based fix identified: 22-Jul's own Momentum
+(RSI)+India VIX percentile-band finding was validated-but-never-
+deployed (BANKNIFTY: 38/42 combos positive; NIFTY: rejected, only
+9/42 positive) - the live options strategies (simple_st1/st2/st3) had
+dropped the VIX filter and just used raw RSI. Built strategy/fyers_
+options_vix_filter.py - BANKNIFTY ONLY (matching the validated
+combo's own NIFTY rejection), RSI>60/<40 + India VIX inside its
+trailing [30th,70th] percentile band (125x 15m candles = ~5 trading
+days), ATR-based SL/Target on the underlying (1.5x/4.0x, the
+validated combo's best parameters) - ports the exact 22-Jul finding
+into real Fyers premiums for the first time (that finding only ever
+measured directional accuracy on the underlying, no real premium
+cost model existed then). Built as a NEW, separate strategy/book
+(21st book total) rather than modifying simple_st1/st2/st3's
+existing BANKNIFTY entries, to avoid contaminating their already-
+running 1-week review. 6 new tests, 196 project tests passing.
+7th cron-job.org trigger set up and verified live (workflow_dispatch
+logs confirmed correct STRATEGY_NAME, no errors).
+
 LIVE-DATA ARCHITECTURE (VPS + Firebase) - discussed in depth 06/07-
 Aug, NOT built yet, deliberately deferred: do this about 1 WEEK
 BEFORE starting real-capital trading (once paper-trading results
