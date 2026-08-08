@@ -3,6 +3,13 @@ __pycache__/
 .vscode/
 .env
 .env.txt
+# Added 08-Aug-2026 - PyInstaller output for desktop_app.py (see
+# TURION_Desktop.spec, the reproducible build recipe, which IS
+# tracked) - build/ is intermediate analysis output, dist/ is the
+# ~100MB .exe itself, neither belongs in git history. Build locally
+# with: pyinstaller TURION_Desktop.spec
+build/
+dist/
 reports/*.xlsx
 reports/*.json
 # Updated: 2026-07-11 - paper_portfolio.json is tracked deliberately so the
