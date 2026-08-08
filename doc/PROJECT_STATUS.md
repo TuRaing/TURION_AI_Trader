@@ -2817,6 +2817,49 @@ remaining pending backlog from earlier sessions, same evening:
 
 222 project tests passing after all 3.
 
+169 GIT-CONFLICT FAILURES DIAGNOSED, 08-Aug - user reported "lots of
+failure emails" for fyers_multi_strategy_options.yml. Checked via the
+GitHub API: 169 total failed runs, ALL dated 07-Aug, ZERO on 08-Aug -
+but 08-Aug is a Saturday (market closed, cron-job.org's weekday-only
+schedules mostly weren't actually firing at real 1-min cadence today)
+so "zero failures today" does NOT prove the underlying issue is
+fixed - the real test is Monday's live cadence.
+
+Root cause of the 169: a genuine REBASE CONTENT CONFLICT in reports/
+fyers_candles.json specifically (confirmed in a failed run's log -
+"CONFLICT (content): Merge conflict in reports/fyers_candles.json"),
+not the simpler fast-forward-needed case the existing retry loop
+already handled. Two overlapping runs both rewrote the whole file
+fresh, so git's line-based merge couldn't reconcile them. Notably,
+the failure recurred even with the per-strategy concurrency group
+already in place (added 07-Aug morning, before these afternoon
+failures) - the exact overlap source isn't fully pinned down (the
+now-retired "Fyers Options Watch Trigger" workflow, active until
+some point 06/07-Aug, is one candidate; not confirmed).
+
+FIXED regardless of the exact mechanism: reports/fyers_candles.json
+is a pure CACHE (fully regenerated fresh by every relevant run,
+nothing authoritative lives only there), so a rebase conflict limited
+to JUST that file is now auto-resolved by keeping whatever's already
+on origin and continuing - this run's own candle data is superseded
+again within ~1 minute regardless. A conflict touching any OTHER
+(real trade-state) file still aborts and fails loudly, unchanged -
+deliberately NOT a blanket "always take theirs" policy.
+
+Tested by firing 2 near-simultaneous simple_st1 dispatches - both
+succeeded, but the concurrency group serialized them cleanly (no
+actual conflict arose), so the NEW conflict-resolution code path
+itself wasn't exercised by this test. Real validation is Monday's
+live 1-min cadence during actual market hours - watch for it.
+
+Also found while reviewing cron-job.org's dashboard (same
+investigation): a "Threshold Options Trigger (Copy)" - an unrenamed
+duplicate of the Threshold trigger, pure redundancy (all 8 needed
+strategy values already have their own dedicated job) - flagged to
+the user to delete, since a leftover duplicate is exactly the kind of
+same-strategy-overlap risk this whole investigation was about. Not
+yet confirmed deleted - check at the next opportunity.
+
 LIVE-DATA ARCHITECTURE (VPS + Firebase) - discussed in depth 06/07-
 Aug, NOT built yet, deliberately deferred: do this about 1 WEEK
 BEFORE starting real-capital trading (once paper-trading results

@@ -293,6 +293,17 @@ Next Session Priorities
    TATAMOTORS/LTIM ticker symbols fixed. See PROJECT_STATUS.md's
    "3 CARRIED-OVER ITEMS CLOSED OUT" entry for full detail.
 
+✅ Diagnosed 169 failure emails for fyers_multi_strategy_options.yml -
+   all dated 07-Aug (zero today, but today's Saturday so that proves
+   little). Root cause: a genuine rebase CONTENT conflict in reports/
+   fyers_candles.json (a pure cache file) from overlapping runs. Fixed
+   by auto-resolving conflicts limited to just that file (keep the
+   already-pushed version, safe since it's regenerated every ~1 min
+   anyway) - any other conflicted file still fails loudly, unchanged.
+   Real validation is Monday's live cadence. Also found a leftover
+   "Threshold Options Trigger (Copy)" duplicate on cron-job.org -
+   flagged to the user to delete, not yet confirmed done.
+
 7. NEXT SESSION, 08-Aug: user wants the Desktop App (desktop_app.py)
    expanded toward Android-app feature parity (Options tabs, News,
    History, Fyers-sourced Swing/Intraday, all currently missing from
