@@ -2860,6 +2860,80 @@ the user to delete, since a leftover duplicate is exactly the kind of
 same-strategy-overlap risk this whole investigation was about. Not
 yet confirmed deleted - check at the next opportunity.
 
+SPEED/INSTITUTIONAL-EDGE RESEARCH, 08/09-Aug - user's underlying
+motivation behind the earlier latency questions came out explicitly:
+wanted a strategy with small-but-fixed, near-guaranteed profit,
+suspecting (correctly) that speed-based players genuinely do earn
+consistently that way. Researched thoroughly (web search, real 2026
+figures) before concluding none of this is a viable direction for
+this project right now:
+
+- Institutional vs retail latency: institutional colocation achieves
+  <500 microseconds order round-trip; retail broker API is 50-500ms -
+  roughly a 1,000x gap, and NSE is moving toward NANOSECOND latency
+  (Apr-2026), so the gap is WIDENING, not closing.
+- NSE colocation cost: Rs 5-15 lakh/month for a full rack. A cheaper
+  "Colocation as a Service" (CaaS, via vendors like Greeksoft/Symphony
+  Fintech) exists, but is restricted to registered NSE Trading
+  Members only - not accessible to a retail client account.
+- Becoming a broker/Trading Member ourselves: technically possible
+  but requires Rs 75 lakh-1 crore minimum net worth (F&O segment),
+  3-5 months SEBI registration, ongoing compliance burden - and
+  STILL wouldn't include colocation for free (CaaS charged on top).
+  Concluded not viable - "buying an airline for a window seat."
+  User has real VLSI/hardware engineering background (can design
+  FPGAs), which removes the TECHNICAL barrier but not the economic/
+  regulatory one - confirms the real institutional edge is capital +
+  regulatory access, not just engineering skill.
+- Why institutional players profit despite ALL having high speed:
+  most of it is NOT institution-vs-institution racing - it's market
+  makers earning the bid-ask SPREAD from immediacy-seeking
+  counterparties (retail market orders, pension-fund rebalancing
+  flows) who aren't racing at all, plus better models/capital scale/
+  diversification across many tiny edges. This is the SAME mechanism
+  category as the already-built oi_footprint/planned theta-selling
+  strategies - confirms that direction is sound.
+- "Just be faster than OTHER RETAIL" (not institutions) - investigated
+  and REJECTED: retail rarely trades time-sensitively against other
+  retail; the counterparty on almost every retail order is already an
+  institutional market maker (already faster than any retail-
+  achievable speed), so a retail speed edge over other humans doesn't
+  translate to profit against the actual counterparty.
+- Real institutional arbitrage economics (Indian arbitrage mutual
+  funds, actual disclosed 2026 returns): ~6-7% annualized net of all
+  costs (8-9% in high-volatility months, 3-4% in calm ones) - this
+  net-of-cost, "risk-free" return converges to roughly the risk-free
+  rate, by definition (if it earned much more, capital would pour in
+  until arbitraged away too) - even at institutional scale (Rs 80+
+  crore), the PERCENTAGE return isn't special, only the absolute
+  rupee amount is (scale, not edge quality).
+- Tick-by-tick/millisecond HISTORICAL data: not available from Fyers
+  at any price (their API's finest resolution is 1-minute candles);
+  true tick data only from NSE directly (institutional pricing) or
+  paid vendors (TrueData, Global Datafeeds, ~Rs 2,000-10,000+/month).
+  LIVE tick data IS available via Fyers WebSocket (not yet built -
+  same infra as the deferred Live-Data Architecture below) - storing
+  it ourselves as an archive would be close to free once that's built
+  (same connection, just also write to disk), but shouldn't be built
+  as a separate project before then.
+- Untouched-by-institutions small/micro-cap stocks: a REAL, valid
+  space (institutions structurally can't take meaningful positions
+  there - fund-size/mandate constraints, not an information gap) but
+  requires a completely different skill set (fundamental/business
+  analysis, not technical/quant signals) and carries real risks this
+  project hasn't dealt with (fraud/pump-and-dump risk from less
+  scrutiny, tight circuit filters trapping positions, thin liquidity
+  moving price against your own order) - and critically, NO options
+  exist on small/micro-caps (F&O only covers large liquid names), so
+  the entire 23-book options infrastructure wouldn't apply at all.
+  Would be a genuinely new, separate project, not an extension of
+  what exists. Not pursued.
+
+DECIDED, 09-Aug: stay focused on the current strategy set (23 books)
+and the already-agreed direction (Option Chain/OI-footprint, theta-
+selling once designed) - none of the speed/small-cap avenues explored
+this session change that plan.
+
 LIVE-DATA ARCHITECTURE (VPS + Firebase) - discussed in depth 06/07-
 Aug, NOT built yet, deliberately deferred: do this about 1 WEEK
 BEFORE starting real-capital trading (once paper-trading results
