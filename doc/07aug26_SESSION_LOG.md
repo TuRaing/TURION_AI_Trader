@@ -187,17 +187,27 @@ Today's Achievements
    user's phone as of this log entry (device wasn't connected via
    USB at the time).
 
+✅ Set up the 2 missing cron-job.org triggers (found while wiring up
+   the threshold group: gapfill had gone live 07/08-Aug but never
+   got its own trigger either). User cloned an existing job for each
+   - "Gapfill Options Trigger" and "Threshold Options Trigger" - only
+   changing the `strategy` value in the POST body. Both verified via
+   real test runs (correct STRATEGY_NAME in the workflow logs,
+   correct per-book SKIPPED reasons, no errors). 6 cron-job.org jobs
+   total now cover all 20 books. Also hit and explained a one-off
+   timing issue: a test run fired ~50s after a fresh Fyers login
+   still saw the expired token, because the login workflow's own
+   token-exchange step takes ~70-90s to finish - not a bug, just
+   needs a short wait after login.
+
 ==================================================
 
 Next Session Priorities
 
 0. Install the latest APK (Threshold Options + Options Summary tabs)
    on the user's phone once it's connected via USB - built and
-   verified compiling twice this evening but not yet installed.
-   Also set up ONE new cron-job.org trigger for STRATEGY_NAME=
-   "threshold" (~1-min cadence, same pattern as the other 5) so the
-   10 threshold books actually start getting checked - the code is
-   live but nothing calls it yet without that trigger.
+   verified compiling twice this evening but not yet installed. The
+   gapfill and threshold cron-job.org triggers are done (see above).
 
 1. Watch today's real trading hours (09:15 IST onward): first real
    trades for simple_st1/st2/st3/st4, confirm the 4 separate 1-min

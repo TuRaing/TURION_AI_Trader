@@ -2480,6 +2480,28 @@ Amount / Total Profit-Loss summary across all 20. App is now 9 tabs
 (yfinance/Intraday/Swing/News/History/Fyers/Options/Threshold
 Options/Options Summary) - up from 7 as of 06-Aug.
 
+CRON-JOB.ORG TRIGGERS FOR gapfill + threshold, 08-Aug - both had
+their code live since earlier but NO cron-job.org trigger actually
+calling them yet (found while reviewing the workflow's git-add bug).
+User set up 2 more jobs by cloning an existing one and changing only
+the `strategy` value in the POST body - "Gapfill Options Trigger"
+(strategy":"gapfill") and "Threshold Options Trigger"
+(strategy":"threshold"), both verified via real test runs (workflow_
+dispatch logs confirmed correct STRATEGY_NAME and correct per-book
+SKIPPED reasons - market/entry-window closed at test time, no
+errors). 6 independent cron-job.org jobs now total: simple_st1, st2,
+st3, st4, gapfill, threshold - all 20 books (Options + Threshold
+Options) have live automation coverage as of today.
+
+One real timing issue hit and understood during setup: a test run
+fired ~50 seconds after triggering a fresh Fyers login still saw the
+OLD/expired token, because the login workflow's own token-exchange-
+and-secret-update step hadn't finished yet (pip install + OAuth
+exchange took ~70-90s end to end) - not a bug, just needs a short
+wait after login before the very next automated check picks up the
+new token. Confirmed fine on the next test run once that time had
+passed.
+
 LIVE-DATA ARCHITECTURE (VPS + Firebase) - discussed in depth 06/07-
 Aug, NOT built yet, deliberately deferred: do this about 1 WEEK
 BEFORE starting real-capital trading (once paper-trading results
