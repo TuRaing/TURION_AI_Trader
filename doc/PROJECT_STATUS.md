@@ -2647,6 +2647,31 @@ top wasn't judged necessary. vix_filter also has no threshold variant
 (never offered one). The Threshold group remains exactly the 5
 original strategies' profit-lock variant, nothing more.
 
+ARCHITECTURE PATTERNS DISCUSSED, 08-Aug - user asked about design
+patterns beyond the check_or_open() polling pattern every strategy
+here uses. Identified 4 real gaps against a more mature system:
+event-driven/reactive (needs a persistent process, not compatible
+with GitHub Actions - covered under the milliseconds/VPS discussion
+above), a formal Strategy-pattern interface (currently just naming
+convention, not an enforced contract), a centralized Risk Manager
+(currently scattered per-strategy - transaction costs, DAILY_PROFIT_
+LOCK_RS - not unified), Portfolio-level risk aggregation (23 books
+are fully independent, so real correlated exposure across strategies
+- e.g. many simultaneously long BANKNIFTY CE - is invisible), and a
+shared Backtest-Live engine (backtest scripts and live strategy
+modules duplicate logic separately, risking divergence - already
+burned once: Black-Scholes-estimated backtest vs real premium live
+results disagreed).
+
+DECIDED, 08-Aug: do NOT retrofit the 23 already-running books with
+either the shared Backtest-Live engine or Portfolio-level aggregation
+right now - user chose to defer both until after the 14-Aug review,
+same reasoning as the loss-lock/trade-frequency deferral above (don't
+change code that's mid-way through accumulating real trade data for a
+decision point). Backtest-Live engine unification, when it happens,
+should apply to NEW strategies going forward rather than rewriting
+the existing ones.
+
 LIVE-DATA ARCHITECTURE (VPS + Firebase) - discussed in depth 06/07-
 Aug, NOT built yet, deliberately deferred: do this about 1 WEEK
 BEFORE starting real-capital trading (once paper-trading results
