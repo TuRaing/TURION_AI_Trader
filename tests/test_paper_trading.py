@@ -7,6 +7,7 @@ from strategy.paper_trading import (
     calculate_position_size,
     run_watchlist_paper_trading,
 )
+from strategy.delivery_transaction_costs import calculate_delivery_round_trip_cost
 
 
 def _empty():
@@ -33,8 +34,14 @@ def test_target_hit_closes_with_profit():
     p, action = process_signal(p, "X", "NO TRADE", 825)  # above target
     assert action == "CLOSED (Target)"
     assert "X" not in p["Positions"]
-    assert p["Cash"] == 100000 + (820 - 800)  # exits at target price
+    # Gross PnL (unchanged field) vs real Cash impact (net of delivery
+    # transaction costs - added 08-Aug-2026, see delivery_transaction_
+    # costs.py) are now two different numbers.
+    cost = calculate_delivery_round_trip_cost(800, 820, 1)
+    assert p["Cash"] == 100000 + (820 - 800) - cost  # exits at target price, net of cost
     assert p["Closed Trades"][-1]["PnL"] == 20
+    assert p["Closed Trades"][-1]["Net PnL"] == round(20 - cost, 2)
+    assert p["Closed Trades"][-1]["Cost"] == round(cost, 2)
 
 
 def test_stop_loss_hit_closes_with_loss():
@@ -42,8 +49,30 @@ def test_stop_loss_hit_closes_with_loss():
     p, _ = process_signal(p, "X", "BUY", 800, stop_loss=790, target=820)
     p, action = process_signal(p, "X", "NO TRADE", 785)  # below stop
     assert action == "CLOSED (Stop Loss)"
-    assert p["Cash"] == 100000 + (790 - 800)  # exits at stop price
+    cost = calculate_delivery_round_trip_cost(800, 790, 1)
+    assert p["Cash"] == 100000 + (790 - 800) - cost  # exits at stop price, net of cost
     assert p["Closed Trades"][-1]["PnL"] == -10
+    assert p["Closed Trades"][-1]["Net PnL"] == round(-10 - cost, 2)
+
+
+def test_stcg_tax_applied_only_to_a_net_gain():
+    p = _empty()
+    p, _ = process_signal(p, "X", "BUY", 800, stop_loss=790, target=820)
+    p, _ = process_signal(p, "X", "NO TRADE", 825)  # above target - a win
+
+    trade = p["Closed Trades"][-1]
+    assert trade["STCG Tax"] == round(trade["Net PnL"] * 0.20, 2)
+    assert trade["After-Tax PnL"] == round(trade["Net PnL"] - trade["STCG Tax"], 2)
+
+
+def test_stcg_tax_is_zero_on_a_net_loss():
+    p = _empty()
+    p, _ = process_signal(p, "X", "BUY", 800, stop_loss=790, target=820)
+    p, _ = process_signal(p, "X", "NO TRADE", 785)  # below stop - a loss
+
+    trade = p["Closed Trades"][-1]
+    assert trade["STCG Tax"] == 0.0
+    assert trade["After-Tax PnL"] == trade["Net PnL"]
 
 
 def test_sell_signal_closes_open_position():

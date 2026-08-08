@@ -5,6 +5,7 @@ from datetime import datetime
 
 from strategy.watchlist_scanner import download_watchlist, analyze_symbol, MIN_CANDLES
 from strategy.risk_engine import calculate_atr_levels
+from strategy.delivery_transaction_costs import calculate_delivery_round_trip_cost, calculate_stcg_tax
 
 PORTFOLIO_FILE = "reports/paper_portfolio.json"
 INITIAL_CAPITAL = 100000
@@ -151,7 +152,20 @@ def process_signal(portfolio, symbol, signal, price, stop_loss=None, target=None
 
             pnl = (exit_price - position["Entry Price"]) * position["Quantity"]
 
-            portfolio["Cash"] += pnl
+            # Added 08-Aug-2026 - real delivery transaction costs (STT on
+            # both sides, DP charges, etc. - see strategy/delivery_
+            # transaction_costs.py) subtracted here since they're a real
+            # cash cost of the trade itself. STCG tax is calculated but
+            # NOT subtracted from Cash - real capital-gains tax is paid
+            # annually via return filing, not deducted per-trade from
+            # trading capital, so Cash should only reflect the real,
+            # immediate cash impact (Net PnL), with After-Tax PnL kept as
+            # a separate informational figure.
+            cost = calculate_delivery_round_trip_cost(position["Entry Price"], exit_price, position["Quantity"])
+            net_pnl = pnl - cost
+            stcg_tax, after_tax_pnl = calculate_stcg_tax(net_pnl)
+
+            portfolio["Cash"] += net_pnl
 
             portfolio["Closed Trades"].append({
                 "Symbol": symbol,
@@ -161,7 +175,11 @@ def process_signal(portfolio, symbol, signal, price, stop_loss=None, target=None
                 "Exit Price": exit_price,
                 "Quantity": position["Quantity"],
                 "Exit Reason": reason,
-                "PnL": round(pnl, 2)
+                "PnL": round(pnl, 2),
+                "Cost": round(cost, 2),
+                "Net PnL": round(net_pnl, 2),
+                "STCG Tax": stcg_tax,
+                "After-Tax PnL": after_tax_pnl
             })
 
             del portfolio["Positions"][symbol]

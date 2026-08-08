@@ -2,6 +2,8 @@ import os
 import json
 from datetime import datetime
 
+from strategy.transaction_costs import calculate_round_trip_cost
+
 PORTFOLIO_FILE = "reports/best_trade_portfolio.json"
 INITIAL_CAPITAL = 100000
 QUANTITY = 1
@@ -100,7 +102,18 @@ def _close_position(portfolio, position, exit_price, reason):
     else:
         pnl = (position["Entry Price"] - exit_price) * position["Quantity"]
 
-    portfolio["Cash"] += pnl
+    # Added 08-Aug-2026 - real INTRADAY transaction costs (strategy/
+    # transaction_costs.py - same model already used in this project's
+    # intraday backtests). Deliberately NOT applying STCG tax here like
+    # paper_trading.py's delivery trades do - intraday equity gains are
+    # taxed in India as speculative business income at the trader's own
+    # income-slab rate, a different regime entirely, not the flat 20%
+    # STCG rate - so no single tax figure could be shown here without
+    # being wrong for most users.
+    cost = calculate_round_trip_cost(position["Entry Price"], exit_price, position["Quantity"])
+    net_pnl = pnl - cost
+
+    portfolio["Cash"] += net_pnl
 
     portfolio["Closed Trades"].append({
         "Name": position["Name"],
@@ -112,7 +125,9 @@ def _close_position(portfolio, position, exit_price, reason):
         "Exit Price": exit_price,
         "Quantity": position["Quantity"],
         "Exit Reason": reason,
-        "PnL": round(pnl, 2)
+        "PnL": round(pnl, 2),
+        "Cost": round(cost, 2),
+        "Net PnL": round(net_pnl, 2)
     })
 
     portfolio["Position"] = None

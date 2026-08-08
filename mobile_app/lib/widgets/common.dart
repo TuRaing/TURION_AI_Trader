@@ -404,6 +404,23 @@ void _showTradeDetails(
               _DetailRow(label: 'Exit Time', value: exitTime.isNotEmpty ? exitTime : '—'),
               _DetailRow(label: 'Exit Reason', value: '$exitReason'),
               if (holding != null) _DetailRow(label: 'Held for', value: _formatDuration(holding)),
+              // Added 08-Aug-2026 - real transaction costs (delivery for
+              // Swing, intraday for Best Trade) and, for Swing only,
+              // STCG tax (~20%) - see strategy/delivery_transaction_
+              // costs.py / strategy/transaction_costs.py. Shown only
+              // when present (older trades from before this change
+              // won't have these fields).
+              if (trade['Cost'] != null) ...[
+                const SizedBox(height: 8),
+                const Divider(color: Colors.white12, height: 1),
+                const SizedBox(height: 8),
+                _DetailRow(label: 'Transaction Cost', value: formatSignedRupees(-(trade['Cost'] as num).toDouble())),
+                _DetailRow(label: 'Net PnL (after cost)', value: formatSignedRupees((trade['Net PnL'] as num).toDouble())),
+                if (trade['STCG Tax'] != null) ...[
+                  _DetailRow(label: 'STCG Tax (~20%)', value: formatSignedRupees(-(trade['STCG Tax'] as num).toDouble())),
+                  _DetailRow(label: 'After-Tax PnL', value: formatSignedRupees((trade['After-Tax PnL'] as num).toDouble())),
+                ],
+              ],
               if (onViewChart != null) ...[
                 const SizedBox(height: 8),
                 SizedBox(

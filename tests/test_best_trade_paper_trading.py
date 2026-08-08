@@ -7,6 +7,7 @@ from strategy.best_trade_paper_trading import (
     square_off_best_trade,
     check_open_position,
 )
+from strategy.transaction_costs import calculate_round_trip_cost
 
 
 def _empty():
@@ -44,7 +45,12 @@ def test_square_off_buy_hits_target():
     assert p["Position"] is None
     assert p["Closed Trades"][-1]["Exit Price"] == 3900
     assert p["Closed Trades"][-1]["PnL"] == 100
-    assert p["Cash"] == 100100
+    # Cash reflects Net PnL (gross - real intraday transaction cost -
+    # added 08-Aug-2026), not the gross PnL field.
+    cost = calculate_round_trip_cost(3800, 3900, 1)
+    assert p["Closed Trades"][-1]["Cost"] == round(cost, 2)
+    assert p["Closed Trades"][-1]["Net PnL"] == round(100 - cost, 2)
+    assert p["Cash"] == 100000 + (100 - cost)
 
 
 def test_square_off_buy_hits_stop_loss():
