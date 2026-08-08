@@ -48,6 +48,28 @@ PERIOD_TO_DAYS = {
 }
 
 
+# Added 08-Aug-2026 - two symbols in data/watchlist.py have genuinely
+# changed on Fyers since this project started, both from real corporate
+# actions, not a mapping bug (verified against Fyers' public symbol
+# master, https://public.fyers.in/sym_details/NSE_CM.csv and NSE_FO.csv):
+#   - TATAMOTORS demerged into two listed entities - "TATA MOTORS
+#     LIMITED" (NSE:TMCV-EQ, Commercial Vehicles) and "TATA MOTORS PASS
+#     VEH LTD" (NSE:TMPV-EQ, Passenger Vehicles). Only TMPV is F&O-
+#     eligible (confirmed against NSE_FO.csv's underlying list), so
+#     that's the one this project's Watchlist/Best Trade engines should
+#     track as "Tata Motors" going forward.
+#   - LTIM (LTIMindtree) is now listed on Fyers as "LTM LIMITED"
+#     (NSE:LTM-EQ) - the old "LTIM" ticker no longer resolves.
+# These are explicit overrides (checked BEFORE the generic ".NS" rule
+# below) rather than changes to data/watchlist.py's own symbol list -
+# that list is shared with the yfinance-based engines too, and this
+# fix is Fyers-side only.
+_SYMBOL_OVERRIDES = {
+    "TATAMOTORS.NS": "NSE:TMPV-EQ",
+    "LTIM.NS": "NSE:LTM-EQ",
+}
+
+
 def symbol_to_fyers(symbol):
     """
     Translates this repo's existing yfinance-style symbols to Fyers'
@@ -67,6 +89,9 @@ def symbol_to_fyers(symbol):
 
     if symbol == "^INDIAVIX":
         return "NSE:INDIAVIX-INDEX"
+
+    if symbol in _SYMBOL_OVERRIDES:
+        return _SYMBOL_OVERRIDES[symbol]
 
     if symbol.endswith(".NS"):
         return f"NSE:{symbol[:-3]}-EQ"
