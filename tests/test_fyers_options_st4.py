@@ -18,6 +18,25 @@ def test_make_st4_config_banknifty():
     assert cfg["portfolio_file"] == "reports/fyers_options_st4_banknifty_portfolio.json"
 
 
+def test_make_st4_config_defaults_no_daily_profit_lock():
+    cfg = make_st4_config("NIFTY")
+
+    assert cfg["daily_profit_lock"] is False
+
+
+def test_make_st4_config_threshold_variant():
+    cfg = make_st4_config("NIFTY", name="st4_threshold", daily_profit_lock=True, group="threshold")
+
+    assert cfg["name"] == "st4_threshold"
+    assert cfg["daily_profit_lock"] is True
+    assert cfg["group"] == "threshold"
+    assert cfg["portfolio_file"] == "reports/fyers_options_st4_threshold_nifty_portfolio.json"
+    # Threshold variant keeps the SAME lot/strike sizing as the original -
+    # only the profit-lock gate differs.
+    assert cfg["lot_size"] == 75
+    assert cfg["strike_step"] == 50
+
+
 def test_trailing_stop_hit_ce_pulls_back_from_peak():
     # CE trails below the highest spot seen since entry.
     assert _trailing_stop_hit("CE", current_spot=100, peak_spot=110, trail_distance=5) is True

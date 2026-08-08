@@ -25,7 +25,7 @@ on:
   workflow_dispatch:
     inputs:
       strategy:
-        description: 'Strategy name to check (simple_st1/st2/st3/st4), or "all"'
+        description: 'Strategy name (simple_st1/st2/st3/st4/gapfill), "threshold" (all 5 profit-lock variants), or "all"'
         required: false
         default: 'all'
 
@@ -92,9 +92,7 @@ jobs:
           # One `git add <file> || true` per file, not a combined
           # multi-path line - a single missing file among several
           # silently discards staging ALL of them (see 05-Aug's fix in
-          # fyers_trigger.yml). All 8 files already exist (created by
-          # this session's manual test runs), but kept per-file for
-          # consistency/safety with every other Fyers workflow.
+          # fyers_trigger.yml).
           git add reports/fyers_options_simple_st1_nifty_portfolio.json || true
           git add reports/fyers_options_simple_st1_banknifty_portfolio.json || true
           git add reports/fyers_options_st2_nifty_portfolio.json || true
@@ -103,6 +101,23 @@ jobs:
           git add reports/fyers_options_st3_banknifty_portfolio.json || true
           git add reports/fyers_options_st4_nifty_portfolio.json || true
           git add reports/fyers_options_st4_banknifty_portfolio.json || true
+          # Added 08-Aug-2026 - gapfill was missing from this list since
+          # it was added (07/08-Aug) - its portfolio updates were being
+          # computed each run but never committed, silently lost on the
+          # next checkout. Fixed here, plus the new threshold group (10
+          # more files - same bug would otherwise repeat for them too).
+          git add reports/fyers_options_gapfill_nifty_portfolio.json || true
+          git add reports/fyers_options_gapfill_banknifty_portfolio.json || true
+          git add reports/fyers_options_simple_st1_threshold_nifty_portfolio.json || true
+          git add reports/fyers_options_simple_st1_threshold_banknifty_portfolio.json || true
+          git add reports/fyers_options_st2_threshold_nifty_portfolio.json || true
+          git add reports/fyers_options_st2_threshold_banknifty_portfolio.json || true
+          git add reports/fyers_options_st3_threshold_nifty_portfolio.json || true
+          git add reports/fyers_options_st3_threshold_banknifty_portfolio.json || true
+          git add reports/fyers_options_st4_threshold_nifty_portfolio.json || true
+          git add reports/fyers_options_st4_threshold_banknifty_portfolio.json || true
+          git add reports/fyers_options_gapfill_threshold_nifty_portfolio.json || true
+          git add reports/fyers_options_gapfill_threshold_banknifty_portfolio.json || true
           git add reports/fyers_candles.json || true
 
           if git diff --staged --quiet; then

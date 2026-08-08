@@ -139,9 +139,65 @@ Today's Achievements
    st4.py and fyers_options_gapfill.py's check_or_open too. 9 new
    tests, all 161 project tests passing.
 
+✅ Reworked the daily profit-lock per user feedback - originally
+   added it directly onto the 5 existing strategies, but user wanted
+   the originals left completely untouched and the profit-lock
+   offered as a SEPARATE parallel "threshold" variant instead, so the
+   two could be compared side by side. Reverted the direct gate,
+   added a daily_profit_lock config flag (default False) to make_
+   strategy()/make_st4_config()/make_gapfill_config(), and built a
+   new THRESHOLD group in strategy/options_strategies.py - 5 more
+   strategies (simple_st1_threshold/st2_threshold/st3_threshold/
+   st4_threshold/gapfill_threshold) x 2 indices = 10 more books, 20
+   total. Same entry/exit logic as their non-threshold counterpart,
+   only daily_profit_lock=True differs. fyers_multi_strategy_
+   options_run.py gained a "threshold" group filter (one cron-job.org
+   trigger runs all 10 threshold books together). 12 new/updated
+   tests, all 173 project tests passing.
+
+✅ Found and fixed a real bug while wiring the above up: .github/
+   workflows/fyers_multi_strategy_options.yml's commit step was
+   missing `git add` lines for gapfill's portfolio files entirely -
+   added 07/08-Aug but never added to that list, meaning gapfill's
+   real trade updates were being computed correctly every run but
+   silently discarded on the next checkout, never actually
+   persisted. Fixed, and the 10 new threshold files added to the
+   same list from the start.
+
+✅ Added the new "Threshold Options" tab to the app (fyers_
+   threshold_options_screen.dart) - made FyersMultiStrategyOptions
+   Screen generic (strategy names/descriptions as constructor params
+   instead of a hardcoded list) so this new tab could reuse the
+   whole tab/list/portfolio-fetch UI instead of duplicating it. Also
+   found and fixed a separate gap while doing this: 'gapfill' itself
+   had never been added to the original Options tab's strategy list
+   even though it went live on the backend 07/08-Aug - added.
+
+✅ Added a new "Options Summary" tab (fyers_options_summary_
+   screen.dart) at the user's direct request - one combined table
+   across all 20 books (Options + Threshold Options), each row
+   showing Initial Amount (Rs 1,00,000, same for every book),
+   Current Amount (that book's Cash, realized-P&L basis), and
+   Profit, plus a Total Investment / Total Current Amount / Total
+   Profit-Loss summary row across all 20. App is now 9 tabs, up from
+   7 as of 06-Aug.
+
+✅ 2 APK rebuilds + verified compiling this evening (Threshold
+   Options tab, then Options Summary tab) - not yet installed on the
+   user's phone as of this log entry (device wasn't connected via
+   USB at the time).
+
 ==================================================
 
 Next Session Priorities
+
+0. Install the latest APK (Threshold Options + Options Summary tabs)
+   on the user's phone once it's connected via USB - built and
+   verified compiling twice this evening but not yet installed.
+   Also set up ONE new cron-job.org trigger for STRATEGY_NAME=
+   "threshold" (~1-min cadence, same pattern as the other 5) so the
+   10 threshold books actually start getting checked - the code is
+   live but nothing calls it yet without that trigger.
 
 1. Watch today's real trading hours (09:15 IST onward): first real
    trades for simple_st1/st2/st3/st4, confirm the 4 separate 1-min

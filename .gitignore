@@ -44,3 +44,17 @@ reports/*.json
 !reports/fyers_options_st4_banknifty_portfolio.json
 !reports/fyers_options_gapfill_nifty_portfolio.json
 !reports/fyers_options_gapfill_banknifty_portfolio.json
+# Added 08-Aug-2026 - THRESHOLD group (strategy/options_strategies.py) -
+# same 5 strategies x 2 indices, same reason as above, but each with
+# the daily profit-lock gate (Rs 2,000) turned on. Own portfolio files
+# so they never mix with the non-threshold originals.
+!reports/fyers_options_simple_st1_threshold_nifty_portfolio.json
+!reports/fyers_options_simple_st1_threshold_banknifty_portfolio.json
+!reports/fyers_options_st2_threshold_nifty_portfolio.json
+!reports/fyers_options_st2_threshold_banknifty_portfolio.json
+!reports/fyers_options_st3_threshold_nifty_portfolio.json
+!reports/fyers_options_st3_threshold_banknifty_portfolio.json
+!reports/fyers_options_st4_threshold_nifty_portfolio.json
+!reports/fyers_options_st4_threshold_banknifty_portfolio.json
+!reports/fyers_options_gapfill_threshold_nifty_portfolio.json
+!reports/fyers_options_gapfill_threshold_banknifty_portfolio.json

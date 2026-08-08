@@ -76,3 +76,21 @@ def test_today_realized_pnl_zero_when_no_closed_trades():
 
 def test_daily_profit_lock_threshold_is_2000_rupees():
     assert DAILY_PROFIT_LOCK_RS == 2000
+
+
+def test_make_strategy_defaults_no_daily_profit_lock():
+    cfg = make_strategy("simple_st1", "NIFTY", target_net_pct=3.0, stop_loss_pct=3.0)
+
+    assert cfg["daily_profit_lock"] is False
+    assert cfg["group"] is None
+
+
+def test_make_strategy_threshold_variant_keeps_same_ratios():
+    cfg = make_strategy("simple_st1_threshold", "NIFTY", target_net_pct=3.0, stop_loss_pct=3.0,
+                         daily_profit_lock=True, group="threshold")
+
+    assert cfg["daily_profit_lock"] is True
+    assert cfg["group"] == "threshold"
+    assert cfg["target_net_pct"] == 3.0
+    assert cfg["stop_loss_pct"] == 3.0
+    assert cfg["portfolio_file"] == "reports/fyers_options_simple_st1_threshold_nifty_portfolio.json"

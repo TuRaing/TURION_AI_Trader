@@ -62,12 +62,24 @@ INDEX_CONFIG = {
 
 
 def make_strategy(name, index, target_net_pct, stop_loss_pct,
-                   initial_capital=100000, squareoff_time=(15, 15)):
+                   initial_capital=100000, squareoff_time=(15, 15),
+                   daily_profit_lock=False, group=None):
     """
     Build one named strategy's config for one index. `name` (e.g.
     "simple_st1") only affects the portfolio filename - reports/
     fyers_options_{name}_{index}_portfolio.json - keeping each of the
     4-strategies x 2-indices paper books fully independent.
+
+    `daily_profit_lock` (added 08-Aug-2026) - when True, check_or_open
+    stops opening NEW trades for the rest of the IST calendar day once
+    DAILY_PROFIT_LOCK_RS has already been realized that day (see
+    _today_realized_pnl). Default False keeps the original strategies'
+    behavior unchanged - the user asked for this as a SEPARATE "same
+    strategy but with a profit-lock" variant (the Threshold Options
+    tab/group), not a change to the originals. `group` (e.g.
+    "threshold") is just a filter tag for fyers_multi_strategy_
+    options_run.py's STRATEGY_NAME - not used by the trading logic
+    itself.
     """
 
     index_cfg = INDEX_CONFIG[index]
@@ -75,6 +87,8 @@ def make_strategy(name, index, target_net_pct, stop_loss_pct,
     return {
         "name": name,
         "index": index,
+        "group": group,
+        "daily_profit_lock": daily_profit_lock,
         "portfolio_file": f"reports/fyers_options_{name}_{index.lower()}_portfolio.json",
         "underlying_symbol": index_cfg["underlying_symbol"],
         "index_symbol_for_rsi": index_cfg["index_symbol_for_rsi"],
@@ -341,7 +355,7 @@ def check_or_open(cfg):
             action = "SKIPPED (before market open, pre-open session quotes not tradeable)"
         elif now_hm >= cfg["squareoff_time"]:
             action = "SKIPPED (past square-off time, market closed or about to close)"
-        elif _today_realized_pnl(portfolio) >= DAILY_PROFIT_LOCK_RS:
+        elif cfg.get("daily_profit_lock") and _today_realized_pnl(portfolio) >= DAILY_PROFIT_LOCK_RS:
             action = f"SKIPPED (today's profit already Rs {DAILY_PROFIT_LOCK_RS}+, no more new trades today)"
         else:
             portfolio, action = _open_position(cfg, portfolio)

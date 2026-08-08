@@ -51,14 +51,16 @@ ENTRY_CUTOFF_TIME = (10, 0)  # a gap-fill bet only makes sense taken
                               # the at-open gap dynamics this counts on
 
 
-def make_gapfill_config(index):
+def make_gapfill_config(index, name="gapfill", daily_profit_lock=False, group=None):
 
     index_cfg = INDEX_CONFIG[index]
 
     return {
-        "name": "gapfill",
+        "name": name,
         "index": index,
-        "portfolio_file": f"reports/fyers_options_gapfill_{index.lower()}_portfolio.json",
+        "group": group,
+        "daily_profit_lock": daily_profit_lock,
+        "portfolio_file": f"reports/fyers_options_{name}_{index.lower()}_portfolio.json",
         "underlying_symbol": index_cfg["underlying_symbol"],
         "index_symbol_for_rsi": index_cfg["index_symbol_for_rsi"],
         "lot_size": index_cfg["lot_size"],
@@ -286,7 +288,7 @@ def check_or_open(cfg):
             action = "SKIPPED (before market open, pre-open session quotes not tradeable)"
         elif now_hm >= ENTRY_CUTOFF_TIME:
             action = "SKIPPED (past the early-morning gap-fill entry window)"
-        elif _today_realized_pnl(portfolio) >= DAILY_PROFIT_LOCK_RS:
+        elif cfg.get("daily_profit_lock") and _today_realized_pnl(portfolio) >= DAILY_PROFIT_LOCK_RS:
             action = f"SKIPPED (today's profit already Rs {DAILY_PROFIT_LOCK_RS}+, no more new trades today)"
         else:
             portfolio, action = _open_position(cfg, portfolio)

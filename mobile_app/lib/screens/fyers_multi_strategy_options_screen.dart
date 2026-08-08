@@ -34,8 +34,27 @@ const _strategyDescriptions = {
   'gapfill': 'सकाळचा gap मागे prev close कडे परत येईल या अंदाजावर - gap up वर PE, gap down वर CE, फक्त सकाळी 10 वाजेपर्यंत entry.',
 };
 
+// Made generic 08-Aug-2026 - the user asked for a SECOND tab
+// ("Threshold Options") showing the same 5 strategies but with a
+// daily profit-lock gate on (see strategy/options_strategies.py's
+// THRESHOLD group), without touching the originals. Rather than
+// duplicate this whole tab/list/portfolio-fetch UI, the widget now
+// takes its strategy names/descriptions/banner text as constructor
+// params (defaulting to the original 5) - fyers_threshold_options_
+// screen.dart just instantiates this with the threshold group's
+// names instead.
 class FyersMultiStrategyOptionsScreen extends StatefulWidget {
-  const FyersMultiStrategyOptionsScreen({super.key});
+  final List<String> strategyNames;
+  final Map<String, String> strategyDescriptions;
+  final String bannerText;
+
+  const FyersMultiStrategyOptionsScreen({
+    super.key,
+    this.strategyNames = _strategyNames,
+    this.strategyDescriptions = _strategyDescriptions,
+    this.bannerText =
+        '5 strategies, each on NIFTY + BANKNIFTY with its own ₹1,00,000 - real live premium quotes, paper trades only.',
+  });
 
   @override
   State<FyersMultiStrategyOptionsScreen> createState() => _FyersMultiStrategyOptionsScreenState();
@@ -48,7 +67,7 @@ class _FyersMultiStrategyOptionsScreenState extends State<FyersMultiStrategyOpti
   @override
   void initState() {
     super.initState();
-    _strategyTabController = TabController(length: _strategyNames.length, vsync: this);
+    _strategyTabController = TabController(length: widget.strategyNames.length, vsync: this);
   }
 
   @override
@@ -68,14 +87,14 @@ class _FyersMultiStrategyOptionsScreenState extends State<FyersMultiStrategyOpti
           margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(color: accentColor.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
-          child: const Text(
-            '4 strategies, each on NIFTY + BANKNIFTY with its own ₹1,00,000 - real live premium quotes, paper trades only.',
-            style: TextStyle(fontSize: 12, color: accentColor),
+          child: Text(
+            widget.bannerText,
+            style: const TextStyle(fontSize: 12, color: accentColor),
           ),
         ),
         // Added 07-Aug-2026 - the login button was only ever on the
         // "Fyers" tab; the one shared FYERS_ACCESS_TOKEN it produces
-        // already covers every Fyers workflow including these 4
+        // already covers every Fyers workflow including these
         // strategies, but not having a visible login entry point HERE
         // was confusing (user asked "where do I log in for Options?").
         const Padding(
@@ -87,12 +106,14 @@ class _FyersMultiStrategyOptionsScreenState extends State<FyersMultiStrategyOpti
           isScrollable: true,
           labelColor: accentColor,
           unselectedLabelColor: mutedColor,
-          tabs: _strategyNames.map((s) => Tab(text: s)).toList(),
+          tabs: widget.strategyNames.map((s) => Tab(text: s)).toList(),
         ),
         Expanded(
           child: TabBarView(
             controller: _strategyTabController,
-            children: _strategyNames.map((s) => _IndexTabs(strategyName: s)).toList(),
+            children: widget.strategyNames
+                .map((s) => _IndexTabs(strategyName: s, description: widget.strategyDescriptions[s] ?? ''))
+                .toList(),
           ),
         ),
       ],
@@ -102,8 +123,9 @@ class _FyersMultiStrategyOptionsScreenState extends State<FyersMultiStrategyOpti
 
 class _IndexTabs extends StatefulWidget {
   final String strategyName;
+  final String description;
 
-  const _IndexTabs({required this.strategyName});
+  const _IndexTabs({required this.strategyName, required this.description});
 
   @override
   State<_IndexTabs> createState() => _IndexTabsState();
@@ -131,7 +153,7 @@ class _IndexTabsState extends State<_IndexTabs> with SingleTickerProviderStateMi
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
           child: Text(
-            _strategyDescriptions[widget.strategyName] ?? '',
+            widget.description,
             style: const TextStyle(fontSize: 12, color: mutedColor),
           ),
         ),

@@ -21,6 +21,14 @@ from strategy.options_strategies import ALL_STRATEGIES
 # (both indices) - "all"/unset runs everything, unchanged from
 # before, so this stays backward compatible with a single combined
 # trigger too if ever wanted again.
+#
+# UPDATED 08-Aug-2026 - added the "threshold" group (5 strategies x 2
+# indices, same entry/exit logic as their non-threshold counterpart
+# but with the daily profit-lock gate on - see strategy/options_
+# strategies.py). STRATEGY_NAME="threshold" runs all 10 of those
+# together with ONE cron-job.org trigger, rather than needing 5 more
+# separate jobs - the user asked for this as one new tab/feature, not
+# 5 independently-pausable sub-strategies like the originals.
 
 STRATEGY_NAME = os.environ.get("STRATEGY_NAME") or (sys.argv[1] if len(sys.argv) > 1 else "all")
 
@@ -33,9 +41,12 @@ def main():
         print(f"No valid Fyers session (token missing/expired) - skipping this run: {profile}")
         sys.exit(0)
 
-    strategies = ALL_STRATEGIES if STRATEGY_NAME == "all" else [
-        (check_fn, cfg) for check_fn, cfg in ALL_STRATEGIES if cfg["name"] == STRATEGY_NAME
-    ]
+    if STRATEGY_NAME == "all":
+        strategies = ALL_STRATEGIES
+    elif STRATEGY_NAME == "threshold":
+        strategies = [(check_fn, cfg) for check_fn, cfg in ALL_STRATEGIES if cfg.get("group") == "threshold"]
+    else:
+        strategies = [(check_fn, cfg) for check_fn, cfg in ALL_STRATEGIES if cfg["name"] == STRATEGY_NAME]
 
     if not strategies:
         print(f"No strategy named '{STRATEGY_NAME}' found - nothing to check.")

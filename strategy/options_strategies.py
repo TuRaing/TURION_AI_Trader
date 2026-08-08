@@ -62,6 +62,35 @@ ST4_BANKNIFTY = make_st4_config("BANKNIFTY")
 GAPFILL_NIFTY = make_gapfill_config("NIFTY")
 GAPFILL_BANKNIFTY = make_gapfill_config("BANKNIFTY")
 
+# THRESHOLD group - added 08-Aug-2026, user's direct request: keep the
+# 5 original strategies exactly as they are (no gate), and separately
+# run the SAME 5 strategies with the daily profit-lock gate turned on
+# (daily_profit_lock=True - see fyers_options_engine.py's make_
+# strategy()/DAILY_PROFIT_LOCK_RS), as their own 5 books x 2 indices =
+# 10 independent paper portfolios, shown in the app's new "Threshold
+# Options" tab instead of mixed into the original Options tab. Same
+# entry/exit logic as their non-threshold counterpart, only the extra
+# "stop opening new trades once today's realized profit hits Rs 2,000"
+# gate differs. group="threshold" lets fyers_multi_strategy_options_
+# run.py's STRATEGY_NAME filter run all 5 together with one trigger.
+SIMPLE_ST1_TH_NIFTY = make_strategy("simple_st1_threshold", "NIFTY", target_net_pct=3.0, stop_loss_pct=3.0,
+                                     daily_profit_lock=True, group="threshold")
+SIMPLE_ST1_TH_BANKNIFTY = make_strategy("simple_st1_threshold", "BANKNIFTY", target_net_pct=3.0, stop_loss_pct=3.0,
+                                         daily_profit_lock=True, group="threshold")
+ST2_TH_NIFTY = make_strategy("st2_threshold", "NIFTY", target_net_pct=5.0, stop_loss_pct=2.0,
+                              daily_profit_lock=True, group="threshold")
+ST2_TH_BANKNIFTY = make_strategy("st2_threshold", "BANKNIFTY", target_net_pct=5.0, stop_loss_pct=2.0,
+                                  daily_profit_lock=True, group="threshold")
+ST3_TH_NIFTY = make_strategy("st3_threshold", "NIFTY", target_net_pct=5.0, stop_loss_pct=5.0,
+                              daily_profit_lock=True, group="threshold")
+ST3_TH_BANKNIFTY = make_strategy("st3_threshold", "BANKNIFTY", target_net_pct=5.0, stop_loss_pct=5.0,
+                                  daily_profit_lock=True, group="threshold")
+ST4_TH_NIFTY = make_st4_config("NIFTY", name="st4_threshold", daily_profit_lock=True, group="threshold")
+ST4_TH_BANKNIFTY = make_st4_config("BANKNIFTY", name="st4_threshold", daily_profit_lock=True, group="threshold")
+GAPFILL_TH_NIFTY = make_gapfill_config("NIFTY", name="gapfill_threshold", daily_profit_lock=True, group="threshold")
+GAPFILL_TH_BANKNIFTY = make_gapfill_config("BANKNIFTY", name="gapfill_threshold", daily_profit_lock=True,
+                                            group="threshold")
+
 ALL_STRATEGIES = [
     (check_or_open_generic, SIMPLE_ST1_NIFTY),
     (check_or_open_generic, SIMPLE_ST1_BANKNIFTY),
@@ -73,4 +102,14 @@ ALL_STRATEGIES = [
     (check_or_open_st4, ST4_BANKNIFTY),
     (check_or_open_gapfill, GAPFILL_NIFTY),
     (check_or_open_gapfill, GAPFILL_BANKNIFTY),
+    (check_or_open_generic, SIMPLE_ST1_TH_NIFTY),
+    (check_or_open_generic, SIMPLE_ST1_TH_BANKNIFTY),
+    (check_or_open_generic, ST2_TH_NIFTY),
+    (check_or_open_generic, ST2_TH_BANKNIFTY),
+    (check_or_open_generic, ST3_TH_NIFTY),
+    (check_or_open_generic, ST3_TH_BANKNIFTY),
+    (check_or_open_st4, ST4_TH_NIFTY),
+    (check_or_open_st4, ST4_TH_BANKNIFTY),
+    (check_or_open_gapfill, GAPFILL_TH_NIFTY),
+    (check_or_open_gapfill, GAPFILL_TH_BANKNIFTY),
 ]

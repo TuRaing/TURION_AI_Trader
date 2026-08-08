@@ -12,7 +12,7 @@ TURION AI Trader
 
 Version
 
-v0.0.16
+v0.0.17
 
 --------------------------------------------------
 
@@ -168,7 +168,11 @@ PROJECT MILESTONES
                                different reversion-based entry signal
                                after simple_st1-st4's shared RSI-
                                momentum entry lost broadly on its
-                               first live day), and continuous same-day
+                               first live day), PLUS a parallel
+                               "threshold" variant of all 5 (same
+                               logic + a daily Rs 2,000 profit-lock
+                               gate, added 08-Aug, 10 more books - 20
+                               total), and continuous same-day
                                automation (one
                                morning login -> shared token -> GitHub
                                Actions + cron-job.org triggers all
@@ -180,10 +184,13 @@ PROJECT MILESTONES
 🟡 Desktop Dashboard          (PySide6 built + verified, not committed
                                - unchanged since 25-Jul, still pending)
 
-✅ Android App                (Flutter, now 7 tabs - yfinance/Intraday/
-                               Swing/News/History/Fyers/Options (grew
+✅ Android App                (Flutter, now 9 tabs - yfinance/Intraday/
+                               Swing/News/History/Fyers/Options/
+                               Threshold Options/Options Summary (grew
                                from the original 5 as Fyers/Options
-                               were added 04-06-Aug). UPDATE 06-Aug:
+                               were added 04-06-Aug, then Threshold
+                               Options + Options Summary added 08-Aug).
+                               UPDATE 06-Aug:
                                Options tab restructured into strategy-
                                tabs x 2 index-subtabs (5 strategy-tabs
                                as of 07/08-Aug's gapfill addition), own
@@ -2419,6 +2426,60 @@ cap is ever relaxed. 9 new tests added (test_fyers_options_engine.py
 - _today_realized_pnl sums only today's trades, ignores older ones,
 zero when none), all 161 project tests passing.
 
+THRESHOLD OPTIONS GROUP + APP SUMMARY TABLE, 08-Aug - after the daily
+profit-lock was first added directly onto the 5 original strategies,
+user asked to revert that (keep the originals exactly as they always
+were) and instead run the SAME profit-lock as a completely SEPARATE
+parallel group - "same strategy, but with the gate" - shown in its
+own app tab, so the two can be compared side by side without touching
+the already-running originals' books.
+
+Implemented as a "threshold" variant of each of the 5 strategies
+(strategy/options_strategies.py's THRESHOLD group: simple_st1_
+threshold, st2_threshold, st3_threshold, st4_threshold, gapfill_
+threshold, x2 indices = 10 more books, 20 total across the whole
+options system now). Same entry/exit logic, own Rs 1,00,000 x2
+indices each, own portfolio files - only daily_profit_lock=True
+differs (make_strategy()/make_st4_config()/make_gapfill_config() all
+gained a daily_profit_lock param, default False, so the originals are
+provably unchanged). fyers_multi_strategy_options_run.py gained a
+STRATEGY_NAME="threshold" group filter so all 10 threshold books run
+off ONE cron-job.org trigger (not 5 more independently-pausable ones
+like the originals - the user asked for one new tab/feature, not 5
+more individually-pausable sub-strategies). 12 new tests (test_
+options_strategies.py + additions to the engine/st4/gapfill test
+files), all 173 project tests passing.
+
+BUG FOUND + FIXED while wiring this up: .github/workflows/fyers_
+multi_strategy_options.yml's commit step was missing `git add` lines
+for the gapfill portfolio files entirely (added 07/08-Aug, never
+added to this list) - meaning gapfill's real trade updates were being
+computed correctly every run but silently discarded on the next
+checkout, never actually persisted. Fixed, and the 10 new threshold
+files added to the same list from the start so the same bug can't
+repeat for them.
+
+App changes: FyersMultiStrategyOptionsScreen (Options tab) made
+generic (takes strategy names/descriptions as params instead of a
+hardcoded list) so the new Threshold Options tab (fyers_threshold_
+options_screen.dart) could reuse it instead of duplicating the whole
+tab/list/portfolio-fetch UI. Also added 'gapfill' itself to the
+Options tab's strategy list (it existed on the backend since 07/08-
+Aug but was never wired into the app UI until now - found while
+updating docs).
+
+Also added, same day, at the user's direct request: a NEW "Options
+Summary" tab (fyers_options_summary_screen.dart) - one combined table
+across ALL 20 books (Options + Threshold Options), each row showing
+Initial Amount (Rs 1,00,000, same for every book, hardcoded to match
+every config's default), Current Amount (that book's "Cash" - i.e.
+realized P&L basis, does NOT add an open position's unrealized mark-
+to-market value, same convention the rest of the app already uses
+for "Cash"), and Profit, plus a Total Investment / Total Current
+Amount / Total Profit-Loss summary across all 20. App is now 9 tabs
+(yfinance/Intraday/Swing/News/History/Fyers/Options/Threshold
+Options/Options Summary) - up from 7 as of 06-Aug.
+
 LIVE-DATA ARCHITECTURE (VPS + Firebase) - discussed in depth 06/07-
 Aug, NOT built yet, deliberately deferred: do this about 1 WEEK
 BEFORE starting real-capital trading (once paper-trading results
@@ -2511,11 +2572,11 @@ Status
 
 Current Version
 
-v0.0.16
+v0.0.17
 
 Next Version
 
-v0.0.17
+v0.0.18
 
 ==================================================
 

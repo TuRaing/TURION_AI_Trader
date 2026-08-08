@@ -18,6 +18,21 @@ def test_make_gapfill_config_banknifty():
     assert cfg["portfolio_file"] == "reports/fyers_options_gapfill_banknifty_portfolio.json"
 
 
+def test_make_gapfill_config_defaults_no_daily_profit_lock():
+    cfg = make_gapfill_config("NIFTY")
+
+    assert cfg["daily_profit_lock"] is False
+
+
+def test_make_gapfill_config_threshold_variant():
+    cfg = make_gapfill_config("NIFTY", name="gapfill_threshold", daily_profit_lock=True, group="threshold")
+
+    assert cfg["name"] == "gapfill_threshold"
+    assert cfg["daily_profit_lock"] is True
+    assert cfg["group"] == "threshold"
+    assert cfg["portfolio_file"] == "reports/fyers_options_gapfill_threshold_nifty_portfolio.json"
+
+
 def test_target_hit_pe_reverts_down_to_prev_close():
     # Gap up -> PE -> target is spot falling back down to prev close.
     assert _target_hit("PE", current_spot=24500, target_spot=24500) is True
