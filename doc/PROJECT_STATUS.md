@@ -2480,6 +2480,80 @@ Amount / Total Profit-Loss summary across all 20. App is now 9 tabs
 (yfinance/Intraday/Swing/News/History/Fyers/Options/Threshold
 Options/Options Summary) - up from 7 as of 06-Aug.
 
+GPT STRATEGY LIST EVALUATED, 07/08-Aug - user pasted a ChatGPT-
+sourced list of 5 strategy ideas (Market Structure+S/R+Candlestick+
+Volume+Option Chain "Hybrid"; VWAP+EMA+Volume; Opening Range
+Breakout; Option Chain+OI/PCR/Max Pain; ICT/Smart Money Concepts)
+plus a "TURION Strategy v1.0" vision, asking for an evaluation
+against this project's own already-tested candidates:
+  1. Market Structure Hybrid - this IS essentially what the AI
+     Decision Engine/Daily-Watchlist strategy already does (EMA+RSI+
+     Structure+S/R+Candlestick+Volume) - not a new build, and that
+     engine is currently net-negative live at large sample (-Rs
+     1,28,490.80/49 symbols, 0/48 profitable).
+  2. VWAP+EMA+Volume - CONCLUSIVELY REJECTED already, 22-Jul (48-
+     combo ORB+VWAP+Volume sweep, every combo net-negative; separate
+     EMA+Volume Breakout sweep also mostly negative).
+  3. ORB - CONCLUSIVELY REJECTED, same 22-Jul sweep.
+  4. Option Chain+OI/PCR/Max Pain - already built (Option Chain
+     Engine) but SHELVED 30-Jul - NSE has no historical option-chain
+     archive to backtest against. The Fyers real-premium snapshot
+     collection started 04-Aug is a potential path around that exact
+     blocker, but still too sparse as of 07-Aug (only ~1 usable day)
+     - revisit in a few weeks once more data accumulates.
+  5. ICT/Smart Money Concepts - the one genuinely untested idea on
+     the list. Recommended waiting (6 existing options strategies
+     still in their 1-week evaluation window), but user asked to
+     build and backtest it anyway - see the entry directly below.
+
+ICT/SMART MONEY CONCEPTS BUILT + BACKTESTED + REJECTED, 08-Aug -
+built and tested per the user's explicit request above.
+
+SCOPE: implemented the 4 concepts actually named - Liquidity (swing-
+point detection), Break of Structure (BOS), Change of Character
+(CHOCH), Order Blocks, Fair Value Gaps (FVG) - as pure, independently
+tested functions (indicators/market_structure.py, 13 tests). NOT the
+full ICT framework (no kill zones, premium/discount arrays, dealing
+ranges - genuine ICT concepts but out of the scope actually asked
+for). Entry rule (strategy/ict_smc_backtest.py): wait for a CHOCH ->
+an Order Block or Fair Value Gap forms in the impulsive move right
+after it -> enter when price retraces back into that zone, in the
+CHOCH's direction. ATR-based Stop-Loss/Target (same convention as
+every other backtest in this codebase, for an apples-to-apples
+comparison against the already-rejected candidates rather than a new
+R:R scheme invented just for this one). Analysis only, real
+transaction costs via the existing cost model, no look-ahead (swings
+only trusted once confirmed, zones only usable after the candle that
+formed them). 16 tests (13 for the pure market-structure functions +
+3 for the backtest wiring), 189 project tests total passing.
+
+CONCLUSIVELY REJECTED, same day: swept 3 ATR SL/Target ratios (1.0/
+1.5, 1.0/2.0, 1.5/2.0) x 2 swing-detection lookbacks (2, 3 candles)
+across the SAME 8-symbol universe as the 22-Jul ORB/VWAP sweep
+(NIFTY, BANKNIFTY, ICICIBANK, RELIANCE, HDFCBANK, TCS, BAJFINANCE,
+TITAN; 5m candles, 60d) - 6 combos, 48 symbol-combo runs total. Every
+single combo was net-negative in aggregate:
+
+  SL 1.0/TGT 1.5, lookback 2: 845 trades, -Rs 12,683.84, 34.3% win rate
+  SL 1.0/TGT 1.5, lookback 3: 662 trades, -Rs 8,833.00,  37.9% win rate
+  SL 1.0/TGT 2.0, lookback 2: 836 trades, -Rs 12,183.70, 29.2% win rate
+  SL 1.0/TGT 2.0, lookback 3: 659 trades, -Rs 8,795.84,  32.5% win rate
+  SL 1.5/TGT 2.0, lookback 2: 811 trades, -Rs 10,650.59, 40.6% win rate
+  SL 1.5/TGT 2.0, lookback 3: 655 trades, -Rs 8,488.65,  41.4% win rate
+
+Every individual symbol was net-negative under every combo too, not
+just the aggregate - BANKNIFTY was the worst (-Rs 5,357 to -Rs 8,427
+depending on combo). Best-looking combo by win rate (SL 1.5/TGT 2.0,
+lookback 3, 41.4%) is still deeply net-negative because the R:R
+ratio needs a much higher win rate to break even (>42.9% at 1.5:2.0)
+- consistent with the pattern already seen in this project's other
+sweeps: a plausible-sounding multi-factor entry idea, still net-
+negative once real transaction costs are applied to real price data.
+5 for 5 now on the GPT strategy list: all evaluated, all either
+already-rejected, shelved-on-data, or now freshly rejected. Code kept
+in the repo (analysis-only, same convention as orb_vwap_backtest.py
+etc.) as a documented, tested reference - not deleted.
+
 CRON-JOB.ORG TRIGGERS FOR gapfill + threshold, 08-Aug - both had
 their code live since earlier but NO cron-job.org trigger actually
 calling them yet (found while reviewing the workflow's git-add bug).

@@ -200,6 +200,32 @@ Today's Achievements
    token-exchange step takes ~70-90s to finish - not a bug, just
    needs a short wait after login.
 
+✅ Evaluated the ChatGPT-sourced strategy list the user pasted 07-Aug
+   (5 ideas + a "TURION Strategy v1.0" vision) against this project's
+   own already-tested candidates. 4 of 5 were quick verdicts from
+   existing research: the "Hybrid" idea is basically what the AI
+   Decision Engine already runs (and is net-negative live);
+   VWAP+EMA+Volume and ORB were both already CONCLUSIVELY REJECTED
+   22-Jul; Option Chain/PCR/Max Pain was already built but SHELVED
+   30-Jul for lack of historical data. ICT/Smart Money Concepts was
+   the one genuinely untested idea - recommended waiting, but user
+   asked to build and backtest it anyway.
+
+✅ Built and backtested ICT/Smart Money Concepts (indicators/market_
+   structure.py - Liquidity/swing points, BOS, CHOCH, Order Blocks,
+   Fair Value Gaps, as pure independently-tested functions;
+   strategy/ict_smc_backtest.py - CHOCH -> OB/FVG retracement entry
+   rule, ATR-based SL/Target matching every other backtest's
+   convention). 16 new tests, 189 project tests passing. Swept 3
+   SL/Target ratios x 2 swing lookbacks across the same 8-symbol
+   universe as the 22-Jul ORB/VWAP sweep - CONCLUSIVELY REJECTED,
+   every single combo net-negative in aggregate (-Rs 8,488 to -Rs
+   12,684 across 655-845 trades) AND per-symbol (BANKNIFTY worst,
+   -Rs 5,357 to -Rs 8,427). 5 for 5 now on the GPT list - all
+   evaluated, none viable as-is. Code kept in the repo as a
+   documented, tested, analysis-only reference (not deleted), same
+   convention as the project's other rejected-candidate backtests.
+
 ==================================================
 
 Next Session Priorities
