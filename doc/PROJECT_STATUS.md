@@ -3102,6 +3102,17 @@ variants specifically - the already-agreed direction (VIX-filter,
 Option-Chain/OI-footprint, theta-selling) remains the right place to
 keep looking, not further patches to momentum/RSI-based signals.
 
+DECIDED, 09-Aug (final word after the RSI/ADX/Divergence dead ends):
+user explicitly confirmed - full focus stays on the 3 already-built,
+already-live non-RSI-pattern directions (vix_filter, oi_footprint,
+credit_spread/theta-selling - 5 books total) plus the existing 20
+books (5 original + 5 threshold) already accumulating data. NO new
+strategy experiments until the 14-Aug review point. This session's
+RSI/ADX/Divergence detour is closed - documented as a real, useful
+negative result (3 variants tested, all failed, ruling out an entire
+signal family rather than leaving it an open question), not resumed
+further.
+
 LIVE-DATA ARCHITECTURE (VPS + Firebase) - discussed in depth 06/07-
 Aug, NOT built yet, deliberately deferred: do this about 1 WEEK
 BEFORE starting real-capital trading (once paper-trading results
