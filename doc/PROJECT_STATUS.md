@@ -2969,6 +2969,21 @@ other strategy here) - untested whether that's monthly for NIFTY
 (BANKNIFTY's only expiry is monthly already, discontinued weekly per
 22-Jul's regulatory note). Check once real live entries occur.
 
+APP CATCH-UP + REAL BUG CAUGHT, 09-Aug - added credit_spread to the
+Options tab and Options Summary (same class of gap as vix_filter/oi_
+footprint earlier - new backend strategy, app not updated with it).
+While doing this, found a REAL crash-in-waiting: OptionPositionCard/
+OptionClosedTradeCard (mobile_app/lib/widgets/common.dart) both
+assumed every options position/trade is single-leg (reads Strike/
+Entry Premium/Exit Premium directly, `as num` cast with no null
+check) - credit_spread's genuinely different 2-leg shape (Short
+Strike/Long Strike/Entry Credit, no "Entry Premium" key at all) would
+have thrown a null-cast exception the FIRST time a spread position or
+closed trade actually rendered in the app - caught before any real
+data existed to trigger it. Fixed: both widgets now detect the shape
+(presence of "Entry Credit") and render the appropriate fields. APK
+rebuilt, not yet reinstalled (phone not connected at build time).
+
 LIVE-DATA ARCHITECTURE (VPS + Firebase) - discussed in depth 06/07-
 Aug, NOT built yet, deliberately deferred: do this about 1 WEEK
 BEFORE starting real-capital trading (once paper-trading results
