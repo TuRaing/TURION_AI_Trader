@@ -2934,6 +2934,41 @@ and the already-agreed direction (Option Chain/OI-footprint, theta-
 selling once designed) - none of the speed/small-cap avenues explored
 this session change that plan.
 
+CREDIT-SPREAD (THETA) STRATEGY BUILT + LIVE, 09-Aug - the premium-
+selling engine designed 08-Aug, built the next day per the user's
+direct request. strategy/fyers_options_credit_spread.py - directional
+credit spread (Bull Put / Bear Call, defined-risk, 2 legs: sell one
+strike, buy a further one as protection), sold only when India VIX
+sits in its own trailing HIGH percentile band (rich premium to sell
+into - the OPPOSITE filter from vix_filter.py's "avoid extremes"
+rule), direction from RSI (same signal simple_st1/st2/st3 already
+use: >=50 -> sell PUT spread, <50 -> sell CALL spread). Short strike
+~1.5% OTM, long strike 150 points further out (both rounded to the
+index's strike step). Exit at 50% of credit banked (standard credit-
+spread practice - don't hold for the riskiest last half), Stop-Loss
+at 2x credit received, or square-off at day's close.
+
+Position sizing uses the spread's own worst-case loss (width -
+credit) as a conservative stand-in for real margin - Fyers does
+expose a span_margin endpoint, but its exact request/response schema
+wasn't confirmed from accessible docs, so rather than guess and
+risk mis-sizing, this always sizes at or under what a real defined-
+risk spread margin would allow. Real margin-API integration is a
+future refinement, not a blocker.
+
+Both indices, 25 books total now across the options system. 13 new
+tests, 236 project tests passing. 9th cron-job.org trigger set up and
+verified live (workflow_dispatch logs confirmed correct
+STRATEGY_NAME, no code errors - token was expired since it's Sunday,
+full live signal test happens once someone logs in on a trading day).
+
+Known caveat, not yet verified: the user specifically wanted MONTHLY
+expiry for both indices; this strategy uses whatever expiry Fyers'
+option chain API returns by default (the nearest one, same as every
+other strategy here) - untested whether that's monthly for NIFTY
+(BANKNIFTY's only expiry is monthly already, discontinued weekly per
+22-Jul's regulatory note). Check once real live entries occur.
+
 LIVE-DATA ARCHITECTURE (VPS + Firebase) - discussed in depth 06/07-
 Aug, NOT built yet, deliberately deferred: do this about 1 WEEK
 BEFORE starting real-capital trading (once paper-trading results
