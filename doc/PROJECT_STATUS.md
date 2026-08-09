@@ -3040,6 +3040,41 @@ spot), so switching instrument type wouldn't fix it. The diagnostic
 question this was built to answer is answered - futures-as-a-vehicle
 isn't the missing piece, a better SIGNAL is.
 
+RSI+ADX>25 COMBO TESTED AT SCALE - NO IMPROVEMENT, 09-Aug - user
+asked how to make the weak RSI signal stronger. Identified several
+concrete options (RSI extremes instead of the noisy 50-midline, the
+already-proven ADX>25 filter, RSI divergence, regime-awareness, the
+already-built VIX filter) and tested the cheapest/already-validated
+one first: added an optional ADX>25 filter to strategy/futures_
+signal_backtest.py and re-ran the same 60d/5m comparison.
+
+RESULT: no real improvement.
+  NIFTY:     RSI-only 193 trades/37.31% win/-Rs 77,360 net
+             RSI+ADX  136 trades/35.29% win/-Rs 79,377 net (worse)
+  BANKNIFTY: RSI-only 180 trades/33.89% win/-Rs 88,158 net
+             RSI+ADX  273 trades/35.53% win/-Rs 81,569 net (marginal)
+This does NOT reproduce 22-Jul's "45%->83% win rate" ADX finding at
+this scale/instrument - that earlier number likely came from a
+smaller, more specific sample (already flagged with a caveat at the
+time). Capital never went negative in any run (safety design held).
+
+Also found and fixed a wrong test assumption while building this:
+trade COUNT is not guaranteed to decrease when an entry filter gets
+more selective - a held position blocks new entries, so a filter
+that changes WHICH candles trigger entries can also change how long
+positions stay open, changing total trade count in either direction
+(confirmed on real BANKNIFTY data - MORE trades with the ADX filter
+on, not fewer). Corrected the test rather than leaving a false
+invariant asserted.
+
+DECIDED, 09-Aug: ADX alone does not rescue the RSI signal. Next real
+candidates to strengthen it (not yet tried at this scale): RSI
+divergence (a less commonly-followed technique, may have more edge
+precisely because it's less crowded), or accept the already-agreed
+plan (VIX-filter, Option-Chain/OI-footprint, theta-selling) as the
+more promising direction rather than continuing to patch the RSI
+signal itself.
+
 LIVE-DATA ARCHITECTURE (VPS + Firebase) - discussed in depth 06/07-
 Aug, NOT built yet, deliberately deferred: do this about 1 WEEK
 BEFORE starting real-capital trading (once paper-trading results
