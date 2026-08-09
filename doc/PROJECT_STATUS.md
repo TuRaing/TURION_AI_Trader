@@ -3075,6 +3075,33 @@ plan (VIX-filter, Option-Chain/OI-footprint, theta-selling) as the
 more promising direction rather than continuing to patch the RSI
 signal itself.
 
+RSI DIVERGENCE TESTED - WORSE THAN PLAIN RSI, 09-Aug - the next
+candidate from the "how to strengthen RSI" list, after ADX>25 showed
+no improvement. Built indicators/divergence.py (is_bearish_divergence/
+is_bullish_divergence, pure functions) and strategy/rsi_divergence_
+backtest.py - detects when price makes a new swing high/low that RSI
+does NOT confirm (reusing indicators/market_structure.py's swing-
+point detection, already built for ICT/SMC), same safety design as
+futures_signal_backtest.py (worst-case-move position sizing,
+intraday-only square-off).
+
+RESULT: WORSE than the plain RSI signal, not better.
+  NIFTY:     109 trades, 32.11% win rate, Net PnL -Rs 63,730.30
+             (plain RSI was 37.31% win / -Rs 77,360.39)
+  BANKNIFTY:  70 trades, 24.29% win rate, Net PnL -Rs 80,402.66
+             (plain RSI was 33.89% win / -Rs 88,158.06 - divergence's
+             win rate is notably worse here)
+Capital never went negative in either run (safety design held, same
+as every prior test). 8 new tests, 256 project tests passing.
+
+DECIDED, 09-Aug: RSI-family signals (plain threshold, +ADX filter,
+divergence) are now THREE FOR THREE showing no real edge on this
+project's real data, across two different instrument framings
+(options premium AND linear futures/spot). Stop iterating on RSI
+variants specifically - the already-agreed direction (VIX-filter,
+Option-Chain/OI-footprint, theta-selling) remains the right place to
+keep looking, not further patches to momentum/RSI-based signals.
+
 LIVE-DATA ARCHITECTURE (VPS + Firebase) - discussed in depth 06/07-
 Aug, NOT built yet, deliberately deferred: do this about 1 WEEK
 BEFORE starting real-capital trading (once paper-trading results
