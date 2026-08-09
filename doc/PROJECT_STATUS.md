@@ -3113,6 +3113,55 @@ negative result (3 variants tested, all failed, ruling out an entire
 signal family rather than leaving it an open question), not resumed
 further.
 
+==================================================
+
+PCR MOMENTUM + VOLUME-WEIGHTED OI - BUILT, NOT DEPLOYED, 09-Aug -
+right after confirming the "stay focused, no new experiments" decision
+above, user asked a separate question: what NEW indicator could be
+built that's genuinely strong, as R&D running in parallel, NOT a
+change to the 14-Aug plan (explicitly confirmed via clarifying
+question - this doesn't reopen the "stay focused" decision, it sits
+alongside it).
+
+4 candidate ideas were discussed (Chain-Wide PCR Momentum, Dynamic Max
+Pain Drift, Volume-Weighted OI Buildup, VIX+OI combo). User asked for
+a recommendation on combining them; the pick was PCR Momentum +
+Volume-Weighted OI first (closely related, same option-chain data
+source, natural pairing), keeping Max Pain Drift as a separate idea
+for later, and only layering a VIX filter on top afterward if this
+base combo shows promise.
+
+SIGNAL (strategy/fyers_options_pcr_momentum.py): tracks the RATE OF
+CHANGE of chain-wide Put-Call OI Ratio (total Put OI / total Call OI,
+summed across the WHOLE collected option chain, not just the ATM
+strike like oi_footprint.py) between checks, gated by a volume-
+confirmation filter (current total chain volume must be at least
+1.2x the last check's, so a PCR drift from thin/stale quotes doesn't
+count). PCR rising fast + volume confirms -> bullish (CE); PCR
+falling fast + volume confirms -> bearish (PE). MIN_PCR_CHANGE_PCT=5%,
+MIN_VOLUME_RATIO=1.2, same Rs 1,500 fixed Target/Stop-Loss "get in,
+get out" philosophy as oi_footprint.py. 9 new unit tests, all passing
+(pure _classify_pcr_momentum() function, same testable-pure-logic
+pattern as oi_footprint.py's _classify_buildup()). Full suite: 265
+passed.
+
+NOT BACKTESTED - same permanent limitation as oi_footprint.py and
+every other OI-based signal in this project: no historical option-
+chain OI/Volume dataset exists anywhere (not NSE, not Fyers, not this
+project's own options_premium_history.jsonl archive, still too sparse)
+to backtest against. Same workaround as oi_footprint took: pure logic
+fully unit-tested, no historical backtest attempted.
+
+DECIDED, 09-Aug: build and fully test the code, but do NOT deploy it.
+Deliberately NOT added to strategy/options_strategies.py's
+ALL_STRATEGIES list (unlike every other strategy in this project,
+which gets added there as the final "go live" step) and NO cron-
+job.org trigger created - stays fully built-and-tested but
+disconnected from live automation until a deployment decision is made
+at or after the 14-Aug review point.
+
+==================================================
+
 LIVE-DATA ARCHITECTURE (VPS + Firebase) - discussed in depth 06/07-
 Aug, NOT built yet, deliberately deferred: do this about 1 WEEK
 BEFORE starting real-capital trading (once paper-trading results
@@ -3205,11 +3254,11 @@ Status
 
 Current Version
 
-v0.0.19
+v0.0.20
 
 Next Version
 
-v0.0.20
+v0.0.21
 
 ==================================================
 

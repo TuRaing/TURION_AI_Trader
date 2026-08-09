@@ -20,9 +20,10 @@ Date
 
 Version
 
-v0.0.15 -> v0.0.18 (bumped several times same long session - Gap-
-Fill, Threshold group, VIX-filter, and OI-footprint strategies are
-each real new features, not just bug fixes)
+v0.0.15 -> v0.0.20 (bumped several times same long session - Gap-
+Fill, Threshold group, VIX-filter, OI-footprint, Credit Spread, and
+PCR Momentum (built, not deployed) are each real new features, not
+just bug fixes)
 
 ==================================================
 
@@ -267,57 +268,93 @@ Today's Achievements
    variant for oi_footprint - it stays outside the Threshold group,
    its own small/quick Rs 1,500 design is enough as is.
 
+--------------------------------------------------
+
+Date
+
+09-Aug-2026 (same continuous session, past two midnights now)
+
+--------------------------------------------------
+
+09-Aug Achievements
+
+✅ Credit Spread (theta/premium-selling) engine built and gone live -
+   directional Bull Put/Bear Call, VIX-high-percentile entry filter,
+   ~1.5% OTM short strike, 150pt width, 50%-of-credit target / 2x-
+   credit stop. Both indices, 25 books total. Caught and fixed a real
+   app crash bug before any live data existed to trigger it - the
+   2-leg spread position shape (Short/Long Strike, Entry Credit) has
+   none of the single-leg fields (Strike, Entry Premium) the app's
+   OptionPositionCard/OptionClosedTradeCard assumed.
+
+✅ Futures signal backtest built (strategy/futures_signal_backtest.py)
+   to test the RSI>=50/<50 signal as a linear position, isolating
+   signal quality from options-premium/theta noise - user's explicit
+   ask, with an explicit safety requirement (no negative account
+   balance ever). Position sizing is worst-case-move-based (10%
+   assumed instant adverse move), not margin-based - deliberately
+   more conservative, guarantees capital can't go negative from one
+   trade even if the Stop-Loss fails to execute. RESULT: CONCLUSIVE -
+   the RSI signal itself lacks edge (NIFTY -Rs 77,360/193 trades,
+   BANKNIFTY -Rs 88,158/180 trades), not an options-cost artifact.
+
+✅ RSI+ADX>25 filter tested at scale on the futures backtest - no
+   improvement (NIFTY worse, BANKNIFTY marginal but with MORE trades,
+   a real path-dependency finding not a bug).
+
+✅ RSI Divergence tested (indicators/divergence.py +
+   strategy/rsi_divergence_backtest.py, reusing find_swing_points from
+   the ICT/SMC work) - worse than plain RSI on both indices. Three
+   RSI-family variants now tested and failed; decided to stop patching
+   RSI specifically and stay on the already-agreed non-RSI directions
+   (vix_filter, oi_footprint, credit_spread) with no new live
+   experiments until the 14-Aug review.
+
+✅ PCR Momentum + Volume-Weighted OI built as R&D, NOT deployed -
+   user's own idea for a new indicator, raised right after confirming
+   the "stay focused" decision above; clarified this is parallel R&D
+   that doesn't reopen that decision. Chain-wide Put-Call OI Ratio
+   momentum + a volume-confirmation filter (see strategy/fyers_
+   options_pcr_momentum.py's module docstring), same pure-function/
+   unit-test-only pattern as oi_footprint.py (no historical option-
+   chain OI/Volume data exists anywhere to backtest against - a
+   permanent limitation, not something skipped this time). 9 new
+   tests, 265 passing overall. Deliberately NOT added to
+   options_strategies.py's ALL_STRATEGIES and no cron-job.org trigger
+   created - code is ready, but stays disconnected from live
+   automation until a deployment decision after 14-Aug.
+
 ==================================================
 
 Next Session Priorities
 
-0. Install the latest APK (Threshold Options + Options Summary tabs)
-   on the user's phone once it's connected via USB - built and
-   verified compiling twice this evening but not yet installed. The
-   gapfill and threshold cron-job.org triggers are done (see above).
+1. 14-Aug review checkpoint - now covers FIVE items together, all
+   explicitly deferred to this date: equity engines retune-vs-redirect
+   decision, loss-lock, reduced options trade frequency, the shared
+   Backtest-Live engine / Portfolio-level aggregation architecture
+   changes, AND the PCR Momentum + Volume-Weighted OI deploy decision
+   (code ready in strategy/fyers_options_pcr_momentum.py, not wired
+   into ALL_STRATEGIES or cron-job.org yet).
 
-1. Watch today's real trading hours (09:15 IST onward): first real
-   trades for simple_st1/st2/st3/st4, confirm the 4 separate 1-min
-   cron-job.org jobs fire reliably, confirm Swing/Intraday keep
-   getting fresh checks without another NaN-class corruption.
+2. Watch real trading days for the 5 non-RSI-pattern books (vix_filter,
+   oi_footprint x2, credit_spread x2) accumulating live data toward
+   that 14-Aug review, alongside the existing 20 books (5 original +
+   5 threshold).
 
-2. 14-Aug review checkpoint (carried over from 06-Aug) - now covers
-   FOUR items together, all explicitly deferred to this date: equity
-   engines retune-vs-redirect decision, loss-lock, reduced options
-   trade frequency, and the shared Backtest-Live engine / Portfolio-
-   level aggregation architecture changes.
+3. Desktop App Android-parity expansion (Options tabs, News, History,
+   Fyers-sourced Swing/Intraday) - user said "udya banau" (build
+   tomorrow) on 08-Aug, still not started. Options tab alone estimated
+   ~2.5-3.5 hours (desktop app reads local reports/*.json directly, no
+   fetch/login layer needed unlike the Flutter app).
 
-3-6. DONE, 08-Aug (closed out same session): STCG (~20%) after-tax
-   column, real transaction-cost model on the live Watchlist/Best
-   Trade engines, Desktop App packaged as TURION_Desktop.exe, and
-   TATAMOTORS/LTIM ticker symbols fixed. See PROJECT_STATUS.md's
-   "3 CARRIED-OVER ITEMS CLOSED OUT" entry for full detail.
+4. Dynamic Max Pain Drift - the 4th novel-indicator idea from 09-Aug's
+   discussion, kept separate from the PCR Momentum + Volume-Weighted OI
+   combo, not yet started.
 
-✅ Diagnosed 169 failure emails for fyers_multi_strategy_options.yml -
-   all dated 07-Aug (zero today, but today's Saturday so that proves
-   little). Root cause: a genuine rebase CONTENT conflict in reports/
-   fyers_candles.json (a pure cache file) from overlapping runs. Fixed
-   by auto-resolving conflicts limited to just that file (keep the
-   already-pushed version, safe since it's regenerated every ~1 min
-   anyway) - any other conflicted file still fails loudly, unchanged.
-   Real validation is Monday's live cadence. Also found a leftover
-   "Threshold Options Trigger (Copy)" duplicate on cron-job.org -
-   flagged to the user to delete, not yet confirmed done.
-
-7. NEXT SESSION, 08-Aug: user wants the Desktop App (desktop_app.py)
-   expanded toward Android-app feature parity (Options tabs, News,
-   History, Fyers-sourced Swing/Intraday, all currently missing from
-   the desktop app's 4 tabs). Scoped down to start with just an
-   Options tab (all 23 books) - estimated ~2.5-3.5 hours since the
-   desktop app reads local reports/*.json files directly (no fetch
-   layer or login flow needed, unlike the Flutter app) - reuse
-   strategy/options_strategies.py's ALL_STRATEGIES list. User said
-   "udya banau" (build tomorrow) - start here next session.
-
-8. Deferred (documented, not started): live-data VPS+Firebase
-   architecture - do ~1 week before real-capital trading starts,
-   not now. v2.0 "real understanding AI" vision - not designed in
-   detail yet, captured so the idea isn't lost.
+5. Deferred (documented, not started): live-data VPS+Firebase
+   architecture - do ~1 week before real-capital trading starts, not
+   now. v2.0 "real understanding AI" vision - not designed in detail
+   yet, captured so the idea isn't lost.
 
 ==================================================
 
