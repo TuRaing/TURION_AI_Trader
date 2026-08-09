@@ -533,11 +533,37 @@ class OptionPositionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final optionType = position['Option Type'] as String? ?? '';
-    final strike = position['Strike'];
-    final entryPremium = (position['Entry Premium'] as num).toDouble();
-    final lastPremium = (position['Last Premium'] as num?)?.toDouble() ?? entryPremium;
     final lots = position['Lots'];
-    final movePct = entryPremium == 0 ? 0.0 : (lastPremium - entryPremium) / entryPremium * 100;
+
+    // Added 09-Aug-2026 - credit_spread positions are 2-leg (Short/
+    // Long Strike, Entry Credit) not 1-leg (Strike, Entry Premium) -
+    // see strategy/fyers_options_credit_spread.py. Same detection
+    // pattern as OptionClosedTradeCard below.
+    final isSpread = position.containsKey('Entry Credit');
+
+    final String titleText;
+    final String moveText;
+    final Color moveColor;
+
+    if (isSpread) {
+      final shortStrike = position['Short Strike'];
+      final longStrike = position['Long Strike'];
+      final entryCredit = (position['Entry Credit'] as num).toDouble();
+      final costToClose = (position['Last Cost To Close'] as num?)?.toDouble() ?? entryCredit;
+      final profitPct = entryCredit == 0 ? 0.0 : (entryCredit - costToClose) / entryCredit * 100;
+      titleText = '$underlyingLabel $shortStrike/$longStrike $optionType Spread';
+      moveText =
+          'Credit ${formatRupees(entryCredit)} → Cost to close ${formatRupees(costToClose)} (${profitPct >= 0 ? '+' : ''}${profitPct.toStringAsFixed(0)}% banked)';
+      moveColor = profitPct >= 0 ? successColor : dangerColor;
+    } else {
+      final strike = position['Strike'];
+      final entryPremium = (position['Entry Premium'] as num).toDouble();
+      final lastPremium = (position['Last Premium'] as num?)?.toDouble() ?? entryPremium;
+      final movePct = entryPremium == 0 ? 0.0 : (lastPremium - entryPremium) / entryPremium * 100;
+      titleText = '$underlyingLabel $strike $optionType';
+      moveText = 'Entry ${formatRupees(entryPremium)} → Last ${formatRupees(lastPremium)} (${movePct >= 0 ? '+' : ''}${movePct.toStringAsFixed(1)}%)';
+      moveColor = movePct >= 0 ? successColor : dangerColor;
+    }
 
     final card = Container(
       padding: const EdgeInsets.all(10),
@@ -547,14 +573,13 @@ class OptionPositionCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text('$underlyingLabel $strike $optionType', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+              Text(titleText, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
               const Spacer(),
               Text('${lots}x lot', style: const TextStyle(fontSize: 12, color: mutedColor)),
             ],
           ),
           const SizedBox(height: 6),
-          Text('Entry ${formatRupees(entryPremium)} → Last ${formatRupees(lastPremium)} (${movePct >= 0 ? '+' : ''}${movePct.toStringAsFixed(1)}%)',
-              style: TextStyle(fontSize: 12, color: movePct >= 0 ? successColor : dangerColor)),
+          Text(moveText, style: TextStyle(fontSize: 12, color: moveColor)),
           const SizedBox(height: 4),
           Text(
               'Entered ${formatBackendTimestamp(position['Entry Time'] as String?)} · '
@@ -599,11 +624,35 @@ class OptionClosedTradeCard extends StatelessWidget {
     final pnl = (trade['Net PnL'] as num).toDouble();
     final win = pnl > 0;
     final optionType = trade['Option Type'] as String? ?? '';
-    final strike = trade['Strike'];
-    final entryPremium = (trade['Entry Premium'] as num).toDouble();
-    final exitPremium = (trade['Exit Premium'] as num).toDouble();
     final exitReason = trade['Exit Reason'] ?? '';
     final exitTime = formatBackendTimestamp(trade['Exit Time'] as String?);
+
+    // Added 09-Aug-2026 - credit_spread trades have a genuinely
+    // different shape (2 legs: Short Strike/Long Strike/Entry Credit)
+    // from every other strategy here (1 leg: Strike/Entry Premium/
+    // Exit Premium) - see strategy/fyers_options_credit_spread.py.
+    // Detect which shape this trade is and render accordingly, rather
+    // than assuming single-leg fields that a spread trade doesn't have.
+    final isSpread = trade.containsKey('Entry Credit');
+
+    final String titleText;
+    final String detailText;
+
+    if (isSpread) {
+      final shortStrike = trade['Short Strike'];
+      final longStrike = trade['Long Strike'];
+      final entryCredit = (trade['Entry Credit'] as num).toDouble();
+      titleText = '$underlyingLabel $shortStrike/$longStrike $optionType Spread';
+      detailText =
+          '$exitReason · credit ${formatRupees(entryCredit)}${exitTime.isNotEmpty ? ' · $exitTime' : ''}';
+    } else {
+      final strike = trade['Strike'];
+      final entryPremium = (trade['Entry Premium'] as num).toDouble();
+      final exitPremium = (trade['Exit Premium'] as num).toDouble();
+      titleText = '$underlyingLabel $strike $optionType';
+      detailText =
+          '$exitReason · ${formatRupees(entryPremium)} to ${formatRupees(exitPremium)}${exitTime.isNotEmpty ? ' · $exitTime' : ''}';
+    }
 
     final card = Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -620,7 +669,7 @@ class OptionClosedTradeCard extends StatelessWidget {
                 child: Icon(win ? Icons.check : Icons.close, size: 14, color: win ? successColor : dangerColor),
               ),
               const SizedBox(width: 8),
-              Text('$underlyingLabel $strike $optionType', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+              Text(titleText, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
               const Spacer(),
               Text(formatSignedRupees(pnl),
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: win ? successColor : dangerColor)),
@@ -633,10 +682,7 @@ class OptionClosedTradeCard extends StatelessWidget {
           const SizedBox(height: 4),
           Padding(
             padding: const EdgeInsets.only(left: 34),
-            child: Text(
-              '$exitReason · ${formatRupees(entryPremium)} to ${formatRupees(exitPremium)}${exitTime.isNotEmpty ? ' · $exitTime' : ''}',
-              style: const TextStyle(fontSize: 11, color: mutedColor),
-            ),
+            child: Text(detailText, style: const TextStyle(fontSize: 11, color: mutedColor)),
           ),
         ],
       ),

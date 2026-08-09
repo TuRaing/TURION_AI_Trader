@@ -46,6 +46,8 @@ const _books = [
   ('vix_filter', 'BANKNIFTY', 'banknifty'),
   ('oi_footprint', 'NIFTY', 'nifty'),
   ('oi_footprint', 'BANKNIFTY', 'banknifty'),
+  ('credit_spread', 'NIFTY', 'nifty'),
+  ('credit_spread', 'BANKNIFTY', 'banknifty'),
 ];
 
 class FyersOptionsSummaryScreen extends StatefulWidget {
