@@ -3,6 +3,7 @@ import pandas as pd
 
 from indicators.rsi import calculate_rsi
 from indicators.atr import calculate_atr
+from indicators.adx import calculate_adx
 from strategy.risk_engine import calculate_atr_levels
 from strategy.futures_transaction_costs import calculate_futures_round_trip_cost
 
@@ -42,6 +43,13 @@ from strategy.futures_transaction_costs import calculate_futures_round_trip_cost
 
 RSI_PERIOD = 14
 ATR_PERIOD = 14
+ADX_PERIOD = 14
+DEFAULT_ADX_THRESHOLD = 25  # 25-Jul's own research found this "the
+                             # clearest single improvement" for this
+                             # project's trend-continuation signals -
+                             # already used in st4, being tested here
+                             # combined with the plain RSI signal for
+                             # the first time on a large sample.
 WORST_CASE_MOVE_PCT = 10.0   # conservative assumed instant adverse move
                               # (historically extreme single-day NIFTY
                               # moves have reached 8-13% in crisis
@@ -156,12 +164,21 @@ def run_futures_signal_backtest(
     starting_capital=100000,
     worst_case_move_pct=WORST_CASE_MOVE_PCT,
     allow_short=True,
+    require_adx_filter=False,
+    adx_threshold=DEFAULT_ADX_THRESHOLD,
 ):
     """
     Backtests the same RSI>=50/<50 directional signal simple_st1 uses,
     as a linear (futures-style) position instead of an options premium
     purchase - see module docstring for the full reasoning and safety
     design.
+
+    require_adx_filter : bool
+        If True, only takes a signal when 15m-equivalent ADX (on this
+        same interval) is above adx_threshold - 22-Jul's own research
+        found this "the clearest single improvement" for this
+        project's trend-continuation signals (already used in st4,
+        never combined with the plain RSI signal at scale before).
 
     Returns
     -------
@@ -173,10 +190,16 @@ def run_futures_signal_backtest(
     if data.empty:
         return {"Error": f"No usable {interval} data for {symbol}"}
 
-    return _run_on_data(data, lot_size, atr_sl_mult, atr_target_mult, starting_capital, worst_case_move_pct, allow_short)
+    return _run_on_data(
+        data, lot_size, atr_sl_mult, atr_target_mult, starting_capital, worst_case_move_pct, allow_short,
+        require_adx_filter, adx_threshold,
+    )
 
 
-def _run_on_data(data, lot_size, atr_sl_mult, atr_target_mult, starting_capital, worst_case_move_pct, allow_short):
+def _run_on_data(
+    data, lot_size, atr_sl_mult, atr_target_mult, starting_capital, worst_case_move_pct, allow_short,
+    require_adx_filter=False, adx_threshold=DEFAULT_ADX_THRESHOLD,
+):
 
     close = _flatten(data["Close"])
     high = _flatten(data["High"])
@@ -184,6 +207,7 @@ def _run_on_data(data, lot_size, atr_sl_mult, atr_target_mult, starting_capital,
 
     rsi = calculate_rsi(data, period=RSI_PERIOD)
     atr = calculate_atr(data, period=ATR_PERIOD)
+    adx = calculate_adx(data, period=ADX_PERIOD) if require_adx_filter else None
 
     day = pd.Series(data.index.date, index=data.index)
 
@@ -237,6 +261,13 @@ def _run_on_data(data, lot_size, atr_sl_mult, atr_target_mult, starting_capital,
 
                 if pd.isna(rsi_now) or pd.isna(atr_now):
                     continue
+
+                if require_adx_filter:
+
+                    adx_now = adx.loc[timestamp]
+
+                    if pd.isna(adx_now) or float(adx_now) <= adx_threshold:
+                        continue
 
                 direction = "BUY" if float(rsi_now) >= 50 else "SELL"
 

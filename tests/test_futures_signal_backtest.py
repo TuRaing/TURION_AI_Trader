@@ -1,8 +1,33 @@
+import pandas as pd
+
 from strategy.futures_signal_backtest import (
     calculate_worst_case_lots,
     close_trade,
     summarize_trades,
+    _run_on_data,
 )
+
+
+def _make_ohlcv(n=200, start_price=24500.0, seed=7):
+
+    import random
+
+    random.seed(seed)
+
+    dates = pd.date_range("2026-01-01 09:15", periods=n, freq="5min")
+
+    closes = [start_price]
+
+    for _ in range(n - 1):
+        closes.append(closes[-1] + random.uniform(-20, 20))
+
+    close = pd.Series(closes, index=dates)
+    open_ = close.shift(1).fillna(close.iloc[0])
+    high = pd.concat([open_, close], axis=1).max(axis=1) + 5
+    low = pd.concat([open_, close], axis=1).min(axis=1) - 5
+    volume = pd.Series([1000] * n, index=dates)
+
+    return pd.DataFrame({"Open": open_, "High": high, "Low": low, "Close": close, "Volume": volume})
 
 
 def test_worst_case_lots_basic_math():
@@ -80,6 +105,26 @@ def test_summarize_trades_detects_capital_going_negative():
 
     assert result["Capital Ever Negative"] is True
     assert result["Minimum Capital Seen"] == -50000
+
+
+def test_run_on_data_with_adx_filter_runs_without_error():
+    # NOTE: the ADX filter makes each INDIVIDUAL entry check more
+    # restrictive, but total trade COUNT isn't guaranteed to go down -
+    # a held position blocks new entries, so a filter that changes
+    # WHICH candles trigger entries can also change how long positions
+    # stay open, and therefore how many distinct trades fit in the
+    # same window (confirmed on real data: BANKNIFTY showed MORE
+    # trades with the filter on, not fewer - a real, non-buggy result
+    # of this path dependency, not an invariant to assert against).
+    data = _make_ohlcv()
+
+    with_filter = _run_on_data(
+        data, lot_size=75, atr_sl_mult=1.0, atr_target_mult=2.0, starting_capital=250000,
+        worst_case_move_pct=10.0, allow_short=True, require_adx_filter=True, adx_threshold=25,
+    )
+
+    assert "Total Trades" in with_filter
+    assert with_filter["Total Trades"] == len(with_filter["Trades"])
 
 
 def test_summarize_trades_win_rate_and_totals():
