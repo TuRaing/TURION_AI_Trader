@@ -2984,6 +2984,62 @@ data existed to trigger it. Fixed: both widgets now detect the shape
 (presence of "Entry Credit") and render the appropriate fields. APK
 rebuilt, not yet reinstalled (phone not connected at build time).
 
+FUTURES SIGNAL BACKTEST - CONCLUSIVE FINDING, 09-Aug - user asked
+whether Fyers has futures data (confirmed: NSE:NIFTY26AUGFUT, NSE:
+BANKNIFTY26AUGFUT exist, verified against Fyers' own public symbol
+master) and whether the RSI-momentum signal itself (used by simple_
+st1/st2/st3) is any good, isolated from options-specific costs (theta
+decay, IV changes) that have muddied every options-buying result so
+far. Built strategy/futures_signal_backtest.py to test exactly this -
+the SAME RSI>=50/<50 signal as a linear (futures-style) position
+instead of an options premium purchase, so a loss can only mean the
+signal itself is wrong, not an options-economics artifact.
+
+CAVEAT: backtests against index SPOT price (not a real stitched
+futures contract series - rollover stitching across monthly expiries
+isn't built), same honest simplification strategy/momentum_vix_
+backtest.py already used for the same reason. Futures track spot
+closely (small cost-of-carry basis), so this is a reasonable proxy
+for "would this signal have caught the same moves", not a claim of
+exact real futures P&L.
+
+RESULT: CONCLUSIVE - the signal loses on BOTH indices (60d, 5m):
+  NIFTY:     193 trades, 37.31% win rate, Net PnL -Rs 77,360.39
+  BANKNIFTY: 180 trades, 33.89% win rate, Net PnL -Rs 88,158.06
+This CONFIRMS the RSI-momentum signal itself lacks real directional
+edge - it is NOT just an options-premium/theta problem as might have
+been hoped. Consistent with the original 22-Jul finding ("Momentum
+(RSI)+VIX had no reliable edge on NIFTY") and now directly re-
+confirmed on a completely different, linear instrument.
+
+SAFETY DESIGN, verified working: user explicitly asked that no
+strategy be allowed to put the account in a NEGATIVE position (real
+risk with futures - unlike options-buying, a fast/gap move can in
+theory cost MORE than the capital behind a futures position if the
+Stop-Loss doesn't execute in time). Position sizing here is
+deliberately NOT margin-based (which would allow far bigger
+positions, per the ~12% margin figures already discussed) - it sizes
+by a conservative WORST_CASE_MOVE_PCT (10%, matching historically
+extreme single-day NIFTY moves) assumed INSTANT adverse move, so
+capital can never go negative from one trade even if the Stop-Loss
+completely failed. Also intraday-only (forced square-off before
+close) - no position is ever held through an overnight gap at all,
+the single biggest real source of this risk. Both backtest runs
+confirmed "Capital Ever Negative: False" throughout.
+
+New strategy/futures_transaction_costs.py models real F&O futures
+costs (STT 0.02% sell-side on full notional, different stamp duty
+rate from equity/options) - a third, genuinely different cost model
+alongside the existing intraday-equity, delivery-equity, and options-
+premium ones. 11 new tests, 247 project tests passing.
+
+DECIDED, 09-Aug: NOT pursuing futures as a live strategy - the
+underlying signal itself is now conclusively shown to lack edge on
+two different instrument types (options premium AND linear futures/
+spot), so switching instrument type wouldn't fix it. The diagnostic
+question this was built to answer is answered - futures-as-a-vehicle
+isn't the missing piece, a better SIGNAL is.
+
 LIVE-DATA ARCHITECTURE (VPS + Firebase) - discussed in depth 06/07-
 Aug, NOT built yet, deliberately deferred: do this about 1 WEEK
 BEFORE starting real-capital trading (once paper-trading results
