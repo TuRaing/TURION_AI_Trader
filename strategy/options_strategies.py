@@ -3,6 +3,7 @@ from strategy.fyers_options_st4 import make_st4_config, check_or_open as check_o
 from strategy.fyers_options_gapfill import make_gapfill_config, check_or_open as check_or_open_gapfill
 from strategy.fyers_options_vix_filter import make_vix_filter_config, check_or_open as check_or_open_vix_filter
 from strategy.fyers_options_oi_footprint import make_oi_footprint_config, check_or_open as check_or_open_oi_footprint
+from strategy.fyers_options_credit_spread import make_credit_spread_config, check_or_open as check_or_open_credit_spread
 
 # Added 06-Aug-2026 - the named-strategy roster for the multi-strategy
 # options paper trading the user asked for: several live strategies
@@ -116,6 +117,17 @@ VIX_FILTER_BANKNIFTY = make_vix_filter_config()
 OI_FOOTPRINT_NIFTY = make_oi_footprint_config("NIFTY")
 OI_FOOTPRINT_BANKNIFTY = make_oi_footprint_config("BANKNIFTY")
 
+# credit_spread - added 09-Aug-2026, the premium-selling (theta) engine
+# discussed 08-Aug: directional credit spread (Bull Put/Bear Call, 2
+# legs, defined-risk), sold only when India VIX is in its own trailing
+# HIGH percentile band (rich premium to sell into - opposite filter
+# from vix_filter.py). See strategy/fyers_options_credit_spread.py's
+# module docstring for the full design and the margin-API caveat
+# (uses a conservative max-loss-based position size instead, since the
+# real Fyers margin endpoint's exact request schema wasn't confirmed).
+CREDIT_SPREAD_NIFTY = make_credit_spread_config("NIFTY")
+CREDIT_SPREAD_BANKNIFTY = make_credit_spread_config("BANKNIFTY")
+
 ALL_STRATEGIES = [
     (check_or_open_generic, SIMPLE_ST1_NIFTY),
     (check_or_open_generic, SIMPLE_ST1_BANKNIFTY),
@@ -140,4 +152,6 @@ ALL_STRATEGIES = [
     (check_or_open_vix_filter, VIX_FILTER_BANKNIFTY),
     (check_or_open_oi_footprint, OI_FOOTPRINT_NIFTY),
     (check_or_open_oi_footprint, OI_FOOTPRINT_BANKNIFTY),
+    (check_or_open_credit_spread, CREDIT_SPREAD_NIFTY),
+    (check_or_open_credit_spread, CREDIT_SPREAD_BANKNIFTY),
 ]
