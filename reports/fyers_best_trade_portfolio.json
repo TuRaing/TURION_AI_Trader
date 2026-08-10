@@ -1,15 +1,6 @@
 {
-  "Cash": 100015.29774334871,
-  "Position": {
-    "Name": "M&M",
-    "Symbol": "M&M.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-08-10 06:32:53",
-    "Entry Price": 3525.2,
-    "Quantity": 1,
-    "Stop Loss": 3517.3399999999997,
-    "Target": 3540.9199999999996
-  },
+  "Cash": 100003.70447013467,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -86,6 +77,20 @@
       "PnL": 27.0,
       "Cost": 5.9,
       "Net PnL": 21.1
+    },
+    {
+      "Name": "M&M",
+      "Symbol": "M&M.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-08-10 06:32:53",
+      "Entry Price": 3525.2,
+      "Exit Time": "2026-08-10 06:56:25",
+      "Exit Price": 3517.3399999999997,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -7.86,
+      "Cost": 3.73,
+      "Net PnL": -11.59
     }
   ],
   "Data Source": "Fyers"
