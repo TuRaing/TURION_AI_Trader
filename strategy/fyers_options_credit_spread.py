@@ -180,6 +180,21 @@ def _compute_strikes(spot, option_type, strike_step, width_points):
     return short_strike, long_strike
 
 
+CHAIN_STRIKE_COUNT = 15  # _fetch_option_chain's default (5) only covers
+                          # ATM +/- 5 strikes - enough for every other
+                          # strategy here (they only need the ATM leg),
+                          # but this one's short leg already sits ~1.5%
+                          # OTM (~7-9 strikes away on both NIFTY and
+                          # BANKNIFTY) and the long leg is width_points
+                          # further still - the default silently left
+                          # both legs outside the fetched chain, which
+                          # is why every real check failed with "Could
+                          # not find both spread legs" (caught 10-Aug).
+                          # 15 leaves comfortable headroom on both legs
+                          # across realistic spot ranges for both
+                          # indices.
+
+
 def _pick_spread_legs(cfg, option_type):
     """
     Given a direction, reads the live option chain once and picks the
@@ -192,7 +207,7 @@ def _pick_spread_legs(cfg, option_type):
     spot : float
     """
 
-    chain = _fetch_option_chain(cfg)
+    chain = _fetch_option_chain(cfg, strike_count=CHAIN_STRIKE_COUNT)
     legs = chain.get("optionsChain", [])
 
     spot = next((leg["ltp"] for leg in legs if leg.get("strike_price") == -1), None)
