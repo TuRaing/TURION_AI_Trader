@@ -324,6 +324,30 @@ Date
    created - code is ready, but stays disconnected from live
    automation until a deployment decision after 14-Aug.
 
+--------------------------------------------------
+
+Date
+
+10-Aug-2026 (same continuous session, third calendar day)
+
+--------------------------------------------------
+
+10-Aug Achievements
+
+✅ REAL BUG FOUND + FIXED: user asked why credit_spread, vix_filter,
+   and gapfill had zero trades. Checked live GitHub Actions job logs
+   directly instead of assuming from the portfolio JSON alone - found
+   gapfill correctly SKIPPED (past its entry window, working as
+   designed), but credit_spread and vix_filter FAILING on every single
+   check since going live (08/09-Aug): both call fyers_download(...,
+   period="10d", ...) for their RSI/VIX lookback, but strategy/fyers_
+   data.py's PERIOD_TO_DAYS map never had a "10d" entry - the error
+   was silently swallowed by fyers_multi_strategy_options_run.py's
+   per-strategy try/except, so it never showed up as a failure email.
+   Neither strategy had evaluated a real entry signal even once. Fixed
+   (one-line map addition), 1 regression test added, 266 passing
+   overall. Committed and pushed (ef2ae339).
+
 ==================================================
 
 Next Session Priorities

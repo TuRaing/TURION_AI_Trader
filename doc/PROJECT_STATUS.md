@@ -3162,6 +3162,30 @@ at or after the 14-Aug review point.
 
 ==================================================
 
+REAL BUG FOUND + FIXED, 10-Aug - user asked why credit_spread,
+vix_filter, and gapfill had zero trades so far; checked live GitHub
+Actions job logs directly (not just the portfolio JSON files) rather
+than assuming. gapfill was fine - correctly SKIPPED, past its early-
+morning gap-fill entry window each check, working as designed.
+
+credit_spread and vix_filter were NOT fine: every single live check
+since going live (08/09-Aug) failed with "Unsupported period '10d' -
+add it to PERIOD_TO_DAYS" - both strategies call fyers_download(...,
+period="10d", ...) for their RSI/VIX lookback (strategy/fyers_
+options_vix_filter.py, strategy/fyers_options_credit_spread.py), but
+strategy/fyers_data.py's PERIOD_TO_DAYS map never had a "10d" entry.
+fyers_multi_strategy_options_run.py's per-strategy try/except silently
+swallowed the error each time ("FAILED (continuing)") so it never
+surfaced as a workflow failure email - both strategies have never once
+evaluated an entry signal since being deployed. Fixed by adding
+"10d": 10 to PERIOD_TO_DAYS. One regression test added (asserts the
+key exists), full suite 266 passing. Real validation is the next live
+check after this deploys - watch for credit_spread/vix_filter to
+start producing HOLD/SKIPPED-for-real-reasons log lines instead of
+FAILED.
+
+==================================================
+
 LIVE-DATA ARCHITECTURE (VPS + Firebase) - discussed in depth 06/07-
 Aug, NOT built yet, deliberately deferred: do this about 1 WEEK
 BEFORE starting real-capital trading (once paper-trading results
@@ -3254,11 +3278,11 @@ Status
 
 Current Version
 
-v0.0.20
+v0.0.21
 
 Next Version
 
-v0.0.21
+v0.0.22
 
 ==================================================
 
