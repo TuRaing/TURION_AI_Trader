@@ -348,6 +348,19 @@ Date
    (one-line map addition), 1 regression test added, 266 passing
    overall. Committed and pushed (ef2ae339).
 
+✅ Watched the fix live, immediately: vix_filter now genuinely
+   evaluates its signal ("SKIPPED (no RSI+VIX-band qualifying setup)").
+   credit_spread got further too, but hit a SECOND real bug -
+   "Could not find both spread legs in the option chain" - the option-
+   chain fetch's default only covers ATM +/- 5 strikes, nowhere near
+   this strategy's ~1.5%-OTM short leg + width-points-further long leg.
+   A first fix (fixed strike_count=15) confirmed live: NIFTY opened its
+   real first position, but BANKNIFTY still failed at that count (needs
+   more strikes for the same % OTM on a wider index). Replaced the
+   fixed guess with a dynamic fetch - compute the real strike distance
+   from spot, request exactly enough. 3 more tests, 269 passing
+   overall. Committed and pushed (b64361ed).
+
 ==================================================
 
 Next Session Priorities

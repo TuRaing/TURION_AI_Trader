@@ -3184,6 +3184,26 @@ check after this deploys - watch for credit_spread/vix_filter to
 start producing HOLD/SKIPPED-for-real-reasons log lines instead of
 FAILED.
 
+Real validation caught a SECOND real bug in credit_spread, live,
+minutes later: vix_filter started producing genuine "SKIPPED (no
+RSI+VIX-band qualifying setup)" lines (fix confirmed working), but
+credit_spread got past the RSI+VIX entry check and then failed with
+"Could not find both spread legs in the option chain" - _fetch_
+option_chain's default strike_count=5 (ATM +/- 5 strikes, fine for
+every other strategy here since they only need the ATM leg) left both
+the short leg (~1.5% OTM, ~7-9 strikes away) and the long leg
+(width_points further still) outside the fetched chain. First fix
+tried a fixed strike_count=15 - confirmed live moments later: NIFTY
+opened its actual first real position ("HOLD (cost to close 2.4,
+credit 2.2)"), but BANKNIFTY still failed (short 58400/long 58550 CE -
+still out of range even at 15, a wider index needs more strikes for
+the same % OTM). Rather than keep bumping a magic number, replaced it
+with a dynamic fetch: one cheap call for spot, compute exactly how
+many strikes away the long leg sits (new pure _strikes_needed()), and
+re-fetch with that count + a small buffer if the default doesn't
+already cover it - correct regardless of index, spot level, or width.
+3 new tests, 269 passing overall.
+
 ==================================================
 
 LIVE-DATA ARCHITECTURE (VPS + Firebase) - discussed in depth 06/07-
@@ -3278,11 +3298,11 @@ Status
 
 Current Version
 
-v0.0.21
+v0.0.22
 
 Next Version
 
-v0.0.22
+v0.0.23
 
 ==================================================
 
