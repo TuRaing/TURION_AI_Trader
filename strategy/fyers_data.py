@@ -43,7 +43,7 @@ RESOLUTION_MAP = {
 # days, not trading days) - harmless, Fyers just returns however many
 # real trading candles fall inside the window.
 PERIOD_TO_DAYS = {
-    "5d": 5, "7d": 7, "60d": 60, "1mo": 31, "3mo": 93, "6mo": 186,
+    "5d": 5, "7d": 7, "10d": 10, "60d": 60, "1mo": 31, "3mo": 93, "6mo": 186,
     "1y": 366, "2y": 732, "5y": 1830,
 }
 

@@ -1,4 +1,4 @@
-from strategy.fyers_data import symbol_to_fyers
+from strategy.fyers_data import symbol_to_fyers, PERIOD_TO_DAYS
 
 
 def test_symbol_to_fyers_translates_equity_ns_suffix():
@@ -30,3 +30,16 @@ def test_symbol_to_fyers_ltim_maps_to_renamed_ltm_symbol():
 
 def test_symbol_to_fyers_passes_through_unrecognized_symbol():
     assert symbol_to_fyers("SOME_UNKNOWN_SYMBOL") == "SOME_UNKNOWN_SYMBOL"
+
+
+def test_period_to_days_covers_10d():
+    # Regression test - fyers_options_vix_filter.py and fyers_options_
+    # credit_spread.py both call fyers_download(..., period="10d", ...)
+    # for their RSI/VIX lookback, but "10d" was missing from this map -
+    # every single live check for both strategies raised ValueError
+    # ("Unsupported period '10d'") and was silently swallowed by
+    # fyers_multi_strategy_options_run.py's per-strategy try/except,
+    # so neither strategy ever evaluated an entry signal since going
+    # live (caught 10-Aug via GitHub Actions job logs - zero trades,
+    # zero errors visible anywhere except inside the run logs).
+    assert PERIOD_TO_DAYS.get("10d") == 10
