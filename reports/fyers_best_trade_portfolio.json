@@ -1,15 +1,6 @@
 {
-  "Cash": 100003.70447013467,
-  "Position": {
-    "Name": "BRITANNIA",
-    "Symbol": "BRITANNIA.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-08-10 07:03:18",
-    "Entry Price": 5585.0,
-    "Quantity": 1,
-    "Stop Loss": 5568.875,
-    "Target": 5617.25
-  },
+  "Cash": 100030.01119842617,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -100,6 +91,20 @@
       "PnL": -7.86,
       "Cost": 3.73,
       "Net PnL": -11.59
+    },
+    {
+      "Name": "BRITANNIA",
+      "Symbol": "BRITANNIA.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-08-10 07:03:18",
+      "Entry Price": 5585.0,
+      "Exit Time": "2026-08-10 08:56:50",
+      "Exit Price": 5617.25,
+      "Quantity": 1,
+      "Exit Reason": "Target",
+      "PnL": 32.25,
+      "Cost": 5.94,
+      "Net PnL": 26.31
     }
   ],
   "Data Source": "Fyers"
