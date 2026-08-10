@@ -1,6 +1,19 @@
 {
   "Cash": 100000,
-  "Position": null,
+  "Position": {
+    "Symbol": "NSE:BANKNIFTY26AUG58000CE",
+    "Strike": 58000,
+    "Option Type": "CE",
+    "Entry Time": "2026-08-10 03:46:35",
+    "Entry Spot": 57962.7,
+    "Entry Premium": 662.4,
+    "Entry RSI": 57.06,
+    "Lots": 5,
+    "Quantity": 150,
+    "Capital Deployed": 99360.0,
+    "Last Premium": 662.4,
+    "Last Checked": "2026-08-10 03:46:35"
+  },
   "Closed Trades": [],
   "Data Source": "Fyers (real premium)",
   "Strategy": "simple_st1_threshold",
