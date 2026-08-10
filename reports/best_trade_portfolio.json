@@ -1,15 +1,6 @@
 {
-  "Cash": 100133.40505493157,
-  "Position": {
-    "Name": "HEROMOTOCO",
-    "Symbol": "HEROMOTOCO.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-08-10 04:34:44",
-    "Entry Price": 5899.5,
-    "Quantity": 1,
-    "Stop Loss": 5857.185,
-    "Target": 5984.13
-  },
+  "Cash": 100084.86100952077,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -490,6 +481,20 @@
       "Quantity": 1,
       "Exit Reason": "Target",
       "PnL": 15.93
+    },
+    {
+      "Name": "HEROMOTOCO",
+      "Symbol": "HEROMOTOCO.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-08-10 04:34:44",
+      "Entry Price": 5899.5,
+      "Exit Time": "2026-08-10 06:14:39",
+      "Exit Price": 5857.185,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -42.31,
+      "Cost": 6.23,
+      "Net PnL": -48.54
     }
   ]
 }
