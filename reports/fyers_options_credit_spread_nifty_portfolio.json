@@ -1,6 +1,22 @@
 {
   "Cash": 100000,
-  "Position": null,
+  "Position": {
+    "Option Type": "PE",
+    "Short Strike": 24250,
+    "Long Strike": 24100,
+    "Short Symbol": "NSE:NIFTY2681124250PE",
+    "Long Symbol": "NSE:NIFTY2681124100PE",
+    "Entry Time": "2026-08-10 08:27:45",
+    "Entry Spot": 24596.05,
+    "Entry Credit": 2.2,
+    "Entry RSI": 50.25,
+    "Entry VIX": 12.45,
+    "Lots": 9,
+    "Quantity": 675,
+    "Max Loss": 99765.0,
+    "Last Cost To Close": 2.2,
+    "Last Checked": "2026-08-10 08:27:45"
+  },
   "Closed Trades": [],
   "Data Source": "Fyers (real premium)",
   "Strategy": "credit_spread",
