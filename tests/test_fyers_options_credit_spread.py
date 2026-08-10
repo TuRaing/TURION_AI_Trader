@@ -1,6 +1,7 @@
 from strategy.fyers_options_credit_spread import (
     make_credit_spread_config,
     _compute_strikes,
+    _strikes_needed,
     _leg_premium,
     _target_hit,
     _stop_loss_hit,
@@ -49,6 +50,37 @@ def test_compute_strikes_rounds_to_strike_step():
     short_strike, long_strike = _compute_strikes(spot=24613, option_type="PE", strike_step=50, width_points=150)
 
     assert short_strike % 50 == 0
+
+
+def test_strikes_needed_nifty_realistic_distance():
+    # Regression case (caught 10-Aug live) - NIFTY spot ~24587, short
+    # ~1.5% OTM, long 150 points further. The fixed strike_count=15
+    # this project first tried happened to cover this one.
+    short_strike, long_strike = _compute_strikes(spot=24587, option_type="PE", strike_step=50, width_points=150)
+
+    assert _strikes_needed(24587, long_strike, 50) <= 15
+
+
+def test_strikes_needed_banknifty_realistic_distance():
+    # Regression case (caught 10-Aug live) - BANKNIFTY spot ~57600,
+    # short strike computed at 58400+/CE side. A fixed strike_count=15
+    # was NOT enough here ("Could not find both spread legs" still
+    # fired live) - this is why the fetch is now sized dynamically
+    # instead of using a fixed guess.
+    short_strike, long_strike = _compute_strikes(spot=57600, option_type="CE", strike_step=100, width_points=150)
+
+    needed = _strikes_needed(57600, long_strike, 100)
+
+    assert needed >= 1
+    # The whole point of the fix: whatever the real distance is, asking
+    # for at least that many strikes (+ buffer) must include the long
+    # leg - i.e. spot +/- needed*strike_step must reach past long_strike.
+    assert abs(long_strike - 57600) <= needed * 100
+
+
+def test_strikes_needed_rounds_up_and_has_a_floor_of_one():
+    assert _strikes_needed(spot=24500, long_strike=24500, strike_step=50) == 1
+    assert _strikes_needed(spot=24500, long_strike=24560, strike_step=50) == 2
 
 
 def test_leg_premium_prefers_ltp():

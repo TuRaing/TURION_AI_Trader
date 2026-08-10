@@ -1,5 +1,6 @@
 import datetime
 import json
+import math
 import os
 
 from strategy.fyers_options_engine import (
@@ -180,26 +181,37 @@ def _compute_strikes(spot, option_type, strike_step, width_points):
     return short_strike, long_strike
 
 
-CHAIN_STRIKE_COUNT = 15  # _fetch_option_chain's default (5) only covers
-                          # ATM +/- 5 strikes - enough for every other
-                          # strategy here (they only need the ATM leg),
-                          # but this one's short leg already sits ~1.5%
-                          # OTM (~7-9 strikes away on both NIFTY and
-                          # BANKNIFTY) and the long leg is width_points
-                          # further still - the default silently left
-                          # both legs outside the fetched chain, which
-                          # is why every real check failed with "Could
-                          # not find both spread legs" (caught 10-Aug).
-                          # 15 leaves comfortable headroom on both legs
-                          # across realistic spot ranges for both
-                          # indices.
+CHAIN_STRIKE_COUNT_BUFFER = 3  # extra strikes of headroom past whatever
+                                 # the long (further OTM) leg actually
+                                 # needs, in case Fyers' own ATM pick and
+                                 # this module's spot reading differ by
+                                 # a strike or two
+
+
+def _strikes_needed(spot, long_strike, strike_step):
+    """
+    Pure function - how many strikes away from ATM the long (furthest
+    OTM) leg sits, so the option-chain fetch can be asked for enough
+    strikes to actually contain it. Rounds up, always at least 1.
+    """
+
+    return max(1, math.ceil(abs(long_strike - spot) / strike_step))
 
 
 def _pick_spread_legs(cfg, option_type):
     """
-    Given a direction, reads the live option chain once and picks the
-    short (sold) and long (bought, protective) legs using _compute_
-    strikes().
+    Reads the live option chain, computes the short (sold) and long
+    (bought, protective) strikes via _compute_strikes(), then makes
+    sure the chain actually covers the long leg's distance from ATM -
+    _fetch_option_chain's default strike_count=5 (fine for every other
+    strategy here, which only needs the ATM leg) silently left both
+    legs outside the chain for this strategy (short leg already ~1.5%
+    OTM, long leg width_points further still - "Could not find both
+    spread legs", caught 10-Aug). A first, cheap fetch gets spot; if
+    the strike distance needs more than that fetch already covers, a
+    second fetch asks for exactly enough (plus a small buffer) instead
+    of guessing a fixed number that might still fall short on a wide-
+    swinging index like BANKNIFTY.
 
     Returns
     -------
@@ -207,7 +219,7 @@ def _pick_spread_legs(cfg, option_type):
     spot : float
     """
 
-    chain = _fetch_option_chain(cfg, strike_count=CHAIN_STRIKE_COUNT)
+    chain = _fetch_option_chain(cfg)
     legs = chain.get("optionsChain", [])
 
     spot = next((leg["ltp"] for leg in legs if leg.get("strike_price") == -1), None)
@@ -216,6 +228,12 @@ def _pick_spread_legs(cfg, option_type):
         raise RuntimeError("Could not read spot price from option chain response")
 
     short_strike, long_strike = _compute_strikes(spot, option_type, cfg["strike_step"], cfg["width_points"])
+
+    needed_strike_count = _strikes_needed(spot, long_strike, cfg["strike_step"]) + CHAIN_STRIKE_COUNT_BUFFER
+
+    if needed_strike_count > 5:
+        chain = _fetch_option_chain(cfg, strike_count=needed_strike_count)
+        legs = chain.get("optionsChain", [])
 
     short_leg = next((leg for leg in legs
                        if leg.get("strike_price") == short_strike and leg.get("option_type") == option_type), None)
