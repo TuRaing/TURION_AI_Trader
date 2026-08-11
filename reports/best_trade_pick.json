@@ -1,6 +1,42 @@
 {
-  "Best Trade": null,
-  "Reason": "No candidate cleared BUY/SELL/BUY CE/BUY PE with usable confidence today.",
-  "Ranked": [],
-  "Checked At": "2026-08-11 05:31:12"
+  "Best Trade": {
+    "Name": "KOTAKBANK",
+    "Symbol": "KOTAKBANK.NS",
+    "Decision": "SELL",
+    "Bias": "Bearish",
+    "Confidence": 60.0,
+    "Price": 390.05,
+    "ATR": 0.42,
+    "Candle Pattern": "Shooting Star",
+    "Type": "Equity Intraday",
+    "Final Confidence": 60.0
+  },
+  "Reason": "KOTAKBANK (Equity Intraday) ranked highest at 60.0% confidence.",
+  "Ranked": [
+    {
+      "Name": "KOTAKBANK",
+      "Symbol": "KOTAKBANK.NS",
+      "Decision": "SELL",
+      "Bias": "Bearish",
+      "Confidence": 60.0,
+      "Price": 390.05,
+      "ATR": 0.42,
+      "Candle Pattern": "Shooting Star",
+      "Type": "Equity Intraday",
+      "Final Confidence": 60.0
+    },
+    {
+      "Name": "LT",
+      "Symbol": "LT.NS",
+      "Decision": "SELL",
+      "Bias": "Bearish",
+      "Confidence": 60.0,
+      "Price": 4035.0,
+      "ATR": 5.5,
+      "Candle Pattern": "Bearish Engulfing",
+      "Type": "Equity Intraday",
+      "Final Confidence": 50.0
+    }
+  ],
+  "Checked At": "2026-08-11 05:32:05"
 }
