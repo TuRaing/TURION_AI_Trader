@@ -1,15 +1,6 @@
 {
-  "Cash": 100042.94108482395,
-  "Position": {
-    "Name": "UPL",
-    "Symbol": "UPL.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-08-11 08:17:19",
-    "Entry Price": 568.55,
-    "Quantity": 1,
-    "Stop Loss": 567.755,
-    "Target": 570.14
-  },
+  "Cash": 100043.92714688001,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -170,6 +161,20 @@
       "PnL": -3.09,
       "Cost": 1.26,
       "Net PnL": -4.35
+    },
+    {
+      "Name": "UPL",
+      "Symbol": "UPL.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-08-11 08:17:19",
+      "Entry Price": 568.55,
+      "Exit Time": "2026-08-11 08:51:42",
+      "Exit Price": 570.14,
+      "Quantity": 1,
+      "Exit Reason": "Target",
+      "PnL": 1.59,
+      "Cost": 0.6,
+      "Net PnL": 0.99
     }
   ],
   "Data Source": "Fyers"
