@@ -1,15 +1,6 @@
 {
-  "Cash": 100016.64326738918,
-  "Position": {
-    "Name": "MARUTI",
-    "Symbol": "MARUTI.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-08-11 05:37:29",
-    "Entry Price": 14100.0,
-    "Quantity": 1,
-    "Stop Loss": 14077.185,
-    "Target": 14145.63
-  },
+  "Cash": 100047.2916806768,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -142,6 +133,20 @@
       "PnL": -4.02,
       "Cost": 1.13,
       "Net PnL": -5.15
+    },
+    {
+      "Name": "MARUTI",
+      "Symbol": "MARUTI.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-08-11 05:37:29",
+      "Entry Price": 14100.0,
+      "Exit Time": "2026-08-11 06:41:43",
+      "Exit Price": 14145.63,
+      "Quantity": 1,
+      "Exit Reason": "Target",
+      "PnL": 45.63,
+      "Cost": 14.98,
+      "Net PnL": 30.65
     }
   ],
   "Data Source": "Fyers"
