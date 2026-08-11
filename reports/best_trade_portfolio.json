@@ -1,15 +1,6 @@
 {
-  "Cash": 100056.15784850974,
-  "Position": {
-    "Name": "KOTAKBANK",
-    "Symbol": "KOTAKBANK.NS",
-    "Direction": "SELL",
-    "Entry Time": "2026-08-11 05:32:05",
-    "Entry Price": 390.05,
-    "Quantity": 1,
-    "Stop Loss": 390.68,
-    "Target": 388.79
-  },
+  "Cash": 100057.00502589191,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -532,6 +523,20 @@
       "PnL": -25.52,
       "Cost": 5.45,
       "Net PnL": -30.96
+    },
+    {
+      "Name": "KOTAKBANK",
+      "Symbol": "KOTAKBANK.NS",
+      "Direction": "SELL",
+      "Entry Time": "2026-08-11 05:32:05",
+      "Entry Price": 390.05,
+      "Exit Time": "2026-08-11 06:22:59",
+      "Exit Price": 388.79,
+      "Quantity": 1,
+      "Exit Reason": "Target",
+      "PnL": 1.26,
+      "Cost": 0.41,
+      "Net PnL": 0.85
     }
   ]
 }
