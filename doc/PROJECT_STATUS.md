@@ -3206,6 +3206,46 @@ already cover it - correct regardless of index, spot level, or width.
 
 ==================================================
 
+LIVE MONITORING FINDINGS, 10/11/12-Aug - no code changes these 3 days,
+just checking real trading days as they accumulated (user asked
+repeatedly which strategies hadn't traded yet + why, and to sanity-
+check cron/login health) - two findings worth carrying into the
+14-Aug review:
+
+1. THRESHOLD GROUP'S PROFIT-LOCK HELPS ON NIFTY, NOT ON BANKNIFTY -
+   checked trade-by-trade dates for simple_st1_threshold/st2_
+   threshold/st3_threshold on both indices. On NIFTY, both real
+   trading days so far (10-Aug, 11-Aug) show the SAME clean pattern:
+   one early winning trade pushes today's profit past the Rs 2,000
+   lock, and the strategy correctly stops for the day right after -
+   real risk-management value, not a fluke (repeated 2/2 days). On
+   BANKNIFTY, the opposite: the underlying RSI signal loses too often
+   for cumulative profit to ever reach Rs 2,000 within a day (e.g.
+   simple_st1_threshold/BANKNIFTY took 15 trades in ONE day on 10-Aug,
+   lock never engaged), so threshold BANKNIFTY ends up trading almost
+   as much as non-threshold and losing similarly - the profit-lock
+   mechanism only protects gains, it does nothing for a signal that
+   rarely wins early. CONCLUSION for 14-Aug: evaluate threshold's
+   NIFTY and BANKNIFTY legs SEPARATELY, don't lump them into one
+   verdict - and BANKNIFTY specifically needs a LOSS-lock (already on
+   the 14-Aug list) or a signal change, not more time with the same
+   profit-lock-only gate.
+
+2. TRADE-FREQUENCY VARIES HUGELY BY STRATEGY - so "how many days until
+   we can trust the win rate" is not one answer. Back-of-envelope
+   rates from real data so far: simple_st1/st2/st3 (~24 trades/trading
+   day) already have a large enough sample - their negative verdict is
+   already reliable. oi_footprint (~4 trades/trading day) will reach a
+   trustworthy ~30-trade sample within a few more days of the 14-Aug
+   review, not by 14-Aug itself. vix_filter and credit_spread
+   (~0.5-0.7 trades/trading day each - both gated on a rare double-
+   condition entry) need roughly 30 MORE trading days (~6 weeks, into
+   September) to reach even a rough 20-trade sample - 14-Aug is far
+   too early to judge either one; they need their own, later review
+   point instead of being bundled into the main 14-Aug decision.
+
+==================================================
+
 LIVE-DATA ARCHITECTURE (VPS + Firebase) - discussed in depth 06/07-
 Aug, NOT built yet, deliberately deferred: do this about 1 WEEK
 BEFORE starting real-capital trading (once paper-trading results
