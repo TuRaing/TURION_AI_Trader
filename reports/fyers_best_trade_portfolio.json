@@ -1,15 +1,6 @@
 {
-  "Cash": 100016.08736497482,
-  "Position": {
-    "Name": "HINDALCO",
-    "Symbol": "HINDALCO.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-08-12 07:07:39",
-    "Entry Price": 1082.15,
-    "Quantity": 1,
-    "Stop Loss": 1079.375,
-    "Target": 1087.7
-  },
+  "Cash": 100012.16657347017,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -198,6 +189,20 @@
       "PnL": -24.28,
       "Cost": 3.55,
       "Net PnL": -27.84
+    },
+    {
+      "Name": "HINDALCO",
+      "Symbol": "HINDALCO.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-08-12 07:07:39",
+      "Entry Price": 1082.15,
+      "Exit Time": "2026-08-12 08:16:35",
+      "Exit Price": 1079.375,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -2.78,
+      "Cost": 1.15,
+      "Net PnL": -3.92
     }
   ],
   "Data Source": "Fyers"
