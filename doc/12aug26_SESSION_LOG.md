@@ -300,15 +300,35 @@ both written up in doc/PROJECT_STATUS.md.
    strong NIFTY-threshold books. Full writeup in PROJECT_STATUS.md's
    "LOSS-LOCK BACKTESTED AND DEPLOYED SELECTIVELY" entry. 7 new tests.
 
-✅ Also built + deployed oi_iv_combo (34th book) - oi_footprint's
+✅ Also built + deployed oi_iv_combo (33rd book) - oi_footprint's
    OI-buildup signal unchanged, plus the promising half of the IV/RV
    finding (skip if the option's IV > 1.5x the underlying's own
    realized volatility) as its own separate book, since that same
    filter hurts the RSI family - kept away from oi_footprint itself.
    Deployed same day (paper trading, zero risk). Wired into ALL_
    STRATEGIES, mobile app, .gitignore, GitHub Actions workflow. 3 new
-   tests, 316 passing overall. Still needs its own cron-job.org
-   trigger (STRATEGY_NAME=oi_iv_combo).
+   tests, 316 passing overall.
+
+✅ Created the oi_iv_combo cron-job.org trigger (user's manual step)
+   and verified it live via the GitHub Actions API: STRATEGY_NAME:
+   oi_iv_combo fired correctly for both NIFTY and BANKNIFTY, no
+   errors, first-ever portfolio files committed clean. All 4 new
+   strategies added today (pcr_momentum, max_pain_drift,
+   pcr_vix_combo, oi_iv_combo) now confirmed live end-to-end.
+
+✅ Rebuilt the Android APK (the previously-installed build predated
+   the loss-lock + oi_iv_combo commit, so oi_iv_combo's source-code
+   wiring into both app screens wasn't in the phone's actual install
+   yet) and reinstalled via adb. Verified on-device: Summary tab now
+   shows "Total Profit/Loss (33 books)" with oi_iv_combo NIFTY +
+   BANKNIFTY rows both present at the bottom of the table. Precise
+   tab-bar taps needed `adb shell uiautomator dump` to read the real
+   accessibility-tree bounds after a couple of pixel-estimate mis-taps
+   (one landed on an unrelated video app's floating PIP overlay, which
+   was blocking the bottom nav bar until the user closed it; another
+   landed on the LT stock card instead of the tab bar) - eyeballing
+   coordinates from a screenshot description is not reliable enough
+   for this app's bottom nav, uiautomator's bounds are exact.
 
 ==================================================
 

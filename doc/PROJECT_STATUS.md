@@ -4014,9 +4014,33 @@ Deployed same day as built (paper trading, zero real-money risk, own
 separate book - same reasoning already applied to pcr_momentum/max_
 pain_drift/pcr_vix_combo). Wired into ALL_STRATEGIES (31 -> 33 total
 books with this and loss-lock combined), mobile app, .gitignore,
-GitHub Actions workflow. 3 new tests, 316 passing overall. Still needs
-its own cron-job.org trigger (STRATEGY_NAME=oi_iv_combo) - the user's
-own manual step, can't be created via API.
+GitHub Actions workflow. 3 new tests, 316 passing overall.
+
+==================================================
+
+oi_iv_combo TRIGGER VERIFIED + APK REBUILT, 13-Aug - the user manually
+cloned a cron-job.org job (STRATEGY_NAME=oi_iv_combo, same pattern as
+the other 3 new strategies today); verified via the GitHub Actions API
+that it fires correctly on both NIFTY and BANKNIFTY with no errors and
+its first portfolio files committed clean. All 4 strategies added
+today (pcr_momentum, max_pain_drift, pcr_vix_combo, oi_iv_combo) are
+now confirmed live end-to-end - trigger firing, no errors, both
+indices evaluated.
+
+The Android APK installed on the user's phone predated the loss-lock +
+oi_iv_combo commit, so even though the mobile app's source already had
+oi_iv_combo wired into both the Multi-Strategy and Summary screens, the
+actual on-phone build didn't. Rebuilt (`flutter build apk --release`)
+and reinstalled via `adb install -r`. Verified on-device: Summary tab
+shows "Total Profit/Loss (33 books)" with oi_iv_combo's NIFTY and
+BANKNIFTY rows both present. Precise bottom-nav-bar tap coordinates
+needed `adb shell uiautomator dump` (reads the real accessibility-tree
+bounds) after a couple of pixel-estimate mis-taps - one landed on an
+unrelated app's floating PIP video overlay that was covering the
+Options/Threshold/Summary tabs until the user closed it, another
+landed on a stock card instead of the tab bar. Eyeballing coordinates
+from a screenshot isn't reliable for this app's bottom nav; uiautomator
+bounds are exact and should be reached for first next time.
 
 ==================================================
 
@@ -4045,11 +4069,11 @@ Status
 
 Current Version
 
-v0.0.25
+v0.0.26
 
 Next Version
 
-v0.0.26
+v0.0.27
 
 ==================================================
 
