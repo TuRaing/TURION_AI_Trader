@@ -3623,6 +3623,50 @@ contribution.
 
 ==================================================
 
+DYNAMIC MAX PAIN DRIFT BUILT + NOT DEPLOYED, 13-Aug - the 4th and
+last of the novel-indicator ideas from 09-Aug (see pcr_momentum.py's
+module docstring for the shared background), built now on the user's
+request. strategy/fyers_options_max_pain_drift.py:
+
+MAX PAIN - the strike where option WRITERS (mostly institutions) owe
+the least aggregate payout at expiry (i.e. where the most combined
+CE+PE OI would expire worthless). The debated theory: as expiry
+nears, large sellers' own hedging tends to pull the underlying toward
+this strike. Rather than trade toward the CURRENT Max Pain level (a
+static read), this tracks how the Max Pain strike itself DRIFTS
+between checks - same "watch the change, not the snapshot"
+philosophy already validated by oi_footprint (OI buildup direction)
+and pcr_momentum (PCR rate of change): drifting up -> CE, down -> PE.
+
+EXPIRY-PROXIMITY GATE - the user's own explicit refinement, raised
+directly ("expiry day लाच जास्त फायदा होतो का"): the pull-toward-Max-
+Pain effect, if real at all, should be strongest right before
+settlement and weakest far from it. Rather than trust the drift
+signal every day, it only fires within MAX_DAYS_TO_EXPIRY (2 days) of
+the option's own expiry - made possible by the SAME-DAY expiry parser
+(strategy/fyers_data.py's parse_option_expiry()/time_to_expiry_years())
+built earlier for the Theta/Delta work above. A nice example of one
+piece of infrastructure (built for one purpose) immediately enabling
+a second, unrelated feature.
+
+Same "built, not deployed" precedent as pcr_momentum.py: pure, fully
+unit-tested logic (13 new tests, 299 passing overall) - no historical
+backtest possible (no historical option-chain OI dataset exists
+anywhere, the same permanent limitation this project keeps running
+into). Deliberately NOT added to options_strategies.py's
+ALL_STRATEGIES and no cron-job.org trigger created - stays fully
+built-and-tested but disconnected from live automation until a
+deployment decision at/after the 14-Aug review point, same as pcr_
+momentum.
+
+With this, all 4 of 09-Aug's novel-indicator ideas are now either live
+(oi_footprint - the strongest performer in the whole system) or built-
+and-waiting (pcr_momentum, max_pain_drift). Volume-Weighted OI
+Buildup, the 4th idea, was folded into pcr_momentum's design at the
+time (see pcr_momentum.py's docstring) rather than built separately.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.

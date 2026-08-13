@@ -190,6 +190,18 @@ both written up in doc/PROJECT_STATUS.md.
    NEW trades (with Exit Spot, which only started today) to accumulate
    before a real Theta/Delta analysis is worth running.
 
+✅ Built Dynamic Max Pain Drift (strategy/fyers_options_max_pain_
+   drift.py) - the 4th and last 09-Aug novel-indicator idea, built,
+   not deployed. Full writeup in PROJECT_STATUS.md's "DYNAMIC MAX PAIN
+   DRIFT BUILT + NOT DEPLOYED" entry. Tracks Max Pain strike drift
+   (same "watch the change" philosophy as oi_footprint/pcr_momentum),
+   plus the user's own refinement - gated to only trade within 2 days
+   of the option's own expiry (using the expiry parser built earlier
+   the same day - one piece of infrastructure immediately enabling a
+   second feature). 13 new tests, 299 passing overall. Same "built,
+   not deployed" holding pattern as pcr_momentum - not added to
+   ALL_STRATEGIES, no cron-job.org trigger.
+
 ==================================================
 
 Next Session Priorities
@@ -220,7 +232,9 @@ findings as extra context for the 14-Aug review itself:
 
 3. Desktop App Android-parity expansion - still not started.
 
-4. Dynamic Max Pain Drift - still not started.
+4. DONE, 13-Aug: Dynamic Max Pain Drift built (see above) - now joins
+   pcr_momentum.py in the "built, awaiting a deployment decision"
+   pile for the 14-Aug review.
 
 ==================================================
 
