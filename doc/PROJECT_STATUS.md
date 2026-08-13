@@ -3420,6 +3420,62 @@ deferred to post-14-Aug) needs to account for this - several of the
 
 ==================================================
 
+SECOND STATISTICAL PASS - T-TEST, MONTE CARLO, AUTOCORRELATION,
+13-Aug - user asked for a further round beyond the first pass above:
+one-sample t-test (is a book's average PnL/trade statistically
+distinguishable from zero, not just positive by luck), Monte Carlo
+simulation (reshuffle each book's own real trades 5,000 times to see
+the FULL range of possible outcomes, not just the one order that
+actually happened), and lag-1 autocorrelation (does a loss tend to be
+followed by another loss). Same one-off analysis script pattern, no
+live-strategy code changes. Books with fewer than 3 trades were
+skipped (t-test/Monte Carlo need a minimum sample to mean anything).
+
+T-TEST RESULTS - 3 books are now STATISTICALLY CONFIRMED negative
+(p<0.05, not just "looks bad on average" but distinguishable from
+zero given their own variance): st2/NIFTY (p=0.008), simple_st1_
+threshold/BANKNIFTY (p=0.044), st4/NIFTY (p=0.002, though only 4
+trades - weak sample despite the low p-value). simple_st1/NIFTY
+(p=0.054) and simple_st1/BANKNIFTY (p=0.057) are borderline-negative,
+just short of the formal 0.05 cutoff but pointing the same direction
+as their already-large, already-damning sample sizes. Notably,
+oi_footprint/NIFTY (p=0.069) - the system's best-performing book - is
+ALSO not yet formally significant, because per-trade PnL variance is
+naturally large relative to the mean; it needs more trades before its
+edge is airtight by this stricter test, even though Sharpe/Expectancy/
+CI already look good.
+
+MONTE CARLO "RUIN RISK" - the standout new finding, extending the
+Kelly-sizing discussion earlier with actual data instead of 2 hand-
+picked example sequences. Reshuffling each book's own real trades
+5,000 times (same trades, random order) under the CURRENT ~100%-cash-
+per-trade sizing:
+  st2/NIFTY:        39.5% of random orderings hit zero/negative capital
+  simple_st1/NIFTY: 24.3% of random orderings hit zero/negative capital
+  st3/NIFTY:         17.9% of random orderings hit zero/negative capital
+  oi_footprint (both) + all promising threshold-NIFTY books: 0.0% -
+    capital never wiped out in ANY of the 5,000 reshuffled orderings.
+This CONFIRMS the near-empty Cash balances already observed live for
+st2/NIFTY (Rs 5,134 left) and simple_st1/NIFTY (Rs 11,033 left) were
+not a fluke of the one historical order they happened to trade in - it
+is a structural property of their negative win/loss distribution under
+the current sizing, regardless of order. Directly strengthens the
+"position-sizing tricks can't fix a broken signal, but a real signal
+doesn't need aggressive sizing to survive" point already established
+in the real-capital roadmap discussion.
+
+AUTOCORRELATION (lag-1, does a loss predict the next trade's outcome)
+- mostly weak/near-zero across the system, no strong universal
+"losing streaks breed more losses" pattern to justify a one-size-fits-
+all loss-lock threshold. Two notable exceptions: oi_footprint/
+BANKNIFTY (-0.45) and st3/BANKNIFTY (-0.36) - a loss tends to be
+followed by a BETTER outcome, not a worse one, for these two
+specifically. If a future loss-lock is built (already on the 14-Aug
+list), this suggests it should be tuned per-strategy from each book's
+own autocorrelation, not a single blanket rule across all 25.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.

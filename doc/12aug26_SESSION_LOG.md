@@ -125,6 +125,20 @@ both written up in doc/PROJECT_STATUS.md.
    evidencing the deferred Portfolio-level Aggregation concern with
    real numbers for the first time.
 
+✅ Second statistical pass: one-sample t-test, Monte Carlo (5,000
+   reshuffles of each book's own real trades), and lag-1
+   autocorrelation - full writeup in PROJECT_STATUS.md's "SECOND
+   STATISTICAL PASS" entry. Headline finding: Monte Carlo "ruin risk" -
+   st2/NIFTY has a 39.5% chance and simple_st1/NIFTY a 24.3% chance of
+   hitting zero/negative capital across 5,000 random reshuffles of
+   their own real trades under current ~100%-cash sizing, while
+   oi_footprint and the promising threshold-NIFTY books show 0.0% ruin
+   risk in any reshuffling - confirms the near-empty Cash balances
+   already seen live are a structural property of those books' signal,
+   not an unlucky historical ordering. t-test also formally confirmed
+   3 books as statistically negative (st2/NIFTY p=0.008, simple_st1_
+   threshold/BANKNIFTY p=0.044, st4/NIFTY p=0.002).
+
 ==================================================
 
 Next Session Priorities
