@@ -3921,6 +3921,45 @@ oi_footprint trades accumulate.
 
 ==================================================
 
+CPR (SUPPORT/RESISTANCE DISTANCE) RETROSPECTIVELY TESTED - REJECTED,
+MIXED/INCONSISTENT, 13-Aug - user asked for another idea to refine
+the RSI-threshold family specifically, after the IV/RV filter turned
+out to only work for oi_footprint. Used indicators/cpr.py's Central
+Pivot Range calculation (Pivot/TC/BC/R1-3/S1-3 from the previous day's
+OHLC) - an existing, already-built but previously UNUSED indicator in
+this codebase - to test whether entries taken too close to a
+resistance (for CE) or support (for PE) level perform worse, using
+the same backtest-before-touching-a-working-strategy method as the
+Theta and IV/RV tests.
+
+RESULT: NO clean, consistent pattern - genuinely mixed, book by book:
+  - st2_threshold/NIFTY (currently good): filter HELPS - removing
+    entries within 0.3% of a CPR level leaves a smaller, better set
+    (53.8% win rate vs 38.9%, keeping 75% of total profit in fewer
+    trades).
+  - simple_st1_threshold/NIFTY (currently good) and oi_footprint/
+    NIFTY (this project's best book): filter runs BACKWARDS - the
+    "too close to a CPR level" trades it would remove were actually
+    the BEST-performing ones (100% and 73.7% win rate respectively,
+    contributing MORE than the book's current total profit in oi_
+    footprint/NIFTY's case) - applying it would hurt both.
+  - The 3 already-weak BANKNIFTY-threshold books: filtering reduces
+    total losses substantially (e.g. simple_st1_threshold/BANKNIFTY
+    -Rs 41,814 -> -Rs 2,095 on the kept set) but doesn't make any of
+    them profitable - a real effect, but not a rescue.
+Also a methodology note: the 1.0% distance threshold filtered nearly
+ALL trades on every book (NIFTY/BANKNIFTY's CPR levels are dense
+enough that almost every entry lands within 1% of some level) -
+not a usable threshold, only 0.3%/0.5% gave meaningful splits.
+
+DECISION: REJECT as a general filter - no reliable, book-independent
+signal the way IV/RV showed for oi_footprint. Helping one currently-
+good book (st2_threshold/NIFTY) while actively hurting two others
+(simple_st1_threshold/NIFTY, oi_footprint/NIFTY) is not a basis for
+adding this to any live strategy. Not implemented anywhere.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.

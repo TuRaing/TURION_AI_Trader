@@ -277,6 +277,16 @@ both written up in doc/PROJECT_STATUS.md.
    candidate for oi_footprint only, not implemented live yet (small
    sample caution, same as everything else).
 
+✅ Tried a 3rd idea specifically for the RSI-threshold family: CPR
+   (Central Pivot Range, indicators/cpr.py - an already-built but
+   previously unused indicator) support/resistance distance. Result:
+   genuinely mixed/inconsistent - helps st2_threshold/NIFTY, but runs
+   backwards on simple_st1_threshold/NIFTY AND oi_footprint/NIFTY
+   (removes their best trades). REJECTED - no reliable, book-
+   independent signal. Full writeup in PROJECT_STATUS.md's "CPR
+   (SUPPORT/RESISTANCE DISTANCE) RETROSPECTIVELY TESTED - REJECTED"
+   entry. Not implemented anywhere.
+
 ==================================================
 
 Next Session Priorities
