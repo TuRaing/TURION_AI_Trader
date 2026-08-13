@@ -357,6 +357,15 @@ both written up in doc/PROJECT_STATUS.md.
    Full writeup in PROJECT_STATUS.md's "STAGED CAPITAL PLAN - TIMELINE
    CONFIRMED" entry.
 
+✅ Researched circuit-breaker protection for an open position (not a
+   strategy edge question - a risk-infrastructure one). 5 candidate
+   mitigations identified and prioritized, NONE built or backtested
+   yet - explicitly deferred, user wants to backtest next session.
+   Top priority: broker-side GTT/SL-M orders (not just software
+   polling) so a position is protected even if the VPS script itself
+   has a hiccup or a halt lands between checks. Full list in
+   PROJECT_STATUS.md's "CIRCUIT-BREAKER PROTECTION IDEAS" entry.
+
 ==================================================
 
 Next Session Priorities
@@ -364,6 +373,11 @@ Next Session Priorities
 Unchanged from doc/07aug26_SESSION_LOG.md's last "Next Session
 Priorities" list - nothing here supersedes it, just adds today's
 findings as extra context for the 14-Aug review itself:
+
+0. NEW, 14-Aug: backtest/implement the circuit-breaker protection
+   ideas above, starting with broker-side GTT/SL-M orders for the
+   Stage 2 VPS build - user explicitly asked to pick this up next
+   session ("he backtest karu").
 
 1. 14-Aug review checkpoint - now explicitly split: (a) simple_st1/
    st2/st3/st4 and their threshold variants have enough sample to

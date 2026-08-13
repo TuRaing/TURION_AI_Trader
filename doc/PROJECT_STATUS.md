@@ -4112,6 +4112,65 @@ build/improve/backtest/analyze throughout, on both sides of that line.
 
 ==================================================
 
+CIRCUIT-BREAKER PROTECTION IDEAS - NOT YET BACKTESTED, 14-Aug -
+researched after the user asked what actually protects an open
+position if NSE's circuit breakers halt trading (index-level 10%/
+15%/20% moves) while a position is open. Circuit breakers are a net
+positive for market stability (prevent an uncontrolled crash, and
+rule out the earlier "millisecond mega-spike" scenario as basically
+impossible - see below), but a real negative for an open position:
+the SL/Target can't fire during a halt, and price can gap further by
+the time trading resumes. Five candidate mitigations discussed,
+priority order, NONE implemented or backtested yet - explicitly
+deferred to a future session at the user's request ("he backtest
+karu" - next time):
+
+1. HIGHEST PRIORITY - place the Stop-Loss as a real broker-side order
+   (Fyers GTT / SL-M), not just software-side polling. Today's engines
+   are pure polling (check every ~1 min, decide, then call the close
+   API) - if the VPS/script has any hiccup, or a halt happens between
+   checks, nothing protects the position. A broker-side GTT order sits
+   with the exchange and fires the instant trading resumes, independent
+   of whether the script is even running. Should be part of the Stage 2
+   VPS build, not bolted on later.
+
+2. VPS's own continuous loop (not GitHub Actions' cron-job.org-
+   throttled ~1-min external trigger) - a real always-on loop can check
+   every few seconds instead, shrinking the reaction-time gap before a
+   circuit level is reached. Already the reason Stage 2 exists; this is
+   an additional concrete reason it matters specifically for circuit
+   risk, not just uptime/reliability in general.
+
+3. A proactive square-off filter - NSE's daily circuit band is known in
+   advance (computed off the previous close); a filter could force-exit
+   a position once the underlying gets within ~2-3% of its own band,
+   instead of waiting for the normal SL/Target check. Same shape as the
+   existing VIX-band filter. NOT built or backtested yet.
+
+4. Avoid holding through known high-risk event windows (Budget day, RBI
+   policy, election results, major macro announcements) - square off or
+   skip new entries on these specific days, since they're disproportion-
+   ately likely to trigger circuit-level moves.
+
+5. Position sizing discipline (already established practice) - never
+   risk enough on one trade that a single circuit-trapped position could
+   meaningfully damage total capital.
+
+Also clarified the same conversation: a "millisecond flash-spike turns
+Rs 1 lakh into Rs 10 crore" scenario is not realistic. Real historical
+flash events (Feb-2018 Volmageddon, Mar-2020 COVID crash) produced deep-
+OTM option moves in the 50x-500x range at the extreme, not anywhere
+close to 10,000x, and three structural reasons cap it further: NSE's
+own circuit breakers halt trading before a move can go unbounded,
+liquidity vanishes near the peak of a real panic (a "paper" gain often
+can't actually be executed), and this project's own periodic (not
+tick-by-tick) checking would likely miss the exact peak millisecond
+even if such a move occurred. For option BUYING (this project's
+strategies), max loss is capped at the premium paid either way - the
+account can go to Rs 0 in a bad case, but not negative.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
@@ -4137,11 +4196,11 @@ Status
 
 Current Version
 
-v0.0.27
+v0.0.28
 
 Next Version
 
-v0.0.28
+v0.0.29
 
 ==================================================
 
