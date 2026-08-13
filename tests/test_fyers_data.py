@@ -1,4 +1,6 @@
-from strategy.fyers_data import symbol_to_fyers, PERIOD_TO_DAYS
+import datetime
+
+from strategy.fyers_data import symbol_to_fyers, PERIOD_TO_DAYS, parse_option_expiry, time_to_expiry_years
 
 
 def test_symbol_to_fyers_translates_equity_ns_suffix():
@@ -43,3 +45,51 @@ def test_period_to_days_covers_10d():
     # live (caught 10-Aug via GitHub Actions job logs - zero trades,
     # zero errors visible anywhere except inside the run logs).
     assert PERIOD_TO_DAYS.get("10d") == 10
+
+
+def test_parse_option_expiry_weekly_format_real_symbol():
+    # Real symbol observed live, 10/11-Aug-2026 trades.
+    assert parse_option_expiry("NSE:NIFTY2681124600PE") == datetime.date(2026, 8, 11)
+
+
+def test_parse_option_expiry_weekly_format_another_real_symbol():
+    assert parse_option_expiry("NSE:NIFTY2681824300CE") == datetime.date(2026, 8, 18)
+
+
+def test_parse_option_expiry_monthly_format_real_symbol():
+    # Real symbol observed live - BANKNIFTY has been monthly-only since
+    # weekly options were discontinued (SEBI/NSE, Nov-2024). Monthly
+    # index-derivatives expiry moved Thursday -> Tuesday effective
+    # 01-Sep-2025, so August 2026's expiry is its last TUESDAY.
+    assert parse_option_expiry("NSE:BANKNIFTY26AUG57200CE") == datetime.date(2026, 8, 25)
+
+
+def test_parse_option_expiry_weekly_format_handles_oct_nov_dec_month_codes():
+    # NSE's single-character month code for weekly symbols uses O/N/D
+    # for Oct/Nov/Dec instead of a 2-digit number (which would be
+    # ambiguous with the day). NIFTY26O0524600PE -> 2026-10-05.
+    assert parse_option_expiry("NSE:NIFTY26O0524600PE") == datetime.date(2026, 10, 5)
+
+
+def test_parse_option_expiry_returns_none_for_unparseable_symbol():
+    assert parse_option_expiry("NSE:RELIANCE-EQ") is None
+
+
+def test_parse_option_expiry_returns_none_for_junk_input():
+    assert parse_option_expiry("garbage") is None
+
+
+def test_time_to_expiry_years_is_positive_before_expiry():
+    from_dt = datetime.datetime(2026, 8, 10, 9, 30, 0)
+    expiry = datetime.date(2026, 8, 11)
+
+    years = time_to_expiry_years(from_dt, expiry)
+
+    assert 0 < years < (5 / 365)  # a bit over a day away, well under a week
+
+
+def test_time_to_expiry_years_is_zero_after_expiry():
+    from_dt = datetime.datetime(2026, 8, 15, 9, 30, 0)
+    expiry = datetime.date(2026, 8, 11)
+
+    assert time_to_expiry_years(from_dt, expiry) == 0

@@ -99,6 +99,105 @@ def symbol_to_fyers(symbol):
     return symbol
 
 
+# Added 13-Aug-2026 - the missing piece for a real per-trade Delta/
+# Theta split (see indicators/black_scholes.py's implied_volatility()/
+# black_scholes_greeks(), added the same day) - both need time-to-
+# expiry, which isn't stored on a trade directly but IS encoded in the
+# option's own Fyers symbol. Two different formats in real use here,
+# confirmed against actual live trade symbols (not guessed):
+#   Weekly (NIFTY): "NSE:NIFTY2681124600PE" -> YY(26) + single-char
+#     month code (1-9 for Jan-Sep, O/N/D for Oct/Nov/Dec - the
+#     standard NSE derivatives symbol convention) + DD(11) + strike +
+#     CE/PE. The exact expiry date is spelled out directly, no need to
+#     compute which weekday it falls on.
+#   Monthly (BANKNIFTY - weekly BANKNIFTY options were discontinued by
+#     SEBI/NSE in Nov-2024, monthly-only since): "NSE:BANKNIFTY26AUG
+#     58000CE" -> YY(26) + 3-letter month (AUG) + strike + CE/PE. The
+#     exact day isn't in the symbol - NSE's monthly index-derivatives
+#     expiry moved from Thursday to Tuesday, effective 01-Sep-2025, so
+#     this computes the LAST TUESDAY of that month (confirmed current
+#     as of 2026, not the pre-Sep-2025 Thursday convention).
+_MONTH_CODE = {str(i): i for i in range(1, 10)}
+_MONTH_CODE.update({"O": 10, "N": 11, "D": 12})
+_MONTH_ABBR = {
+    "JAN": 1, "FEB": 2, "MAR": 3, "APR": 4, "MAY": 5, "JUN": 6,
+    "JUL": 7, "AUG": 8, "SEP": 9, "OCT": 10, "NOV": 11, "DEC": 12,
+}
+
+
+def _last_tuesday(year, month):
+
+    last_day = (datetime.date(year + (month == 12), month % 12 + 1, 1) - datetime.timedelta(days=1)).day
+    d = datetime.date(year, month, last_day)
+
+    while d.weekday() != 1:  # Monday=0, Tuesday=1
+        d -= datetime.timedelta(days=1)
+
+    return d
+
+
+def parse_option_expiry(fyers_option_symbol):
+    """
+    Extracts the expiry date from a Fyers NSE index-option symbol -
+    handles both the weekly (exact date encoded) and monthly (last
+    Tuesday of the month) formats described above.
+
+    Returns
+    -------
+    datetime.date, or None if the symbol doesn't match either known
+    format (a real possibility - don't guess, let the caller decide
+    what to do with an unparseable symbol).
+    """
+
+    s = fyers_option_symbol.split(":")[-1]
+
+    if s.endswith("CE") or s.endswith("PE"):
+        s = s[:-2]
+
+    i = 0
+    while i < len(s) and s[i].isalpha():
+        i += 1
+
+    name, rest = s[:i], s[i:]
+
+    if not name or len(rest) < 2 or not rest[:2].isdigit():
+        return None
+
+    year = 2000 + int(rest[:2])
+    remainder = rest[2:]
+
+    if len(remainder) >= 3 and remainder[:3] in _MONTH_ABBR:
+        return _last_tuesday(year, _MONTH_ABBR[remainder[:3]])
+
+    if len(remainder) >= 3 and remainder[0] in _MONTH_CODE and remainder[1:3].isdigit():
+
+        month = _MONTH_CODE[remainder[0]]
+        day = int(remainder[1:3])
+
+        try:
+            return datetime.date(year, month, day)
+        except ValueError:
+            return None
+
+    return None
+
+
+def time_to_expiry_years(from_datetime, expiry_date, expiry_hour=15, expiry_minute=30):
+    """
+    Fraction of a year remaining from from_datetime (a naive datetime,
+    matching this project's Entry/Exit Time storage convention) to the
+    given expiry_date's market close (15:30 IST by default - NSE's
+    regular close). Calendar-day convention (/365), matching the
+    existing black_scholes_price() usage elsewhere in this project.
+    Floors at 0 - never negative, for an already-expired option.
+    """
+
+    expiry_dt = datetime.datetime.combine(expiry_date, datetime.time(expiry_hour, expiry_minute))
+    delta_seconds = (expiry_dt - from_datetime).total_seconds()
+
+    return max(delta_seconds, 0) / (365 * 24 * 3600)
+
+
 def _headers():
     return {"Authorization": f"{_app_id()}:{get_access_token()}"}
 
