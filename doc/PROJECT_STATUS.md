@@ -3600,6 +3600,27 @@ accumulated: build the expiry parser, then a one-off analysis script
 (same pattern as the statistical passes above) to actually compute
 each closed trade's Theta contribution.
 
+EXPIRY PARSER BUILT SAME DAY - strategy/fyers_data.py now has parse_
+option_expiry() (handles both formats above, confirmed against real
+observed trade symbols, not guessed) and time_to_expiry_years(). The
+monthly-format branch computes the LAST TUESDAY of the given month -
+verified NSE moved monthly index-derivatives expiry from Thursday to
+Tuesday effective 01-Sep-2025 (current convention, not the older
+Thursday one). 8 new tests (including real symbols like NSE:NIFTY2681
+124600PE -> 2026-08-11, NSE:BANKNIFTY26AUG57200CE -> 2026-08-25, and
+the O/N/D month-code edge case for Oct/Nov/Dec), 286 passing overall.
+
+REMAINING GAP - all 3 pieces (Exit Spot storage, IV solver/Greeks,
+expiry parser) now exist, but Exit Spot only started accumulating from
+the commit that added it (13-Aug) - trades before that have no Exit
+Spot, so a real Theta/Delta analysis needs to wait for enough NEW
+trades to build up first (same "wait for real data" discipline as
+everything else in this project). Next step once there's a reasonable
+number: a one-off analysis script (same pattern as the statistical
+passes above) combining Exit Spot + parse_option_expiry() + implied_
+volatility() to actually compute each closed trade's real Theta
+contribution.
+
 ==================================================
 
 DEVELOPMENT RULES

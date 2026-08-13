@@ -179,6 +179,17 @@ both written up in doc/PROJECT_STATUS.md.
    (weekly numeric vs monthly 3-letter-month) - flagged as the next
    step once Exit Spot data has accumulated for a while.
 
+✅ Built that expiry parser same day - strategy/fyers_data.py's parse_
+   option_expiry() + time_to_expiry_years(), full writeup in PROJECT_
+   STATUS.md's "EXPIRY PARSER BUILT SAME DAY" entry. Handles both real
+   formats (weekly NIFTY - exact date encoded; monthly BANKNIFTY -
+   computes last Tuesday of the month, verified against NSE's Sep-2025
+   Thursday->Tuesday expiry-day change), tested against real observed
+   trade symbols. 8 new tests, 286 passing overall. All 3 pieces (Exit
+   Spot, IV solver/Greeks, expiry parser) now exist - just need enough
+   NEW trades (with Exit Spot, which only started today) to accumulate
+   before a real Theta/Delta analysis is worth running.
+
 ==================================================
 
 Next Session Priorities
