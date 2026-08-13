@@ -209,9 +209,24 @@ both written up in doc/PROJECT_STATUS.md.
    for 14-Aug. Books: 25 -> 29. No threshold variant for either
    (confirmed with the user - same reasoning as oi_footprint/vix_
    filter/credit_spread). Wired into mobile app, .gitignore, and the
-   GitHub Actions workflow. 301 tests passing. STILL NEEDS: 2 new
-   cron-job.org triggers (STRATEGY_NAME=pcr_momentum and =max_pain_
-   drift) - the user's own manual step, can't be done via API.
+   GitHub Actions workflow. 301 tests passing. User then created both
+   cron-job.org triggers manually and confirmed test runs - checked
+   live via GitHub Actions API, both firing correctly with no errors
+   (STRATEGY_NAME reaching the script correctly, real evaluation
+   happening, just correctly SKIPPED since checked after square-off).
+
+✅ Then built AND deployed pcr_vix_combo same day too - the 4th and
+   last 09-Aug novel-indicator idea (VIX+OI combo), on the user's own
+   "no benefit to waiting" reasoning extended to this one as well.
+   Full writeup in PROJECT_STATUS.md's "PCR_VIX_COMBO BUILT + DEPLOYED
+   SAME DAY" entry. Reuses pcr_momentum's logic + adds a VIX calm-band
+   gate (same validated condition as vix_filter.py, applied to an
+   OI-based signal). Books: 29 -> 31. 305 tests passing overall. Still
+   needs its own cron-job.org trigger (STRATEGY_NAME=pcr_vix_combo).
+
+   With this, ALL 4 of 09-Aug's novel-indicator ideas are now live:
+   oi_footprint (proven), pcr_momentum, max_pain_drift, pcr_vix_combo
+   (the latter 3 all deployed 13-Aug, real data still to come).
 
 ==================================================
 

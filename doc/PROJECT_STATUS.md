@@ -3696,6 +3696,34 @@ prior strategy's trigger setup) before either actually starts firing.
 
 ==================================================
 
+PCR_VIX_COMBO BUILT + DEPLOYED SAME DAY, 13-Aug - the 4th and last of
+09-Aug's novel-indicator ideas (VIX+OI combo), built AND deployed
+same-day rather than held back, on the user's own reasoning: no
+benefit to waiting for pcr_momentum's own review before also
+collecting real data on this combo in parallel - paper trading carries
+zero real-money risk, and it's its own separate book that doesn't
+touch anything else's comparison.
+
+strategy/fyers_options_pcr_vix_combo.py reuses pcr_momentum's chain-
+reading/classification logic UNCHANGED (imported, not duplicated) and
+adds ONE more condition: only trust the PCR-momentum drift signal when
+India VIX sits inside its own trailing [30th,70th] percentile band -
+the exact same validated condition fyers_options_vix_filter.py uses
+for RSI-momentum, applied here to an OI-based signal instead.
+
+Wired into ALL_STRATEGIES (books: 29 -> 31), mobile app, .gitignore,
+GitHub Actions workflow - same checklist as every prior strategy. 3
+new tests (config-maker only, matching vix_filter's own precedent of
+not unit-testing network-dependent entry logic), 305 passing overall.
+
+With this, all 4 of 09-Aug's novel-indicator ideas are now live:
+oi_footprint (proven, strongest performer), pcr_momentum, max_pain_
+drift, and pcr_vix_combo (all 3 just deployed 13-Aug, real data still
+to come). Still needs its own cron-job.org trigger (STRATEGY_NAME=
+pcr_vix_combo) - the user's own manual step, can't be created via API.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
@@ -3721,11 +3749,11 @@ Status
 
 Current Version
 
-v0.0.23
+v0.0.24
 
 Next Version
 
-v0.0.24
+v0.0.25
 
 ==================================================
 
