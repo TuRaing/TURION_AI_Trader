@@ -4044,6 +4044,74 @@ bounds are exact and should be reached for first next time.
 
 ==================================================
 
+MINIMUM CAPITAL RETROSPECTIVE REPLAY, 14-Aug - the user asked what each
+profitable book's real closed-trade history would have looked like
+starting from Rs 10,000 instead of Rs 1,00,000, using the exact same
+lot-sizing formula the live engines use (lots = Cash // (entry_premium
+x lot_size), or the credit-spread variant using max_loss_per_lot) and
+the real transaction-cost model (strategy/options_transaction_costs.py)
+- same retrospective-replay approach as the Theta/IV-RV/CPR backtests
+above, just replaying against a different starting capital instead of
+a different entry rule.
+
+Two findings:
+
+1. Every single BANKNIFTY book could not have executed ANY trade at
+   Rs 10,000 - BANKNIFTY's lot size (30) combined with its typical
+   premium routinely exceeds Rs 10,000 for even 1 lot, so 100% of
+   real historical trades were skipped in the replay. Rs 10,000 is
+   not a usable starting capital for any BANKNIFTY book, regardless
+   of that book's underlying edge.
+
+2. On NIFTY, results don't scale linearly - fixed per-order brokerage
+   (Rs 40 round-trip, independent of lot count) eats a much bigger
+   share of a smaller trade. st2_threshold/NIFTY actually flips sign:
+   +Rs 28,115 (28.1%) at Rs 1,00,000 starting capital becomes -Rs 861
+   (-8.6%) at Rs 10,000 - a real reversal, not just a smaller number.
+
+Followed up by finding each book's own minimum starting capital where
+NO real historical trade would have been skipped for insufficient
+cash (binary-swept per book): the 4 currently-profitable books need
+surprisingly little - oi_footprint/NIFTY Rs 11,000 (still +22.4% ROI
+at that level), simple_st1_threshold/NIFTY Rs 11,000 (+18.0%),
+st2_threshold/NIFTY Rs 11,500 (+14.4%), oi_footprint/BANKNIFTY
+Rs 23,000 (+7.7%). The currently-losing books need far more capital
+just to stop skipping trades (Rs 18,500-93,500) and remain net-
+negative even then - more capital does not fix a book with no real
+edge, it just lets it lose money without missing trades.
+
+==================================================
+
+STAGED CAPITAL PLAN - TIMELINE CONFIRMED, 14-Aug - the user set an
+explicit 2-month timeline on top of the existing performance-gated
+Stage 2/3 plan: Month 1 = current local/GitHub-Actions paper trading
+(already running); Month 2 = repeat paper trading on the Vultr Mumbai
+VPS + Firebase (Stage 2 build) to prove out reliability/latency in
+the real deployment environment, not just locally; only after both
+months does Stage 3 (real capital) begin. This is a fixed-time floor
+on top of the existing performance gate (oi_footprint reaching a
+trustworthy ~80-100 trade sample) - both conditions need to hold
+before Stage 3, not just one.
+
+If the currently-strongest 2-3 books (oi_footprint/NIFTY, simple_st1_
+threshold/NIFTY, st2_threshold/NIFTY) hold up through both months,
+Stage 3 would start ONLY those proven books with real capital, sized
+per the minimum-capital finding above (~Rs 11,000-15,000 each, ~Rs
+25,000-35,000 combined) - not the full 33-book portfolio. The rest
+keep running as paper trading.
+
+Re-confirmed the same day: the "Claude never executes a real trade"
+rule (see Development Rules below) governs Claude's own actions in
+any session, not what the deployed, unattended TURION automation is
+eventually allowed to do once Live Trading is proven - the documented
+Algorithmic Trading milestone (fully autonomous, user-supervised) is
+still the intended final stage, reached only after Live Trading
+(user-approved per-order) has itself run on real capital first. No
+change to the milestone sequence, just confirming Claude's role stays
+build/improve/backtest/analyze throughout, on both sides of that line.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
@@ -4069,11 +4137,11 @@ Status
 
 Current Version
 
-v0.0.26
+v0.0.27
 
 Next Version
 
-v0.0.27
+v0.0.28
 
 ==================================================
 

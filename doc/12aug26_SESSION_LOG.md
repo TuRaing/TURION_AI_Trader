@@ -330,6 +330,33 @@ both written up in doc/PROJECT_STATUS.md.
    coordinates from a screenshot description is not reliable enough
    for this app's bottom nav, uiautomator's bounds are exact.
 
+✅ Replayed all 4 currently-profitable books' real closed-trade history
+   at Rs 10,000 starting capital (same lot-sizing formula + real
+   transaction-cost model as the live engines). Two findings: (1)
+   every BANKNIFTY book skipped 100% of trades - Rs 10,000 can't
+   afford even 1 lot given BANKNIFTY's lot size/premium, structurally
+   unusable at that capital regardless of edge; (2) NIFTY results
+   don't scale linearly - fixed per-order brokerage bites harder on
+   smaller trades, and st2_threshold/NIFTY actually flips from
+   +Rs 28,115 profit (Rs 1L capital) to -Rs 861 loss (Rs 10k capital).
+   Then found each book's own minimum capital with zero skipped
+   trades: oi_footprint/NIFTY and simple_st1_threshold/NIFTY need only
+   Rs 11,000, st2_threshold/NIFTY Rs 11,500, oi_footprint/BANKNIFTY
+   Rs 23,000 - all 4 stay profitable at their own minimum. Full
+   writeup in PROJECT_STATUS.md's "MINIMUM CAPITAL RETROSPECTIVE
+   REPLAY" entry.
+
+✅ User confirmed an explicit 2-month timeline on top of the existing
+   performance-gated Stage 2/3 plan: Month 1 = current local paper
+   trading, Month 2 = repeat paper trading on the VPS+Firebase Stage 2
+   build, only then Stage 3 (real capital) - both the time floor and
+   the performance gate (~80-100 trade sample) need to hold, not just
+   one. If the top 2-3 books hold up, Stage 3 would start ONLY those
+   books, sized per the minimum-capital finding above (~Rs 25,000-
+   35,000 combined for 2-3 books), not the full 33-book portfolio.
+   Full writeup in PROJECT_STATUS.md's "STAGED CAPITAL PLAN - TIMELINE
+   CONFIRMED" entry.
+
 ==================================================
 
 Next Session Priorities
