@@ -21,7 +21,7 @@ import 'fyers_login_screen.dart';
 // TEST DATA ONLY - every price here is a real Fyers quote, but these
 // are paper trades only, not live trading.
 
-const _strategyNames = ['simple_st1', 'st2', 'st3', 'st4', 'gapfill', 'vix_filter', 'oi_footprint', 'credit_spread', 'pcr_momentum', 'max_pain_drift'];
+const _strategyNames = ['simple_st1', 'st2', 'st3', 'st4', 'gapfill', 'vix_filter', 'oi_footprint', 'credit_spread', 'pcr_momentum', 'max_pain_drift', 'pcr_vix_combo'];
 
 // Added 06-Aug-2026 - one-line plain-language summary per strategy,
 // shown under its index tabs so it's clear what each is actually
@@ -37,6 +37,7 @@ const _strategyDescriptions = {
   'credit_spread': 'Premium विकतो (theta) - VIX high असतानाच, RSI दिशेने Bull Put/Bear Call spread (defined-risk, 2 legs). 50% credit वर बाहेर, 2x वर Stop-Loss.',
   'pcr_momentum': 'संपूर्ण option chain चा Put-Call OI Ratio किती वेगाने बदलतोय (+ volume confirmation) यावरून CE/PE.',
   'max_pain_drift': 'Max Pain strike (जिथे option विक्रेत्यांचं सर्वात कमी नुकसान) कुठल्या दिशेने सरकतोय त्यावरून CE/PE - फक्त expiry च्या 2 दिवस आधीच entry.',
+  'pcr_vix_combo': 'PCR Momentum + India VIX त्याच्याच 30-70 percentile band मध्ये (calm) असेल तरच entry - दोन signals एकत्र.',
 };
 
 // Added 08-Aug-2026 - vix_filter is BANKNIFTY-only (NIFTY was already

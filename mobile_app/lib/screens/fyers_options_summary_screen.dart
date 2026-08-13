@@ -52,6 +52,8 @@ const _books = [
   ('pcr_momentum', 'BANKNIFTY', 'banknifty'),
   ('max_pain_drift', 'NIFTY', 'nifty'),
   ('max_pain_drift', 'BANKNIFTY', 'banknifty'),
+  ('pcr_vix_combo', 'NIFTY', 'nifty'),
+  ('pcr_vix_combo', 'BANKNIFTY', 'banknifty'),
 ];
 
 class FyersOptionsSummaryScreen extends StatefulWidget {

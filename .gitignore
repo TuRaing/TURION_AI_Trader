@@ -86,3 +86,8 @@ reports/*.json
 !reports/fyers_options_pcr_momentum_banknifty_portfolio.json
 !reports/fyers_options_max_pain_drift_nifty_portfolio.json
 !reports/fyers_options_max_pain_drift_banknifty_portfolio.json
+# Added 13-Aug-2026 - pcr_vix_combo (strategy/fyers_options_pcr_vix_
+# combo.py), both indices - same tracked-for-state-persistence reason
+# as above. Deployed same day as built.
+!reports/fyers_options_pcr_vix_combo_nifty_portfolio.json
+!reports/fyers_options_pcr_vix_combo_banknifty_portfolio.json

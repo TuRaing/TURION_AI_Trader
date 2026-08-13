@@ -6,6 +6,7 @@ from strategy.fyers_options_oi_footprint import make_oi_footprint_config, check_
 from strategy.fyers_options_credit_spread import make_credit_spread_config, check_or_open as check_or_open_credit_spread
 from strategy.fyers_options_pcr_momentum import make_pcr_momentum_config, check_or_open as check_or_open_pcr_momentum
 from strategy.fyers_options_max_pain_drift import make_max_pain_drift_config, check_or_open as check_or_open_max_pain_drift
+from strategy.fyers_options_pcr_vix_combo import make_pcr_vix_combo_config, check_or_open as check_or_open_pcr_vix_combo
 
 # Added 06-Aug-2026 - the named-strategy roster for the multi-strategy
 # options paper trading the user asked for: several live strategies
@@ -147,6 +148,18 @@ PCR_MOMENTUM_BANKNIFTY = make_pcr_momentum_config("BANKNIFTY")
 MAX_PAIN_DRIFT_NIFTY = make_max_pain_drift_config("NIFTY")
 MAX_PAIN_DRIFT_BANKNIFTY = make_max_pain_drift_config("BANKNIFTY")
 
+# pcr_vix_combo - added AND deployed 13-Aug, same day, on the user's
+# own reasoning: no need to wait for pcr_momentum's own review before
+# also collecting real data on this combo in parallel - paper trading
+# carries zero real-money risk, and it's its own separate book. Reuses
+# pcr_momentum's chain-reading/classification logic unchanged, adds a
+# VIX calm-band ([30th,70th] percentile) gate on top - the same
+# validated condition fyers_options_vix_filter.py uses for RSI-
+# momentum, applied here to an OI-based signal instead. See fyers_
+# options_pcr_vix_combo.py for the full design.
+PCR_VIX_COMBO_NIFTY = make_pcr_vix_combo_config("NIFTY")
+PCR_VIX_COMBO_BANKNIFTY = make_pcr_vix_combo_config("BANKNIFTY")
+
 ALL_STRATEGIES = [
     (check_or_open_generic, SIMPLE_ST1_NIFTY),
     (check_or_open_generic, SIMPLE_ST1_BANKNIFTY),
@@ -177,4 +190,6 @@ ALL_STRATEGIES = [
     (check_or_open_pcr_momentum, PCR_MOMENTUM_BANKNIFTY),
     (check_or_open_max_pain_drift, MAX_PAIN_DRIFT_NIFTY),
     (check_or_open_max_pain_drift, MAX_PAIN_DRIFT_BANKNIFTY),
+    (check_or_open_pcr_vix_combo, PCR_VIX_COMBO_NIFTY),
+    (check_or_open_pcr_vix_combo, PCR_VIX_COMBO_BANKNIFTY),
 ]
