@@ -263,6 +263,20 @@ both written up in doc/PROJECT_STATUS.md.
    real negative finding in PROJECT_STATUS.md's "THETA-FILTER IDEA
    RETROSPECTIVELY TESTED - REJECTED" entry. Not applied to any code.
 
+✅ Same backtest-first method applied to a different idea: IV vs
+   Realized Volatility (is the option "expensive" relative to the
+   underlying's real recent movement). Genuinely promising for oi_
+   footprint specifically (IV/RV > 1.5 filter would have removed only
+   Rs 730 of oi_footprint/NIFTY's Rs 54,982 total profit while cutting
+   its weakest trades - close to a free lunch), but does NOT
+   generalize - tested across all 6 threshold-group books and found
+   it runs BACKWARDS on the 3 currently-good NIFTY-threshold books
+   (removes their BEST trades, 66.7-100% win rate, instead of the
+   worst). Full writeup in PROJECT_STATUS.md's "IV vs REALIZED
+   VOLATILITY RETROSPECTIVELY TESTED" entry. Kept as a documented
+   candidate for oi_footprint only, not implemented live yet (small
+   sample caution, same as everything else).
+
 ==================================================
 
 Next Session Priorities

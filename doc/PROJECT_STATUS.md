@@ -3870,6 +3870,57 @@ NIFTY's fade and the RSI-family's lack of edge.
 
 ==================================================
 
+IV vs REALIZED VOLATILITY RETROSPECTIVELY TESTED - PROMISING FOR
+oi_footprint ONLY, NOT GENERAL, 13-Aug - same "backtest before
+touching a working strategy" method as the Theta test above, applied
+to a different idea: is a currently-priced option "expensive" (its
+own implied_volatility() at entry, from stored Entry Premium/Spot/
+Strike/Symbol) relative to what the underlying has ACTUALLY been
+doing (a trailing 10-day realized/historical volatility computed from
+real NIFTY/BANKNIFTY daily closes)? Tested as an IV/RV ratio filter -
+skip a trade if the option looks overpriced relative to recent real
+movement.
+
+oi_footprint/NIFTY (27 trades) - GENUINELY PROMISING. At an IV/RV >
+1.5 threshold, the 5 trades that would have been filtered out
+contributed almost nothing (Rs +730 total, 40% win rate) while the 22
+kept trades captured 98.7% of all profit (Rs +54,252) at a BETTER win
+rate (63.6%) than the filtered-out group - a close to "free" filter,
+removing weak trades without sacrificing the strategy's real edge.
+oi_footprint/BANKNIFTY (9 trades, smaller sample) pointed the same
+direction at IV/RV > 1.2 (the 2 filtered trades were net NEGATIVE,
+the 7 kept trades' total PnL was actually HIGHER than the book's
+current unfiltered total).
+
+DOES NOT GENERALIZE - tested the same IV/RV filter across all 6
+threshold-group books with a usable sample (simple_st1_threshold,
+st2_threshold, st3_threshold x NIFTY/BANKNIFTY). Already-weak
+BANKNIFTY-threshold books stayed weak regardless of filtering (no
+rescue). More importantly, on the 3 currently-GOOD NIFTY-threshold
+books (simple_st1_threshold, st2_threshold, st3_threshold), the
+filter ran BACKWARDS at every tested threshold - the trades it would
+have removed were consistently the BEST-performing ones (66.7%-100%
+win rate), while the trades it would have kept had a WORSE win rate.
+Applying this filter to the RSI-momentum family would have actively
+hurt them, the opposite of oi_footprint's result.
+
+INTERPRETATION: IV/RV "option looks cheap/expensive" reasoning appears
+to be specifically meaningful for oi_footprint's own OI-based
+institutional-positioning signal, not a universal "good trade
+detector" - makes some intuitive sense, since RSI-momentum entries
+aren't reasoning about options pricing efficiency the same way OI-
+buildup entries implicitly might be. Reinforces the same lesson as
+the Theta test: a filter idea has to be validated PER STRATEGY, not
+assumed to transfer.
+
+DECISION: this IV/RV idea is promising enough to keep as a documented
+candidate for oi_footprint specifically (NOT the RSI-family), but NOT
+implemented live yet - same small-sample caution as everything else
+in this project (27 and 9 trades respectively). Revisit once more real
+oi_footprint trades accumulate.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
