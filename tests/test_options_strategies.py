@@ -1,20 +1,21 @@
 from strategy.options_strategies import ALL_STRATEGIES
 
 
-def test_all_strategies_has_25_books():
+def test_all_strategies_has_29_books():
     # 5 original strategies + 5 threshold variants (x 2 indices each) +
     # 1 BANKNIFTY-only vix_filter book + 2 oi_footprint books + 2
-    # credit_spread books.
-    assert len(ALL_STRATEGIES) == 25
+    # credit_spread books + 2 pcr_momentum books + 2 max_pain_drift
+    # books (both deployed 13-Aug, same day they were built).
+    assert len(ALL_STRATEGIES) == 29
 
 
 def test_original_books_have_no_daily_profit_lock():
-    # vix_filter and oi_footprint have no daily_profit_lock key at all
-    # (standalone strategies, not part of the make_strategy()/make_
-    # st4_config()/make_gapfill_config() family that offers that flag)
-    # - excluded here rather than asserting on a key they were never
-    # given.
-    standalone_names = {"vix_filter", "oi_footprint", "credit_spread"}
+    # vix_filter, oi_footprint, credit_spread, pcr_momentum, and
+    # max_pain_drift have no daily_profit_lock key at all (standalone
+    # strategies, not part of the make_strategy()/make_st4_config()/
+    # make_gapfill_config() family that offers that flag) - excluded
+    # here rather than asserting on a key they were never given.
+    standalone_names = {"vix_filter", "oi_footprint", "credit_spread", "pcr_momentum", "max_pain_drift"}
     originals = [
         cfg for _, cfg in ALL_STRATEGIES
         if cfg.get("group") != "threshold" and cfg["name"] not in standalone_names
@@ -43,6 +44,20 @@ def test_credit_spread_runs_on_both_indices():
 
     assert len(cs_books) == 2
     assert {cfg["index"] for cfg in cs_books} == {"NIFTY", "BANKNIFTY"}
+
+
+def test_pcr_momentum_runs_on_both_indices():
+    books = [cfg for _, cfg in ALL_STRATEGIES if cfg["name"] == "pcr_momentum"]
+
+    assert len(books) == 2
+    assert {cfg["index"] for cfg in books} == {"NIFTY", "BANKNIFTY"}
+
+
+def test_max_pain_drift_runs_on_both_indices():
+    books = [cfg for _, cfg in ALL_STRATEGIES if cfg["name"] == "max_pain_drift"]
+
+    assert len(books) == 2
+    assert {cfg["index"] for cfg in books} == {"NIFTY", "BANKNIFTY"}
 
 
 def test_threshold_books_all_have_daily_profit_lock_on():

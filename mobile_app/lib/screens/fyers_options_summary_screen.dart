@@ -48,6 +48,10 @@ const _books = [
   ('oi_footprint', 'BANKNIFTY', 'banknifty'),
   ('credit_spread', 'NIFTY', 'nifty'),
   ('credit_spread', 'BANKNIFTY', 'banknifty'),
+  ('pcr_momentum', 'NIFTY', 'nifty'),
+  ('pcr_momentum', 'BANKNIFTY', 'banknifty'),
+  ('max_pain_drift', 'NIFTY', 'nifty'),
+  ('max_pain_drift', 'BANKNIFTY', 'banknifty'),
 ];
 
 class FyersOptionsSummaryScreen extends StatefulWidget {

@@ -4,6 +4,8 @@ from strategy.fyers_options_gapfill import make_gapfill_config, check_or_open as
 from strategy.fyers_options_vix_filter import make_vix_filter_config, check_or_open as check_or_open_vix_filter
 from strategy.fyers_options_oi_footprint import make_oi_footprint_config, check_or_open as check_or_open_oi_footprint
 from strategy.fyers_options_credit_spread import make_credit_spread_config, check_or_open as check_or_open_credit_spread
+from strategy.fyers_options_pcr_momentum import make_pcr_momentum_config, check_or_open as check_or_open_pcr_momentum
+from strategy.fyers_options_max_pain_drift import make_max_pain_drift_config, check_or_open as check_or_open_max_pain_drift
 
 # Added 06-Aug-2026 - the named-strategy roster for the multi-strategy
 # options paper trading the user asked for: several live strategies
@@ -128,6 +130,23 @@ OI_FOOTPRINT_BANKNIFTY = make_oi_footprint_config("BANKNIFTY")
 CREDIT_SPREAD_NIFTY = make_credit_spread_config("NIFTY")
 CREDIT_SPREAD_BANKNIFTY = make_credit_spread_config("BANKNIFTY")
 
+# pcr_momentum + max_pain_drift - added 09-Aug (built), DEPLOYED
+# 13-Aug on the user's direct request: both were originally held back
+# from ALL_STRATEGIES pending the 14-Aug review, but since this is
+# paper trading (zero real-money risk) and each is its own separate
+# book (doesn't touch/contaminate any of the other 25 books' ongoing
+# comparison), the user asked to go live now instead of waiting - the
+# sooner real trades start, the sooner there's real data to judge them
+# by (same "wait for real data" principle, just no reason to also wait
+# on the calendar when waiting costs nothing here). See fyers_options_
+# pcr_momentum.py / fyers_options_max_pain_drift.py for the full
+# signal design - chain-wide PCR momentum + volume confirmation, and
+# Max Pain strike drift gated to near-expiry days, respectively.
+PCR_MOMENTUM_NIFTY = make_pcr_momentum_config("NIFTY")
+PCR_MOMENTUM_BANKNIFTY = make_pcr_momentum_config("BANKNIFTY")
+MAX_PAIN_DRIFT_NIFTY = make_max_pain_drift_config("NIFTY")
+MAX_PAIN_DRIFT_BANKNIFTY = make_max_pain_drift_config("BANKNIFTY")
+
 ALL_STRATEGIES = [
     (check_or_open_generic, SIMPLE_ST1_NIFTY),
     (check_or_open_generic, SIMPLE_ST1_BANKNIFTY),
@@ -154,4 +173,8 @@ ALL_STRATEGIES = [
     (check_or_open_oi_footprint, OI_FOOTPRINT_BANKNIFTY),
     (check_or_open_credit_spread, CREDIT_SPREAD_NIFTY),
     (check_or_open_credit_spread, CREDIT_SPREAD_BANKNIFTY),
+    (check_or_open_pcr_momentum, PCR_MOMENTUM_NIFTY),
+    (check_or_open_pcr_momentum, PCR_MOMENTUM_BANKNIFTY),
+    (check_or_open_max_pain_drift, MAX_PAIN_DRIFT_NIFTY),
+    (check_or_open_max_pain_drift, MAX_PAIN_DRIFT_BANKNIFTY),
 ]

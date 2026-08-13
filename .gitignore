@@ -78,3 +78,11 @@ reports/*.json
 # reason as above.
 !reports/fyers_options_credit_spread_nifty_portfolio.json
 !reports/fyers_options_credit_spread_banknifty_portfolio.json
+# Added 13-Aug-2026 - pcr_momentum (strategy/fyers_options_pcr_
+# momentum.py) and max_pain_drift (strategy/fyers_options_max_pain_
+# drift.py), both indices - same tracked-for-state-persistence reason
+# as above. Deployed same day as built, per the user's direct request.
+!reports/fyers_options_pcr_momentum_nifty_portfolio.json
+!reports/fyers_options_pcr_momentum_banknifty_portfolio.json
+!reports/fyers_options_max_pain_drift_nifty_portfolio.json
+!reports/fyers_options_max_pain_drift_banknifty_portfolio.json

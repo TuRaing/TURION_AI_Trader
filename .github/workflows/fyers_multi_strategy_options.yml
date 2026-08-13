@@ -25,7 +25,7 @@ on:
   workflow_dispatch:
     inputs:
       strategy:
-        description: 'Strategy name (simple_st1/st2/st3/st4/gapfill/vix_filter/oi_footprint/credit_spread), "threshold" (all 5 profit-lock variants), or "all"'
+        description: 'Strategy name (simple_st1/st2/st3/st4/gapfill/vix_filter/oi_footprint/credit_spread/pcr_momentum/max_pain_drift), "threshold" (all 5 profit-lock variants), or "all"'
         required: false
         default: 'all'
 
@@ -123,6 +123,10 @@ jobs:
           git add reports/fyers_options_oi_footprint_banknifty_portfolio.json || true
           git add reports/fyers_options_credit_spread_nifty_portfolio.json || true
           git add reports/fyers_options_credit_spread_banknifty_portfolio.json || true
+          git add reports/fyers_options_pcr_momentum_nifty_portfolio.json || true
+          git add reports/fyers_options_pcr_momentum_banknifty_portfolio.json || true
+          git add reports/fyers_options_max_pain_drift_nifty_portfolio.json || true
+          git add reports/fyers_options_max_pain_drift_banknifty_portfolio.json || true
           git add reports/fyers_candles.json || true
 
           if git diff --staged --quiet; then

@@ -43,14 +43,13 @@ from strategy.fyers_options_engine import (
 # and unit-tested (pure logic fully covered) instead, same path
 # oi_footprint took to going live.
 #
-# DELIBERATELY NOT WIRED INTO ANY cron-job.org TRIGGER YET - the user
-# asked for this to be built and ready, NOT deployed, per the already-
-# agreed "no new live experiments until the 14-Aug review" decision.
-# It IS registered in strategy/options_strategies.py's ALL_STRATEGIES
-# (matching every other strategy's convention) but since every current
-# cron-job.org job dispatches a SPECIFIC strategy name (never "all"),
-# adding it here does not cause it to start trading - it stays fully
-# inert until a trigger naming it explicitly is created.
+# DEPLOYED 13-Aug-2026 - built 09-Aug and initially held back from
+# ALL_STRATEGIES pending the 14-Aug review, but the user asked to go
+# live now instead of waiting: this is paper trading (zero real-money
+# risk) and its own separate book, so it doesn't contaminate any of
+# the other 25 books' ongoing comparison - no reason to wait on the
+# calendar when waiting costs nothing. Needs its own cron-job.org
+# trigger (STRATEGY_NAME="pcr_momentum") to actually start firing.
 
 MIN_PCR_CHANGE_PCT = 5.0    # minimum Put-Call OI ratio change (vs the
                               # last check) to treat as a real signal,

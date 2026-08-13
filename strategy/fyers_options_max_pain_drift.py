@@ -48,10 +48,11 @@ from strategy.fyers_data import parse_option_expiry
 # built and unit-tested as pure logic only, same path oi_footprint and
 # pcr_momentum took.
 #
-# DELIBERATELY NOT WIRED INTO ANY cron-job.org TRIGGER, and NOT added
-# to strategy/options_strategies.py's ALL_STRATEGIES - same "built and
-# tested, not deployed" holding pattern as pcr_momentum.py, pending a
-# deployment decision at/after the 14-Aug review.
+# DEPLOYED 13-Aug-2026 - built the same day, and immediately deployed
+# on the user's direct request (same reasoning as pcr_momentum.py's
+# matching note: paper trading, zero real-money risk, its own separate
+# book, no reason to wait on the calendar). Needs its own cron-job.org
+# trigger (STRATEGY_NAME="max_pain_drift") to actually start firing.
 
 CHAIN_STRIKE_COUNT = 15      # wide enough to see meaningful OI across
                               # the visible chain for a reasonable Max
