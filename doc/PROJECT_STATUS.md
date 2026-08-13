@@ -3724,6 +3724,111 @@ pcr_vix_combo) - the user's own manual step, can't be created via API.
 
 ==================================================
 
+FOURTH STATISTICAL PASS - MARKET-DIRECTION BIAS, SORTINO, ULCER INDEX,
+PROFIT FACTOR, ANNUALIZED SHARPE, 13-Aug - user asked what "extremely
+accurate" institutional formulas exist beyond the first 3 passes; this
+round specifically targets a question none of the earlier passes
+answered: is a book's good result really independent signal skill, or
+a hidden directional bet that happened to ride a favorable market move?
+
+MARKET-DIRECTION BIAS (correlation between each book's daily PnL and
+its own index's daily % return, using real NIFTY/BANKNIFTY daily
+closes) - the standout finding: oi_footprint/BANKNIFTY (Rs +11,891,
+previously this system's 2nd-best book) is 0.82 correlated with
+BANKNIFTY's own daily direction - a real caution that a meaningful
+part of its result may be "BANKNIFTY happened to trend favorably this
+week" rather than pure OI-signal skill. By contrast oi_footprint/
+NIFTY (-0.16) and simple_st1_threshold/NIFTY (0.02) show near-zero
+market correlation - genuinely direction-independent, more trustworthy
+by this specific test. CONCLUSION: oi_footprint/BANKNIFTY needs to be
+watched specifically for whether it still performs if/when BANKNIFTY's
+own trend reverses, not just judged on total PnL - not disqualifying,
+but a real asterisk on an otherwise-strong book.
+
+SORTINO RATIO (downside-deviation-only risk) - the 4 already-known-good
+books (oi_footprint both, simple_st1_threshold/NIFTY, st2_threshold/
+NIFTY) are literally undefined (n/a) because NONE of their trading
+days have been net-negative yet - a genuinely strong signal in its own
+right, though a small-sample one. Every proven-weak book scores
+consistently negative (-0.29 to -0.76).
+
+ULCER INDEX (drawdown depth AND duration, not just the single worst
+point like Max Drawdown) - same 4 good books score 1.15-8.41 (low/
+good), every weak book scores 19-52 (high/bad) - a wide, clean
+separation, reconfirming the same grouping via a genuinely different
+lens (sustained pain, not just the worst single moment).
+
+PROFIT FACTOR (gross profit / gross loss) - the 4 good books score
+1.41-3.01 (all >1, profitable), every weak book scores 0.47-0.89 (all
+<1, structurally losing) - clean, simple confirmation.
+
+ANNUALIZED SHARPE (daily Sharpe x sqrt(252)) - the 4 good books show
+14-43, the weak books -4 to -16. CAVEAT stated explicitly: these are
+annualized from only ~4-5 real trading days of daily-PnL history, so
+the sqrt(252) scaling amplifies noise heavily - the DIRECTION (good
+books positive and high, weak books negative) is meaningful, but the
+exact magnitude (e.g. "42") should not be read as literally comparable
+to real fund Sharpe ratios yet - needs many more trading days before
+the annualized number itself is trustworthy.
+
+==================================================
+
+HOW ALL THESE STATISTICAL TOOLS GET USED GOING FORWARD - user asked
+directly, since by this point ~15 different formulas/tests have been
+computed across 4 analysis passes. Organized by actual project
+decision point (not just "we ran the numbers once"):
+
+1. SCREENING / RANKING books (ongoing, re-run periodically e.g. at
+   14-Aug and later review points) - Expectancy, Profit Factor, Sharpe/
+   Sortino/Calmar together form the primary "is this book good"
+   scorecard. A book needs to look good across MULTIPLE of these, not
+   just one, before being trusted (oi_footprint/BANKNIFTY looking good
+   on Sharpe/Ulcer/Profit-Factor but flagged on market-correlation is
+   exactly why - one strong metric alone isn't enough).
+
+2. STATISTICAL CONFIDENCE GATING (deciding when a sample is big enough
+   to act on, e.g. before Stage 2 VPS migration or Stage 3 real
+   capital) - Wilson 95% Confidence Interval on win rate + the one-
+   sample t-test on Expectancy formalize "how many trades is enough"
+   instead of a rule-of-thumb "30-50 trades".
+
+3. POSITION SIZING / RISK LIMITS (once a book is trusted enough to
+   size real capital into - Stage 3/4 of the real-capital roadmap) -
+   Kelly Criterion (Half-Kelly in practice) for per-trade sizing, VaR/
+   CVaR for a formal daily loss limit, Risk-Parity weights for how to
+   split capital ACROSS multiple trusted books instead of flat equal
+   amounts.
+
+4. ONGOING ROBUSTNESS MONITORING (catching decay/curve-fit EARLY,
+   re-run periodically on every book with a growing sample) - Walk-
+   Forward (first-half vs second-half) split testing is what actually
+   caught st3_threshold/NIFTY's fade - this needs to be re-run
+   periodically on every book, not just once, since any book's edge
+   could fade the same way as more trades accumulate. Monte Carlo
+   reshuffling re-checked periodically to track ruin risk as the trade
+   count grows. Autocorrelation used specifically to tune a future
+   Loss-lock's parameters per-strategy (already on the 14-Aug list).
+
+5. PORTFOLIO-LEVEL RISK (across books, not within one - feeds directly
+   into the deferred Portfolio-level Aggregation architecture
+   decision) - the Correlation matrix between books' daily PnL (found
+   several BANKNIFTY threshold books 0.99-1.00 correlated - not real
+   diversification).
+
+6. MARKET-DIRECTION BIAS CHECK (new this pass) - re-run periodically
+   alongside the other robustness checks, since a book could develop a
+   hidden directional bias over time even if it started unbiased -
+   distinguishes genuine mechanism-based skill from "got lucky riding
+   a trend", directly informs how much to trust a book's headline PnL
+   number at face value.
+
+None of this is a one-time exercise - the plan is to re-run this same
+battery of tests at each future review point (14-Aug and beyond) as
+each book's sample grows, not just report today's snapshot once and
+move on.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.

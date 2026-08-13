@@ -228,6 +228,29 @@ both written up in doc/PROJECT_STATUS.md.
    oi_footprint (proven), pcr_momentum, max_pain_drift, pcr_vix_combo
    (the latter 3 all deployed 13-Aug, real data still to come).
 
+✅ On-device verification of the whole rollout via adb (screenshot the
+   real phone) - confirmed all 3 new strategy tabs render correctly in
+   the app with correct descriptions, and caught + fixed a real stale-
+   text bug along the way (Options tab banner still said "7 strategies"
+   - now says 11). Rebuilt and reinstalled the APK, reverified on
+   device. Committed and pushed.
+
+✅ Fourth statistical pass: market-direction bias (correlation to the
+   underlying's own daily return), Sortino Ratio, Ulcer Index, Profit
+   Factor, and properly annualized Sharpe - full writeup in PROJECT_
+   STATUS.md's "FOURTH STATISTICAL PASS" entry. Headline finding: oi_
+   footprint/BANKNIFTY (previously the 2nd-best book) is 0.82
+   correlated with BANKNIFTY's own daily direction - a real caution
+   that part of its result may be riding a favorable trend rather than
+   pure signal skill, unlike oi_footprint/NIFTY (-0.16) and simple_
+   st1_threshold/NIFTY (0.02) which look genuinely direction-
+   independent. Also wrote up a "HOW ALL THESE STATISTICAL TOOLS GET
+   USED GOING FORWARD" entry mapping each of the ~15 formulas computed
+   across 4 passes to a concrete, recurring project decision point
+   (screening, confidence-gating, position-sizing, robustness
+   monitoring, portfolio-level risk, market-bias checking) - not a
+   one-time exercise, meant to be re-run at every future review point.
+
 ==================================================
 
 Next Session Priorities
