@@ -3313,6 +3313,52 @@ testing) - roughly 2-4 focused days, not a quick add-on.
 
 ==================================================
 
+REAL-CAPITAL ROADMAP - 4 STAGES, 13-Aug - user's own staged plan,
+agreed after the threshold-group trade-by-trade analysis above
+(discussing which strategies show real edge vs small-sample luck).
+Each stage is CONDITIONAL on the previous one succeeding, deliberately
+no fixed calendar dates attached - matches this whole project's
+established "prove it with real data before proceeding" discipline
+(same reasoning as the 14-Aug review, the VIX-filter/credit-spread
+later-review-point, etc.):
+
+1. CURRENT - 25-book paper trading on the existing periodic-check
+   (~1-5 min poll) cadence, to find out which strategies have a real
+   edge vs which don't. Review point 14-Aug for the strategies with
+   enough sample by then (see the per-strategy trade-count/day
+   estimates above); vix_filter/credit_spread need their own later
+   point (~September pace).
+
+2. VPS + FIREBASE LIVE-DATA ARCHITECTURE (see above) - build once a
+   strategy is close to a trustworthy sample (oi_footprint is
+   furthest along - see the trade-count section above), then run
+   ONLY the strategies that already proved real edge in Stage 1
+   (NOT all 25 books - no reason to re-test already-disproven RSI
+   variants like st2/NIFTY, simple_st1/NIFTY, or the BANKNIFTY RSI
+   legs) for another ~1 month of paper trading on the new event-driven
+   (real-tick, near-zero overshoot) architecture - this re-validates
+   whether the improved execution accuracy changes the realized
+   Target/Stop-Loss ratios measured under the old polling cadence
+   (see the "Overshoot" discussion - NIFTY st2_threshold's realized
+   1.7:1 ratio vs its nominal 5%/2% config, for example).
+
+3. REAL ORDER EXECUTION (OMS) + Rs 10,000 LIVE TEST - Stage 2 succeeding
+   is the trigger, no fixed date. Real broker order-placement code does
+   NOT exist anywhere in this project yet (paper-only so far, see GAPS
+   VS A PROFESSIONAL ALGO TRADING SYSTEM above) - this is "genuinely
+   months of work, should NOT be rushed" per that same list, needs to
+   be built and safety-tested BEFORE any real order goes out. Once
+   built, run with real Rs 10,000 for ~1 month as a small-scale live
+   validation before committing more capital.
+
+4. Rs 1,00,000 LIVE TRADING - only after Stage 3 succeeds.
+
+Claude never executes a real trade itself at any stage - the final
+action is always the user's, even once broker order-placement exists
+(per this file's own DEVELOPMENT RULES, unchanged).
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
