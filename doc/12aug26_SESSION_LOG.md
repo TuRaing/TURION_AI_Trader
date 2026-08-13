@@ -251,6 +251,18 @@ both written up in doc/PROJECT_STATUS.md.
    monitoring, portfolio-level risk, market-bias checking) - not a
    one-time exercise, meant to be re-run at every future review point.
 
+✅ Discussed a real-time per-trade Theta filter idea (skip entries
+   where Theta decay is too severe relative to remaining time), and
+   the user asked NOT to apply it directly to the currently-working
+   oi_footprint - backtest first. Good call: a genuine retrospective
+   test was possible (oi_footprint's own closed trades already store
+   everything implied_volatility()/black_scholes_greeks() need) and
+   it showed the filter would have REMOVED oi_footprint/NIFTY's BEST
+   trades (the 12 near-expiry ones contributed 65% of all profit at a
+   66.7% win rate, better than the rest) - rejected, documented as a
+   real negative finding in PROJECT_STATUS.md's "THETA-FILTER IDEA
+   RETROSPECTIVELY TESTED - REJECTED" entry. Not applied to any code.
+
 ==================================================
 
 Next Session Priorities

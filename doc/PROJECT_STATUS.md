@@ -3829,6 +3829,47 @@ move on.
 
 ==================================================
 
+THETA-FILTER IDEA RETROSPECTIVELY TESTED - REJECTED, 13-Aug - after
+discussing a real-time per-trade filter idea (skip an entry if Theta
+decay is too severe relative to the option's remaining time, using
+the same-day implied_volatility()/black_scholes_greeks() work), the
+user explicitly asked NOT to apply it directly to the currently-
+working oi_footprint - backtest first. Good instinct, confirmed by
+the data.
+
+METHOD: a genuine retrospective test WAS possible here (unlike the
+project's usual "no historical option-chain data exists" blocker) -
+oi_footprint's own already-closed trades already store Entry Time,
+Entry Premium, Entry Spot, Strike, and Symbol (which parse_option_
+expiry() turns into an expiry date), which is exactly what implied_
+volatility() + black_scholes_greeks() need. Computed each closed
+trade's OWN implied Theta at its own entry moment, no assumptions
+needed.
+
+RESULT: REJECTED. For oi_footprint/NIFTY (27 trades), the 12 trades
+taken 0.24-0.49 days from expiry (same/next-day) showed extreme
+Theta (96-203% of premium per day, as expected right before
+settlement) - but these were NOT the bad trades: they contributed
+Rs +35,970 of the book's total Rs +54,982 (65% of all profit) at a
+66.7% win rate, both BETTER than the 15 trades taken further from
+expiry. A Theta-based filter at any tested threshold (5-20%) would
+have REMOVED the strategy's BEST trades, not its worst ones - likely
+because near-expiry ATM options also carry sharper Delta, and a
+correct directional call's gain outweighs the faster Theta decay when
+the signal is right. For oi_footprint/BANKNIFTY (9 trades, all 13-15
+days from expiry since BANKNIFTY is monthly-only), the filter would
+have changed nothing either way - too far from expiry for Theta to
+matter at any tested threshold.
+
+DECISION: do NOT add this filter to oi_footprint. The general Theta-
+awareness idea isn't necessarily wrong for every strategy, but this
+specific retrospective test showed it would have hurt oi_footprint's
+real results - a genuine negative finding, same "test before touching
+a working strategy" discipline that already caught st3_threshold/
+NIFTY's fade and the RSI-family's lack of edge.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
