@@ -69,7 +69,7 @@ class FyersMultiStrategyOptionsScreen extends StatefulWidget {
     this.strategyNames = _strategyNames,
     this.strategyDescriptions = _strategyDescriptions,
     this.bannerText =
-        '7 strategies, each with its own ₹1,00,000 (vix_filter is BANKNIFTY-only) - real live premium quotes, paper trades only.',
+        '11 strategies, each with its own ₹1,00,000 (vix_filter is BANKNIFTY-only) - real live premium quotes, paper trades only.',
   });
 
   @override
