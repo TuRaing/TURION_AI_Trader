@@ -159,7 +159,7 @@ def _classify_buildup(previous, current):
     return None
 
 
-def _close_position(cfg, portfolio, exit_premium, reason):
+def _close_position(cfg, portfolio, exit_premium, reason, exit_spot=None):
 
     position = portfolio["Position"]
     net_pnl = _net_pnl(cfg, position["Entry Premium"], exit_premium, position["Lots"])
@@ -173,6 +173,8 @@ def _close_position(cfg, portfolio, exit_premium, reason):
         "Entry Time": position["Entry Time"],
         "Entry Premium": position["Entry Premium"],
         "Entry Spot": position.get("Entry Spot"),
+        # Added 13-Aug-2026 - see fyers_options_engine.py's matching note.
+        "Exit Spot": exit_spot,
         "Entry CE OI": position.get("Entry CE OI"),
         "Entry PE OI": position.get("Entry PE OI"),
         "Exit Time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -195,19 +197,22 @@ def _check_position(cfg, portfolio):
     quote = _fetch_quote(position["Symbol"])
     current_premium = quote.get("lp") or (quote.get("bid", 0) + quote.get("ask", 0)) / 2
 
+    underlying_quote = _fetch_quote(cfg["underlying_symbol"])
+    current_spot = underlying_quote.get("lp") or (underlying_quote.get("bid", 0) + underlying_quote.get("ask", 0)) / 2
+
     net_pnl = _net_pnl(cfg, position["Entry Premium"], current_premium, position["Lots"])
 
     now_ist = datetime.datetime.now(IST)
     past_squareoff = (now_ist.hour, now_ist.minute) >= SQUAREOFF_TIME
 
     if net_pnl >= TARGET_RUPEES:
-        return _close_position(cfg, portfolio, current_premium, "Target")
+        return _close_position(cfg, portfolio, current_premium, "Target", current_spot)
 
     if net_pnl <= -STOP_LOSS_RUPEES:
-        return _close_position(cfg, portfolio, current_premium, "Stop Loss")
+        return _close_position(cfg, portfolio, current_premium, "Stop Loss", current_spot)
 
     if past_squareoff:
-        return _close_position(cfg, portfolio, current_premium, "Square-Off")
+        return _close_position(cfg, portfolio, current_premium, "Square-Off", current_spot)
 
     position["Last Premium"] = current_premium
     position["Last Checked"] = now_ist.strftime("%Y-%m-%d %H:%M:%S")

@@ -136,7 +136,7 @@ def _trailing_stop_hit(option_type, current_spot, peak_spot, trail_distance):
     return current_spot >= (peak_spot + trail_distance)
 
 
-def _close_position(cfg, portfolio, exit_premium, reason):
+def _close_position(cfg, portfolio, exit_premium, reason, exit_spot=None):
 
     position = portfolio["Position"]
     net_pnl = _net_pnl(cfg, position["Entry Premium"], exit_premium, position["Lots"])
@@ -155,6 +155,10 @@ def _close_position(cfg, portfolio, exit_premium, reason):
         # trailing behind, useful chart context for st4 specifically.
         "Entry Spot": position.get("Entry Spot"),
         "Peak Spot": position.get("Peak Spot"),
+        # Added 13-Aug-2026 - see fyers_options_engine.py's matching
+        # note - needed to later split a premium move into its Delta
+        # vs Theta component.
+        "Exit Spot": exit_spot,
         # Stored as naive/local time (UTC on the GitHub Actions runner),
         # matching every other engine's convention - see the same-day
         # fix note in fyers_options_paper_trading.py.
@@ -204,17 +208,17 @@ def _check_position(cfg, portfolio):
         trail_distance = TRAIL_ATR_MULT * position["Entry ATR"]
 
         if _trailing_stop_hit(option_type, current_spot, position["Peak Spot"], trail_distance):
-            return _close_position(cfg, portfolio, current_premium, "Trailing Stop")
+            return _close_position(cfg, portfolio, current_premium, "Trailing Stop", current_spot)
 
     else:
 
         net_pnl_pct = net_pnl / cfg["initial_capital"] * 100
 
         if net_pnl_pct <= -INITIAL_STOP_LOSS_PCT:
-            return _close_position(cfg, portfolio, current_premium, "Stop Loss")
+            return _close_position(cfg, portfolio, current_premium, "Stop Loss", current_spot)
 
     if past_squareoff:
-        return _close_position(cfg, portfolio, current_premium, "Square-Off")
+        return _close_position(cfg, portfolio, current_premium, "Square-Off", current_spot)
 
     position["Last Premium"] = current_premium
     position["Last Spot"] = current_spot

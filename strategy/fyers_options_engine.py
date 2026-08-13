@@ -271,7 +271,7 @@ def _open_position(cfg, portfolio):
     return portfolio, f"OPENED {option_type} {leg['strike_price']} @ {entry_premium}"
 
 
-def _close_position(cfg, portfolio, exit_premium, reason):
+def _close_position(cfg, portfolio, exit_premium, reason, exit_spot=None):
 
     position = portfolio["Position"]
     net_pnl = _net_pnl(cfg, position["Entry Premium"], exit_premium, position["Lots"])
@@ -291,6 +291,13 @@ def _close_position(cfg, portfolio, exit_premium, reason):
         "Entry Spot": position.get("Entry Spot"),
         "Exit Time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "Exit Premium": exit_premium,
+        # Added 13-Aug-2026 - needed (alongside Entry Spot) to later
+        # separate a premium move into its direction-driven (Delta) vs
+        # time-driven (Theta) component - impossible to do after the
+        # fact without this, and Fyers' option-chain API doesn't return
+        # IV directly (confirmed via Fyers' own community forum), so
+        # this is the other half of that future analysis.
+        "Exit Spot": exit_spot,
         "Lots": position["Lots"],
         "Exit Reason": reason,
         "Net PnL": round(net_pnl, 2),
@@ -308,6 +315,9 @@ def _check_position(cfg, portfolio):
     quote = _fetch_quote(position["Symbol"])
     current_premium = quote.get("lp") or (quote.get("bid", 0) + quote.get("ask", 0)) / 2
 
+    underlying_quote = _fetch_quote(cfg["underlying_symbol"])
+    current_spot = underlying_quote.get("lp") or (underlying_quote.get("bid", 0) + underlying_quote.get("ask", 0)) / 2
+
     net_pnl = _net_pnl(cfg, position["Entry Premium"], current_premium, position["Lots"])
     net_pnl_pct = net_pnl / cfg["initial_capital"] * 100
 
@@ -315,13 +325,13 @@ def _check_position(cfg, portfolio):
     past_squareoff = (now_ist.hour, now_ist.minute) >= cfg["squareoff_time"]
 
     if net_pnl_pct >= cfg["target_net_pct"]:
-        return _close_position(cfg, portfolio, current_premium, "Target")
+        return _close_position(cfg, portfolio, current_premium, "Target", current_spot)
 
     if net_pnl_pct <= -cfg["stop_loss_pct"]:
-        return _close_position(cfg, portfolio, current_premium, "Stop Loss")
+        return _close_position(cfg, portfolio, current_premium, "Stop Loss", current_spot)
 
     if past_squareoff:
-        return _close_position(cfg, portfolio, current_premium, "Square-Off")
+        return _close_position(cfg, portfolio, current_premium, "Square-Off", current_spot)
 
     position["Last Premium"] = current_premium
     position["Last Checked"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")

@@ -274,7 +274,7 @@ def _stop_loss_hit(entry_credit, cost_to_close_now):
     return cost_to_close_now >= entry_credit * STOP_LOSS_CREDIT_MULT
 
 
-def _close_position(cfg, portfolio, short_close_premium, long_close_premium, reason):
+def _close_position(cfg, portfolio, short_close_premium, long_close_premium, reason, exit_spot=None):
 
     position = portfolio["Position"]
 
@@ -297,6 +297,8 @@ def _close_position(cfg, portfolio, short_close_premium, long_close_premium, rea
         "Entry Time": position["Entry Time"],
         "Entry Credit": position["Entry Credit"],
         "Entry Spot": position.get("Entry Spot"),
+        # Added 13-Aug-2026 - see fyers_options_engine.py's matching note.
+        "Exit Spot": exit_spot,
         "Exit Time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "Short Close Premium": short_close_premium,
         "Long Close Premium": long_close_premium,
@@ -321,6 +323,9 @@ def _check_position(cfg, portfolio):
     short_now = short_quote.get("lp") or (short_quote.get("bid", 0) + short_quote.get("ask", 0)) / 2
     long_now = long_quote.get("lp") or (long_quote.get("bid", 0) + long_quote.get("ask", 0)) / 2
 
+    underlying_quote = _fetch_quote(cfg["underlying_symbol"])
+    current_spot = underlying_quote.get("lp") or (underlying_quote.get("bid", 0) + underlying_quote.get("ask", 0)) / 2
+
     cost_to_close_now = short_now - long_now  # per share, same units as Entry Credit
     entry_credit = position["Entry Credit"]
 
@@ -328,13 +333,13 @@ def _check_position(cfg, portfolio):
     past_squareoff = (now_ist.hour, now_ist.minute) >= SQUAREOFF_TIME
 
     if _target_hit(entry_credit, cost_to_close_now):
-        return _close_position(cfg, portfolio, short_now, long_now, "Target (50% of credit)")
+        return _close_position(cfg, portfolio, short_now, long_now, "Target (50% of credit)", current_spot)
 
     if _stop_loss_hit(entry_credit, cost_to_close_now):
-        return _close_position(cfg, portfolio, short_now, long_now, "Stop Loss (2x credit)")
+        return _close_position(cfg, portfolio, short_now, long_now, "Stop Loss (2x credit)", current_spot)
 
     if past_squareoff:
-        return _close_position(cfg, portfolio, short_now, long_now, "Square-Off")
+        return _close_position(cfg, portfolio, short_now, long_now, "Square-Off", current_spot)
 
     position["Last Cost To Close"] = round(cost_to_close_now, 2)
     position["Last Checked"] = now_ist.strftime("%Y-%m-%d %H:%M:%S")

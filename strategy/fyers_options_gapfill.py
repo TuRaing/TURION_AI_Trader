@@ -157,7 +157,7 @@ def _stop_loss_hit(option_type, current_spot, stop_loss_spot):
     return current_spot <= stop_loss_spot
 
 
-def _close_position(cfg, portfolio, exit_premium, reason):
+def _close_position(cfg, portfolio, exit_premium, reason, exit_spot=None):
 
     position = portfolio["Position"]
     net_pnl = _net_pnl(cfg, position["Entry Premium"], exit_premium, position["Lots"])
@@ -171,6 +171,8 @@ def _close_position(cfg, portfolio, exit_premium, reason):
         "Entry Time": position["Entry Time"],
         "Entry Premium": position["Entry Premium"],
         "Entry Spot": position.get("Entry Spot"),
+        # Added 13-Aug-2026 - see fyers_options_engine.py's matching note.
+        "Exit Spot": exit_spot,
         "Gap %": position.get("Gap %"),
         "Exit Time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "Exit Premium": exit_premium,
@@ -201,13 +203,13 @@ def _check_position(cfg, portfolio):
     past_squareoff = (now_ist.hour, now_ist.minute) >= SQUAREOFF_TIME
 
     if _target_hit(option_type, current_spot, position["Target Spot"]):
-        return _close_position(cfg, portfolio, current_premium, "Target")
+        return _close_position(cfg, portfolio, current_premium, "Target", current_spot)
 
     if _stop_loss_hit(option_type, current_spot, position["Stop Loss Spot"]):
-        return _close_position(cfg, portfolio, current_premium, "Stop Loss")
+        return _close_position(cfg, portfolio, current_premium, "Stop Loss", current_spot)
 
     if past_squareoff:
-        return _close_position(cfg, portfolio, current_premium, "Square-Off")
+        return _close_position(cfg, portfolio, current_premium, "Square-Off", current_spot)
 
     position["Last Premium"] = current_premium
     position["Last Spot"] = current_spot
