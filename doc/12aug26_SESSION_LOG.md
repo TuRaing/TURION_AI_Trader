@@ -152,6 +152,20 @@ both written up in doc/PROJECT_STATUS.md.
    st2_threshold/NIFTY held up best - second half as strong or stronger
    than the first.
 
+✅ Third statistical pass: VaR/CVaR, Calmar Ratio, Risk-Parity
+   (inverse-volatility) weights, and a holding-duration proxy for
+   options Greeks - full writeup in PROJECT_STATUS.md's "THIRD
+   STATISTICAL PASS - INSTITUTIONAL-STYLE METRICS" entry. Confirmed
+   true Delta/Theta/Vega decomposition isn't possible from current
+   trade data (no Exit Spot or implied volatility stored) - flagged as
+   a future data-collection improvement rather than faked. Calmar
+   Ratio and VaR95 both reconfirm oi_footprint as the standout (Calmar
+   4.46-5.23, positive VaR95 even on bad days). Risk-Parity weights
+   illustrate (not implemented) what capital allocation would look
+   like if sized by risk instead of flat Rs 1L each - oi_footprint/
+   BANKNIFTY would get ~15.6% of pooled capital, st3_threshold/NIFTY
+   (already dropped) would get the least at 2.3%.
+
 ==================================================
 
 Next Session Priorities

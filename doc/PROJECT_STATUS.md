@@ -3513,6 +3513,57 @@ halves - already-known verdicts, reconfirmed, no surprises.
 
 ==================================================
 
+THIRD STATISTICAL PASS - INSTITUTIONAL-STYLE METRICS, 13-Aug - user
+asked what "extremely accurate" formulas big hedge funds/institutions
+use. Answered honestly first: no formula predicts markets accurately -
+institutional tools are about RISK MANAGEMENT and PORTFOLIO
+CONSTRUCTION, not prediction (consistent with this whole project's
+repeated finding that pattern-prediction signals don't hold up).
+Computed the genuinely applicable ones on real data: VaR/CVaR, Calmar
+Ratio, Risk-Parity (inverse-volatility) position weights, and a rough
+holding-duration proxy for options Greeks (true Delta/Theta/Vega
+decomposition is NOT possible from current data - Closed Trades store
+Entry Spot but not Exit Spot, and no implied volatility is stored, so
+premium change can't be split into direction-driven vs time-driven
+components; flagged as a future data-collection improvement, not
+attempted with unsupported assumptions).
+
+CALMAR RATIO (total return % / max drawdown %) - oi_footprint/
+BANKNIFTY (5.23) and oi_footprint/NIFTY (4.46) are far ahead of
+everything else, consistent with their already-strong Sharpe/
+Expectancy standing. Every RSI-based book without a proven edge scores
+negative.
+
+VaR 95% / CVaR 95% (worst ~5% of trading days, daily PnL) - oi_
+footprint (both) and the promising threshold-NIFTY books show
+POSITIVE VaR95 (Rs +2,000 to +7,700) - i.e. even their bad days were
+historically often still profitable. Every proven-weak book shows
+large negative VaR95 (Rs -19,000 to -52,000 on a bad day). CAVEAT:
+daily sample sizes are still small enough that VaR95 and CVaR95 came
+out numerically identical for most books (the "5th percentile" calc
+just lands on the single worst day recorded) - this will sharpen once
+more trading days accumulate, not yet a fully robust institutional-
+grade VaR.
+
+RISK-PARITY WEIGHTS (inverse daily-volatility, illustrative only - NOT
+implemented in any live strategy) - shows what capital allocation
+would look like if sized by each book's own risk instead of the
+current flat Rs 1,00,000 each: oi_footprint/BANKNIFTY would get the
+most (15.6% of a pooled Rs 25L), st3_threshold/NIFTY the least (2.3%,
+both because of its high volatility and its already-confirmed faded
+edge). Directly illustrates the already-flagged "Capital allocation"
+gap vs a professional system (see GAPS VS A PROFESSIONAL ALGO TRADING
+SYSTEM above) - not built, just quantified for future reference.
+
+HOLDING DURATION (win vs loss average, rough theta-decay proxy) - no
+clean universal pattern found (some books show losses held LONGER
+than wins - consistent with a time-decay drag; others show the
+opposite) - genuinely inconclusive with current data, do not over-
+read this proxy. A real answer needs Exit Spot + implied volatility
+stored per trade going forward.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
