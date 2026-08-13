@@ -110,6 +110,21 @@ both written up in doc/PROJECT_STATUS.md.
    - no fixed calendar dates, matching this whole project's established
    discipline of only proceeding once real data justifies it.
 
+✅ Formal statistical pass across all 25 books (Expectancy, Wilson 95%
+   Confidence Interval on win rate, Sharpe Ratio, Max Drawdown, and
+   cross-strategy Correlation) - user asked directly, one-off analysis
+   script over existing Closed Trades data, no code/live-strategy
+   changes. Full writeup in PROJECT_STATUS.md's new "STATISTICAL
+   ANALYSIS ACROSS ALL 25 BOOKS" entry. Headline findings: only 4 of
+   25 books have positive expectancy (simple_st1_threshold/NIFTY,
+   oi_footprint/NIFTY, oi_footprint/BANKNIFTY, st2_threshold/NIFTY);
+   oi_footprint/NIFTY has the best Sharpe (2.69) of anything in the
+   system; and a NEW, actionable finding - simple_st1_threshold, st2_
+   threshold, and st3_threshold on BANKNIFTY are 0.99-1.00 correlated
+   with each other (moving as one, not 3 independent bets), directly
+   evidencing the deferred Portfolio-level Aggregation concern with
+   real numbers for the first time.
+
 ==================================================
 
 Next Session Priorities
@@ -127,9 +142,10 @@ findings as extra context for the 14-Aug review itself:
    oi_footprint close to enough sample, (c) vix_filter/credit_spread
    need their own later review point (~September), not a 14-Aug
    verdict. Plus the equity engines (Swing/Intraday) retune-vs-
-   redirect decision, Portfolio-level Aggregation, shared Backtest-
-   Live engine, and the PCR Momentum + Volume-Weighted OI deploy
-   decision - all still queued as before.
+   redirect decision, Portfolio-level Aggregation (now has concrete
+   evidence - see the 0.99-1.00 BANKNIFTY correlation finding below),
+   shared Backtest-Live engine, and the PCR Momentum + Volume-Weighted
+   OI deploy decision - all still queued as before.
 
 2. The user's 4-stage real-capital roadmap (see above) - Stage 2 (VPS+
    Firebase) build should realistically start once oi_footprint (the

@@ -3359,6 +3359,67 @@ action is always the user's, even once broker order-placement exists
 
 ==================================================
 
+STATISTICAL ANALYSIS ACROSS ALL 25 BOOKS, 13-Aug - user asked for
+formal statistics beyond raw PnL (Expectancy, Sharpe, Max Drawdown,
+Wilson Confidence Interval on win rate, and cross-strategy Correlation)
+to be computed on real trade data and carried into the 14-Aug review.
+No code changes - a one-off analysis script over the existing Closed
+Trades data in each portfolio JSON, not wired into any live strategy.
+
+EXPECTANCY (Win% x Avg Win + Loss% x Avg Loss, per trade) - the
+fairest single ranking across books with very different trade counts,
+since raw total PnL rewards high-frequency books regardless of per-
+trade quality. Only 4 of 25 books have positive expectancy with real
+trades: simple_st1_threshold/NIFTY (+Rs 2,852/trade, 10 trades),
+oi_footprint/NIFTY (+Rs 2,036/trade, 27 trades), oi_footprint/
+BANKNIFTY (+Rs 1,321/trade, 9 trades), st2_threshold/NIFTY (+Rs 907/
+trade, 31 trades). Every other book with real trades is negative
+expectancy.
+
+WILSON SCORE CONFIDENCE INTERVAL (95%, on win rate) - formalizes the
+"how many trades until we trust it" question already discussed
+informally. simple_st1_threshold/NIFTY's raw 70% win rate has a genuine
+95% CI of 40-89% (only 10 trades - still very wide, do not over-trust
+the headline number). oi_footprint/NIFTY's CI is a tighter 41-75% (27
+trades) - more trustworthy. st2_threshold/NIFTY's CI (29-62%, 31
+trades) still straddles 50% - genuinely uncertain whether its edge is
+real yet.
+
+SHARPE RATIO (mean daily PnL / std dev of daily PnL, per book) -
+oi_footprint/NIFTY has the best risk-adjusted score (2.69) among all
+25 books - not just profitable, but SMOOTHLY profitable (low day-to-
+day variance relative to its average). simple_st1_threshold/NIFTY and
+st2_threshold/NIFTY both score 1.43 - solid but noisier than oi_
+footprint/NIFTY. Every RSI-based book without threshold (st1/st2/st3/
+st4 non-threshold) scores negative or near-zero Sharpe, consistent
+with their already-established lack of edge.
+
+MAX DRAWDOWN (largest peak-to-trough equity decline, trade-sequence
+order) - confirms the capital-depletion finding from earlier the same
+day in stark numbers: simple_st1/NIFTY, st2/NIFTY, st3/NIFTY (the
+proven-weak base RSI books) show max drawdowns of Rs 94,000-114,000 on
+a Rs 1,00,000 base - i.e. they lived through a near-total wipeout at
+some point in their trade history, matching the near-zero Cash
+balances already observed live.
+
+CROSS-STRATEGY CORRELATION (daily PnL, Pearson) - the most actionable
+NEW finding, directly answering the deferred "Portfolio-level
+Aggregation" architecture question (see ARCHITECTURE PATTERNS above):
+computed correlation between BANKNIFTY's RSI-based books' daily PnL.
+simple_st1_threshold, st2_threshold, and st3_threshold on BANKNIFTY
+are correlated 0.99-1.00 WITH EACH OTHER (essentially moving as one),
+and 0.82-0.88 with their own non-threshold counterparts (simple_st1,
+st2) - meaning these "3 independent Rs 1,00,000 books" are actually
+one concentrated bet wearing 3 names, not real diversification. st3
+(non-threshold BANKNIFTY) is the one outlier, correlated only 0.12-
+0.18 with the others - its different 5%/5% symmetric exit ratio
+genuinely decorrelates its day-to-day PnL pattern from the rest.
+CONCLUSION: any future Portfolio-level Aggregation work (already
+deferred to post-14-Aug) needs to account for this - several of the
+25 "independent" books are not actually independent bets.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
