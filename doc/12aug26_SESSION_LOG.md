@@ -287,6 +287,29 @@ both written up in doc/PROJECT_STATUS.md.
    (SUPPORT/RESISTANCE DISTANCE) RETROSPECTIVELY TESTED - REJECTED"
    entry. Not implemented anywhere.
 
+✅ Backtested loss-lock (mirror of the live profit-lock - stop after N
+   consecutive losses) before deciding, same discipline as the 3
+   rejected filters. Found a clean, consistent pattern this time
+   (unlike Theta/IV-RV/CPR): helps already-weak books substantially
+   (2 of 4 even flip net-positive) but hurts already-strong ones (cuts
+   off legitimate same-day recovery). IMPLEMENTED SELECTIVELY -
+   strategy/fyers_options_engine.py gained daily_loss_lock (mirroring
+   daily_profit_lock) + MAX_CONSECUTIVE_LOSSES=2, applied only to
+   simple_st1_threshold/BANKNIFTY, st2_threshold/BANKNIFTY, st3_
+   threshold/BANKNIFTY, st3_threshold/NIFTY - NOT the 2 currently-
+   strong NIFTY-threshold books. Full writeup in PROJECT_STATUS.md's
+   "LOSS-LOCK BACKTESTED AND DEPLOYED SELECTIVELY" entry. 7 new tests.
+
+✅ Also built + deployed oi_iv_combo (34th book) - oi_footprint's
+   OI-buildup signal unchanged, plus the promising half of the IV/RV
+   finding (skip if the option's IV > 1.5x the underlying's own
+   realized volatility) as its own separate book, since that same
+   filter hurts the RSI family - kept away from oi_footprint itself.
+   Deployed same day (paper trading, zero risk). Wired into ALL_
+   STRATEGIES, mobile app, .gitignore, GitHub Actions workflow. 3 new
+   tests, 316 passing overall. Still needs its own cron-job.org
+   trigger (STRATEGY_NAME=oi_iv_combo).
+
 ==================================================
 
 Next Session Priorities

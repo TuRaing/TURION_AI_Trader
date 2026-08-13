@@ -3960,6 +3960,66 @@ adding this to any live strategy. Not implemented anywhere.
 
 ==================================================
 
+LOSS-LOCK BACKTESTED AND DEPLOYED SELECTIVELY, 13-Aug - the user asked
+to backtest loss-lock (the mirror of the already-live daily profit-
+lock: stop opening new trades for the day after N consecutive Stop-
+Losses) before deciding, same discipline as the 3 rejected filters
+above. Two variants simulated on each threshold book's own real
+closed trades: consecutive-loss-lock (stop after 2 or 3 losses in a
+row) and cumulative-loss-lock (stop once today's running loss hits a
+fixed Rs threshold).
+
+RESULT: a genuinely clean, consistent, book-quality-dependent pattern
+(unlike Theta/IV-RV/CPR's mixed results) - CONSECUTIVE-loss-lock at
+k=2 was the strongest variant:
+  - Already-weak books: simple_st1_threshold/BANKNIFTY -Rs 41,814 ->
+    -Rs 4,520; st2_threshold/BANKNIFTY -Rs 35,158 -> +Rs 2,780 (flips
+    positive); st3_threshold/BANKNIFTY -Rs 37,700 -> -Rs 9,717; st3_
+    threshold/NIFTY (already faded, see the walk-forward entry above)
+    -Rs 29,939 -> +Rs 10,626 (flips positive).
+  - Already-strong books: simple_st1_threshold/NIFTY +Rs 28,524 ->
+    Rs 17,205 (worse); st2_threshold/NIFTY +Rs 28,115 -> Rs 15,391
+    (worse) - the lock cuts off legitimate same-day recovery on these,
+    not just further losses.
+INTERPRETATION: loss-lock is pure risk-reduction, not edge-creation -
+helps a book with no real edge avoid digging deeper into losses, but
+costs a book WITH real edge some of its upside by locking out before
+a same-day recovery. Book-dependent, not universal.
+
+IMPLEMENTED: strategy/fyers_options_engine.py gained daily_loss_lock
+(mirroring daily_profit_lock's existing pattern) and MAX_CONSECUTIVE_
+LOSSES=2 / _today_consecutive_losses(). Applied SELECTIVELY in
+strategy/options_strategies.py - ONLY simple_st1_threshold/BANKNIFTY,
+st2_threshold/BANKNIFTY, st3_threshold/BANKNIFTY, and st3_threshold/
+NIFTY get daily_loss_lock=True; simple_st1_threshold/NIFTY and st2_
+threshold/NIFTY are deliberately left untouched. 7 new tests.
+
+==================================================
+
+oi_iv_combo BUILT + DEPLOYED, 13-Aug - a new, 33rd/34th book acting on
+the promising (oi_footprint-specific) half of the IV/RV finding above:
+reuses oi_footprint's OI-buildup signal completely unchanged (imported
+from fyers_options_oi_footprint.py, not duplicated - per this repo's
+own rule of never modifying a working module), and adds ONE more
+condition before opening: the candidate leg's own implied_volatility()
+(solved live from its real premium via indicators/black_scholes.py)
+must not exceed MAX_IV_RV_RATIO (1.5x) the underlying's own trailing
+10-day realized volatility (computed live from real daily closes,
+same method as the retrospective backtest). Built as its own separate
+book rather than folding into oi_footprint itself, since the same
+filter runs backwards on the RSI-threshold family - keeping it
+separate avoids ever contaminating the proven oi_footprint signal.
+
+Deployed same day as built (paper trading, zero real-money risk, own
+separate book - same reasoning already applied to pcr_momentum/max_
+pain_drift/pcr_vix_combo). Wired into ALL_STRATEGIES (31 -> 33 total
+books with this and loss-lock combined), mobile app, .gitignore,
+GitHub Actions workflow. 3 new tests, 316 passing overall. Still needs
+its own cron-job.org trigger (STRATEGY_NAME=oi_iv_combo) - the user's
+own manual step, can't be created via API.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
@@ -3985,11 +4045,11 @@ Status
 
 Current Version
 
-v0.0.24
+v0.0.25
 
 Next Version
 
-v0.0.25
+v0.0.26
 
 ==================================================
 
