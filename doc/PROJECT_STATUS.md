@@ -3564,6 +3564,44 @@ stored per trade going forward.
 
 ==================================================
 
+EXIT SPOT + IV/GREEKS INFRASTRUCTURE, 13-Aug - direct follow-up to the
+holding-duration proxy's honest limitation above: user asked to start
+actually collecting what a real Delta/Theta decomposition needs.
+
+1. EXIT SPOT now saved on every closed trade, across all 7 strategy
+   engines (generic/simple_st1-st3, st4, gapfill, vix_filter, oi_
+   footprint, credit_spread, pcr_momentum) - alongside the already-
+   stored Entry Spot. 4 engines already fetched the underlying's spot
+   at check time for their own Target/SL logic and just needed it
+   threaded through to _close_position(); oi_footprint, credit_spread,
+   and pcr_momentum needed one new quote call added. 269 tests still
+   passing. This data only starts accumulating from this commit
+   forward - trades before 13-Aug won't have it.
+
+2. IMPLIED VOLATILITY SOLVER + GREEKS built (indicators/black_
+   scholes.py, extending the existing black_scholes_price() from
+   03-Aug's options backtest work rather than duplicating it) -
+   confirmed first that Fyers' option-chain API does NOT return IV
+   directly (Fyers' own community forum has open, unanswered requests
+   for this), so implied_volatility() backs it out from a real traded
+   premium via bisection search on black_scholes_price(), and black_
+   scholes_greeks() computes Delta/Theta/Vega at that IV. Pure,
+   fully-tested (round-trip IV recovery for both CE/PE, boundary cases,
+   Greeks sign checks) - 9 new tests, 278 passing overall.
+
+NOT YET WIRED INTO LIVE ANALYSIS - computing a real trade's Theta/
+Delta split needs its time-to-expiry, which isn't stored anywhere yet.
+Fyers option symbols encode expiry in TWO different formats (weekly:
+numeric YY+M+DD, e.g. NIFTY2681124600PE; monthly: YY+3-letter-month,
+e.g. BANKNIFTY26AUG58000CE, since BANKNIFTY dropped weekly expiries in
+2023) - parsing this reliably is real, separate work, deliberately not
+rushed with unverified assumptions. Next step once Exit Spot data has
+accumulated: build the expiry parser, then a one-off analysis script
+(same pattern as the statistical passes above) to actually compute
+each closed trade's Theta contribution.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.

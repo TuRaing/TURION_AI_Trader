@@ -166,6 +166,19 @@ both written up in doc/PROJECT_STATUS.md.
    BANKNIFTY would get ~15.6% of pooled capital, st3_threshold/NIFTY
    (already dropped) would get the least at 2.3%.
 
+✅ Exit Spot now saved on every closed trade across all 7 strategy
+   engines, and a real implied-volatility solver + Delta/Theta/Vega
+   Greeks calculator built (indicators/black_scholes.py) - full
+   writeup in PROJECT_STATUS.md's "EXIT SPOT + IV/GREEKS
+   INFRASTRUCTURE" entry. Confirmed Fyers' API doesn't return IV
+   directly (their own community forum has open requests for it), so
+   IV is backed out from real premiums via bisection on the existing
+   Black-Scholes pricer. 9 new tests, 278 passing overall. NOT yet
+   wired into live trade analysis - needs each trade's time-to-expiry,
+   which requires parsing Fyers' two different expiry symbol formats
+   (weekly numeric vs monthly 3-letter-month) - flagged as the next
+   step once Exit Spot data has accumulated for a while.
+
 ==================================================
 
 Next Session Priorities
