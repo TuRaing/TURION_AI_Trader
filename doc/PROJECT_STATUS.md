@@ -3667,6 +3667,35 @@ time (see pcr_momentum.py's docstring) rather than built separately.
 
 ==================================================
 
+PCR_MOMENTUM + MAX_PAIN_DRIFT DEPLOYED, 13-Aug - both went live the
+same day they were built, on the user's direct request: their earlier
+"built, not deployed, pending 14-Aug" holding pattern only made sense
+if deploying carried some cost or contamination risk. Since this is
+paper trading (zero real-money risk) and each is its own separate
+book, neither touches the other 25 books' ongoing comparison - the
+user pointed out there's no real reason to wait on the calendar when
+waiting costs nothing and the sooner they trade, the sooner there's
+real data.
+
+books count: 25 -> 29 (options_strategies.py's ALL_STRATEGIES). No
+threshold variant for either - same reasoning as oi_footprint/vix_
+filter/credit_spread (already a small, quick fixed-Rs-1,500-Target/
+Stop-Loss design, a daily profit-lock on top wasn't judged necessary,
+confirmed with the user directly before proceeding).
+
+Also wired into the mobile app (Options tab + Options Summary),
+.gitignore (portfolio-file allow-rules), and the GitHub Actions
+workflow (strategy input description + git add lines) - same catch-up
+checklist every new strategy has needed this whole project. 301 tests
+passing (2 new, for the book-count/standalone-list changes).
+
+STILL NEEDED: 2 new cron-job.org triggers (STRATEGY_NAME=pcr_momentum,
+STRATEGY_NAME=max_pain_drift) - can't be created via API (no access),
+needs the user's own manual step (clone an existing job, same as every
+prior strategy's trigger setup) before either actually starts firing.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
@@ -3692,11 +3721,11 @@ Status
 
 Current Version
 
-v0.0.22
+v0.0.23
 
 Next Version
 
-v0.0.23
+v0.0.24
 
 ==================================================
 

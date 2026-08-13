@@ -202,6 +202,17 @@ both written up in doc/PROJECT_STATUS.md.
    not deployed" holding pattern as pcr_momentum - not added to
    ALL_STRATEGIES, no cron-job.org trigger.
 
+✅ Both pcr_momentum and max_pain_drift then DEPLOYED same day, on the
+   user's direct request - full writeup in PROJECT_STATUS.md's "PCR_
+   MOMENTUM + MAX_PAIN_DRIFT DEPLOYED" entry. Paper trading (zero
+   real-money risk), each its own separate book, so no reason to wait
+   for 14-Aug. Books: 25 -> 29. No threshold variant for either
+   (confirmed with the user - same reasoning as oi_footprint/vix_
+   filter/credit_spread). Wired into mobile app, .gitignore, and the
+   GitHub Actions workflow. 301 tests passing. STILL NEEDS: 2 new
+   cron-job.org triggers (STRATEGY_NAME=pcr_momentum and =max_pain_
+   drift) - the user's own manual step, can't be done via API.
+
 ==================================================
 
 Next Session Priorities
