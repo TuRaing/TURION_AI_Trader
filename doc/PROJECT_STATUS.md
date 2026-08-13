@@ -3476,6 +3476,43 @@ own autocorrelation, not a single blanket rule across all 25.
 
 ==================================================
 
+WALK-FORWARD / SPLIT-SAMPLE TEST, 13-Aug - user asked directly whether
+this (flagged earlier as a "quick win" methodology, needs ~20+ trades
+per book to be meaningful) had actually been run. It hadn't - run now.
+Each book with >=10 trades split into first-half vs second-half (by
+trade order) and compared for consistency, same one-off script
+pattern, no live-strategy changes. Books under 10 trades skipped (12
+books qualified).
+
+RESULT - st3_threshold/NIFTY's earlier informal "faded" observation
+(100%-win/+15% on 2 trades -> 50%-win/+1% on 26 trades, noted earlier
+same day) is now CONFIRMED by the formal split test too: first half
++Rs 154/trade (50% win), second half -Rs 2,025/trade (31.2% win) - a
+genuine sign flip, not a stable edge. DECISION: st3_threshold/NIFTY
+should be dropped from further consideration, not just "watched
+longer" - its apparent edge has already been shown twice now (informal
+growing-sample check, formal split-sample check) not to hold up.
+
+A second, more cautionary finding: oi_footprint/NIFTY - the system's
+best performer by every other metric (Expectancy, Sharpe, 0% Monte
+Carlo ruin risk) - ALSO shows real fade across the split: first half
++Rs 3,803/trade at 69.2% win, second half +Rs 396/trade at exactly
+50.0% win. Still consistent-positive in both halves (unlike st3_
+threshold/NIFTY), so not a red flag on its own, but a clear signal to
+keep watching closely rather than treat it as settled - "best
+performer so far" is not the same as "edge confirmed durable."
+
+Books that held up well across the split (second half as good as or
+better than the first, not just "still positive"): simple_st1_
+threshold/NIFTY (+Rs 3,441 -> +Rs 2,264/trade) and st2_threshold/NIFTY
+(+Rs 462 -> +Rs 1,324/trade) - genuinely the most trustworthy positive
+books in the system by this test. st2/BANKNIFTY flipped from negative
+to barely positive (-Rs 469 -> +Rs 57/trade) - too close to zero to
+call an improvement yet. Every other book tested negative in BOTH
+halves - already-known verdicts, reconfirmed, no surprises.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.

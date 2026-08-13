@@ -139,6 +139,19 @@ both written up in doc/PROJECT_STATUS.md.
    3 books as statistically negative (st2/NIFTY p=0.008, simple_st1_
    threshold/BANKNIFTY p=0.044, st4/NIFTY p=0.002).
 
+✅ Walk-forward / split-sample test (first-half vs second-half of each
+   book's trades) - full writeup in PROJECT_STATUS.md's "WALK-FORWARD /
+   SPLIT-SAMPLE TEST" entry. CONFIRMED st3_threshold/NIFTY's earlier
+   informal "faded" observation formally (+Rs 154/trade first half ->
+   -Rs 2,025/trade second half - a real sign flip) - DECIDED to drop it
+   from further consideration rather than keep watching. Also flagged
+   a cautionary note on oi_footprint/NIFTY (the system's best performer
+   overall) - still positive both halves but weakened a lot (+Rs 3,803
+   at 69.2% win -> +Rs 396 at exactly 50.0% win) - worth watching
+   closely, not treating as settled. simple_st1_threshold/NIFTY and
+   st2_threshold/NIFTY held up best - second half as strong or stronger
+   than the first.
+
 ==================================================
 
 Next Session Priorities
