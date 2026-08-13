@@ -63,7 +63,7 @@ INDEX_CONFIG = {
 
 def make_strategy(name, index, target_net_pct, stop_loss_pct,
                    initial_capital=100000, squareoff_time=(15, 15),
-                   daily_profit_lock=False, group=None):
+                   daily_profit_lock=False, daily_loss_lock=False, group=None):
     """
     Build one named strategy's config for one index. `name` (e.g.
     "simple_st1") only affects the portfolio filename - reports/
@@ -76,10 +76,20 @@ def make_strategy(name, index, target_net_pct, stop_loss_pct,
     _today_realized_pnl). Default False keeps the original strategies'
     behavior unchanged - the user asked for this as a SEPARATE "same
     strategy but with a profit-lock" variant (the Threshold Options
-    tab/group), not a change to the originals. `group` (e.g.
-    "threshold") is just a filter tag for fyers_multi_strategy_
-    options_run.py's STRATEGY_NAME - not used by the trading logic
-    itself.
+    tab/group), not a change to the originals.
+
+    `daily_loss_lock` (added 13-Aug-2026) - when True, check_or_open
+    stops opening NEW trades for the rest of the IST calendar day once
+    MAX_CONSECUTIVE_LOSSES losses have happened in a row that day (see
+    _today_consecutive_losses). Deliberately applied SELECTIVELY, per
+    book, not as a blanket flag on every threshold config - a
+    retrospective backtest on real closed trades showed it helps
+    already-weak books but hurts already-strong ones (see PROJECT_
+    STATUS.md).
+
+    `group` (e.g. "threshold") is just a filter tag for fyers_multi_
+    strategy_options_run.py's STRATEGY_NAME - not used by the trading
+    logic itself.
     """
 
     index_cfg = INDEX_CONFIG[index]
@@ -89,6 +99,7 @@ def make_strategy(name, index, target_net_pct, stop_loss_pct,
         "index": index,
         "group": group,
         "daily_profit_lock": daily_profit_lock,
+        "daily_loss_lock": daily_loss_lock,
         "portfolio_file": f"reports/fyers_options_{name}_{index.lower()}_portfolio.json",
         "underlying_symbol": index_cfg["underlying_symbol"],
         "index_symbol_for_rsi": index_cfg["index_symbol_for_rsi"],
@@ -190,6 +201,55 @@ def _today_realized_pnl(portfolio):
             total += trade.get("Net PnL", 0)
 
     return total
+
+
+# Added 13-Aug-2026 - the mirror of daily_profit_lock, per a
+# retrospective backtest on the threshold group's own real closed
+# trades (see doc/PROJECT_STATUS.md's "LOSS-LOCK RETROSPECTIVELY
+# BACKTESTED" entry): stopping after MAX_CONSECUTIVE_LOSSES losses in
+# a row substantially reduced (sometimes reversed) the loss on the
+# books that were already structurally weak, but HURT the books that
+# were already structurally good (it cuts off legitimate same-day
+# recovery, not just further losses) - so this is applied SELECTIVELY
+# per book (daily_loss_lock=True only on the specific configs found
+# to benefit in strategy/options_strategies.py), not as a blanket rule.
+MAX_CONSECUTIVE_LOSSES = 2
+
+
+def _today_consecutive_losses(portfolio):
+    """
+    The CURRENT losing streak among TODAY's closed trades, counting
+    backward from the most recent trade until a win breaks the streak
+    (or the start of today's trades). Same IST-date convention as
+    _today_realized_pnl().
+    """
+
+    today_str = datetime.datetime.now(IST).strftime("%Y-%m-%d")
+    today_trades = []
+
+    for trade in portfolio.get("Closed Trades", []):
+
+        exit_time_str = trade.get("Exit Time")
+
+        if not exit_time_str:
+            continue
+
+        exit_utc = datetime.datetime.strptime(exit_time_str, "%Y-%m-%d %H:%M:%S").replace(
+            tzinfo=datetime.timezone.utc)
+
+        if exit_utc.astimezone(IST).strftime("%Y-%m-%d") == today_str:
+            today_trades.append(trade)
+
+    streak = 0
+
+    for trade in reversed(today_trades):
+
+        if trade.get("Net PnL", 0) <= 0:
+            streak += 1
+        else:
+            break
+
+    return streak
 
 
 def _get_direction(cfg):
@@ -367,6 +427,8 @@ def check_or_open(cfg):
             action = "SKIPPED (past square-off time, market closed or about to close)"
         elif cfg.get("daily_profit_lock") and _today_realized_pnl(portfolio) >= DAILY_PROFIT_LOCK_RS:
             action = f"SKIPPED (today's profit already Rs {DAILY_PROFIT_LOCK_RS}+, no more new trades today)"
+        elif cfg.get("daily_loss_lock") and _today_consecutive_losses(portfolio) >= MAX_CONSECUTIVE_LOSSES:
+            action = f"SKIPPED (today already has {MAX_CONSECUTIVE_LOSSES}+ consecutive losses, no more new trades today)"
         else:
             portfolio, action = _open_position(cfg, portfolio)
 

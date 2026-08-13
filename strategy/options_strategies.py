@@ -7,6 +7,7 @@ from strategy.fyers_options_credit_spread import make_credit_spread_config, chec
 from strategy.fyers_options_pcr_momentum import make_pcr_momentum_config, check_or_open as check_or_open_pcr_momentum
 from strategy.fyers_options_max_pain_drift import make_max_pain_drift_config, check_or_open as check_or_open_max_pain_drift
 from strategy.fyers_options_pcr_vix_combo import make_pcr_vix_combo_config, check_or_open as check_or_open_pcr_vix_combo
+from strategy.fyers_options_oi_iv_combo import make_oi_iv_combo_config, check_or_open as check_or_open_oi_iv_combo
 
 # Added 06-Aug-2026 - the named-strategy roster for the multi-strategy
 # options paper trading the user asked for: several live strategies
@@ -79,18 +80,29 @@ GAPFILL_BANKNIFTY = make_gapfill_config("BANKNIFTY")
 # "stop opening new trades once today's realized profit hits Rs 2,000"
 # gate differs. group="threshold" lets fyers_multi_strategy_options_
 # run.py's STRATEGY_NAME filter run all 5 together with one trigger.
+#
+# daily_loss_lock added 13-Aug-2026, SELECTIVELY (see fyers_options_
+# engine.py's matching note) - a retrospective backtest on each book's
+# own real closed trades showed loss-lock helps the already-weak books
+# (simple_st1_threshold/BANKNIFTY, st2_threshold/BANKNIFTY, st3_
+# threshold/BANKNIFTY, st3_threshold/NIFTY - the last one faded from
+# an early-promising sample, see PROJECT_STATUS.md's walk-forward
+# entry) but HURTS the already-strong ones (simple_st1_threshold/
+# NIFTY, st2_threshold/NIFTY - it cuts off legitimate same-day
+# recovery, not just further losses), so it is NOT a blanket flag on
+# every threshold config.
 SIMPLE_ST1_TH_NIFTY = make_strategy("simple_st1_threshold", "NIFTY", target_net_pct=3.0, stop_loss_pct=3.0,
                                      daily_profit_lock=True, group="threshold")
 SIMPLE_ST1_TH_BANKNIFTY = make_strategy("simple_st1_threshold", "BANKNIFTY", target_net_pct=3.0, stop_loss_pct=3.0,
-                                         daily_profit_lock=True, group="threshold")
+                                         daily_profit_lock=True, daily_loss_lock=True, group="threshold")
 ST2_TH_NIFTY = make_strategy("st2_threshold", "NIFTY", target_net_pct=5.0, stop_loss_pct=2.0,
                               daily_profit_lock=True, group="threshold")
 ST2_TH_BANKNIFTY = make_strategy("st2_threshold", "BANKNIFTY", target_net_pct=5.0, stop_loss_pct=2.0,
-                                  daily_profit_lock=True, group="threshold")
+                                  daily_profit_lock=True, daily_loss_lock=True, group="threshold")
 ST3_TH_NIFTY = make_strategy("st3_threshold", "NIFTY", target_net_pct=5.0, stop_loss_pct=5.0,
-                              daily_profit_lock=True, group="threshold")
+                              daily_profit_lock=True, daily_loss_lock=True, group="threshold")
 ST3_TH_BANKNIFTY = make_strategy("st3_threshold", "BANKNIFTY", target_net_pct=5.0, stop_loss_pct=5.0,
-                                  daily_profit_lock=True, group="threshold")
+                                  daily_profit_lock=True, daily_loss_lock=True, group="threshold")
 ST4_TH_NIFTY = make_st4_config("NIFTY", name="st4_threshold", daily_profit_lock=True, group="threshold")
 ST4_TH_BANKNIFTY = make_st4_config("BANKNIFTY", name="st4_threshold", daily_profit_lock=True, group="threshold")
 GAPFILL_TH_NIFTY = make_gapfill_config("NIFTY", name="gapfill_threshold", daily_profit_lock=True, group="threshold")
@@ -160,6 +172,19 @@ MAX_PAIN_DRIFT_BANKNIFTY = make_max_pain_drift_config("BANKNIFTY")
 PCR_VIX_COMBO_NIFTY = make_pcr_vix_combo_config("NIFTY")
 PCR_VIX_COMBO_BANKNIFTY = make_pcr_vix_combo_config("BANKNIFTY")
 
+# oi_iv_combo - added AND deployed 13-Aug, same day, on the user's
+# request: a retrospective backtest on oi_footprint's own real closed
+# trades found that skipping entries where the option looks
+# "expensive" (implied volatility > 1.5x the underlying's own trailing
+# realized volatility) would have removed almost none of oi_footprint/
+# NIFTY's real profit while cutting its weakest trades - see PROJECT_
+# STATUS.md's "IV vs REALIZED VOLATILITY RETROSPECTIVELY TESTED" entry.
+# That same filter ran BACKWARDS on the RSI-threshold family, so it is
+# NOT folded into oi_footprint itself - built as its own separate book
+# instead. See fyers_options_oi_iv_combo.py for the full design.
+OI_IV_COMBO_NIFTY = make_oi_iv_combo_config("NIFTY")
+OI_IV_COMBO_BANKNIFTY = make_oi_iv_combo_config("BANKNIFTY")
+
 ALL_STRATEGIES = [
     (check_or_open_generic, SIMPLE_ST1_NIFTY),
     (check_or_open_generic, SIMPLE_ST1_BANKNIFTY),
@@ -192,4 +217,6 @@ ALL_STRATEGIES = [
     (check_or_open_max_pain_drift, MAX_PAIN_DRIFT_BANKNIFTY),
     (check_or_open_pcr_vix_combo, PCR_VIX_COMBO_NIFTY),
     (check_or_open_pcr_vix_combo, PCR_VIX_COMBO_BANKNIFTY),
+    (check_or_open_oi_iv_combo, OI_IV_COMBO_NIFTY),
+    (check_or_open_oi_iv_combo, OI_IV_COMBO_BANKNIFTY),
 ]

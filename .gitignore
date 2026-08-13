@@ -91,3 +91,8 @@ reports/*.json
 # as above. Deployed same day as built.
 !reports/fyers_options_pcr_vix_combo_nifty_portfolio.json
 !reports/fyers_options_pcr_vix_combo_banknifty_portfolio.json
+# Added 13-Aug-2026 - oi_iv_combo (strategy/fyers_options_oi_iv_
+# combo.py), both indices - same tracked-for-state-persistence reason
+# as above. Deployed same day as built.
+!reports/fyers_options_oi_iv_combo_nifty_portfolio.json
+!reports/fyers_options_oi_iv_combo_banknifty_portfolio.json
