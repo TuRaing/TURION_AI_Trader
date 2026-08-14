@@ -391,6 +391,16 @@ both written up in doc/PROJECT_STATUS.md.
    with current data. Full writeup in PROJECT_STATUS.md's "oi_footprint
    EXIT-MECHANISM DEEP DIVE" entry.
 
+✅ Built (not wired in) the broker-side Stop-Loss order code from the
+   exit-mechanism finding above - new strategy/fyers_order_execution.py:
+   compute_stop_loss_trigger_price() (pure, bisection-solved, 5 new
+   tests, 321 passing overall) finds the exit premium for a ~-Rs 2,000
+   net loss using the real cost model; place_stop_loss_order() places
+   a real Fyers SL-M order but is untested against the live API and
+   not imported/called anywhere. User's explicit request: build and
+   hold, wire in later. Full writeup in PROJECT_STATUS.md's "BROKER-
+   SIDE STOP-LOSS ORDER - BUILT, NOT WIRED IN" entry.
+
 ✅ Researched circuit-breaker protection for an open position (not a
    strategy edge question - a risk-infrastructure one). 5 candidate
    mitigations identified and prioritized, NONE built or backtested

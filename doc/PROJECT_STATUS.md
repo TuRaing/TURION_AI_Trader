@@ -4290,6 +4290,41 @@ more varied) real trades.
 
 ==================================================
 
+BROKER-SIDE STOP-LOSS ORDER - BUILT, NOT WIRED IN, 14-Aug - the code
+side of Finding 2 above, at the user's explicit request ("save karun
+thev, nantar karu" - build it and hold, use it later; same code-ready-
+not-deployed pattern already used for pcr_momentum earlier this week).
+New module strategy/fyers_order_execution.py:
+
+- compute_stop_loss_trigger_price(entry_premium, lots, lot_size,
+  max_loss_rupees=2000) - pure function, bisection search (same
+  pattern as indicators/black_scholes.py's implied_volatility()) for
+  the exit premium at which closing the position realizes
+  approximately -Rs 2,000 net, using the SAME real cost model
+  (strategy/options_transaction_costs.py) the paper-trading engines
+  already use. No network call - fully unit-tested (5 tests in tests/
+  test_fyers_order_execution.py, including one checking the real
+  14-Aug oi_footprint overshoot trade: entry 109.05/19 lots, the
+  computed trigger sits well above the real overshot exit of 98.85).
+
+- place_stop_loss_order(symbol, quantity, trigger_price, product_type)
+  - places a REAL Fyers SL-M (Stop Market) SELL order via their v3
+  orders/sync endpoint. UNTESTED against the real API (only checked
+  against Fyers' documented order schema) - the first real call to
+  this should be treated as a live-money action needing the user's
+  explicit go-ahead, not assumed to work first time.
+
+NOT WIRED INTO ANYTHING - no strategy module imports or calls either
+function; nothing in any workflow/trigger touches this file. Per this
+repo's standing rule (Claude never executes a real trade), this is
+pure prep work for the eventual Stage 3 Live Trading milestone, not an
+activation. Wiring it into a real position (and testing
+place_stop_loss_order() for real, starting with a tiny position) is a
+separate, later, explicitly-approved decision. 321 tests passing
+overall (316 + this file's 5).
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
@@ -4315,11 +4350,11 @@ Status
 
 Current Version
 
-v0.0.30
+v0.0.31
 
 Next Version
 
-v0.0.31
+v0.0.32
 
 ==================================================
 
