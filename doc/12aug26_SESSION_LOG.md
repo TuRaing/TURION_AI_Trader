@@ -367,6 +367,30 @@ both written up in doc/PROJECT_STATUS.md.
    reminder in PROJECT_STATUS.md - every future release build needs
    this flag or the login silently breaks again.
 
+✅ Deep-dived oi_footprint's exit mechanism after a real bad trading
+   day (14-Aug: -Rs 13,503 on 4 trades) - found the actual problem
+   wasn't the OI-buildup signal being "wrong," it's that the +-Rs 1,500
+   Target/Stop-Loss gets overshot 2x-10x by real trades (periodic ~1-
+   min checking, not continuous). Backtested capping ONLY the Stop-
+   Loss side at -Rs 2,000 (leaving Target/profit uncapped, exactly as
+   today) against all 40 real closed trades: NIFTY +Rs 75,032 vs actual
+   +Rs 41,479 (81% better), BANKNIFTY +Rs 12,267 vs actual +Rs 11,891 -
+   the strongest, cleanest finding of the session. An ATR-scaled
+   version of the same cap performed statistically identical to the
+   flat version (not enough ATR variation in the 5-day sample to tell
+   them apart yet). Recommended next step: a real broker-side Fyers
+   SL-M/GTT order for the Stop-Loss side only, NOT a symmetric target
+   order (that would remove the profit-side overshoot, which the data
+   shows has been net-beneficial). Also confirmed Fyers' History API
+   works for option symbols (same fyers_download(), hit only an auth
+   wall locally, not a rejection) - a much better future data source
+   than the ~5-min premium-history snapshot log used today. Tried
+   Trailing-Stop/Breakeven/Laddered/Indicator-based exits too - only
+   12 of 40 trades had any real intra-trade price data at all (mixed,
+   inconclusive signal), the other two ideas couldn't be tested at all
+   with current data. Full writeup in PROJECT_STATUS.md's "oi_footprint
+   EXIT-MECHANISM DEEP DIVE" entry.
+
 ✅ Researched circuit-breaker protection for an open position (not a
    strategy edge question - a risk-infrastructure one). 5 candidate
    mitigations identified and prioritized, NONE built or backtested

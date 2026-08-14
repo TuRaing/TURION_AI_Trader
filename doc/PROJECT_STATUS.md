@@ -4197,6 +4197,99 @@ just when the user reports the error again.
 
 ==================================================
 
+oi_footprint EXIT-MECHANISM DEEP DIVE, 14-Aug - triggered by a real bad
+trading day (see below) - the user asked to review why oi_footprint had
+a big loss day, which surfaced a much bigger structural finding than
+"was today's OI-buildup call right or wrong."
+
+BACKGROUND: oi_footprint's Target/Stop-Loss (TARGET_RUPEES = STOP_
+LOSS_RUPEES = Rs 1,500, fyers_options_oi_footprint.py) are checked only
+periodically (~1 min, external cron-job.org trigger), not continuously.
+Real trades routinely OVERSHOOT this band by 2x-10x in both directions
+- e.g. 14-Aug alone: one Target closed at +Rs 7,216 (not +1,500), one
+Stop Loss closed at -Rs 14,851 (not -1,500). This isn't a bug in the
+signal logic, it's a byproduct of the checking cadence: by the time the
+next check runs, price has often moved well past the threshold.
+
+RETROSPECTIVE FINDING 1 - capping BOTH sides at exactly +-1,500 (i.e.
+"what if checking were instant/continuous") would have made LESS money
+historically, not more: oi_footprint/NIFTY's real 31-trade total is
++Rs 41,479; capped tightly at +-1,500 it would only be +Rs 7,500.
+BANKNIFTY: real +Rs 11,891 vs capped +Rs 4,500. The profit-side
+overshoot has been a net POSITIVE accident historically (winners run
+further before the slow check catches them), not something to fix.
+
+RETROSPECTIVE FINDING 2 - the real fix is ASYMMETRIC: cap ONLY the
+Stop-Loss side at Rs 2,000 (letting Target/profit exits stay exactly as
+they are today, uncapped/loose), replayed against all 40 real trades:
+NIFTY +Rs 75,032 (vs actual +Rs 41,479, an 81% improvement), BANKNIFTY
++Rs 12,267 (vs actual +Rs 11,891). Every single improvement came from
+capping the worst overshot losses (14-Aug's -Rs 14,851 and -Rs 8,815
+both would have stopped at -Rs 2,000) while every winning trade stayed
+untouched. RECOMMENDED NEXT STEP (not yet implemented): a real broker-
+side Fyers SL-M/GTT order placed at position-open time, calculated to
+trigger at the premium level equivalent to ~-Rs 2,000 net loss - fires
+instantly at the exchange, independent of the ~1-min script cadence.
+Leave Target/profit-taking exactly as-is (do NOT add a symmetric
+broker-side target order - that would remove the beneficial overshoot
+Finding 1 just proved).
+
+RETROSPECTIVE FINDING 3 - ATR-scaled dynamic version of the same -2,000
+SL cap (dynamic_cap = 2,000 x (that day's real NIFTY/BANKNIFTY ATR14 /
+average ATR14 over the trade sample), real ATR14 fetched via yfinance)
+performed statistically indistinguishable from the flat -2,000 cap:
+NIFTY Rs 74,920 vs Rs 75,032 flat, BANKNIFTY Rs 12,302 vs Rs 12,267
+flat. Root cause: only 5 trading days in the sample (10-14 Aug), and
+real ATR14 barely moved across them (scale factor stayed within 0.926x-
+1.048x) - nowhere near enough volatility spread to show whether ATR-
+scaling adds value over the simpler flat cap. NOT adopted over the flat
+version - added complexity with no demonstrated benefit yet. Revisit
+once the sample naturally spans a genuinely high-volatility day (a
+policy/results/event day), which the existing 2-month paper-trading
+plan should surface on its own without extra effort.
+
+DATA-AVAILABILITY FINDINGS (why the other 3 candidate exit mechanisms -
+Trailing Stop, Breakeven Stop, Laddered/Multiple Targets, Indicator-
+based Exit - can't be properly backtested yet):
+
+- oi_footprint's real trades are extremely short (0.6-8.9 min, mostly
+  1-2 min). The finest existing local data, reports/options_premium_
+  history.jsonl (a periodic Fyers quote logger, ~5-min snapshot
+  cadence), only had at least one snapshot falling WITHIN a trade's
+  entry-to-exit window for 12 of 40 real trades (30%), each with just
+  1-2 data points, not a real path.
+- CONFIRMED (partial live test, 14-Aug): Fyers' History API DOES
+  support option symbols through the same generic strategy/fyers_data.
+  py fyers_download() used for indices - a local test against a stale
+  cached token failed on AUTH ("Could not authenticate the user"), not
+  on the option symbol being rejected, which is the relevant signal.
+  This means real 1-minute OHLC candles for past option contracts
+  should be fetchable retroactively (not just going forward) once
+  tested with a fresh token - a materially better source than the
+  5-min snapshot log for any future re-attempt at this backtest.
+- On the 12/40 trades that DID have a real intra-trade snapshot: 4
+  showed clear "give-back" evidence (price was better mid-trade than
+  at actual exit - e.g. one 11-Aug BANKNIFTY Stop-Loss trade was at
+  ~breakeven mid-trade, Rs +1.80, but the actual exit was -Rs 2,275),
+  which is genuine anecdotal support for Trailing/Breakeven-stop ideas.
+  But other trades in the SAME small sample showed the opposite (price
+  kept improving after the snapshot, e.g. one 12-Aug trade was Rs
+  4,532 at the snapshot but closed at +Rs 13,463) - too small and
+  mixed a sample (12 trades, 1 point each) to call either way yet.
+  Laddered/Multiple-Targets and Indicator-based Exit could not be
+  tested even partially - both need an ordered multi-point path, which
+  a single snapshot per trade cannot provide.
+
+PRIORITY FOR NEXT SESSION: implement the broker-side Stop-Loss-only cap
+(Finding 2) - it has the strongest, cleanest evidence of any exit-
+mechanism idea tested this session. Everything else (ATR-scaling,
+Trailing/Breakeven/Laddered/Indicator exits) stays in the "promising,
+not enough data yet" bucket, expected to resolve naturally as the
+already-planned 2-month paper-trading window accumulates more (and
+more varied) real trades.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
@@ -4222,11 +4315,11 @@ Status
 
 Current Version
 
-v0.0.29
+v0.0.30
 
 Next Version
 
-v0.0.30
+v0.0.31
 
 ==================================================
 
