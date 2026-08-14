@@ -4325,6 +4325,36 @@ overall (316 + this file's 5).
 
 ==================================================
 
+CIRCUIT-BAND PROXIMITY FILTER - BUILT + RETROSPECTIVELY CHECKED,
+14-Aug - candidate #3 from the earlier "CIRCUIT-BREAKER PROTECTION
+IDEAS" list (a proactive square-off gate that exits BEFORE the
+underlying reaches NSE's index-level circuit band, since a position
+can't be closed at all once actually halted). New indicators/circuit_
+band.py: compute_circuit_levels(previous_close, tier_pct) - the two
+index levels that would trip a given circuit tier (10%/15%/20%,
+NSE's real market-wide thresholds); distance_to_circuit_pct() - how
+far spot currently is from the nearer band, as a %; is_near_circuit_
+band() - the actual gate (default 2% proximity threshold). All 3 pure,
+no network call, 8 new tests (329 total passing).
+
+Retrospectively checked against all 40 real oi_footprint trades (using
+each trade's real Entry Spot and that day's real previous close, both
+already available - no new data needed): the gate would have fired
+ZERO times, and the closest any real trade ever came to a 10% circuit
+band was 9.12% away (i.e. nowhere close - the threshold is 2%). This
+is the expected result, not a disappointing one: index-level circuit
+halts are genuinely rare tail events (matches the earlier flash-spike-
+realism finding), so a 5-calm-day sample SHOULD show zero triggers.
+The useful confirmation here is the negative case - the filter never
+would have caused a false-positive early exit on a normal trading day,
+so wiring it in later carries no known downside on ordinary days. Its
+real value only shows up on a genuine extreme day, which this sample
+doesn't and can't contain. Same "built, not wired in, verify later"
+status as the broker-side Stop-Loss order above - not activated in any
+strategy yet.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
@@ -4350,11 +4380,11 @@ Status
 
 Current Version
 
-v0.0.31
+v0.0.32
 
 Next Version
 
-v0.0.32
+v0.0.33
 
 ==================================================
 

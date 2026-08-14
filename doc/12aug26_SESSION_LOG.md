@@ -401,6 +401,16 @@ both written up in doc/PROJECT_STATUS.md.
    hold, wire in later. Full writeup in PROJECT_STATUS.md's "BROKER-
    SIDE STOP-LOSS ORDER - BUILT, NOT WIRED IN" entry.
 
+✅ Built (not wired in) the circuit-band proximity filter (candidate #3
+   from the circuit-breaker ideas list) - new indicators/circuit_
+   band.py, 8 new tests, 329 passing overall. Retrospectively checked
+   against all 40 real oi_footprint trades: fired 0 times, closest any
+   real trade came to a 10% circuit band was 9.12% away - expected
+   result (circuit halts are rare tail events), confirms the filter
+   wouldn't cause a false-positive early exit on a normal day. Full
+   writeup in PROJECT_STATUS.md's "CIRCUIT-BAND PROXIMITY FILTER"
+   entry.
+
 ✅ Researched circuit-breaker protection for an open position (not a
    strategy edge question - a risk-infrastructure one). 5 candidate
    mitigations identified and prioritized, NONE built or backtested
