@@ -450,10 +450,15 @@ Unchanged from doc/07aug26_SESSION_LOG.md's last "Next Session
 Priorities" list - nothing here supersedes it, just adds today's
 findings as extra context for the 14-Aug review itself:
 
-0. NEW, 14-Aug: backtest/implement the circuit-breaker protection
-   ideas above, starting with broker-side GTT/SL-M orders for the
-   Stage 2 VPS build - user explicitly asked to pick this up next
-   session ("he backtest karu").
+0. DONE, 14-Aug (same session, later): all 5 circuit-breaker ideas
+   backtested/built - see PROJECT_STATUS.md's "EXIT-MECHANISM /
+   CIRCUIT-BREAKER IDEAS - FINAL PRIORITY RANKING" entry for the full
+   8-idea ranking (includes Trailing/Breakeven/Laddered/Indicator exits
+   too). Top priority confirmed: the broker-side Stop-Loss cap
+   (strategy/fyers_order_execution.py, 81% NIFTY improvement on the
+   full 40-trade sample) - built, not wired in. Next concrete step:
+   test place_stop_loss_order() for real (small position) once Stage 2
+   VPS is live - it has never been called against Fyers' real API.
 
 1. 14-Aug review checkpoint - now explicitly split: (a) simple_st1/
    st2/st3/st4 and their threshold variants have enough sample to

@@ -4429,6 +4429,51 @@ strategy module.
 
 ==================================================
 
+EXIT-MECHANISM / CIRCUIT-BREAKER IDEAS - FINAL PRIORITY RANKING,
+14-Aug - all 8 ideas from today's session (the 5 circuit-breaker
+candidates + Trailing/Breakeven/Laddered/Indicator-based exits tried
+earlier the same day), ranked by strength of evidence, not just
+build order:
+
+1. HIGHEST PRIORITY - Broker-side Stop-Loss cap (-Rs 2,000). Built
+   (strategy/fyers_order_execution.py). Strongest evidence of anything
+   tested this session - 81% NIFTY improvement across the FULL 40-trade
+   real sample, not a partial/anecdotal one.
+2. MEDIUM - Circuit-band proximity filter. Built (indicators/circuit_
+   band.py). Sound protection logic, but the current 5-day sample never
+   came close to triggering it (closest real trade was 9.12% from the
+   band) - it's insurance against a rare event, not something today's
+   data can show a return benefit for.
+3. MEDIUM - Fractional position sizing. Analysis only, not implemented.
+   A genuine risk ceiling (bounds worst-case exposure per trade), but
+   NOT a free-lunch return improvement - profit shrinks alongside risk.
+   More relevant once real capital per book grows past the current
+   Rs 11,000-15,000 Stage 3 plan.
+4. TIED TO STAGE 2 - VPS's own continuous check loop. No separate code
+   needed - already the reason Stage 2 exists, just reinforced here as
+   mattering for exit-overshoot specifically, not only uptime.
+5. LOW (until populated) - High-risk event-day calendar. Built
+   (indicators/high_risk_event_calendar.py). Only Budget day works out
+   of the box; RBI MPC/election/macro dates need manual entry from real
+   published calendars before this filter does anything beyond 01-Feb.
+6. LOW - ATR-scaled dynamic Stop-Loss cap. Tested, NOT adopted -
+   statistically indistinguishable from the simpler flat -Rs 2,000 cap
+   in the current 5-day sample (not enough real volatility spread yet).
+7. LOW (needs more data) - Trailing-Stop / Breakeven-Stop. Only 12 of
+   40 real trades had ANY intra-trade price data (a 5-min snapshot log,
+   too coarse for oi_footprint's 1-2 min trades) - mixed, inconclusive
+   signal on that partial sample.
+8. NOT PURSUED - Laddered/Multiple Targets (already rejected 30-Jul for
+   the equity engine, same reasoning applies) and Indicator-based Exit
+   (could not be tested at all - no data fine-grained enough exists).
+
+RECOMMENDED NEXT CONCRETE STEP: once Stage 2 (VPS) is live, test #1
+(the broker-side SL order) for real with a single small position before
+relying on it for anything bigger - place_stop_loss_order() has never
+been called against Fyers' real order endpoint.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
@@ -4454,11 +4499,11 @@ Status
 
 Current Version
 
-v0.0.34
+v0.0.35
 
 Next Version
 
-v0.0.35
+v0.0.36
 
 ==================================================
 
