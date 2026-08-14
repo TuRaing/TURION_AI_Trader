@@ -4355,6 +4355,36 @@ strategy yet.
 
 ==================================================
 
+HIGH-RISK EVENT-DAY CALENDAR - BUILT, NOT WIRED IN, 14-Aug - candidate
+#4 from the circuit-breaker ideas list (avoid holding through/opening
+on Budget day, RBI MPC announcements, election results, major macro
+announcements - these days are disproportionately likely to produce a
+large sudden move). New indicators/high_risk_event_calendar.py, 8 new
+tests (337 total passing).
+
+Different in kind from this session's other 2 new filters (circuit_
+band.py, the SL trigger-price solver) - those are pure math over
+already-known numbers; this one depends on a real-world CALENDAR that
+needs manual upkeep. Split into two pieces on purpose:
+
+1. is_budget_day() - the one genuinely fixed, programmatically
+   computable date (01-Feb every year) - no external list needed.
+2. HIGH_RISK_EVENT_DATES - a manually-maintained set for everything
+   else (RBI MPC dates, election results, major scheduled macro
+   announcements). Shipped EMPTY on purpose, not seeded with guessed
+   2026 dates - RBI publishes its MPC calendar on rbi.org.in, election
+   dates come from the Election Commission; a wrong hardcoded date is
+   worse than none (it would either miss the real risk day or block a
+   normal trading day for no reason). Needs periodic manual updates
+   against the real published calendars before this filter is useful
+   for anything beyond Budget day.
+
+NOT WIRED INTO ANY STRATEGY - same status as the other 2 circuit-
+breaker candidates built today. Before this is worth activating, the
+HIGH_RISK_EVENT_DATES set needs real dates added by hand.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
@@ -4380,11 +4410,11 @@ Status
 
 Current Version
 
-v0.0.32
+v0.0.33
 
 Next Version
 
-v0.0.33
+v0.0.34
 
 ==================================================
 

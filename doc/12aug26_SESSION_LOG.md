@@ -411,6 +411,15 @@ both written up in doc/PROJECT_STATUS.md.
    writeup in PROJECT_STATUS.md's "CIRCUIT-BAND PROXIMITY FILTER"
    entry.
 
+✅ Built (not wired in) the high-risk event-day calendar (candidate #4
+   from the circuit-breaker ideas list) - new indicators/high_risk_
+   event_calendar.py, 8 new tests, 337 passing overall. is_budget_day()
+   is programmatic (01-Feb every year); HIGH_RISK_EVENT_DATES (RBI MPC/
+   election/macro dates) shipped empty on purpose - needs real dates
+   added by hand from official calendars before it's useful beyond
+   Budget day. Full writeup in PROJECT_STATUS.md's "HIGH-RISK EVENT-DAY
+   CALENDAR" entry.
+
 ✅ Researched circuit-breaker protection for an open position (not a
    strategy edge question - a risk-infrastructure one). 5 candidate
    mitigations identified and prioritized, NONE built or backtested
