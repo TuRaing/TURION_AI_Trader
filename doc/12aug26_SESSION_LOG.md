@@ -357,6 +357,16 @@ both written up in doc/PROJECT_STATUS.md.
    Full writeup in PROJECT_STATUS.md's "STAGED CAPITAL PLAN - TIMELINE
    CONFIRMED" entry.
 
+✅ FIXED, 14-Aug: the morning's oi_iv_combo APK rebuild dropped
+   `--dart-define=GITHUB_PAT` (a plain `flutter build apk --release`
+   doesn't pass it), breaking the Login-to-Fyers button - the exact
+   same bug class first hit 07-Aug. Rebuilt with the flag (read from
+   local `.env`, never printed), reinstalled, and verified live: the
+   user logged in again and the fyers_trigger.yml run at 08:53 IST
+   completed successfully on GitHub Actions. Documented as a standing
+   reminder in PROJECT_STATUS.md - every future release build needs
+   this flag or the login silently breaks again.
+
 ✅ Researched circuit-breaker protection for an open position (not a
    strategy edge question - a risk-infrastructure one). 5 candidate
    mitigations identified and prioritized, NONE built or backtested

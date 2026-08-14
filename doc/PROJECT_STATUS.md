@@ -4171,6 +4171,32 @@ account can go to Rs 0 in a bad case, but not negative.
 
 ==================================================
 
+GITHUB_PAT REBUILD REGRESSION - RECURRED + FIXED, 14-Aug - the
+morning's oi_iv_combo APK rebuild (`flutter build apk --release`,
+earlier today) omitted `--dart-define=GITHUB_PAT=...`, so the Login-
+to-Fyers screen showed "App was built without a GITHUB_PAT - the
+trigger cannot be sent" once installed. This is the EXACT same class
+of bug first hit and fixed 07-Aug (see doc/07aug26_SESSION_LOG.md) -
+`--dart-define=GITHUB_PAT` is required at BUILD TIME (mobile_app/lib/
+screens/fyers_login_screen.dart reads it via String.fromEnvironment,
+baked in at compile time, not runtime) and is silently dropped by any
+plain `flutter build apk --release` that doesn't pass it explicitly.
+
+Fixed by loading GITHUB_PAT from the repo-root `.env` (local,
+gitignored, never printed/logged) and rebuilding with `flutter build
+apk --release --dart-define=GITHUB_PAT="$GITHUB_PAT"`, then
+reinstalling via `adb install -r`. Verified live: the user logged in
+again through the app and the resulting fyers_trigger.yml workflow
+run (08:53 IST, 14-Aug) completed successfully on GitHub Actions.
+
+LESSON (recurring now for the 2nd time) - every future `flutter build
+apk` for this app MUST include `--dart-define=GITHUB_PAT="$GITHUB_PAT"`
+(read from local `.env`, never hardcoded) or the Fyers login button
+silently breaks. Worth checking before/after any release build, not
+just when the user reports the error again.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
@@ -4196,11 +4222,11 @@ Status
 
 Current Version
 
-v0.0.28
+v0.0.29
 
 Next Version
 
-v0.0.29
+v0.0.30
 
 ==================================================
 
