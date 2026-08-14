@@ -4385,6 +4385,50 @@ HIGH_RISK_EVENT_DATES set needs real dates added by hand.
 
 ==================================================
 
+FRACTIONAL POSITION SIZING - RETROSPECTIVELY TESTED, 14-Aug - candidate
+#5 from the circuit-breaker ideas list. First had to correct an earlier
+assumption in this same conversation: oi_footprint's real per-trade
+sizing (lots = Cash // (entry_premium x lot_size), fyers_options_
+oi_footprint.py) deploys FULL available Cash on its one open position,
+not a %-of-equity cap - the confidence-scaled 1-2%-risk sizing that
+exists in this repo (19-Jul, strategy/paper_trading.py) only applies to
+the yfinance equity Swing engine, not the options books.
+
+Replayed all real oi_footprint trades at 5 cash-fraction levels
+(100%/50%/30%/20%/10% of available Cash per trade, sequential replay so
+each trade's lot count still depends on the running Cash balance):
+
+  NIFTY (31 trades)          Total Profit   Worst Single Trade   Max Capital/Trade
+  100% (today's real rule)   +Rs 41,479     -Rs 14,851            Rs 1,58,100
+  50%                        +Rs 18,668     -Rs 5,501             Rs 61,200
+  30%                        +Rs 9,644      -Rs 3,164             Rs 33,645
+  20%                        +Rs 5,871      -Rs 1,605             Rs 21,015
+  10%                        +Rs 2,657      -Rs 826               Rs 10,200
+
+  BANKNIFTY (9 trades) shows the same pattern, down to Rs 0 profit at
+  10% (trades become unaffordable at that small a fraction of Rs
+  1,00,000 - consistent with the earlier minimum-capital finding).
+
+FINDING: this is NOT a free-lunch risk reduction - profit and worst-
+case loss shrink together, roughly proportionally to the fraction
+chosen. Smaller position sizing does not improve risk-ADJUSTED return
+here (single-signal book, no diversification benefit within itself);
+it is a straightforward ceiling on how much capital can ever be
+exposed in one trade. Real value: it directly bounds the circuit-halt
+worst case - at 100% up to Rs 1,58,100 could be trapped in one NIFTY
+position, at 20% only up to Rs 21,015. Recommended framing for later:
+choose a fraction based on how much of a single book's capital is
+acceptable to lose in a worst-case trapped-position scenario, not by
+looking for a return-improving number - there isn't one. Less relevant
+at the small real-capital sizes already planned for Stage 3
+(Rs 11,000-15,000 per book), more relevant if capital per book ever
+scales toward Rs 1,00,000+.
+
+NOT IMPLEMENTED - retrospective analysis only, no code changed in any
+strategy module.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
@@ -4410,11 +4454,11 @@ Status
 
 Current Version
 
-v0.0.33
+v0.0.34
 
 Next Version
 
-v0.0.34
+v0.0.35
 
 ==================================================
 

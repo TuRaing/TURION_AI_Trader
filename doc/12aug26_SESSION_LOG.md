@@ -420,6 +420,19 @@ both written up in doc/PROJECT_STATUS.md.
    Budget day. Full writeup in PROJECT_STATUS.md's "HIGH-RISK EVENT-DAY
    CALENDAR" entry.
 
+✅ Retrospectively tested fractional position sizing (candidate #5,
+   completing today's circuit-breaker ideas list) - corrected an
+   earlier assumption first: oi_footprint deploys FULL Cash per trade,
+   not a %-cap (that only exists for the equity Swing engine). Replayed
+   all real trades at 100/50/30/20/10% of Cash per trade: profit and
+   worst-case loss shrink together, roughly proportionally (NIFTY
+   +Rs 41,479/-Rs 14,851 worst trade at 100% down to +Rs 2,657/-Rs 826
+   at 10%) - not a free-lunch risk reduction, just a direct ceiling on
+   how much can be trapped in one circuit-halted position. Not
+   implemented (analysis only). Full writeup in PROJECT_STATUS.md's
+   "FRACTIONAL POSITION SIZING" entry. This completes all 5 circuit-
+   breaker protection candidates for today.
+
 ✅ Researched circuit-breaker protection for an open position (not a
    strategy edge question - a risk-infrastructure one). 5 candidate
    mitigations identified and prioritized, NONE built or backtested
