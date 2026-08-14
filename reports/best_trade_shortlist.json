@@ -1,10 +1,20 @@
 {
-  "Generated At": "2026-08-14 07:27:15",
+  "Generated At": "2026-08-14 08:45:41",
   "Stocks": [
+    {
+      "Name": "LT",
+      "Symbol": "LT.NS",
+      "Price": 4059.5,
+      "Decision": "BUY",
+      "Bias": "Bullish",
+      "Confidence": 80.0,
+      "ATR": 62.11,
+      "Candle Pattern": "Hammer"
+    },
     {
       "Name": "HCLTECH",
       "Symbol": "HCLTECH.NS",
-      "Price": 1364.2,
+      "Price": 1364.4,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 80.0,
@@ -12,29 +22,9 @@
       "Candle Pattern": "Hammer"
     },
     {
-      "Name": "M&M",
-      "Symbol": "M&M.NS",
-      "Price": 3417.3,
-      "Decision": "BUY",
-      "Bias": "Bullish",
-      "Confidence": 80.0,
-      "ATR": 79.69,
-      "Candle Pattern": "Hammer"
-    },
-    {
-      "Name": "HDFCBANK",
-      "Symbol": "HDFCBANK.NS",
-      "Price": 726.6,
-      "Decision": "SELL",
-      "Bias": "Bearish",
-      "Confidence": 60.0,
-      "ATR": 9.12,
-      "Candle Pattern": "No Pattern"
-    },
-    {
       "Name": "INFY",
       "Symbol": "INFY.NS",
-      "Price": 1167.0,
+      "Price": 1167.5,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 60.0,
@@ -44,22 +34,32 @@
     {
       "Name": "HINDUNILVR",
       "Symbol": "HINDUNILVR.NS",
-      "Price": 2078.6,
+      "Price": 2068.2,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
-      "ATR": 47.36,
+      "ATR": 47.9,
       "Candle Pattern": "No Pattern"
     },
     {
       "Name": "BHARTIARTL",
       "Symbol": "BHARTIARTL.NS",
-      "Price": 1996.9,
+      "Price": 2004.7,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 60.0,
-      "ATR": 39.39,
+      "ATR": 39.57,
       "Candle Pattern": "Bullish Engulfing"
+    },
+    {
+      "Name": "TITAN",
+      "Symbol": "TITAN.NS",
+      "Price": 5054.9,
+      "Decision": "BUY",
+      "Bias": "Bullish",
+      "Confidence": 60.0,
+      "ATR": 104.26,
+      "Candle Pattern": "No Pattern"
     }
   ],
   "Options": [
@@ -67,8 +67,8 @@
       "Name": "NIFTY 50",
       "Bias": "Bullish",
       "Decision": "NO TRADE",
-      "Confidence": 42.0,
-      "Reason": "Price action Bullish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 42.0% is below the 60% threshold."
+      "Confidence": 28.0,
+      "Reason": "Price action Bullish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 28.0% is below the 60% threshold."
     },
     {
       "Name": "BANK NIFTY",
@@ -79,25 +79,22 @@
     }
   ],
   "News": {
+    "LT": {
+      "Headlines": [
+        "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
+        "15 stocks held by 100+ MFs in July surged up to 131%; 3 turned multibaggers in CY26",
+        "Manorama Industries shares surge over 8% after strong Q1 results",
+        "Jubilant Foodworks shares rally 6% after Q1 results; Bernstein sees Popeyes as strong growth driver. Should you buy?",
+        "Tata Motors PV shares fall 5% after weak Q1 results. What are Morgan Stanley, Nomura, others saying?"
+      ],
+      "Positive": 4,
+      "Negative": 1,
+      "Neutral": 0,
+      "Sentiment": "Bullish",
+      "Score": 0.6,
+      "Confidence": 60.0
+    },
     "HCLTECH": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "M&M": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "HDFCBANK": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -133,30 +130,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "LT": {
-      "Headlines": [
-        "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
-        "Manorama Industries shares surge over 8% after strong Q1 results",
-        "Jubilant Foodworks shares rally 6% after Q1 results; Bernstein sees Popeyes as strong growth driver. Should you buy?",
-        "Tata Motors PV shares fall 5% after weak Q1 results. What are Morgan Stanley, Nomura, others saying?"
-      ],
-      "Positive": 3,
-      "Negative": 1,
-      "Neutral": 0,
-      "Sentiment": "Bullish",
-      "Score": 0.5,
-      "Confidence": 50.0
-    },
     "TITAN": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "NESTLEIND": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -174,7 +148,25 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "M&M": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "DIVISLAB": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "GRASIM": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -194,15 +186,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "EICHERMOT": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "BAJAJ-AUTO": {
       "Headlines": [],
       "Positive": 0,
@@ -217,28 +200,6 @@
       "Positive": 0,
       "Negative": 0,
       "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "HINDALCO": {
-      "Headlines": [
-        "Explained: Why Vedanta Aluminium, Hindalco, Nalco shares tumbled up to 7% on Friday"
-      ],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 1,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "ITC": {
-      "Headlines": [
-        "Fitch affirms US at AA+ with stable outlook, flags fiscal and inflation risks"
-      ],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 1,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -262,6 +223,15 @@
       "Confidence": 0.0
     },
     "MARUTI": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "NESTLEIND": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -306,7 +276,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "CIPLA": {
+    "HDFCLIFE": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -315,7 +285,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "GRASIM": {
+    "EICHERMOT": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -351,6 +321,26 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "HINDALCO": {
+      "Headlines": [
+        "Explained: Why Vedanta Aluminium, Hindalco, Nalco shares tumbled up to 7% on Friday"
+      ],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 1,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "SHREECEM": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "RELIANCE": {
       "Headlines": [],
       "Positive": 0,
@@ -360,11 +350,22 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "BAJFINANCE": {
+    "HDFCBANK": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
       "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "ITC": {
+      "Headlines": [
+        "Fitch affirms US at AA+ with stable outlook, flags fiscal and inflation risks"
+      ],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 1,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -378,7 +379,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "ULTRACEMCO": {
+    "SUNPHARMA": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -405,15 +406,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "HDFCLIFE": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "SBILIFE": {
       "Headlines": [],
       "Positive": 0,
@@ -432,7 +424,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "INDUSINDBK": {
+    "CIPLA": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -441,7 +433,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "SHREECEM": {
+    "INDUSINDBK": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -488,7 +480,16 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "SUNPHARMA": {
+    "BAJFINANCE": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "ULTRACEMCO": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -559,6 +560,26 @@
     {
       "Headline": "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
       "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Pakistan celebrates Independence Day: Here's how its stock market performed in last one year",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Unitree IPO: China\u2019s humanoid robot starset for potentially explosive Shanghai debut",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "15 stocks held by 100+ MFs in July surged up to 131%; 3 turned multibaggers in CY26",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "LEAP India shares fall 12% post-listing, slip below IPO price. What should investors do?",
+      "Sentiment": "Bearish"
+    },
+    {
+      "Headline": "Ananya Birla-promoted Svatantra Microfin files for Rs 3,000 crore IPO",
+      "Sentiment": "Neutral"
     },
     {
       "Headline": "Global Market: Taiwan dollar surges to one-month high as foreign flows boost currency",
@@ -722,26 +743,6 @@
     },
     {
       "Headline": "Britannia Share Price Live Updates: Britannia's Financial Snapshot",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Milky Mist Dairy Food allotment likely today; GMP hints at 19% listing. Here's how to check your status",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Advent-backed Svatantra Microfin files for $315 million IPO",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "RIL Share Price Live Updates: RIL's Current Market Price and Performance",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Shiprocket IPO Day 3: GMP signals 38% listing premium, subscribed 3.16 times; should you subscribe?",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Axis Bank Share Price Live Updates: Axis Bank Stock Details",
       "Sentiment": "Neutral"
     }
   ]
