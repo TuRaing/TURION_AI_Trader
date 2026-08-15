@@ -56,13 +56,17 @@ class StatPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
         color: backgroundColor ?? surfaceColor,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
       ),
       child: Column(
         children: [
-          Text(label, style: TextStyle(fontSize: 11, color: valueColor?.withValues(alpha: 0.85) ?? mutedColor)),
-          const SizedBox(height: 2),
-          Text(value, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: valueColor)),
+          Text(
+            label.toUpperCase(),
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: faintColor, letterSpacing: 0.4),
+          ),
+          const SizedBox(height: 3),
+          Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: valueColor)),
         ],
       ),
     );
@@ -72,6 +76,10 @@ class StatPill extends StatelessWidget {
 /// The big hero stat at the top of the Portfolio tab - Total PnL, not
 /// Cash, because "am I up or down" is the number that actually matters
 /// day to day (see the design review earlier in this project).
+///
+/// Redesigned 15-Aug-2026 (approved mockup): the value now carries a
+/// soft neon glow (glowShadow) and sits in a rounded card instead of a
+/// full pill, matching the mockup's hero-card treatment.
 class HeroStat extends StatelessWidget {
   final String label;
   final String value;
@@ -83,16 +91,29 @@ class HeroStat extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(999),
+        color: surfaceRaisedColor,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: accentColor.withValues(alpha: 0.16)),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(fontSize: 12, color: color)),
-          const SizedBox(height: 2),
-          Text(value, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500, color: color)),
+          Text(
+            label.toUpperCase(),
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: accent2Color, letterSpacing: 0.6),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w800,
+              color: color,
+              shadows: glowShadow(color),
+            ),
+          ),
         ],
       ),
     );

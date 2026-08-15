@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'theme.dart';
+import 'widgets/mesh_background.dart';
 import 'screens/portfolio_screen.dart';
 import 'screens/best_trade_screen.dart';
 import 'screens/watchlist_screen.dart';
@@ -97,7 +98,7 @@ class _HomeShellState extends State<HomeShell> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(_titles[_index])),
-      body: IndexedStack(index: _index, children: _screens),
+      body: MeshBackground(child: IndexedStack(index: _index, children: _screens)),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _index,
         onTap: (i) => setState(() => _index = i),
