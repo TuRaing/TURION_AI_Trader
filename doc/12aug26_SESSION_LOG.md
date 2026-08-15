@@ -560,6 +560,25 @@ findings as extra context for the 14-Aug review itself:
     passing. Full writeup in PROJECT_STATUS.md's "REMAINING THRESHOLD
     BOOKS GIVEN THE HYBRID SL CAP" entry.
 
+0h. MOBILE APP - GROUPED OVERVIEW + PER-TRADE COST BREAKDOWN, 14-Aug:
+    user's explicit app-update request, now that ALL_STRATEGIES has
+    grown to 59 - (1) group every book into 4 buckets (New SL-cap /
+    Profitable / Loss-making / No data yet) instead of one long tab
+    row, computed LIVE from real Cash on every load, not hardcoded;
+    (2) tapping any trade (live or history) shows full detail
+    including REAL trading costs (brokerage/STT/exchange/stamp-duty/
+    SEBI/GST) - explicitly NOT personal income tax, which the user
+    clarified depends on total annual income and can't be computed
+    in-app. New FyersOptionsGroupedScreen (10th bottom-nav tab) +
+    FyersOptionsBookDetailScreen (per-book drill-down) + options_
+    transaction_costs.dart (client-side mirror of the Python cost
+    formula, works on historical trades too, no backend change
+    needed) + showOptionTradeDetails() in widgets/common.dart.
+    VERIFIED LIVE on the phone: Grouped screen showed correct real
+    groupings and PnL; a real -Rs 4,321.06 Stop-Loss trade's detail
+    sheet showed the full cost breakdown with Net PnL matching the
+    backend's real recorded value EXACTLY. flutter analyze clean.
+
 1. 14-Aug review checkpoint - now explicitly split: (a) simple_st1/
    st2/st3/st4 and their threshold variants have enough sample to
    decide on now (NIFTY and BANKNIFTY threshold legs separately -

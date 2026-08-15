@@ -4769,6 +4769,63 @@ st2_threshold/BANKNIFTY, deliberately, per the finding above.
 
 ==================================================
 
+MOBILE APP - GROUPED OVERVIEW + PER-TRADE COST BREAKDOWN, 14-Aug - a
+flat tab-per-strategy list stopped being usable once ALL_STRATEGIES
+grew from 33 to 59 today, and the user asked for two things: (1) every
+book grouped into 4 buckets instead of one long tab row, (2) tapping
+any trade (live or historical) shows full detail including the REAL
+trading costs (not personal income tax, which depends on the user's
+total annual income and can't be computed in-app - explicitly
+excluded per the user's own clarification).
+
+NEW SCREEN - FyersOptionsGroupedScreen (mobile_app/lib/screens/fyers_
+options_grouped_screen.dart), added as a 10th bottom-nav tab
+("Grouped"). Fetches all 59 books' real Cash + Closed Trades count on
+every load and classifies LIVE (not a hardcoded list, since which book
+is "profitable" changes day to day - several flipped sign today alone):
+  New (SL-cap)  - name ends "_slcap" or starts "oi_hybrid_sl" (26
+                  books) - shown regardless of its own PnL sign, since
+                  the point is tracking the fix's own cohort, not
+                  today's result.
+  Profitable    - everything else with Cash > initial capital.
+  Loss-making   - everything else with Cash < initial capital.
+  No data yet   - everything else with zero closed trades.
+Tapping a book row opens a new FyersOptionsBookDetailScreen (fyers_
+options_book_detail_screen.dart) - the same open-position/closed-
+trades content the per-strategy tabs already show, for exactly that
+one (name, index) pair.
+
+PER-TRADE COST BREAKDOWN - new options_transaction_costs.dart mirrors
+strategy/options_transaction_costs.py's formula exactly (brokerage/
+STT/exchange charges/stamp duty/SEBI charges/GST), computed CLIENT-
+SIDE from fields every trade record already has (Entry/Exit Premium,
+Lots) plus the known lot size per index - no backend change needed,
+works for historical trades too. showOptionTradeDetails() (widgets/
+common.dart) - tapping any OptionPositionCard (live) or
+OptionClosedTradeCard (history) now opens a detail sheet: Lots, Units,
+Entry/Exit Time, Entry/Exit Premium, Exit Reason, Held-for duration,
+then the itemized cost breakdown, then Net PnL, then an explicit note
+that this is trading costs only, not personal income tax. Credit-
+spread trades (2-leg) get the other fields but no cost breakdown - the
+live credit_spread engine itself never applies this cost model, so
+computing one here would invent a number the backend doesn't use.
+"View Chart" (unchanged underlying-chart navigation) becomes a button
+inside this sheet rather than the tap target itself - both card
+widgets' `onTap` param renamed to `onViewChart` to reflect this.
+
+VERIFIED LIVE on the user's phone (APK rebuilt with --dart-define=
+GITHUB_PAT, adb install -r, per the established GITHUB_PAT-flag
+lesson): Grouped screen correctly showed "New (SL-cap) (26)" with real
+Rs 0 (no trades yet - Saturday, market closed) plus real Profitable/
+Loss-making sections with correct real PnL figures; tapping into st4/
+NIFTY's real -Rs 4,321.06 Stop-Loss trade showed the full cost
+breakdown, and the displayed Net PnL (after costs) matched the
+backend's real recorded Net PnL EXACTLY - confirms the Dart cost
+calculation is byte-for-byte consistent with the live Python engine's.
+`flutter analyze` clean across the whole app.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
@@ -4794,11 +4851,11 @@ Status
 
 Current Version
 
-v0.0.41
+v0.0.42
 
 Next Version
 
-v0.0.42
+v0.0.43
 
 ==================================================
 

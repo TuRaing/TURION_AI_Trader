@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../theme.dart';
+import '../options_transaction_costs.dart';
 
 final _numberFormat = NumberFormat('#,##,##0.##', 'en_IN');
 final _dateTimeFormat = DateFormat('d MMM, h:mm a');
@@ -523,12 +524,18 @@ class LoadingErrorWrapper extends StatelessWidget {
 /// what used to be a hardcoded "NIFTY" - the original single-strategy
 /// screen still passes 'NIFTY' (it only ever traded NIFTY), the new
 /// multi-strategy screen passes 'NIFTY' or 'BANKNIFTY' per tab.
+///
+/// UPDATED 14-Aug-2026 - tapping the card now opens the full trade-
+/// detail sheet (entry/exit/lots/cost breakdown - see
+/// showOptionTradeDetails below) instead of jumping straight to the
+/// chart; `onViewChart` (renamed from `onTap`) becomes a button INSIDE
+/// that sheet, same pattern the equity ClosedTradeCard already uses.
 class OptionPositionCard extends StatelessWidget {
   final Map<String, dynamic> position;
   final String underlyingLabel;
-  final VoidCallback? onTap;
+  final VoidCallback? onViewChart;
 
-  const OptionPositionCard({super.key, required this.position, this.underlyingLabel = 'NIFTY', this.onTap});
+  const OptionPositionCard({super.key, required this.position, this.underlyingLabel = 'NIFTY', this.onViewChart});
 
   @override
   Widget build(BuildContext context) {
@@ -585,26 +592,32 @@ class OptionPositionCard extends StatelessWidget {
               'Entered ${formatBackendTimestamp(position['Entry Time'] as String?)} · '
               'Checked ${formatBackendTimestamp(position['Last Checked'] as String?)}',
               style: const TextStyle(fontSize: 11, color: mutedColor)),
-          if (onTap != null) ...[
-            const SizedBox(height: 4),
-            const Row(
-              children: [
-                Spacer(),
-                Icon(Icons.show_chart, size: 14, color: mutedColor),
-                SizedBox(width: 4),
-                Text('View underlying chart', style: TextStyle(fontSize: 11, color: mutedColor)),
-              ],
-            ),
-          ],
+          const SizedBox(height: 4),
+          const Row(
+            children: [
+              Spacer(),
+              Icon(Icons.receipt_long, size: 14, color: mutedColor),
+              SizedBox(width: 4),
+              Text('Tap for details', style: TextStyle(fontSize: 11, color: mutedColor)),
+            ],
+          ),
         ],
       ),
     );
 
-    if (onTap == null) return card;
-
     return Material(
       color: Colors.transparent,
-      child: InkWell(borderRadius: BorderRadius.circular(8), onTap: onTap, child: card),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () => showOptionTradeDetails(
+          context,
+          trade: position,
+          underlyingLabel: underlyingLabel,
+          isOpen: true,
+          onViewChart: onViewChart,
+        ),
+        child: card,
+      ),
     );
   }
 }
@@ -673,10 +686,8 @@ class OptionClosedTradeCard extends StatelessWidget {
               const Spacer(),
               Text(formatSignedRupees(pnl),
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: win ? successColor : dangerColor)),
-              if (onViewChart != null) ...[
-                const SizedBox(width: 4),
-                const Icon(Icons.chevron_right, size: 16, color: mutedColor),
-              ],
+              const SizedBox(width: 4),
+              const Icon(Icons.chevron_right, size: 16, color: mutedColor),
             ],
           ),
           const SizedBox(height: 4),
@@ -688,11 +699,223 @@ class OptionClosedTradeCard extends StatelessWidget {
       ),
     );
 
-    if (onViewChart == null) return card;
-
     return Material(
       color: Colors.transparent,
-      child: InkWell(borderRadius: BorderRadius.circular(8), onTap: onViewChart, child: card),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () => showOptionTradeDetails(
+          context,
+          trade: trade,
+          underlyingLabel: underlyingLabel,
+          isOpen: false,
+          onViewChart: onViewChart,
+        ),
+        child: card,
+      ),
     );
   }
+}
+
+/// Added 14-Aug-2026 - the user's own explicit request: tapping any
+/// Options trade (live position OR closed history) shows a detailed
+/// breakdown - entry/exit time, strike, premium, lots/units, and the
+/// REAL trading costs (brokerage/STT/exchange/stamp-duty/SEBI/GST -
+/// NOT personal income tax, which depends on the user's total annual
+/// income and can't be computed here - see options_transaction_
+/// costs.dart's module comment for why this is calculated client-side
+/// instead of reading a stored field). Handles both single-leg trades
+/// (Strike/Entry Premium/Exit Premium - most strategies) and 2-leg
+/// credit-spread trades (Short/Long Strike/Entry Credit) - the spread
+/// shape doesn't get a cost breakdown, since the live credit_spread
+/// engine itself never applies this cost model (see strategy/fyers_
+/// options_credit_spread.py's _close_position - no calculate_options_
+/// round_trip_cost call there), so computing one here would invent a
+/// number the backend doesn't actually use.
+void showOptionTradeDetails(
+  BuildContext context, {
+  required Map<String, dynamic> trade,
+  required String underlyingLabel,
+  required bool isOpen,
+  VoidCallback? onViewChart,
+}) {
+  final isSpread = trade.containsKey('Entry Credit');
+  final optionType = trade['Option Type'] as String? ?? '';
+  final lots = (trade['Lots'] as num?)?.toInt() ?? 0;
+  final lotSize = lotSizeByIndex[underlyingLabel] ?? 75;
+  final units = lots * lotSize;
+
+  final entryTime = formatBackendTimestamp(trade['Entry Time'] as String?);
+  final exitTimeRaw = isOpen ? null : trade['Exit Time'] as String?;
+  final exitTime = isOpen ? null : formatBackendTimestamp(exitTimeRaw);
+  final exitReason = isOpen ? null : (trade['Exit Reason'] as String? ?? '—');
+
+  Duration? holding;
+  final entryTimeRaw = trade['Entry Time'] as String?;
+  if (!isOpen && entryTimeRaw != null && exitTimeRaw != null) {
+    try {
+      final entryDt = DateFormat('yyyy-MM-dd HH:mm:ss').parse(entryTimeRaw);
+      final exitDt = DateFormat('yyyy-MM-dd HH:mm:ss').parse(exitTimeRaw);
+      holding = exitDt.difference(entryDt);
+    } catch (_) {
+      holding = null;
+    }
+  }
+
+  String titleText;
+  double? entryPremium;
+  double? exitPremium;
+  double? entryCredit;
+  double? netPnl;
+
+  if (isSpread) {
+    final shortStrike = trade['Short Strike'];
+    final longStrike = trade['Long Strike'];
+    entryCredit = (trade['Entry Credit'] as num).toDouble();
+    titleText = '$underlyingLabel $shortStrike/$longStrike $optionType Spread';
+    netPnl = isOpen ? null : (trade['Net PnL'] as num).toDouble();
+  } else {
+    final strike = trade['Strike'];
+    entryPremium = (trade['Entry Premium'] as num).toDouble();
+    exitPremium = isOpen
+        ? (trade['Last Premium'] as num?)?.toDouble() ?? entryPremium
+        : (trade['Exit Premium'] as num).toDouble();
+    titleText = '$underlyingLabel $strike $optionType';
+    netPnl = isOpen ? null : (trade['Net PnL'] as num).toDouble();
+  }
+
+  OptionsCostBreakdown? costs;
+  double? grossPnl;
+  if (!isSpread && entryPremium != null && exitPremium != null && units > 0) {
+    grossPnl = (exitPremium - entryPremium) * units;
+    costs = OptionsCostBreakdown.compute(entryPremium: entryPremium, exitPremium: exitPremium, quantity: units);
+  }
+
+  final displayPnl = netPnl ?? (grossPnl != null && costs != null ? grossPnl - costs.total : null);
+  final win = (displayPnl ?? 0) >= 0;
+
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: surfaceColor,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    ),
+    builder: (context) {
+      return SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 15,
+                      backgroundColor: (isOpen ? mutedColor : (win ? successColor : dangerColor)).withValues(alpha: 0.18),
+                      child: Icon(
+                        isOpen ? Icons.hourglass_top : (win ? Icons.check : Icons.close),
+                        size: 16,
+                        color: isOpen ? mutedColor : (win ? successColor : dangerColor),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(titleText, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                    ),
+                    if (displayPnl != null)
+                      Text(
+                        '${isOpen ? '~' : ''}${formatSignedRupees(displayPnl)}',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: win ? successColor : dangerColor),
+                      ),
+                  ],
+                ),
+                if (isOpen)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 2, left: 40),
+                    child: Text('Still open - unrealized, before today\'s costs finalize',
+                        style: TextStyle(fontSize: 11, color: mutedColor)),
+                  ),
+                const SizedBox(height: 16),
+                const Divider(color: Colors.white12, height: 1),
+                const SizedBox(height: 16),
+                _DetailRow(label: 'Lots', value: '$lots'),
+                _DetailRow(label: 'Units (lots × lot size)', value: '$units'),
+                _DetailRow(label: 'Entry Time', value: entryTime.isNotEmpty ? entryTime : '—'),
+                if (isSpread)
+                  _DetailRow(label: 'Entry Credit', value: formatRupees(entryCredit!))
+                else ...[
+                  _DetailRow(label: 'Entry Premium', value: formatRupees(entryPremium!)),
+                  _DetailRow(label: isOpen ? 'Last Premium' : 'Exit Premium', value: formatRupees(exitPremium!)),
+                ],
+                if (!isOpen) ...[
+                  _DetailRow(label: 'Exit Time', value: exitTime != null && exitTime.isNotEmpty ? exitTime : '—'),
+                  _DetailRow(label: 'Exit Reason', value: exitReason ?? '—'),
+                  if (holding != null) _DetailRow(label: 'Held for', value: _formatDuration(holding)),
+                ],
+                if (grossPnl != null) ...[
+                  const SizedBox(height: 8),
+                  const Divider(color: Colors.white12, height: 1),
+                  const SizedBox(height: 8),
+                  Text('Trading costs (not income tax - see below)',
+                      style: TextStyle(fontSize: 11, color: mutedColor.withValues(alpha: 0.9))),
+                  const SizedBox(height: 8),
+                  _DetailRow(label: 'Gross PnL', value: formatSignedRupees(grossPnl)),
+                  _DetailRow(label: 'Brokerage', value: formatSignedRupees(-costs!.brokerage)),
+                  _DetailRow(label: 'STT', value: formatSignedRupees(-costs.stt)),
+                  _DetailRow(label: 'Exchange charges', value: formatSignedRupees(-costs.exchangeCharges)),
+                  _DetailRow(label: 'Stamp duty', value: formatSignedRupees(-costs.stampDuty)),
+                  _DetailRow(label: 'SEBI charges', value: formatSignedRupees(-costs.sebiCharges)),
+                  _DetailRow(label: 'GST (on brokerage+exchange+SEBI)', value: formatSignedRupees(-costs.gst)),
+                  _DetailRow(label: 'Total cost', value: formatSignedRupees(-costs.total)),
+                  const Divider(color: Colors.white12, height: 1),
+                  _DetailRow(
+                    label: isOpen ? 'Net PnL (est., after costs)' : 'Net PnL (after costs)',
+                    value: formatSignedRupees(displayPnl!),
+                  ),
+                ] else if (isSpread) ...[
+                  const SizedBox(height: 8),
+                  const Divider(color: Colors.white12, height: 1),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Cost breakdown not available for spread trades - the live '
+                    'strategy itself does not apply this cost model to credit '
+                    'spreads.',
+                    style: TextStyle(fontSize: 11, color: mutedColor),
+                  ),
+                  if (netPnl != null) ...[
+                    const SizedBox(height: 8),
+                    _DetailRow(label: 'Net PnL', value: formatSignedRupees(netPnl)),
+                  ],
+                ],
+                const Padding(
+                  padding: EdgeInsets.only(top: 4, bottom: 4),
+                  child: Text(
+                    'Trading costs only - your personal income tax on trading profit '
+                    'depends on your total annual income and isn\'t calculated here.',
+                    style: TextStyle(fontSize: 10, color: mutedColor),
+                  ),
+                ),
+                if (onViewChart != null) ...[
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        onViewChart();
+                      },
+                      icon: const Icon(Icons.show_chart, size: 18),
+                      label: const Text('View Chart'),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
 }

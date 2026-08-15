@@ -12,6 +12,7 @@ import 'screens/fyers_portfolio_screen.dart';
 import 'screens/fyers_multi_strategy_options_screen.dart';
 import 'screens/fyers_threshold_options_screen.dart';
 import 'screens/fyers_options_summary_screen.dart';
+import 'screens/fyers_options_grouped_screen.dart';
 
 // Topic-based push - every install subscribes to the same topic, so the
 // backend (report/push_notifier.py) never needs to track individual device
@@ -76,6 +77,7 @@ class _HomeShellState extends State<HomeShell> {
     FyersMultiStrategyOptionsScreen(),
     FyersThresholdOptionsScreen(),
     FyersOptionsSummaryScreen(),
+    FyersOptionsGroupedScreen(),
   ];
 
   static const _titles = [
@@ -88,6 +90,7 @@ class _HomeShellState extends State<HomeShell> {
     'Options (Test)',
     'Threshold Options (Test)',
     'Options Summary (Test)',
+    'Options Grouped (Test)',
   ];
 
   @override
@@ -109,6 +112,7 @@ class _HomeShellState extends State<HomeShell> {
           BottomNavigationBarItem(icon: Icon(Icons.candlestick_chart_outlined), label: 'Options'),
           BottomNavigationBarItem(icon: Icon(Icons.lock_clock_outlined), label: 'Threshold'),
           BottomNavigationBarItem(icon: Icon(Icons.table_chart_outlined), label: 'Summary'),
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard_customize_outlined), label: 'Grouped'),
         ],
       ),
     );

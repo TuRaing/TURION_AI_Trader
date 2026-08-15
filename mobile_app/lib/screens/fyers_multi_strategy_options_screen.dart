@@ -326,7 +326,7 @@ class _StrategyIndexPortfolioState extends State<_StrategyIndexPortfolio> {
                 OptionPositionCard(
                   position: position,
                   underlyingLabel: widget.label,
-                  onTap: () => Navigator.push(
+                  onViewChart: () => Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: (_) => ChartScreen(
