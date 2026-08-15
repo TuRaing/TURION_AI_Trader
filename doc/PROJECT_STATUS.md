@@ -4523,6 +4523,62 @@ order already built.
 
 ==================================================
 
+FLAT-RUPEE vs %-OF-DEPLOYED-CAPITAL STOP-LOSS CAP, 14-Aug - the user
+asked whether the flat-Rs SL cap (Rs 1,500-2,000 as tested above) is
+even the right shape, or whether the cap should instead scale with how
+much capital is actually deployed in each specific trade (since lots =
+Cash // (entry_premium x lot_size) means position size grows as a book
+compounds). Tested properly this time - a full SEQUENTIAL replay (cash
+carried trade-to-trade, lots recomputed fresh at each step, not reusing
+the historical Lots value from the real 1L-capital run, which an
+earlier same-day pass on this exact question got wrong by mixing scales)
+- across the 8 books from the "MAJOR CORRECTION" entry above, at 12
+capital tiers (Rs 15,000 to Rs 10,00,000), comparing a flat-Rs cap
+(2% of STARTING capital, fixed for that book's whole run) against a
+%-of-deployed-capital cap (2% of THAT TRADE's actual position size,
+recalculated every trade):
+
+  Aggregate (8 books) - Flat wins at every tier, by a growing margin:
+  Rs 15,000: Flat 2,53,702 vs Pct 2,33,819 (close)
+  Rs 1,00,000: Flat 43,62,019 vs Pct 23,23,604 (~2x)
+  Rs 10,00,000: Flat 4,75,42,661 vs Pct 2,43,84,522 (~2x)
+
+  Root cause: under the %-of-deployed rule, every win makes the account
+  bigger, which makes the NEXT trade's position bigger, which makes
+  the NEXT loss cap bigger too - risk compounds upward exactly when a
+  book is succeeding. The flat-Rs cap stays fixed regardless of how
+  large the account grows, so it becomes progressively SMALLER as a
+  fraction of the (growing) account - more disciplined, and the
+  backtest shows meaningfully more profitable as a result.
+
+  PER-BOOK NUANCE (this matters for the actual near-term plan): the
+  aggregate hides a real small-vs-large-capital reversal. At Rs 15,000-
+  50,000 specifically - the exact range already planned for Stage 3 -
+  the %-of-deployed method wins or ties for MOST of the 8 books
+  (simple_st1/NIFTY, st2/NIFTY, st3_threshold/NIFTY, simple_st1/
+  BANKNIFTY, st2/BANKNIFTY, st3/BANKNIFTY all favor Pct at Rs 15,000).
+  Flat only pulls decisively ahead from roughly Rs 1,00,000 onward, and
+  the gap widens the larger capital gets. RECOMMENDATION: %-of-deployed
+  is the more defensible choice for the actual Stage 3 capital range
+  (Rs 11,000-15,000); switching to a flat-Rs cap becomes worth
+  revisiting only if/when capital per book scales toward Rs 1,00,000+
+  (Stage 4 territory).
+
+  st2_threshold/BANKNIFTY is negative under BOTH cap methods at EVERY
+  capital tier tested - the only book of the 8 that neither fix
+  rescues. Reinforces that its problem is likely the entry signal
+  itself, not exit-overshoot - it should stay excluded from real-
+  capital consideration regardless of which SL-cap design is chosen.
+
+Analysis only - no code changed. When the new SL-capped strategy
+variants are actually built (separate books alongside the originals,
+per this repo's "never modify a working module" rule and the user's
+own explicit choice to build-new-not-modify), they should use
+%-of-deployed-capital sizing for the Stage 3 capital range, not the
+flat-Rs design that wins only at larger capital.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
@@ -4548,11 +4604,11 @@ Status
 
 Current Version
 
-v0.0.36
+v0.0.37
 
 Next Version
 
-v0.0.37
+v0.0.38
 
 ==================================================
 

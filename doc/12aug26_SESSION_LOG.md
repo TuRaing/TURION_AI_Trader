@@ -478,6 +478,24 @@ findings as extra context for the 14-Aug review itself:
     tighter SL would cause). Full writeup in PROJECT_STATUS.md's
     "MAJOR CORRECTION" entry.
 
+0c. FLAT-Rs vs %-OF-DEPLOYED-CAPITAL SL CAP, 14-Aug: tested whether the
+    SL cap should be a flat rupee amount or scale with each trade's
+    actual position size. Full sequential replay (cash carried trade-
+    to-trade, 12 capital tiers Rs 15,000-10,00,000, 8 books) - flat-Rs
+    wins the aggregate at every tier, and by a growing margin (~2x at
+    Rs 1,00,000+), because %-of-deployed lets the loss cap grow right
+    alongside a winning account (risk compounds upward when succeeding
+    - the opposite of disciplined). BUT the aggregate hides a real
+    reversal at small capital: at Rs 15,000-50,000 - the ACTUAL Stage 3
+    range already planned - %-of-deployed wins or ties for most of the
+    8 books. Recommendation: use %-of-deployed for the real Stage 3
+    sizing, revisit flat-Rs only if capital per book scales toward
+    Rs 1,00,000+ later. st2_threshold/BANKNIFTY stays negative under
+    BOTH methods at every capital tier - confirmed its problem isn't
+    exit-overshoot, keep it excluded from real-capital plans regardless.
+    Full writeup in PROJECT_STATUS.md's "FLAT-RUPEE vs %-OF-DEPLOYED-
+    CAPITAL" entry.
+
 1. 14-Aug review checkpoint - now explicitly split: (a) simple_st1/
    st2/st3/st4 and their threshold variants have enough sample to
    decide on now (NIFTY and BANKNIFTY threshold legs separately -
