@@ -4660,6 +4660,71 @@ trades, not just the retrospective replay it's based on so far.
 
 ==================================================
 
+oi_footprint EXIT-MECHANISM VARIANTS BUILT + DEPLOYED (42nd-53rd
+books), 14-Aug - the 5 profit-booking-filter ideas from the "oi_
+footprint EXIT-MECHANISM DEEP DIVE" entry (Trailing-Stop, ATR-scaling,
+Breakeven, Laddered, Indicator-based) could NOT be retrospectively
+backtested - oi_footprint's real trades are too short (0.6-8.9 min)
+for any available historical price data to reconstruct an internal
+path. Built as 6 LIVE paper-trading variants instead (the data gap is
+a HISTORICAL problem, not a live-checking one - going forward each
+variant's own real-time checks see real prices as they happen).
+
+New strategy/fyers_options_oi_footprint_variants.py - reuses oi_
+footprint's OI-buildup entry signal unchanged (imported, not
+duplicated - strategy/fyers_options_oi_footprint.py itself is
+untouched, per this repo's rule) and the same _hybrid_stop_loss_cap()
+built for the _slcap books. All 6 share the hybrid SL cap; each adds
+exactly ONE further idea on top (never combined with each other, to
+keep every variant a clean, isolated test):
+
+  oi_hybrid_sl             - hybrid SL cap only (baseline for this
+                              group), Target left exactly as-is
+                              (letting profit overshoot naturally,
+                              per the earlier "MAJOR CORRECTION"
+                              finding that this has been net-
+                              beneficial).
+  oi_hybrid_sl_trailing    - + once Target (Rs 1,500) is first
+                              reached, don't exit immediately - trail
+                              at 30% below the peak profit seen
+                              instead (TRAIL_PCT).
+  oi_hybrid_sl_atr         - + the hybrid cap itself is scaled by
+                              today's real ATR14 vs. a rolling ~1-
+                              month average (live version of the
+                              retrospective ATR test).
+  oi_hybrid_sl_breakeven   - + once profit ever reaches Rs 750
+                              (BREAKEVEN_TRIGGER_RUPEES), the position
+                              can never close at a net loss again.
+  oi_hybrid_sl_laddered    - + books HALF the position once profit
+                              reaches 50% of Target, letting the other
+                              half continue independently toward the
+                              full Target/hybrid-SL.
+  oi_hybrid_sl_indicator   - + exits early ("Indicator Exit") if the
+                              underlying's RSI crosses back through 50
+                              against the position's direction, ahead
+                              of Target/Stop-Loss.
+
+7 new tests (config shape + the pure parts of partial-close/close-
+position logic - _check_position itself needs live network quotes,
+same untestable-without-mocking status as every other engine's
+_check_position in this repo). 12 new books (6 variants x 2 indices),
+wired into ALL_STRATEGIES (41 -> 53), .gitignore, and the GitHub
+Actions workflow - so these 12 books DO run and persist state, and
+DO get committed to the repo. 353 tests passing overall. Deployed
+same day as built (paper trading, zero real-money risk).
+
+BACKEND ONLY, NOT YET IN THE MOBILE APP - the user explicitly asked
+not to wire this batch into the app UI yet ("app madhe add karu
+nakos, ajun khup kam aahe" - more work still coming, don't touch the
+app for every increment). The 3 option-tab screens were briefly
+edited to add these 12 books, then that edit was reverted before
+committing - the app still only shows the same 15 strategies as
+before this entry. App wiring is a deliberate separate, later step
+once this round of oi_footprint-variant work settles, not an
+oversight.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
@@ -4685,11 +4750,11 @@ Status
 
 Current Version
 
-v0.0.39
+v0.0.40
 
 Next Version
 
-v0.0.40
+v0.0.41
 
 ==================================================
 

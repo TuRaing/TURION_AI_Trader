@@ -525,6 +525,23 @@ findings as extra context for the 14-Aug review itself:
     going forward. Full writeup in PROJECT_STATUS.md's "_slcap BOOKS
     BUILT + DEPLOYED" entry.
 
+0f. oi_footprint EXIT-MECHANISM VARIANTS BUILT, 14-Aug: the 5 profit-
+    booking filters that couldn't be retrospectively backtested
+    (Trailing-Stop/ATR/Breakeven/Laddered/Indicator-based - no fine-
+    enough historical data for oi_footprint's 0.6-8.9-min trades) got
+    built as 6 LIVE paper-trading variants instead (oi_hybrid_sl +
+    5 more, each adding exactly one idea on top of the hybrid SL cap -
+    see fyers_options_oi_footprint_variants.py). oi_footprint itself
+    untouched. 12 new books (6 x 2 indices), ALL_STRATEGIES 41 -> 53,
+    7 new tests, 353 passing overall. BACKEND ONLY THIS ROUND - user
+    explicitly said not to wire these into the mobile app yet ("app
+    madhe add karu nakos, ajun khup kam aahe" - more work still coming)
+    - reverted the app-screen edits already made, kept everything else
+    (strategy code, tests, .gitignore, GitHub Actions workflow). App
+    wiring is a separate, later step once this round of work settles.
+    Full writeup in PROJECT_STATUS.md's "oi_footprint EXIT-MECHANISM
+    VARIANTS BUILT" entry.
+
 1. 14-Aug review checkpoint - now explicitly split: (a) simple_st1/
    st2/st3/st4 and their threshold variants have enough sample to
    decide on now (NIFTY and BANKNIFTY threshold legs separately -

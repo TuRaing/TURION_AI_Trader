@@ -8,6 +8,9 @@ from strategy.fyers_options_pcr_momentum import make_pcr_momentum_config, check_
 from strategy.fyers_options_max_pain_drift import make_max_pain_drift_config, check_or_open as check_or_open_max_pain_drift
 from strategy.fyers_options_pcr_vix_combo import make_pcr_vix_combo_config, check_or_open as check_or_open_pcr_vix_combo
 from strategy.fyers_options_oi_iv_combo import make_oi_iv_combo_config, check_or_open as check_or_open_oi_iv_combo
+from strategy.fyers_options_oi_footprint_variants import (
+    make_oi_footprint_variant_config, check_or_open as check_or_open_oi_footprint_variant,
+)
 
 # Added 06-Aug-2026 - the named-strategy roster for the multi-strategy
 # options paper trading the user asked for: several live strategies
@@ -223,6 +226,31 @@ ST2_TH_SLCAP_BANKNIFTY = make_strategy("st2_threshold_slcap", "BANKNIFTY", targe
                                         daily_profit_lock=True, daily_loss_lock=True, group="threshold",
                                         hybrid_sl_cap_pct=2.0)
 
+# oi_footprint variants - added 14-Aug-2026, same day as the _slcap
+# RSI-family books, per the user's own request: 6 live paper-trading
+# tests of the profit-booking-filter ideas that could NOT be
+# retrospectively backtested (no fine-grained-enough historical price
+# data for oi_footprint's 0.6-8.9-min trades - see PROJECT_STATUS.md's
+# "oi_footprint EXIT-MECHANISM DEEP DIVE" entry). strategy/fyers_
+# options_oi_footprint.py itself is UNTOUCHED - these reuse its entry
+# signal via strategy/fyers_options_oi_footprint_variants.py, a
+# separate module, per this repo's "never modify a working module"
+# rule. All 6 share the hybrid Stop-Loss cap; each adds exactly ONE
+# additional exit idea on top (see that module's docstring for what
+# each does).
+OI_HYBRID_SL_NIFTY = make_oi_footprint_variant_config("NIFTY", "oi_hybrid_sl", extra_exit=None)
+OI_HYBRID_SL_BANKNIFTY = make_oi_footprint_variant_config("BANKNIFTY", "oi_hybrid_sl", extra_exit=None)
+OI_HYBRID_SL_TRAILING_NIFTY = make_oi_footprint_variant_config("NIFTY", "oi_hybrid_sl_trailing", extra_exit="trailing")
+OI_HYBRID_SL_TRAILING_BANKNIFTY = make_oi_footprint_variant_config("BANKNIFTY", "oi_hybrid_sl_trailing", extra_exit="trailing")
+OI_HYBRID_SL_ATR_NIFTY = make_oi_footprint_variant_config("NIFTY", "oi_hybrid_sl_atr", extra_exit="atr")
+OI_HYBRID_SL_ATR_BANKNIFTY = make_oi_footprint_variant_config("BANKNIFTY", "oi_hybrid_sl_atr", extra_exit="atr")
+OI_HYBRID_SL_BREAKEVEN_NIFTY = make_oi_footprint_variant_config("NIFTY", "oi_hybrid_sl_breakeven", extra_exit="breakeven")
+OI_HYBRID_SL_BREAKEVEN_BANKNIFTY = make_oi_footprint_variant_config("BANKNIFTY", "oi_hybrid_sl_breakeven", extra_exit="breakeven")
+OI_HYBRID_SL_LADDERED_NIFTY = make_oi_footprint_variant_config("NIFTY", "oi_hybrid_sl_laddered", extra_exit="laddered")
+OI_HYBRID_SL_LADDERED_BANKNIFTY = make_oi_footprint_variant_config("BANKNIFTY", "oi_hybrid_sl_laddered", extra_exit="laddered")
+OI_HYBRID_SL_INDICATOR_NIFTY = make_oi_footprint_variant_config("NIFTY", "oi_hybrid_sl_indicator", extra_exit="indicator")
+OI_HYBRID_SL_INDICATOR_BANKNIFTY = make_oi_footprint_variant_config("BANKNIFTY", "oi_hybrid_sl_indicator", extra_exit="indicator")
+
 ALL_STRATEGIES = [
     (check_or_open_generic, SIMPLE_ST1_NIFTY),
     (check_or_open_generic, SIMPLE_ST1_BANKNIFTY),
@@ -265,4 +293,16 @@ ALL_STRATEGIES = [
     (check_or_open_generic, ST3_SLCAP_BANKNIFTY),
     (check_or_open_generic, ST3_TH_SLCAP_NIFTY),
     (check_or_open_generic, ST2_TH_SLCAP_BANKNIFTY),
+    (check_or_open_oi_footprint_variant, OI_HYBRID_SL_NIFTY),
+    (check_or_open_oi_footprint_variant, OI_HYBRID_SL_BANKNIFTY),
+    (check_or_open_oi_footprint_variant, OI_HYBRID_SL_TRAILING_NIFTY),
+    (check_or_open_oi_footprint_variant, OI_HYBRID_SL_TRAILING_BANKNIFTY),
+    (check_or_open_oi_footprint_variant, OI_HYBRID_SL_ATR_NIFTY),
+    (check_or_open_oi_footprint_variant, OI_HYBRID_SL_ATR_BANKNIFTY),
+    (check_or_open_oi_footprint_variant, OI_HYBRID_SL_BREAKEVEN_NIFTY),
+    (check_or_open_oi_footprint_variant, OI_HYBRID_SL_BREAKEVEN_BANKNIFTY),
+    (check_or_open_oi_footprint_variant, OI_HYBRID_SL_LADDERED_NIFTY),
+    (check_or_open_oi_footprint_variant, OI_HYBRID_SL_LADDERED_BANKNIFTY),
+    (check_or_open_oi_footprint_variant, OI_HYBRID_SL_INDICATOR_NIFTY),
+    (check_or_open_oi_footprint_variant, OI_HYBRID_SL_INDICATOR_BANKNIFTY),
 ]

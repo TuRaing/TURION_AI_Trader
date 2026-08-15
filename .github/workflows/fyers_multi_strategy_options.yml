@@ -25,7 +25,7 @@ on:
   workflow_dispatch:
     inputs:
       strategy:
-        description: 'Strategy name (simple_st1/st2/st3/st4/gapfill/vix_filter/oi_footprint/credit_spread/pcr_momentum/max_pain_drift/pcr_vix_combo/oi_iv_combo/simple_st1_slcap/st2_slcap/st3_slcap), "threshold" (all profit-lock + threshold-slcap variants), or "all"'
+        description: 'Strategy name (simple_st1/st2/st3/st4/gapfill/vix_filter/oi_footprint/credit_spread/pcr_momentum/max_pain_drift/pcr_vix_combo/oi_iv_combo/simple_st1_slcap/st2_slcap/st3_slcap/oi_hybrid_sl/oi_hybrid_sl_trailing/oi_hybrid_sl_atr/oi_hybrid_sl_breakeven/oi_hybrid_sl_laddered/oi_hybrid_sl_indicator), "threshold" (all profit-lock + threshold-slcap variants), or "all"'
         required: false
         default: 'all'
 
@@ -139,6 +139,18 @@ jobs:
           git add reports/fyers_options_st3_slcap_banknifty_portfolio.json || true
           git add reports/fyers_options_st3_threshold_slcap_nifty_portfolio.json || true
           git add reports/fyers_options_st2_threshold_slcap_banknifty_portfolio.json || true
+          git add reports/fyers_options_oi_hybrid_sl_nifty_portfolio.json || true
+          git add reports/fyers_options_oi_hybrid_sl_banknifty_portfolio.json || true
+          git add reports/fyers_options_oi_hybrid_sl_trailing_nifty_portfolio.json || true
+          git add reports/fyers_options_oi_hybrid_sl_trailing_banknifty_portfolio.json || true
+          git add reports/fyers_options_oi_hybrid_sl_atr_nifty_portfolio.json || true
+          git add reports/fyers_options_oi_hybrid_sl_atr_banknifty_portfolio.json || true
+          git add reports/fyers_options_oi_hybrid_sl_breakeven_nifty_portfolio.json || true
+          git add reports/fyers_options_oi_hybrid_sl_breakeven_banknifty_portfolio.json || true
+          git add reports/fyers_options_oi_hybrid_sl_laddered_nifty_portfolio.json || true
+          git add reports/fyers_options_oi_hybrid_sl_laddered_banknifty_portfolio.json || true
+          git add reports/fyers_options_oi_hybrid_sl_indicator_nifty_portfolio.json || true
+          git add reports/fyers_options_oi_hybrid_sl_indicator_banknifty_portfolio.json || true
           git add reports/fyers_candles.json || true
 
           if git diff --staged --quiet; then
