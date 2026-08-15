@@ -827,6 +827,22 @@ findings as extra context for the 14-Aug review itself:
     1 redesign. Full writeup in PROJECT_STATUS.md's "MOBILE APP VISUAL
     REDESIGN" and "PNL ACCURACY FIX + CAPITAL TOP-UP" entries.
 
+14. DONE, 15-Aug: per-book passbook tab, Options Summary screen. User
+    asked for a bank-passbook-style date-wise ledger; first cut built
+    one COMBINED ledger across all 59 books, which the user
+    immediately corrected - they wanted a passbook PER strategy, not
+    a total. Rebuilt as a book-picker dropdown showing that one
+    book's own Date / Day's P&L / running Balance table (starting
+    from its own Rs 1,00,000), built from data the Summary tab
+    already fetches - no new backend call. flutter analyze clean,
+    built, installed, and the user directly confirmed it looks
+    correct on their phone (on-device screenshotting itself was
+    blocked all session by a device-level restriction, unrelated to
+    the app - confirmed the app had real window focus while capture
+    still silently failed, so relied on the user's own eyes for this
+    one). Full writeup in PROJECT_STATUS.md's "PER-BOOK PASSBOOK TAB"
+    entry.
+
 ==================================================
 
 END OF SESSION

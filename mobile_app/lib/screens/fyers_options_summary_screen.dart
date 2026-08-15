@@ -19,6 +19,16 @@ import '../widgets/live_clock.dart';
 // P&L). "Current Amount" here means Cash (realized-basis), same
 // convention the rest of the app already uses for the "Cash" stat -
 // it does not add an open position's unrealized mark-to-market value.
+//
+// Added 15-Aug-2026 - second tab, user's direct request: a bank-
+// passbook-style date-wise ledger (Date / that day's P&L / running
+// Balance) PER BOOK (not a combined total - the user was explicit:
+// "मला total चं passbook नको आहे, मला प्रत्येक strategy चं passbook
+// पाहिजे") - a dropdown picks one of the 59 books, then shows that
+// book's own Closed Trades grouped by Exit Time's date, running
+// balance starting from its own Rs 1,00,000. Built from the SAME
+// already-fetched data the Summary tab pulls - no new backend
+// endpoint, no second fetch on dropdown change.
 
 const _initialAmountPerBook = 100000.0;
 
@@ -91,15 +101,26 @@ class FyersOptionsSummaryScreen extends StatefulWidget {
   State<FyersOptionsSummaryScreen> createState() => _FyersOptionsSummaryScreenState();
 }
 
-class _FyersOptionsSummaryScreenState extends State<FyersOptionsSummaryScreen> {
+class _FyersOptionsSummaryScreenState extends State<FyersOptionsSummaryScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
+
   List<Map<String, dynamic>>? _rows;
   bool _loading = true;
   String? _error;
+  int _selectedBookIndex = 0;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     _fetch();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetch() async {
@@ -121,11 +142,36 @@ class _FyersOptionsSummaryScreenState extends State<FyersOptionsSummaryScreen> {
 
         final currentAmount = portfolio == null ? _initialAmountPerBook : (portfolio['Cash'] as num).toDouble();
 
+        // This book's OWN date-wise ledger - opening balance is just
+        // this one book's Rs 1,00,000, not the combined 59-book total.
+        final dailyPnlByDate = <String, double>{};
+        final closedTrades = (portfolio?['Closed Trades'] as List?) ?? [];
+        for (final t in closedTrades) {
+          final trade = t as Map<String, dynamic>;
+          final exitTime = trade['Exit Time'] as String?;
+          if (exitTime == null || exitTime.length < 10) continue;
+
+          final date = exitTime.substring(0, 10); // "YYYY-MM-DD"
+          final netPnl = ((trade['Net PnL'] ?? trade['PnL'] ?? 0) as num).toDouble();
+
+          dailyPnlByDate[date] = (dailyPnlByDate[date] ?? 0) + netPnl;
+        }
+
+        final sortedDates = dailyPnlByDate.keys.toList()..sort();
+        var runningBalance = _initialAmountPerBook;
+        final passbook = <Map<String, dynamic>>[];
+        for (final date in sortedDates) {
+          final dayPnl = dailyPnlByDate[date]!;
+          runningBalance += dayPnl;
+          passbook.add({'date': date, 'pnl': dayPnl, 'balance': runningBalance});
+        }
+
         rows.add({
           'strategy': strategy,
           'label': label,
           'current': currentAmount,
           'profit': realizedPnlFromTrades(portfolio),
+          'passbook': passbook,
         });
       }
 
@@ -146,20 +192,37 @@ class _FyersOptionsSummaryScreenState extends State<FyersOptionsSummaryScreen> {
     return Column(
       children: [
         const LiveClockHeader(),
+        TabBar(
+          controller: _tabController,
+          labelColor: accent2Color,
+          unselectedLabelColor: mutedColor,
+          tabs: const [
+            Tab(text: 'Summary'),
+            Tab(text: 'Passbook'),
+          ],
+        ),
         Expanded(
           child: LoadingErrorWrapper(
             loading: _loading,
             error: _error,
             hasData: _rows != null,
             onRetry: _fetch,
-            child: _rows == null ? const SizedBox.shrink() : RefreshIndicator(onRefresh: _fetch, child: _buildBody()),
+            child: _rows == null
+                ? const SizedBox.shrink()
+                : TabBarView(
+                    controller: _tabController,
+                    children: [
+                      RefreshIndicator(onRefresh: _fetch, child: _buildSummaryTab()),
+                      RefreshIndicator(onRefresh: _fetch, child: _buildPassbookTab()),
+                    ],
+                  ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildSummaryTab() {
     final rows = _rows!;
     final totalInitial = _initialAmountPerBook * rows.length;
     final totalCurrent = rows.fold<double>(0, (sum, r) => sum + (r['current'] as double));
@@ -215,6 +278,84 @@ class _FyersOptionsSummaryScreenState extends State<FyersOptionsSummaryScreen> {
             }).toList(),
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildPassbookTab() {
+    final rows = _rows!;
+    final selectedRow = rows[_selectedBookIndex];
+    final passbook = selectedRow['passbook'] as List<Map<String, dynamic>>;
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: surfaceColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<int>(
+              isExpanded: true,
+              value: _selectedBookIndex,
+              dropdownColor: surfaceColor,
+              style: const TextStyle(fontSize: 13, color: Colors.white),
+              items: List.generate(rows.length, (i) {
+                final r = rows[i];
+                return DropdownMenuItem(
+                  value: i,
+                  child: Text('${r['strategy']} · ${r['label']}', style: const TextStyle(fontSize: 13)),
+                );
+              }),
+              onChanged: (i) {
+                if (i != null) setState(() => _selectedBookIndex = i);
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(color: accentColor.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
+          child: Text(
+            '${selectedRow['strategy']} · ${selectedRow['label']} - opening balance ${formatRupees(_initialAmountPerBook)}, one row per day this book closed a trade.',
+            style: const TextStyle(fontSize: 12, color: accentColor),
+          ),
+        ),
+        const SizedBox(height: 16),
+        if (passbook.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Center(child: Text('No closed trades yet for this book.', style: TextStyle(color: mutedColor))),
+          )
+        else
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DataTable(
+              headingRowColor: WidgetStateProperty.all(surfaceColor),
+              columns: const [
+                DataColumn(label: Text('Date')),
+                DataColumn(label: Text('Day\'s P&L'), numeric: true),
+                DataColumn(label: Text('Balance'), numeric: true),
+              ],
+              rows: passbook.map((r) {
+                final pnl = r['pnl'] as double;
+                final balance = r['balance'] as double;
+
+                return DataRow(cells: [
+                  DataCell(Text(r['date'] as String, style: const TextStyle(fontSize: 12))),
+                  DataCell(Text(
+                    formatSignedRupees(pnl),
+                    style: TextStyle(fontSize: 12, color: pnlColor(pnl), fontWeight: FontWeight.w600),
+                  )),
+                  DataCell(Text(formatRupees(balance), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500))),
+                ]);
+              }).toList(),
+            ),
+          ),
       ],
     );
   }

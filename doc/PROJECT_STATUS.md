@@ -5368,6 +5368,34 @@ together.
 
 ==================================================
 
+PER-BOOK PASSBOOK TAB (15-Aug) - user's direct request, mobile_app/
+lib/screens/fyers_options_summary_screen.dart: a bank-passbook-style
+date-wise ledger, added as a second tab alongside the existing flat
+Summary table. First cut computed one COMBINED ledger across all 59
+books - user immediately corrected that ("मला total चं passbook नको
+आहे, मला प्रत्येक strategy चं passbook पाहिजे" - not a total, a
+passbook per individual strategy) - rebuilt as a dropdown-selected
+per-book ledger instead.
+
+Built entirely from data the Summary tab already fetches (no new
+backend endpoint, no second network round-trip on dropdown change):
+for every book, its own Closed Trades are grouped by Exit Time's
+date, summed per day, and turned into a running-balance ledger
+starting from that ONE book's own Rs 1,00,000 (not the combined
+Rs 59,00,000) - stored alongside each row's existing current/profit
+fields. The Passbook tab shows a book dropdown ("simple_st1 ·
+NIFTY", etc.) followed by that book's own Date / Day's P&L / Balance
+table, matching a real bank passbook's format.
+
+`flutter analyze` clean. Built, installed, and VISUALLY CONFIRMED
+correct on the phone by the user directly (on-device screenshotting
+was blocked by a device-level restriction this session hit
+repeatedly while verifying the redesign work above - not an app bug,
+confirmed by checking the app had real window focus while capture
+still silently failed).
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
