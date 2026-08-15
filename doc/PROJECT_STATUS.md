@@ -4987,6 +4987,46 @@ performance itself is in question.
 
 ==================================================
 
+POSITION-SIZE-CAP "SLIPPAGE PROTECTION" RETROSPECTIVE BACKTEST
+(15-Aug) - direct follow-up to the theoretical slippage stress-test
+above, testing the position-size-cap idea it flagged. Still no code
+built (paper-trading strategies untouched) - a one-off retrospective
+replay script only (matches this project's established sequential-
+replay convention: lots recomputed fresh from simulated cash at each
+step, each index's cash pool kept separate, real historical Entry/
+Exit Premium used, calculate_options_round_trip_cost() reused for
+consistency with the live cost model).
+
+Swept MAX_CASH_PCT (how much of available cash one trade may use;
+100% = today's real uncapped behaviour) x assumed round-trip spread
+(0/0.5/1/2%), across all 40 real oi_footprint trades:
+
+  Cash cap | 0% spread | 0.5% spread | 1% spread | 2% spread
+  100% (today) | +Rs 53,370 | +Rs 28,806 | +Rs 7,018  | -Rs 27,990
+  75%          | +Rs 37,783 | +Rs 20,760 | +Rs 5,498  | -Rs 22,039
+  50%          | +Rs 23,674 | +Rs 13,528 | +Rs 3,712  | -Rs 13,489
+  25%          | +Rs 8,465  | +Rs 4,641  | +Rs 222    | -Rs 6,137
+
+FINDING (important nuance, not a simple "cap = safer" story): the
+cap does NOT change the breakeven spread% (stays ~1-1.3% across
+every cap level, since profit and slippage cost both scale linearly
+with position size together) - what it DOES change is the absolute
+RUPEE size of the worst case: at 2% spread, uncapped loses -Rs
+27,990 vs -Rs 6,137 at a 25% cap (~4-5x smaller worst-case loss).
+The same scaling cuts the upside proportionally too (0% spread
+best case: +Rs 53,370 uncapped vs only +Rs 8,465 at 25% cap) - a
+genuine risk-vs-reward tradeoff, not free protection.
+
+CONCLUSION: not deployed, not changing paper trading now (real
+spread still unmeasured, same reasoning as above). Recommendation
+filed for Stage 3 real-capital planning: start with a meaningfully
+lower cash-per-trade cap (e.g. 50% or less) rather than today's
+100%-of-cash sizing, specifically as a risk-magnitude control until
+real slippage is measured, not because paper performance is in
+doubt.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.

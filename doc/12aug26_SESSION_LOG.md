@@ -666,6 +666,25 @@ findings as extra context for the 14-Aug review itself:
    tuning any parameter off a 12-trade sample, consistent with this
    project's standing data-driven-patience approach.
 
+7. DONE, 15-Aug (retrospective analysis script only, no strategy
+   code changed): backtested the position-size-cap "slippage
+   protection" idea flagged in item 6 - sequential replay of all 40
+   real oi_footprint trades (same convention as the earlier hybrid
+   SL-cap analysis: lots recomputed fresh from simulated cash per
+   step, per-index cash pools separate) sweeping how much of
+   available cash one trade may use (100/75/50/25%) x assumed spread
+   (0/0.5/1/2%). Result: capping position size does NOT change the
+   breakeven spread% (stays ~1-1.3% at every cap level, since profit
+   and slippage scale together) but DOES shrink the worst-case rupee
+   loss a lot - at 2% spread, -Rs 27,990 uncapped vs -Rs 6,137 at a
+   25% cap (~4-5x smaller), at the cost of proportionally smaller
+   upside too (+Rs 53,370 vs +Rs 8,465 at 0% spread). Filed as a
+   Stage 3 real-capital recommendation (start with <=50% cash-per-
+   trade instead of today's 100%) - not deployed, paper trading
+   unchanged, real spread still unmeasured. Full writeup in PROJECT_
+   STATUS.md's "POSITION-SIZE-CAP SLIPPAGE PROTECTION RETROSPECTIVE
+   BACKTEST" entry.
+
 ==================================================
 
 END OF SESSION
