@@ -772,6 +772,23 @@ findings as extra context for the 14-Aug review itself:
     367 tests passing throughout. Full writeup in PROJECT_STATUS.md's
     "DESKTOP APP - ANDROID PARITY, FULL BUILD" entry.
 
+11. DONE, 15-Aug: set concrete calendar dates for Stage 2 (VPS+
+    Firebase), after confirming there's genuinely no more open work
+    from the 14-Aug plan. VPS migration target: 10-Sep-2026 - the
+    user's own proposed date, sanity-checked against oi_footprint's
+    real ~9 trades/day pace before accepting it (26 calendar/19
+    trading days out gives ~171 more trades on top of today's real
+    40, ~211 total by 10-Sep - comfortably past the ~80-100 trade
+    gate, which the pace alone would clear around 22-25 Aug - a safe
+    date, not a premature one). Code prep start: 1-Sep-2026,
+    deliberately before the VPS itself is rented - the WebSocket
+    client, the event-driven check-logic rewrite (paired with today's
+    Shared Backtest-Live Engine), and the Firebase push logic are all
+    machine-agnostic and can be built/tested locally, so starting 9
+    days early leaves real debugging runway instead of compressing it
+    into a rush at the cutover. Full writeup in PROJECT_STATUS.md's
+    "TARGET DATES SET" entry (under LIVE-DATA ARCHITECTURE).
+
 ==================================================
 
 END OF SESSION

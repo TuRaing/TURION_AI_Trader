@@ -3311,6 +3311,31 @@ options/Swing/Intraday check logic from periodic-poll to event-
 driven-on-tick + Flutter-side Firebase listener wiring + end-to-end
 testing) - roughly 2-4 focused days, not a quick add-on.
 
+TARGET DATES SET, 15-Aug - the user's own explicit calendar date,
+checked against the trade-count gate before accepting it (not a pure
+calendar decision made against the data-driven discipline elsewhere
+in this doc):
+  - VPS (Stage 2) MIGRATION TARGET: 10-Sep-2026. Sanity-checked
+    against oi_footprint's real pace: 15-Aug -> 10-Sep is 26 calendar
+    days / 19 trading days; at oi_footprint's real ~9 trades/day rate
+    that's ~171 more trades on top of today's real 40 (31 NIFTY + 9
+    BANKNIFTY) = ~211 by 10-Sep - well past the ~80-100 trade
+    trustworthy-sample gate (which the pace alone would clear around
+    22-25 Aug). 10-Sep is a genuinely safe date, not a premature one -
+    it adds buffer on top of the data gate clearing, doesn't pull the
+    decision earlier than the data supports.
+  - CODE PREP START: 1-Sep-2026, deliberately BEFORE the VPS itself
+    is provisioned. Reasoning: the WebSocket client, the event-driven
+    rewrite of each strategy's check logic (paired with the Shared
+    Backtest-Live Engine per that section above), and the Firebase
+    push logic are all machine-agnostic - none of it needs an actual
+    rented VPS to write or test, only to finally host 24/7. Starting
+    9 days early (1-Sep) leaves real runway to build and debug before
+    the 10-Sep cutover, instead of compressing all of that into a
+    rush right at (or after) the target date. The VPS itself only
+    gets provisioned at the end, to receive already-tested code, not
+    as a prerequisite for writing it.
+
 ==================================================
 
 REAL-CAPITAL ROADMAP - 4 STAGES, 13-Aug - user's own staged plan,
