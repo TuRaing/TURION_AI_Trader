@@ -685,6 +685,28 @@ findings as extra context for the 14-Aug review itself:
    STATUS.md's "POSITION-SIZE-CAP SLIPPAGE PROTECTION RETROSPECTIVE
    BACKTEST" entry.
 
+8. DONE, 15-Aug: Portfolio-level Aggregation, first cut - user chose
+   the combined PnL/risk view option (of the 3 discussed) and asked
+   for backend-only, no mobile app screen yet. New strategy/
+   portfolio_aggregation.py (pure, read-only - never writes to a
+   portfolio file, never touches live strategy logic): daily-PnL
+   extraction from Closed Trades, pandas correlation across all 59
+   books (books with <5 real data points dropped as "insufficient
+   data" rather than producing noisy 1.00 correlations), union-find
+   clustering at a 0.9 threshold, and a combined-portfolio summary.
+   8 new tests, 363 passing overall. Run against real data: 59
+   books, only 22 have any data yet; combined PnL -Rs 5,28,260.06
+   (Rs 53,71,739.94 vs Rs 59,00,000 deployed). Found 2 real
+   correlation clusters among the 13 books with enough data -
+   simple_st1_threshold_banknifty + st2_threshold_banknifty + st3_
+   threshold_banknifty (confirms and extends 14-Aug's manual
+   BANKNIFTY-correlation finding, now reproducible in code), and a
+   previously-unflagged simple_st1_nifty + st3_nifty pair.
+   Independent bet count: 56 of 59 - a small reduction for now only
+   because most books (the whole 26-book batch included) are still
+   too new to correlate meaningfully. Correlation-adjusted
+   allocation and the mobile screen both deliberately deferred.
+
 ==================================================
 
 END OF SESSION

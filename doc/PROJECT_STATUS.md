@@ -5027,6 +5027,62 @@ doubt.
 
 ==================================================
 
+PORTFOLIO-LEVEL AGGREGATION - FIRST CUT, VIEW-ONLY (15-Aug) - the
+user's explicit choice of the 3 options discussed: build the
+combined PnL/risk view first (safe, read-only), defer correlation-
+adjusted allocation and the shared Backtest-Live Engine. BACKEND
+ONLY per direct instruction - not wired into the mobile app yet.
+
+NEW strategy/portfolio_aggregation.py - pure, read-only functions,
+never writes to any portfolio file, never touches any strategy's
+live logic:
+  - load_daily_pnl(portfolio_file) - real Net PnL per calendar day
+    from a book's Closed Trades (sums same-day exits, nothing
+    interpolated for quiet days).
+  - load_all_books_daily_pnl() - the above for every book in
+    options_strategies.ALL_STRATEGIES.
+  - compute_correlation_matrix(daily_pnl_by_book, min_overlapping_
+    days=5) - pandas correlation, but books with fewer than 5 real
+    data points are dropped first (a 2-day-old book "correlating
+    1.00" with anything is noise, not a finding) - returned
+    separately as "insufficient data", not silently included.
+  - cluster_correlated_books(correlation_matrix, threshold=0.9) -
+    union-find grouping of books correlated >=0.9 with each other
+    (transitively) - matches the 0.9 bar used in 14-Aug's original
+    manual BANKNIFTY-correlation finding.
+  - compute_portfolio_summary() - combined Cash/PnL across all 59
+    books (plain addition, correlation doesn't change this part)
+    plus the "independent bet count" (cluster count + insufficient-
+    data-count) - the number plain addition can't tell you.
+8 new tests (tests/test_portfolio_aggregation.py, tmp_path-based,
+no dependency on real report files), 363 passing overall.
+
+RUN AGAINST REAL DATA, 15-Aug: 59 books, only 22 have any real
+data yet (37 too new - includes all the just-triggered 26 hybrid-
+SL-cap/oi_footprint-variant books). Combined: Cash Rs 53,71,739.94
+vs Rs 59,00,000 deployed (59 x Rs 1,00,000) = TOTAL PnL -Rs
+5,28,260.06. Only 13 books have enough data (>=5 days) to even
+attempt correlation; of those, found 2 real clusters:
+  - simple_st1_threshold_banknifty + st2_threshold_banknifty +
+    st3_threshold_banknifty (one cluster - CONFIRMS and extends
+    14-Aug's manual "BANKNIFTY RSI books 0.99-1.00 correlated"
+    finding, now reproducible in code instead of eyeballed).
+  - simple_st1_nifty + st3_nifty (a second, smaller cluster not
+    previously flagged).
+  Everything else in the 13 (including oi_footprint_nifty) came
+  back independent. INDEPENDENT BET COUNT: 56 of 59 - a small
+  reduction today only because most books (including the entire
+  26-book batch that just started) are still too new to correlate
+  meaningfully; expected to firm up as more books accumulate >=5
+  days of real trades.
+
+NOT DONE YET (deliberately, per the user's own sequencing):
+correlation-adjusted capital allocation (option "ब" from the
+original 3-way choice), and no mobile app screen - stays a backend-
+only analysis module until the user asks for either.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
