@@ -144,9 +144,8 @@ class _FyersOptionsGroupedScreenState extends State<FyersOptionsGroupedScreen> {
           portfolio = null;
         }
 
-        final cash = portfolio == null ? 100000.0 : (portfolio['Cash'] as num).toDouble();
         final trades = portfolio == null ? 0 : ((portfolio['Closed Trades'] as List?)?.length ?? 0);
-        final pnl = cash - 100000.0;
+        final pnl = realizedPnlFromTrades(portfolio);
 
         final _Group group;
         if (_isSlcap(name)) {

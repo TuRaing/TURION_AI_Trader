@@ -24,6 +24,7 @@ from data.watchlist import NIFTY_50_SYMBOLS, INDICES
 from strategy.watchlist_scanner import download_watchlist, analyze_symbol, MIN_CANDLES
 from strategy.paper_trading import load_portfolio
 from strategy.options_strategies import ALL_STRATEGIES
+from strategy.portfolio_aggregation import realized_pnl_from_trades
 from strategy.options_transaction_costs import calculate_options_round_trip_cost
 
 NEWS_SHORTLIST_FILE = "reports/best_trade_shortlist.json"
@@ -353,7 +354,7 @@ class GroupedRefreshWorker(QThread):
 
                 cash = portfolio.get("Cash", 100000.0)
                 trades = len(portfolio.get("Closed Trades", []))
-                pnl = cash - 100000.0
+                pnl = realized_pnl_from_trades(portfolio)
                 name = cfg["name"]
 
                 rows.append({
@@ -395,15 +396,15 @@ class SummaryRefreshWorker(QThread):
 
             for _, cfg in ALL_STRATEGIES:
 
-                portfolio = fetch_github_json(cfg["portfolio_file"])
-                cash = (portfolio or {}).get("Cash", 100000.0)
+                portfolio = fetch_github_json(cfg["portfolio_file"]) or {}
+                cash = portfolio.get("Cash", 100000.0)
 
                 rows.append({
                     "name": cfg["name"],
                     "index": cfg["index"],
                     "initial": 100000.0,
                     "current": cash,
-                    "profit": cash - 100000.0,
+                    "profit": realized_pnl_from_trades(portfolio),
                 })
 
             self.finished.emit(rows)
@@ -1511,7 +1512,7 @@ class MainWindow(QMainWindow):
 
         total_initial = sum(r["initial"] for r in rows)
         total_current = sum(r["current"] for r in rows)
-        total_profit = total_current - total_initial
+        total_profit = sum(r["profit"] for r in rows)
 
         table = self.options_summary_table
         table.setSortingEnabled(False)

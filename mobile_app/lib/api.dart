@@ -51,3 +51,20 @@ Future<Map<String, dynamic>?> fetchJson(String url) async {
 
   return json.decode(response.body) as Map<String, dynamic>;
 }
+
+/// Sum of every Closed Trade's real Net PnL (falls back to PnL for
+/// older trade records without the cost-model columns) - the lifetime-
+/// accurate PnL measure. Deliberately NOT "Cash minus initial capital":
+/// that shortcut breaks the moment a book's Cash is manually topped up
+/// to keep a capital-depleted book trading (15-Aug, see PROJECT_STATUS.
+/// md's "CAPITAL TOP-UP" entry) - summing the trade log directly is
+/// immune to that, since a top-up never touches Closed Trades. Mirrors
+/// strategy/portfolio_aggregation.py's realized_pnl_from_trades().
+double realizedPnlFromTrades(Map<String, dynamic>? portfolio) {
+  final closedTrades = (portfolio?['Closed Trades'] as List?) ?? [];
+  return closedTrades.fold<double>(0, (sum, t) {
+    final trade = t as Map<String, dynamic>;
+    final netPnl = trade['Net PnL'] ?? trade['PnL'] ?? 0;
+    return sum + (netPnl as num).toDouble();
+  });
+}

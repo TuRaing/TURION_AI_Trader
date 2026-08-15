@@ -5276,6 +5276,98 @@ mobile app itself needed a whole separate architecture decision
 
 ==================================================
 
+MOBILE APP VISUAL REDESIGN - PHASE 1 (15-Aug) - user's direct
+feedback that the app "doesn't feel like a professional trading app -
+boring and complicated." Explored via mockup BEFORE touching any
+screen code (artifact-design skill, two rounds: a soft pastel-
+Catppuccin direction, then a fluorescent/neon direction the user
+actually wanted - "colour fluorescent type, app new असूदे" - plus a
+6-option background comparison the user picked from, choosing option
+E, a colorful 4-blob mesh gradient).
+
+BUILT (foundation only, applies app-wide since it lives in shared
+files):
+  - theme.dart: full palette swap to fluorescent/neon (near-black
+    #08060F base, electric violet #A855FF + cyan #00E5FF brand pair,
+    neon success/danger/warning), same semantic token NAMES kept
+    (bgColor/surfaceColor/accentColor/etc.) so no screen file needed
+    changes just to keep compiling. New glowShadow() helper and
+    meshBlobs constant (the 4 corner colors/positions from the
+    approved mockup).
+  - NEW widgets/mesh_background.dart: wraps a screen's body in the
+    4-blob RadialGradient mesh over a solid bg base - applied ONCE in
+    main.dart around the IndexedStack, so it's live behind all 10
+    screens simultaneously without editing each one.
+  - widgets/common.dart: HeroStat and StatPill redesigned to match
+    the mockup - HeroStat's value now carries glowShadow(), StatPill
+    got rounded corners + a subtle border + uppercase micro-labels.
+  `flutter analyze` clean. Built (--dart-define=GITHUB_PAT, per the
+  standing lesson) and VERIFIED LIVE on the phone: mesh background
+  visible, HeroStat's PnL number showing the glow, active bottom-nav
+  tab glowing cyan - confirmed via a real on-device screenshot, not
+  just "it compiled."
+
+NOT DONE YET (separate, bigger follow-up phases, explicitly scoped
+but not built): Options Grouped's progressive-disclosure redesign
+(show 2-3 per group + "+N more" instead of every book), bottom nav
+10 tabs -> 5 + "More", and the mockup's new combined "Home" screen
+(doesn't exist yet - a genuinely new screen, not a reskin).
+
+==================================================
+
+PNL ACCURACY FIX + CAPITAL TOP-UP (15-Aug) - triggered by a real,
+sensible request: two heavily-losing books (simple_st1/NIFTY, Cash
+down to Rs 8,200.51; st2/NIFTY, down to Rs 2,736.81) were close to
+too capital-depleted to size a new trade at all (lots = cash //
+(premium x lot_size) heading toward 0), which would silently stop
+those books from generating any further real paper-trading evidence.
+
+THE REAL RISK CAUGHT BEFORE ACTING: every PnL display built today
+(Portfolio Aggregation, desktop Options Grouped/Summary, and the
+mobile app's own Options Grouped/Summary screens) computed PnL as
+"Cash minus Rs 1,00,000 initial capital" - a shortcut that is only
+correct if Cash was NEVER touched except by real trades. Simply
+topping up Cash to let a book keep trading would have made that
+shortcut silently understate (or hide entirely) the book's real
+historical loss the moment it started trading again from the new,
+higher Cash baseline.
+
+FIX: PnL is now computed as the SUM of every real Closed Trade's
+"Net PnL" (falling back to "PnL" for older trade records without the
+cost-model columns) - a number that lives entirely in the trade log,
+completely unaffected by what Cash happens to be. Applied in 3
+places that had all independently used the old Cash-minus-initial
+shortcut:
+  - strategy/portfolio_aggregation.py - new realized_pnl_from_trades()
+    helper, used in compute_portfolio_summary(). 4 new tests,
+    including one that asserts the same trade log gives identical PnL
+    whether Cash is 8,200 or 1,00,000 - the actual guarantee this fix
+    exists to provide.
+  - desktop_app.py - GroupedRefreshWorker, SummaryRefreshWorker, and
+    on_options_summary_refresh_done()'s total now import and reuse
+    the same Python function directly (no duplicate logic).
+  - mobile_app/lib/api.dart - new realizedPnlFromTrades() (same
+    contract, Dart mirror), used by fyers_options_grouped_screen.dart
+    and fyers_options_summary_screen.dart (including their page
+    totals, which had the same Cash-minus-initial bug at the
+    aggregate level).
+Verified the fix is a true no-op for every untouched book: total
+portfolio PnL before and after = -Rs 5,28,260.01 (5-cent rounding
+diff from float summation order, not a real discrepancy) - matches
+the earlier Portfolio Aggregation figure to the rupee.
+
+THEN, safely: topped up both depleted books' Cash back to Rs
+1,00,000 (Closed Trades left completely untouched - only the Cash
+field changed). Re-verified total PnL after the top-up: still -Rs
+5,28,260.01, unchanged to the cent - confirms the fix actually
+delivers what it was built for.
+
+`flutter analyze` clean, 371 Python tests passing (4 new). Rebuilt
+and reinstalled the APK with both this fix and the Phase-1 redesign
+together.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.

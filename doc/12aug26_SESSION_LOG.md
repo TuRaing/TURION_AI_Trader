@@ -789,6 +789,44 @@ findings as extra context for the 14-Aug review itself:
     into a rush at the cutover. Full writeup in PROJECT_STATUS.md's
     "TARGET DATES SET" entry (under LIVE-DATA ARCHITECTURE).
 
+12. DONE, 15-Aug: mobile app visual redesign, Phase 1. User's direct
+    feedback ("doesn't feel like a professional trading app, boring
+    and complicated") led to a mockup exploration (artifact-design
+    skill) BEFORE any screen code changed - a soft-pastel round first,
+    then the fluorescent/neon direction the user actually wanted, then
+    a 6-way background comparison the user picked from (option E, a
+    colorful 4-blob mesh). Built the shared foundation only: theme.dart
+    palette swap (near-black + electric violet/cyan + neon status
+    colors, same token names so nothing else needed touching), new
+    widgets/mesh_background.dart wired once into main.dart (live
+    behind all 10 screens at once), HeroStat/StatPill redesigned with
+    a glow effect. flutter analyze clean, built and VERIFIED LIVE on
+    the phone via a real screenshot. Explicitly NOT done yet (bigger,
+    separate phases): Options Grouped's progressive disclosure, bottom
+    nav 10->5 tabs, and the mockup's new "Home" screen (doesn't exist
+    yet).
+
+13. DONE, 15-Aug: PnL accuracy fix + capital top-up. User's request to
+    refill 2 heavily-losing books (simple_st1/NIFTY at Rs 8,200.51,
+    st2/NIFTY at Rs 2,736.81 - both close to too depleted to size a
+    new trade) surfaced a real risk before acting on it: every PnL
+    display built earlier today (Portfolio Aggregation, desktop
+    Options Grouped/Summary, mobile's own versions) computed PnL as
+    Cash-minus-initial, which a Cash top-up would have silently
+    corrupted. Fixed all of them to sum real Closed Trades' Net PnL
+    instead (Cash-independent) - new realized_pnl_from_trades() in
+    strategy/portfolio_aggregation.py (4 new tests, 371 total),
+    reused directly in desktop_app.py, and a Dart mirror
+    (realizedPnlFromTrades() in api.dart) used by both mobile options
+    screens including their page totals (same bug existed there too).
+    Verified the fix is a true no-op first (-Rs 5,28,260.01 before and
+    after, matching earlier to the rupee), THEN topped up both books'
+    Cash to Rs 1,00,000 (Closed Trades untouched) and re-verified the
+    total stayed exactly the same. flutter analyze clean, rebuilt and
+    reinstalled the APK with this fix bundled together with the Phase
+    1 redesign. Full writeup in PROJECT_STATUS.md's "MOBILE APP VISUAL
+    REDESIGN" and "PNL ACCURACY FIX + CAPITAL TOP-UP" entries.
+
 ==================================================
 
 END OF SESSION

@@ -125,17 +125,32 @@ def cluster_correlated_books(correlation_matrix, threshold=CORRELATION_THRESHOLD
     return sorted(clusters.values(), key=len, reverse=True)
 
 
+def realized_pnl_from_trades(portfolio):
+    """
+    Sum of every Closed Trade's real Net PnL (falling back to PnL for
+    older trade records that predate the cost-model columns) - the
+    lifetime-accurate PnL measure. Deliberately NOT "Cash minus initial
+    capital": that shortcut breaks the moment a book's Cash is ever
+    manually topped up to keep a capital-depleted book trading (15-Aug,
+    see PROJECT_STATUS.md's "CAPITAL TOP-UP" entry) - a topped-up book's
+    Cash would then overstate its real performance. Summing the actual
+    trade log is immune to that, since a top-up never touches Closed
+    Trades.
+    """
+
+    return sum(t.get("Net PnL", t.get("PnL", 0.0)) for t in portfolio.get("Closed Trades", []))
+
+
 def compute_portfolio_summary(initial_capital_per_book=100000.0):
     """
     Top-level numbers for a Portfolio Aggregation view: real combined
-    Cash/PnL across every book (this part needs no correlation
-    reasoning, plain addition is correct), plus the "true independent
-    bet count" from clustering - the number that plain addition can't
-    tell you.
+    Cash/PnL across every book, plus the "true independent bet count"
+    from clustering - the number that plain addition can't tell you.
     """
 
     total_cash = 0.0
     total_initial = 0.0
+    total_pnl = 0.0
     books_with_data = 0
 
     for _, cfg in ALL_STRATEGIES:
@@ -147,10 +162,12 @@ def compute_portfolio_summary(initial_capital_per_book=100000.0):
             if portfolio.get("Closed Trades") or portfolio.get("Positions"):
                 books_with_data += 1
         except FileNotFoundError:
+            portfolio = {}
             cash = initial_capital_per_book
 
         total_cash += cash
         total_initial += initial_capital_per_book
+        total_pnl += realized_pnl_from_trades(portfolio)
 
     daily_pnl_by_book = load_all_books_daily_pnl()
     corr, insufficient_data = compute_correlation_matrix(daily_pnl_by_book)
@@ -162,7 +179,7 @@ def compute_portfolio_summary(initial_capital_per_book=100000.0):
         "books_with_data": books_with_data,
         "total_cash": round(total_cash, 2),
         "total_initial": round(total_initial, 2),
-        "total_pnl": round(total_cash - total_initial, 2),
+        "total_pnl": round(total_pnl, 2),
         "eligible_for_correlation": len(daily_pnl_by_book) - len(insufficient_data),
         "insufficient_data_count": len(insufficient_data),
         "clusters": clusters,

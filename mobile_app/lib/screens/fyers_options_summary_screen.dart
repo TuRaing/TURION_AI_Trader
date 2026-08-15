@@ -125,6 +125,7 @@ class _FyersOptionsSummaryScreenState extends State<FyersOptionsSummaryScreen> {
           'strategy': strategy,
           'label': label,
           'current': currentAmount,
+          'profit': realizedPnlFromTrades(portfolio),
         });
       }
 
@@ -162,7 +163,7 @@ class _FyersOptionsSummaryScreenState extends State<FyersOptionsSummaryScreen> {
     final rows = _rows!;
     final totalInitial = _initialAmountPerBook * rows.length;
     final totalCurrent = rows.fold<double>(0, (sum, r) => sum + (r['current'] as double));
-    final totalProfit = totalCurrent - totalInitial;
+    final totalProfit = rows.fold<double>(0, (sum, r) => sum + (r['profit'] as double));
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -199,7 +200,7 @@ class _FyersOptionsSummaryScreenState extends State<FyersOptionsSummaryScreen> {
             ],
             rows: rows.map((r) {
               final current = r['current'] as double;
-              final profit = current - _initialAmountPerBook;
+              final profit = r['profit'] as double;
 
               return DataRow(cells: [
                 DataCell(Text(r['strategy'] as String, style: const TextStyle(fontSize: 12))),

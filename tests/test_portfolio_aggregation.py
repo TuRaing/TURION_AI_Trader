@@ -6,6 +6,7 @@ from strategy.portfolio_aggregation import (
     cluster_correlated_books,
     compute_correlation_matrix,
     load_daily_pnl,
+    realized_pnl_from_trades,
 )
 
 
@@ -97,3 +98,29 @@ def test_cluster_correlated_books_no_correlation_gives_singleton_clusters():
     clusters = cluster_correlated_books(corr, threshold=0.9)
 
     assert sorted(clusters) == [["a"], ["b"]]
+
+
+def test_realized_pnl_prefers_net_pnl_over_pnl():
+    portfolio = {"Closed Trades": [{"PnL": 100.0, "Net PnL": 82.0}, {"PnL": -50.0, "Net PnL": -61.0}]}
+
+    assert realized_pnl_from_trades(portfolio) == 82.0 - 61.0
+
+
+def test_realized_pnl_falls_back_to_pnl_when_no_net_pnl():
+    portfolio = {"Closed Trades": [{"PnL": 100.0}, {"PnL": -30.0}]}
+
+    assert realized_pnl_from_trades(portfolio) == 70.0
+
+
+def test_realized_pnl_unaffected_by_cash_value():
+    # The whole point: PnL comes from the trade log, not from Cash, so
+    # topping up a depleted book's Cash never distorts this number.
+    portfolio_before_topup = {"Cash": 8200.51, "Closed Trades": [{"Net PnL": -91799.49}]}
+    portfolio_after_topup = {"Cash": 100000.0, "Closed Trades": [{"Net PnL": -91799.49}]}
+
+    assert realized_pnl_from_trades(portfolio_before_topup) == realized_pnl_from_trades(portfolio_after_topup)
+
+
+def test_realized_pnl_zero_for_no_closed_trades():
+    assert realized_pnl_from_trades({"Closed Trades": []}) == 0.0
+    assert realized_pnl_from_trades({}) == 0.0
