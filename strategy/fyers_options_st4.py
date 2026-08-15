@@ -13,6 +13,7 @@ from strategy.fyers_options_engine import (
     _pick_atm_leg,
     _net_pnl,
     _today_realized_pnl,
+    _hybrid_stop_loss_cap,
 )
 from strategy.fyers_data import fyers_download
 from strategy.fyers_multi_timeframe_engine import get_multi_timeframe_signal
@@ -55,7 +56,17 @@ TRAIL_ATR_MULT = 1.0
 SQUAREOFF_TIME = (15, 15)
 
 
-def make_st4_config(index, name="st4", daily_profit_lock=False, group=None):
+def make_st4_config(index, name="st4", daily_profit_lock=False, group=None, hybrid_sl_cap_pct=None):
+    """
+    `hybrid_sl_cap_pct` (added 14-Aug-2026) - when set, replaces the
+    plain INITIAL_STOP_LOSS_PCT check (before the trailing stop
+    activates) with min(flat, %-of-deployed) - see fyers_options_
+    engine.py's _hybrid_stop_loss_cap() and PROJECT_STATUS.md's
+    "HYBRID SL CAP" entry. Does NOT change the trailing-stop phase
+    (that's already spot-based, a different mechanism entirely) -
+    only the initial protective Stop-Loss before TRAIL_TRIGGER_RUPEES
+    is reached. Default None keeps the original behavior unchanged.
+    """
 
     index_cfg = INDEX_CONFIG[index]
 
@@ -64,6 +75,7 @@ def make_st4_config(index, name="st4", daily_profit_lock=False, group=None):
         "index": index,
         "group": group,
         "daily_profit_lock": daily_profit_lock,
+        "hybrid_sl_cap_pct": hybrid_sl_cap_pct,
         "portfolio_file": f"reports/fyers_options_{name}_{index.lower()}_portfolio.json",
         "underlying_symbol": index_cfg["underlying_symbol"],
         "index_symbol_for_rsi": index_cfg["index_symbol_for_rsi"],
@@ -209,6 +221,13 @@ def _check_position(cfg, portfolio):
 
         if _trailing_stop_hit(option_type, current_spot, position["Peak Spot"], trail_distance):
             return _close_position(cfg, portfolio, current_premium, "Trailing Stop", current_spot)
+
+    elif cfg.get("hybrid_sl_cap_pct") is not None:
+
+        stop_loss_cap = _hybrid_stop_loss_cap(cfg, position["Capital Deployed"])
+
+        if net_pnl <= -stop_loss_cap:
+            return _close_position(cfg, portfolio, current_premium, "Stop Loss", current_spot)
 
     else:
 

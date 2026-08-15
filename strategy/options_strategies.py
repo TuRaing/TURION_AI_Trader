@@ -226,6 +226,43 @@ ST2_TH_SLCAP_BANKNIFTY = make_strategy("st2_threshold_slcap", "BANKNIFTY", targe
                                         daily_profit_lock=True, daily_loss_lock=True, group="threshold",
                                         hybrid_sl_cap_pct=2.0)
 
+# 4 more threshold _slcap books - added 14-Aug-2026, later the same
+# day, after retrospectively testing the hybrid cap on the REMAINING
+# threshold books not covered above: simple_st1_threshold (both
+# indices) and st3_threshold/BANKNIFTY flip from real losses to real
+# profits under the hybrid cap (same pattern as the first 8), and
+# st2_threshold/NIFTY - already profitable - gets meaningfully MORE
+# profitable (roughly 2.6x at Rs 1,00,000 in the retrospective replay).
+# st2_threshold/BANKNIFTY was tested too and stays negative under every
+# cap tried (see the "MAJOR CORRECTION" entry) - deliberately NOT given
+# a second slcap variant here, already has one from the original 8.
+# gapfill_threshold excluded - zero trade data yet to test against.
+SIMPLE_ST1_TH_SLCAP_NIFTY = make_strategy("simple_st1_threshold_slcap", "NIFTY", target_net_pct=3.0, stop_loss_pct=3.0,
+                                           daily_profit_lock=True, group="threshold", hybrid_sl_cap_pct=2.0)
+SIMPLE_ST1_TH_SLCAP_BANKNIFTY = make_strategy("simple_st1_threshold_slcap", "BANKNIFTY", target_net_pct=3.0, stop_loss_pct=3.0,
+                                               daily_profit_lock=True, daily_loss_lock=True, group="threshold",
+                                               hybrid_sl_cap_pct=2.0)
+ST2_TH_SLCAP_NIFTY = make_strategy("st2_threshold_slcap", "NIFTY", target_net_pct=5.0, stop_loss_pct=2.0,
+                                    daily_profit_lock=True, group="threshold", hybrid_sl_cap_pct=2.0)
+ST3_TH_SLCAP_BANKNIFTY = make_strategy("st3_threshold_slcap", "BANKNIFTY", target_net_pct=5.0, stop_loss_pct=5.0,
+                                        daily_profit_lock=True, daily_loss_lock=True, group="threshold",
+                                        hybrid_sl_cap_pct=2.0)
+
+# st4_threshold_slcap - added 14-Aug-2026, at the user's explicit
+# request to cover every threshold book that was actually tested
+# ("warate je apan check kelya tya sarvana" - all the ones we checked
+# above), even though st4_threshold showed only a partial improvement
+# in the retrospective replay (NIFTY: -Rs 16,685 -> -Rs 5,752, still
+# net-negative; BANKNIFTY: no change at all, its 3-trade sample never
+# hit the initial Stop-Loss). Uses fyers_options_st4.py's own hybrid_
+# sl_cap_pct (added same day) - only affects the initial Stop-Loss
+# phase before st4's own trailing-stop-on-spot mechanism activates,
+# which is untouched.
+ST4_TH_SLCAP_NIFTY = make_st4_config("NIFTY", name="st4_threshold_slcap", daily_profit_lock=True,
+                                      group="threshold", hybrid_sl_cap_pct=2.0)
+ST4_TH_SLCAP_BANKNIFTY = make_st4_config("BANKNIFTY", name="st4_threshold_slcap", daily_profit_lock=True,
+                                          group="threshold", hybrid_sl_cap_pct=2.0)
+
 # oi_footprint variants - added 14-Aug-2026, same day as the _slcap
 # RSI-family books, per the user's own request: 6 live paper-trading
 # tests of the profit-booking-filter ideas that could NOT be
@@ -293,6 +330,12 @@ ALL_STRATEGIES = [
     (check_or_open_generic, ST3_SLCAP_BANKNIFTY),
     (check_or_open_generic, ST3_TH_SLCAP_NIFTY),
     (check_or_open_generic, ST2_TH_SLCAP_BANKNIFTY),
+    (check_or_open_generic, SIMPLE_ST1_TH_SLCAP_NIFTY),
+    (check_or_open_generic, SIMPLE_ST1_TH_SLCAP_BANKNIFTY),
+    (check_or_open_generic, ST2_TH_SLCAP_NIFTY),
+    (check_or_open_generic, ST3_TH_SLCAP_BANKNIFTY),
+    (check_or_open_st4, ST4_TH_SLCAP_NIFTY),
+    (check_or_open_st4, ST4_TH_SLCAP_BANKNIFTY),
     (check_or_open_oi_footprint_variant, OI_HYBRID_SL_NIFTY),
     (check_or_open_oi_footprint_variant, OI_HYBRID_SL_BANKNIFTY),
     (check_or_open_oi_footprint_variant, OI_HYBRID_SL_TRAILING_NIFTY),

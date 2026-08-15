@@ -47,3 +47,18 @@ def test_trailing_stop_hit_pe_bounces_from_trough():
     # PE trails above the lowest spot seen since entry.
     assert _trailing_stop_hit("PE", current_spot=100, peak_spot=90, trail_distance=5) is True
     assert _trailing_stop_hit("PE", current_spot=94, peak_spot=90, trail_distance=5) is False
+
+
+def test_make_st4_config_defaults_no_hybrid_sl_cap():
+    cfg = make_st4_config("NIFTY")
+
+    assert cfg["hybrid_sl_cap_pct"] is None
+
+
+def test_make_st4_config_hybrid_sl_cap_variant():
+    cfg = make_st4_config("NIFTY", name="st4_threshold_slcap", daily_profit_lock=True, group="threshold",
+                           hybrid_sl_cap_pct=2.0)
+
+    assert cfg["name"] == "st4_threshold_slcap"
+    assert cfg["hybrid_sl_cap_pct"] == 2.0
+    assert cfg["group"] == "threshold"

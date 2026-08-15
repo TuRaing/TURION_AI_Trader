@@ -1,17 +1,21 @@
 from strategy.options_strategies import ALL_STRATEGIES
 
 
-def test_all_strategies_has_53_books():
+def test_all_strategies_has_59_books():
     # 5 original strategies + 5 threshold variants (x 2 indices each) +
     # 1 BANKNIFTY-only vix_filter book + 2 oi_footprint books + 2
     # credit_spread books + 2 pcr_momentum books + 2 max_pain_drift
     # books + 2 pcr_vix_combo books + 2 oi_iv_combo books (all deployed
     # 13-Aug, same day built) + 8 _slcap books (14-Aug, hybrid Stop-
-    # Loss cap on the 8 previously-weak RSI-family books - see
+    # Loss cap on the first 8 previously-weak RSI-family books - see
     # PROJECT_STATUS.md's "MAJOR CORRECTION" + "HYBRID SL CAP" entries)
     # + 12 oi_footprint variant books (14-Aug, 6 exit-mechanism ideas x
-    # 2 indices each - see fyers_options_oi_footprint_variants.py).
-    assert len(ALL_STRATEGIES) == 53
+    # 2 indices each - see fyers_options_oi_footprint_variants.py) +
+    # 6 more threshold _slcap books (14-Aug, later the same day -
+    # simple_st1_threshold x2, st2_threshold/NIFTY, st3_threshold/
+    # BANKNIFTY, st4_threshold x2 - completing hybrid-cap coverage on
+    # every threshold book that was retrospectively tested).
+    assert len(ALL_STRATEGIES) == 59
 
 
 def test_original_books_have_no_daily_profit_lock():
@@ -89,28 +93,40 @@ def test_oi_iv_combo_runs_on_both_indices():
 def test_threshold_books_all_have_daily_profit_lock_on():
     threshold = [cfg for _, cfg in ALL_STRATEGIES if cfg.get("group") == "threshold"]
 
-    # 10 original threshold books + 2 threshold _slcap books
-    # (st3_threshold_slcap/NIFTY, st2_threshold_slcap/BANKNIFTY).
-    assert len(threshold) == 12
+    # 10 original threshold books + 8 threshold _slcap books (st3_
+    # threshold_slcap x2, st2_threshold_slcap x2, simple_st1_threshold_
+    # slcap x2, st4_threshold_slcap x2 - every threshold book that was
+    # retrospectively tested with the hybrid cap now has one).
+    assert len(threshold) == 18
     assert all(cfg["daily_profit_lock"] is True for cfg in threshold)
 
 
-def test_slcap_books_have_hybrid_sl_cap_set():
-    slcap_names = {"simple_st1_slcap", "st2_slcap", "st3_slcap", "st3_threshold_slcap", "st2_threshold_slcap"}
-    slcap_books = [cfg for _, cfg in ALL_STRATEGIES if cfg["name"] in slcap_names]
+ALL_SLCAP_NAMES = {
+    "simple_st1_slcap", "st2_slcap", "st3_slcap",
+    "st3_threshold_slcap", "st2_threshold_slcap", "simple_st1_threshold_slcap", "st4_threshold_slcap",
+}
 
-    assert len(slcap_books) == 8
+
+def test_slcap_books_have_hybrid_sl_cap_set():
+    slcap_books = [cfg for _, cfg in ALL_STRATEGIES if cfg["name"] in ALL_SLCAP_NAMES]
+
+    # 6 non-threshold (simple_st1_slcap/st2_slcap/st3_slcap x2) + 8
+    # threshold (st3_threshold_slcap x2, st2_threshold_slcap x2,
+    # simple_st1_threshold_slcap x2, st4_threshold_slcap x2) = 14.
+    assert len(slcap_books) == 14
     assert all(cfg["hybrid_sl_cap_pct"] == 2.0 for cfg in slcap_books)
 
 
 def test_non_slcap_books_have_no_hybrid_sl_cap():
     # oi_footprint variant books also use hybrid_sl_cap_pct (see
     # fyers_options_oi_footprint_variants.py) - excluded here alongside
-    # the _slcap RSI-family books, both are legitimate hybrid-cap users.
-    slcap_names = {"simple_st1_slcap", "st2_slcap", "st3_slcap", "st3_threshold_slcap", "st2_threshold_slcap",
-                   "oi_hybrid_sl", "oi_hybrid_sl_trailing", "oi_hybrid_sl_atr", "oi_hybrid_sl_breakeven",
-                   "oi_hybrid_sl_laddered", "oi_hybrid_sl_indicator"}
-    non_slcap_books = [cfg for _, cfg in ALL_STRATEGIES if cfg["name"] not in slcap_names]
+    # the _slcap RSI-family/st4 books, all are legitimate hybrid-cap
+    # users.
+    excluded_names = ALL_SLCAP_NAMES | {
+        "oi_hybrid_sl", "oi_hybrid_sl_trailing", "oi_hybrid_sl_atr", "oi_hybrid_sl_breakeven",
+        "oi_hybrid_sl_laddered", "oi_hybrid_sl_indicator",
+    }
+    non_slcap_books = [cfg for _, cfg in ALL_STRATEGIES if cfg["name"] not in excluded_names]
 
     for cfg in non_slcap_books:
         assert cfg.get("hybrid_sl_cap_pct") is None

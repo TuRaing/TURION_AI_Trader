@@ -108,6 +108,15 @@ reports/*.json
 !reports/fyers_options_st3_slcap_banknifty_portfolio.json
 !reports/fyers_options_st3_threshold_slcap_nifty_portfolio.json
 !reports/fyers_options_st2_threshold_slcap_banknifty_portfolio.json
+# Added 14-Aug-2026 - 6 more threshold _slcap books (completing hybrid-
+# cap coverage on every threshold book retrospectively tested this
+# session) - same tracked-for-state-persistence reason as above.
+!reports/fyers_options_simple_st1_threshold_slcap_nifty_portfolio.json
+!reports/fyers_options_simple_st1_threshold_slcap_banknifty_portfolio.json
+!reports/fyers_options_st2_threshold_slcap_nifty_portfolio.json
+!reports/fyers_options_st3_threshold_slcap_banknifty_portfolio.json
+!reports/fyers_options_st4_threshold_slcap_nifty_portfolio.json
+!reports/fyers_options_st4_threshold_slcap_banknifty_portfolio.json
 # Added 14-Aug-2026 - oi_footprint variants (strategy/fyers_options_
 # oi_footprint_variants.py), 6 exit-mechanism ideas x 2 indices - same
 # tracked-for-state-persistence reason as above.

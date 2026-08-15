@@ -542,6 +542,24 @@ findings as extra context for the 14-Aug review itself:
     Full writeup in PROJECT_STATUS.md's "oi_footprint EXIT-MECHANISM
     VARIANTS BUILT" entry.
 
+0g. REMAINING THRESHOLD BOOKS GIVEN THE HYBRID SL CAP, 14-Aug: tested
+    the hybrid cap on every threshold book not yet covered - st3_
+    threshold/BANKNIFTY and simple_st1_threshold (both indices) flip
+    from real losses to real profits; st2_threshold/NIFTY and simple_
+    st1_threshold/NIFTY (already profitable) get meaningfully MORE
+    profitable (2.6x and 1.3x respectively at Rs 1,00,000); st4_
+    threshold improves but doesn't flip (small 3-trade samples).
+    st2_threshold/BANKNIFTY re-confirmed negative under every cap at
+    every capital tier - correctly left without a second attempt.
+    Deployed 6 new threshold _slcap books at the user's explicit
+    request to cover everything tested, including st4_threshold
+    despite the weaker result (new hybrid_sl_cap_pct on fyers_options_
+    st4.py's make_st4_config() - only touches the initial Stop-Loss
+    phase, not the trailing-stop mechanism). Backend only again, same
+    as the oi_footprint variants. ALL_STRATEGIES 53 -> 59, 355 tests
+    passing. Full writeup in PROJECT_STATUS.md's "REMAINING THRESHOLD
+    BOOKS GIVEN THE HYBRID SL CAP" entry.
+
 1. 14-Aug review checkpoint - now explicitly split: (a) simple_st1/
    st2/st3/st4 and their threshold variants have enough sample to
    decide on now (NIFTY and BANKNIFTY threshold legs separately -

@@ -4725,6 +4725,50 @@ oversight.
 
 ==================================================
 
+REMAINING THRESHOLD BOOKS GIVEN THE HYBRID SL CAP (54th-59th books),
+14-Aug - after the first 8 _slcap books, the user asked to
+retrospectively test the hybrid cap on every threshold book NOT yet
+covered: st3_threshold/BANKNIFTY, simple_st1_threshold (both indices),
+st2_threshold/NIFTY, and st4_threshold (both indices).
+
+FINDINGS:
+- st3_threshold/BANKNIFTY: -Rs 48,962 (actual) -> +Rs 21,488 (hybrid
+  cap, Rs 1,00,000) - flips to profit, same pattern as the first 8.
+- simple_st1_threshold/BANKNIFTY: -Rs 49,342 -> +Rs 7,593 - flips too.
+- st2_threshold/NIFTY: already profitable (+Rs 38,546 actual) -> +Rs
+  1,01,053 with the hybrid cap - roughly 2.6x better, confirming the
+  hybrid cap helps ALREADY-GOOD books too, not just failing ones.
+- simple_st1_threshold/NIFTY: already profitable (+Rs 35,348) -> +Rs
+  46,581 with the hybrid cap - ~32% better.
+- st4_threshold/NIFTY: -Rs 16,685 -> -Rs 5,752 - improves but does NOT
+  flip to profit (small 3-trade sample).
+- st4_threshold/BANKNIFTY: -Rs 805 -> -Rs 805, NO CHANGE - its 3-trade
+  sample never actually hit a Stop-Loss, so no cap ever bound.
+- st2_threshold/BANKNIFTY (already had a _slcap variant from the first
+  8) was re-confirmed: stays negative under flat, pct, AND hybrid caps
+  at every capital tier from Rs 15,000 to Rs 10,00,000 - the only
+  threshold book where the hybrid cap genuinely does not help. Its
+  problem is almost certainly the entry signal itself, not exit-
+  overshoot - correctly left without a second attempt.
+
+DEPLOYED (backend only, same as the 12 oi_footprint variants above -
+mobile app wiring deferred): 6 new threshold _slcap books added at the
+user's explicit instruction to cover every threshold book that was
+actually tested ("warate je apan check kelya tya sarvana"), including
+st4_threshold despite its weaker retrospective result - simple_st1_
+threshold_slcap (both indices), st2_threshold_slcap/NIFTY (its
+BANKNIFTY sibling already existed), st3_threshold_slcap/BANKNIFTY (its
+NIFTY sibling already existed), and st4_threshold_slcap (both indices,
+new hybrid_sl_cap_pct parameter added to fyers_options_st4.py's make_
+st4_config() - only replaces the INITIAL Stop-Loss phase before st4's
+own spot-based trailing stop activates, which is untouched). 3 new
+tests (fyers_options_st4.py's hybrid_sl_cap_pct config shape). 355
+tests passing overall. ALL_STRATEGIES 53 -> 59 - every threshold book
+retrospectively tested this session now has hybrid-cap coverage except
+st2_threshold/BANKNIFTY, deliberately, per the finding above.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
@@ -4750,11 +4794,11 @@ Status
 
 Current Version
 
-v0.0.40
+v0.0.41
 
 Next Version
 
-v0.0.41
+v0.0.42
 
 ==================================================
 
