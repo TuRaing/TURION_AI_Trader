@@ -4929,6 +4929,64 @@ capture idea (see LIVE-DATA ARCHITECTURE section) is actually built.
 
 ==================================================
 
+SLIPPAGE & EXECUTION-DELAY DISCUSSION + THEORETICAL STRESS-TEST
+(15-Aug) - equity Swing/Intraday review surfaced the user's "is the
+whole direction wasted if real trading doesn't work" concern, which
+led into a slippage/execution-delay explainer and then a concrete
+what-if analysis. No code built - analysis + a saved finding only.
+
+EXECUTION DELAY vs SLIPPAGE - two different problems, only one fixed
+by the planned Stage 2 VPS:
+  - Execution delay (our own reaction time - the cron-based 1-5 min
+    check cadence, same root cause as the oi_footprint SL-overshoot
+    finding above) - a low-latency same-region VPS + live WebSocket
+    genuinely fixes this, already the Stage 2 plan.
+  - Slippage (bid-ask spread + limited order-book depth at the
+    moment an order lands) - NOT a speed problem, a liquidity
+    problem. A faster VPS does not change how much quantity is
+    resting in the order book at the best price - this needs its
+    own mitigations (trade liquid ATM strikes, size orders to
+    available depth, avoid open/close minutes and high-risk event
+    windows, consider limit vs market orders) once real order
+    placement is ever turned on.
+
+THEORETICAL SLIPPAGE STRESS-TEST (rough estimate, NOT a real
+backtest - explicitly caveated as such to the user): we have never
+captured historical bid/ask depth, only LTP, so a true measured
+slippage backtest is impossible with current data (same root cause
+as the oi_footprint exit-mechanism variants that couldn't be
+retrospectively backtested either). As a stand-in, applied an
+assumed round-trip spread cost (spread% x (Entry+Exit Premium) x
+Lots x lot_size, i.e. crossing the spread on both legs) to all 40
+real closed oi_footprint trades (31 NIFTY @ lot_size 75, 9 BANKNIFTY
+@ lot_size 30; original recorded Net PnL, real transaction costs
+already included, no slippage: +Rs 53,370.27):
+  - 0.5% spread assumption: -Rs 24,633 slippage -> new total +Rs
+    28,738 (46% of the paper profit eaten), 0 trades flip sign.
+  - 1.0% spread assumption: -Rs 49,265 -> new total +Rs 4,105 (92%
+    eaten, barely profitable), 0 trades flip sign.
+  - 2.0% spread assumption: -Rs 98,530 -> new total -Rs 45,160
+    (flips net NEGATIVE), 6 individual trades flip from winning to
+    losing.
+Side finding while building this: oi_footprint sizes every trade
+using nearly all available cash (lots = cash // (entry_premium x
+lot_size), no cap) - real lots ranged 4 to 118 across the 40 trades
+as capital compounded. Slippage cost scales linearly with position
+size, so this all-in sizing directly amplifies slippage sensitivity
+as capital grows - flagged as a candidate to revisit (a position-
+size cap) specifically for when real capital trading begins, NOT
+changing anything for paper trading now.
+
+CONCLUSION: not acted on, filed for the Stage 3 (real capital)
+planning window - (1) a genuine future need is capturing at least
+best-bid/best-ask (ideally full depth) going forward so a REAL
+slippage figure can be measured instead of assumed, (2) a position-
+size cap is worth reconsidering once real orders are placed, purely
+because of its slippage-amplification effect, not because paper
+performance itself is in question.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.

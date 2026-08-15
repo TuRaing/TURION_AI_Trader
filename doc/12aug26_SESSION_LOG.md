@@ -631,6 +631,41 @@ findings as extra context for the 14-Aug review itself:
    position-window tick-capture idea actually gets built - nothing
    actioned yet.
 
+6. DONE, 15-Aug (discussion + one-off analysis, no code built):
+   equity Swing/Intraday check (see below) led into a "is this whole
+   effort going to be wasted if real trading doesn't work" moment -
+   answered with the staged-capital safety net already in place, not
+   false reassurance. Follow-up explained execution-delay (our own
+   check-cadence - genuinely fixed by the planned Stage 2 VPS) vs
+   slippage (bid-ask spread/depth - NOT a speed problem, VPS speed
+   doesn't touch it) as two different problems. User asked for a
+   rough theoretical stress-test since a real one isn't possible (no
+   historical bid/ask depth was ever captured, only LTP - same data
+   gap as the oi_footprint exit-mechanism variants earlier). Applied
+   an assumed round-trip spread cost to all 40 real oi_footprint
+   trades (original +Rs 53,370 Net PnL): at 0.5% spread ~46% of the
+   profit gets eaten (+Rs 28,738 left), at 1% ~92% eaten (+Rs 4,105,
+   barely profitable), at 2% it flips NEGATIVE (-Rs 45,160, 6 trades
+   flip sign). Side finding: oi_footprint sizes every trade with
+   nearly all available cash (lots ranged 4->118 across the 40
+   trades as capital compounded), which directly amplifies slippage
+   sensitivity as capital grows - flagged as a position-size-cap
+   idea for the real-capital stage, not a paper-trading change now.
+   Full writeup in PROJECT_STATUS.md's "SLIPPAGE & EXECUTION-DELAY
+   DISCUSSION + THEORETICAL STRESS-TEST" entry. Also did a same-day
+   equity health check (yfinance Intraday: +Rs 13, 52 closed; yfinance
+   Swing: +Rs 1,944 realized/+Rs 263 unrealized on 15 open positions,
+   54% win rate on 24 closed; Fyers Intraday: -Rs 11, 17 closed; Fyers
+   Swing test: -Rs 571 on only 12 closed trades, 17% win rate) - all 4
+   GitHub Actions workflows green as of 14-Aug. Fyers Swing's weak
+   win rate traced to running the EXACT SAME process_signal/ATR-SL
+   code as yfinance Swing (which shows 54% win rate on a longer, more
+   varied 4-week sample) - concluded this is most likely a small,
+   time-concentrated sample (12 trades, all in one week) rather than
+   a flaw in the SL/Target methodology itself; deliberately NOT
+   tuning any parameter off a 12-trade sample, consistent with this
+   project's standing data-driven-patience approach.
+
 ==================================================
 
 END OF SESSION
