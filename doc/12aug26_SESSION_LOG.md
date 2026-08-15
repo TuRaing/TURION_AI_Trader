@@ -460,6 +460,24 @@ findings as extra context for the 14-Aug review itself:
    test place_stop_loss_order() for real (small position) once Stage 2
    VPS is live - it has never been called against Fyers' real API.
 
+0b. MAJOR CORRECTION, 14-Aug (same session, right after the 14-Aug
+    review's initial verdict below): applying the same -Rs 2,000 SL cap
+    to the books just verdicted "no edge, stop pursuing" flips 5 of
+    them from real losses to real profits (simple_st1/NIFTY -Rs 91,799
+    -> +Rs 50,957; st3/NIFTY -Rs 78,163 -> +Rs 1,19,227; st2/BANKNIFTY
+    -Rs 50,157 -> +Rs 13,709; st3/BANKNIFTY -Rs 46,101 -> +Rs 19,897;
+    st3_threshold/NIFTY -Rs 21,097 -> +Rs 53,171), and shrinks the other
+    3 by 50-68%. The "RSI signal has no edge" verdict was likely
+    measuring the same exit-overshoot problem as oi_footprint, just
+    much worse here (87-128 trades vs 31). Do NOT retire these on the
+    original numbers - re-evaluate once the broker-side SL order is
+    live-tested. Also swept the cap level itself and found a suspicious
+    monotonic "tighter is always better" pattern down to Rs 50 -
+    flagged as unrealistic below ~Rs 1,000-1,500 (real slippage, and
+    the backtest doesn't model the higher trade frequency a genuinely
+    tighter SL would cause). Full writeup in PROJECT_STATUS.md's
+    "MAJOR CORRECTION" entry.
+
 1. 14-Aug review checkpoint - now explicitly split: (a) simple_st1/
    st2/st3/st4 and their threshold variants have enough sample to
    decide on now (NIFTY and BANKNIFTY threshold legs separately -

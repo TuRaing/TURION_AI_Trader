@@ -4474,6 +4474,55 @@ been called against Fyers' real order endpoint.
 
 ==================================================
 
+MAJOR CORRECTION - THE SL-OVERSHOOT FIX ALSO REVIVES SEVERAL "DEAD"
+RSI-FAMILY BOOKS, 14-Aug - during the 14-Aug review itself, the initial
+verdict (below) was to stop pursuing simple_st1/st2/st3 entirely (large
+samples, deeply negative, all sharing the exact same RSI>=50 entry
+signal with only Target/SL % varying - already swept 3 combos, all
+failed). Applying the SAME Stop-Loss-only -Rs 2,000 cap that worked for
+oi_footprint (see the exit-mechanism deep-dive entry above) to these
+"dead" books, retrospectively, changes that verdict substantially:
+
+  Strategy               Actual PnL    SL -Rs2,000 capped   Flips to profit?
+  simple_st1/NIFTY       -Rs 91,799    +Rs 50,957           YES
+  st3/NIFTY               -Rs 78,163   +Rs 1,19,227         YES
+  st2/BANKNIFTY           -Rs 50,157   +Rs 13,709           YES
+  st3/BANKNIFTY           -Rs 46,101   +Rs 19,897           YES
+  st3_threshold/NIFTY     -Rs 21,097   +Rs 53,171           YES
+  st2/NIFTY                -Rs 97,263  -Rs 30,741           No, but 68% smaller loss
+  simple_st1/BANKNIFTY    -Rs 61,370   -Rs 2,113            No, but near breakeven
+  st2_threshold/BANKNIFTY -Rs 40,519   -Rs 20,261           No, but 50% smaller loss
+
+REVISED CONCLUSION: the earlier "RSI entry signal has no edge on
+BANKNIFTY / non-threshold NIFTY" verdict was likely measuring the SAME
+exit-overshoot problem found in oi_footprint, just far more damaging
+here because these books trade much more often (87-128 trades vs
+oi_footprint's 31) - every overshot Stop-Loss compounds the damage many
+more times. The entry signal may have had a real, if modest, edge all
+along that the execution problem was masking. Do NOT retire these
+books' real-capital candidacy purely on the original numbers - re-
+evaluate after the broker-side SL order (already built, not yet live-
+tested) is actually running.
+
+SWEPT the SL-cap level itself (Rs 50 to Rs 10,000) on these same 5
+books to look for an optimum - found a suspicious MONOTONIC pattern
+(tighter cap = more profit, all the way down to Rs 50, never
+reversing). This is a red flag, not a stronger result - flagged and
+NOT trusted below roughly Rs 1,000-1,500, for two concrete reasons:
+(1) real bid-ask spread/slippage on these option premiums likely
+exceeds a Rs 50-500 rupee band on its own, making an exact exit at
+that level physically impossible in live trading; (2) this retrospective
+method only re-caps the ALREADY-RECORDED trades - it does not re-
+simulate the much higher trade frequency a genuinely tighter Stop-Loss
+would cause in reality (constant whipsaw in/out), which would look
+very different from just capping today's trade list. Rs 1,500-2,000
+is the recommended range - still shows large, credible improvement
+(Rs 50,000-1,90,000+ across these 5 books) without the unrealistic
+tail. Analysis only, nothing implemented differently from the SL
+order already built.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
@@ -4499,11 +4548,11 @@ Status
 
 Current Version
 
-v0.0.35
+v0.0.36
 
 Next Version
 
-v0.0.36
+v0.0.37
 
 ==================================================
 
