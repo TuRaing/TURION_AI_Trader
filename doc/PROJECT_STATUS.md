@@ -5083,6 +5083,64 @@ only analysis module until the user asks for either.
 
 ==================================================
 
+SHARED BACKTEST-LIVE ENGINE - FRAMEWORK BUILT, NOT APPLIED (15-Aug)
+- item #6 from 08-Aug's "GAPS VS A PROFESSIONAL ALGO TRADING SYSTEM"
+list, deferred back then, built now at the user's explicit request
+("engine badun ghe") after a detailed explanation of why it exists:
+a real divergence already happened once (nifty_options_backtest.py's
+Black-Scholes-estimated sweep showed +69%/57 days; the separately
+hand-written live module showed a large real loss on real premiums -
+two independently hand-written copies of "the same" logic drifted
+apart).
+
+NEW strategy/backtest_live_engine.py - deliberately minimal, generic
+(not options-specific): run_backtest(decide_fn, cfg, historical_data_
+points, initial_capital) replays a list of data points through a
+caller-supplied decide_fn; run_live_check(decide_fn, cfg, portfolio,
+live_data_point) feeds exactly one live data point through the
+IDENTICAL internal _step() function. decide_fn is a pure function
+the caller supplies once - (cfg, position, data_point) -> (action,
+new_position, trade_record) - so there is no second hand-written
+copy to diverge, by construction. 4 new tests (tests/test_backtest_
+live_engine.py), including one that proves run_backtest() fed a
+whole list and run_live_check() fed the same points one-at-a-time
+(as a real cron-triggered strategy would experience) produce BYTE-
+IDENTICAL final portfolios - the actual guarantee this module exists
+to provide. 367 tests passing overall.
+
+DELIBERATELY NOT APPLIED to anything yet, confirmed with the user
+step by step:
+  - NOT retrofitted onto the 59 already-running books (same 08-Aug
+    reasoning: they're mid-way through accumulating real trade data
+    for validation, touching their code now risks a silent behaviour
+    change right when continuity matters most).
+  - NOT retrofitted onto today's 26 newly-triggered books either -
+    user asked this directly ("aaj tayar kelya strategy shift
+    karuyat ka") and was talked out of it: those 26 have ZERO real
+    trades yet (cron triggers only just got fixed today), so
+    "created today" is if anything a stronger reason to leave them
+    alone, not a weaker one - the same "don't touch a book that's
+    establishing its real-data baseline" rule applies regardless of
+    a book's age.
+  - PLANNED connection to Stage 2 (VPS): the VPS migration already
+    requires rewriting every strategy's check logic from periodic-
+    poll to event-driven-on-tick (per the existing LIVE-DATA
+    ARCHITECTURE plan above) - since that rewrite is happening
+    anyway at that point, doing it THROUGH this engine's decide_fn
+    shape avoids rewriting each strategy's logic twice (once for
+    event-driven, once later for the shared engine). Real per-
+    strategy verification (replay each book's real historical trades
+    through its new decide_fn, confirm the output matches to the
+    rupee) is still required at that point - this framework doesn't
+    remove that need, it only avoids doing the rewrite itself twice.
+  - CURRENT practical use: none yet, by design - this is
+    infrastructure built ahead of need, ready for the next genuinely
+    NEW strategy idea (not a variant of an existing one) whenever
+    one comes up. Confirmed directly with the user rather than
+    inventing a use for it today.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.

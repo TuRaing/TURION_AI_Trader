@@ -707,6 +707,34 @@ findings as extra context for the 14-Aug review itself:
    too new to correlate meaningfully. Correlation-adjusted
    allocation and the mobile screen both deliberately deferred.
 
+9. DONE, 15-Aug: Shared Backtest-Live Engine, framework only - the
+   last of the 08-Aug-deferred items, built at the user's explicit
+   request after asking for a plain-language explanation of why it
+   exists (the +69%/57-day-backtest-vs-real-loss divergence that
+   already happened once). New strategy/backtest_live_engine.py -
+   run_backtest() and run_live_check() both drive the same caller-
+   supplied decide_fn through one identical _step() function, so a
+   backtest and its live counterpart can never independently drift
+   apart the way the old hand-duplicated approach did. 4 new tests,
+   367 passing overall - one test explicitly proves feeding the same
+   data one-at-a-time (run_live_check, matching a real cron trigger)
+   produces a byte-identical result to feeding it all at once
+   (run_backtest).
+   User then asked three good follow-up questions, each answered and
+   NOT acted on: (1) "shift the 59 existing books onto it?" - no,
+   they're mid-way through real-data accumulation, retrofitting
+   risks a silent behaviour change; (2) "shift TODAY's 26 new books
+   onto it?" - also no, and more so: those have ZERO real trades yet
+   (triggers only just got fixed today), so "just created" is a
+   reason to leave them alone, not a reason to touch them; (3) "so
+   what do we use it for, right now?" - honestly: nothing yet, by
+   design - it's ready for the next genuinely NEW strategy idea, and
+   its build was deliberately timed to land alongside the future
+   VPS migration's own required periodic-poll -> event-driven
+   rewrite (avoids rewriting each strategy's check logic twice).
+   Full writeup in PROJECT_STATUS.md's "SHARED BACKTEST-LIVE ENGINE"
+   entry.
+
 ==================================================
 
 END OF SESSION
