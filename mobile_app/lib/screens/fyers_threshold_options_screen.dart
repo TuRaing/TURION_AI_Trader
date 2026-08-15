@@ -23,6 +23,8 @@ const _thresholdStrategyNames = [
   'st3_threshold',
   'st4_threshold',
   'gapfill_threshold',
+  'st3_threshold_slcap',
+  'st2_threshold_slcap',
 ];
 
 const _thresholdStrategyDescriptions = {
@@ -34,6 +36,10 @@ const _thresholdStrategyDescriptions = {
       'st4 सारखंच (MTF+ADX, दिवसातून १ trade, trailing stop), पण आजचा profit ₹2,000+ झाला की नवीन trade बंद.',
   'gapfill_threshold':
       'gapfill सारखंच (gap-reversion, PE/CE), पण आजचा profit ₹2,000+ झाला की नवीन trade बंद.',
+  'st3_threshold_slcap':
+      'st3_threshold सारखंच, पण Stop-Loss आता hybrid cap (flat 2% वि. deployed-capital चा 2%, जे लहान ते) - फक्त NIFTY.',
+  'st2_threshold_slcap':
+      'st2_threshold सारखंच, पण Stop-Loss hybrid cap (flat 2% वि. deployed-capital चा 2%, जे लहान ते) - फक्त BANKNIFTY.',
 };
 
 class FyersThresholdOptionsScreen extends StatelessWidget {
@@ -45,7 +51,7 @@ class FyersThresholdOptionsScreen extends StatelessWidget {
       strategyNames: _thresholdStrategyNames,
       strategyDescriptions: _thresholdStrategyDescriptions,
       bannerText:
-          'Options tab सारख्याच 5 strategies, पण रोजचा profit ₹2,000+ झाला की त्या दिवसासाठी नवीन trade बंद - नफा लॉक करण्यासाठी.',
+          'Options tab सारख्याच strategies (+ 2 नवीन hybrid-SL-cap variants), पण रोजचा profit ₹2,000+ झाला की त्या दिवसासाठी नवीन trade बंद - नफा लॉक करण्यासाठी.',
     );
   }
 }

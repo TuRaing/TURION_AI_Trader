@@ -96,3 +96,15 @@ reports/*.json
 # as above. Deployed same day as built.
 !reports/fyers_options_oi_iv_combo_nifty_portfolio.json
 !reports/fyers_options_oi_iv_combo_banknifty_portfolio.json
+# Added 14-Aug-2026 - _slcap variants (strategy/fyers_options_engine.py's
+# hybrid_sl_cap_pct) - 8 books built after the exit-mechanism deep-dive
+# found the original Stop-Loss overshoots real losses 2x-10x on these
+# same signals. Same tracked-for-state-persistence reason as above.
+!reports/fyers_options_simple_st1_slcap_nifty_portfolio.json
+!reports/fyers_options_simple_st1_slcap_banknifty_portfolio.json
+!reports/fyers_options_st2_slcap_nifty_portfolio.json
+!reports/fyers_options_st2_slcap_banknifty_portfolio.json
+!reports/fyers_options_st3_slcap_nifty_portfolio.json
+!reports/fyers_options_st3_slcap_banknifty_portfolio.json
+!reports/fyers_options_st3_threshold_slcap_nifty_portfolio.json
+!reports/fyers_options_st2_threshold_slcap_banknifty_portfolio.json

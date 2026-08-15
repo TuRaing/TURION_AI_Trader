@@ -63,7 +63,8 @@ INDEX_CONFIG = {
 
 def make_strategy(name, index, target_net_pct, stop_loss_pct,
                    initial_capital=100000, squareoff_time=(15, 15),
-                   daily_profit_lock=False, daily_loss_lock=False, group=None):
+                   daily_profit_lock=False, daily_loss_lock=False, group=None,
+                   hybrid_sl_cap_pct=None):
     """
     Build one named strategy's config for one index. `name` (e.g.
     "simple_st1") only affects the portfolio filename - reports/
@@ -87,6 +88,18 @@ def make_strategy(name, index, target_net_pct, stop_loss_pct,
     already-weak books but hurts already-strong ones (see PROJECT_
     STATUS.md).
 
+    `hybrid_sl_cap_pct` (added 14-Aug-2026) - when set, REPLACES the
+    plain stop_loss_pct check with min(flat_cap, pct_of_deployed_cap),
+    both computed at this percentage - see _check_position() and
+    PROJECT_STATUS.md's "HYBRID SL CAP" entry, which found this beats
+    both a flat-Rs cap and a pure %-of-deployed-capital cap at every
+    capital tier tested, on a retrospective replay of real closed
+    trades from 8 books that were otherwise net-losing under the
+    original plain stop_loss_pct rule. Target/profit-taking is
+    UNCHANGED either way - only the loss side is capped differently.
+    Default None keeps the original strategies' behavior unchanged -
+    this is a SEPARATE "_slcap" variant, not a change to the originals.
+
     `group` (e.g. "threshold") is just a filter tag for fyers_multi_
     strategy_options_run.py's STRATEGY_NAME - not used by the trading
     logic itself.
@@ -100,6 +113,7 @@ def make_strategy(name, index, target_net_pct, stop_loss_pct,
         "group": group,
         "daily_profit_lock": daily_profit_lock,
         "daily_loss_lock": daily_loss_lock,
+        "hybrid_sl_cap_pct": hybrid_sl_cap_pct,
         "portfolio_file": f"reports/fyers_options_{name}_{index.lower()}_portfolio.json",
         "underlying_symbol": index_cfg["underlying_symbol"],
         "index_symbol_for_rsi": index_cfg["index_symbol_for_rsi"],
@@ -369,6 +383,29 @@ def _close_position(cfg, portfolio, exit_premium, reason, exit_spot=None):
     return portfolio, f"CLOSED ({reason}) net {round(net_pnl, 2)}"
 
 
+def _hybrid_stop_loss_cap(cfg, capital_deployed):
+    """
+    Pure function - min(flat_cap, pct_of_deployed_cap), both computed
+    at cfg["hybrid_sl_cap_pct"]. See make_strategy()'s docstring and
+    PROJECT_STATUS.md's "HYBRID SL CAP" entry: this beat both a flat-Rs
+    cap and a pure %-of-deployed-capital cap at every capital tier
+    tested, on a retrospective replay of real closed trades. Always
+    returns the SMALLER (more protective) of the two, so it can never
+    be worse than either pure version alone.
+
+    Returns
+    -------
+    float - the rupee loss cap (positive number; caller compares
+    net_pnl against its negative).
+    """
+
+    pct = cfg["hybrid_sl_cap_pct"]
+    flat_cap = cfg["initial_capital"] * (pct / 100)
+    pct_cap = capital_deployed * (pct / 100)
+
+    return min(flat_cap, pct_cap)
+
+
 def _check_position(cfg, portfolio):
 
     position = portfolio["Position"]
@@ -387,7 +424,14 @@ def _check_position(cfg, portfolio):
     if net_pnl_pct >= cfg["target_net_pct"]:
         return _close_position(cfg, portfolio, current_premium, "Target", current_spot)
 
-    if net_pnl_pct <= -cfg["stop_loss_pct"]:
+    if cfg.get("hybrid_sl_cap_pct") is not None:
+        # Replaces the plain stop_loss_pct check entirely when set.
+        stop_loss_cap = _hybrid_stop_loss_cap(cfg, position["Capital Deployed"])
+
+        if net_pnl <= -stop_loss_cap:
+            return _close_position(cfg, portfolio, current_premium, "Stop Loss", current_spot)
+
+    elif net_pnl_pct <= -cfg["stop_loss_pct"]:
         return _close_position(cfg, portfolio, current_premium, "Stop Loss", current_spot)
 
     if past_squareoff:

@@ -185,6 +185,44 @@ PCR_VIX_COMBO_BANKNIFTY = make_pcr_vix_combo_config("BANKNIFTY")
 OI_IV_COMBO_NIFTY = make_oi_iv_combo_config("NIFTY")
 OI_IV_COMBO_BANKNIFTY = make_oi_iv_combo_config("BANKNIFTY")
 
+# _slcap variants - added 14-Aug-2026, same RSI-momentum entry and
+# Target as each book's original, but the Stop-Loss is replaced with
+# the hybrid cap (min of a flat-2%-of-initial-capital cap and a
+# %-of-that-trade's-deployed-capital cap - see fyers_options_engine.py's
+# make_strategy() docstring and PROJECT_STATUS.md's "HYBRID SL CAP" +
+# "MAJOR CORRECTION" entries). A retrospective replay on each of these
+# 8 books' own real closed trades found the original plain stop_loss_pct
+# rule let real losses overshoot the intended cap 2x-10x (periodic ~1-
+# min checking, not the entry signal being wrong) - simple_st1/NIFTY,
+# st3/NIFTY, st2/BANKNIFTY, st3/BANKNIFTY, and st3_threshold/NIFTY all
+# flip from real losses to real profits under the hybrid cap; st2/NIFTY
+# and simple_st1/BANKNIFTY flip too once the cap is tight enough (see
+# the sweep in PROJECT_STATUS.md). st2_threshold/BANKNIFTY was tested
+# and stayed negative under every cap tried, so it's the one otherwise-
+# eligible book deliberately NOT given an _slcap variant here.
+#
+# Built as SEPARATE new books alongside the originals (never modify a
+# working module) - both keep running in parallel so their real trade
+# history stays directly comparable.
+SIMPLE_ST1_SLCAP_NIFTY = make_strategy("simple_st1_slcap", "NIFTY", target_net_pct=3.0, stop_loss_pct=3.0,
+                                        hybrid_sl_cap_pct=2.0)
+SIMPLE_ST1_SLCAP_BANKNIFTY = make_strategy("simple_st1_slcap", "BANKNIFTY", target_net_pct=3.0, stop_loss_pct=3.0,
+                                            hybrid_sl_cap_pct=2.0)
+ST2_SLCAP_NIFTY = make_strategy("st2_slcap", "NIFTY", target_net_pct=5.0, stop_loss_pct=2.0,
+                                 hybrid_sl_cap_pct=2.0)
+ST2_SLCAP_BANKNIFTY = make_strategy("st2_slcap", "BANKNIFTY", target_net_pct=5.0, stop_loss_pct=2.0,
+                                     hybrid_sl_cap_pct=2.0)
+ST3_SLCAP_NIFTY = make_strategy("st3_slcap", "NIFTY", target_net_pct=5.0, stop_loss_pct=5.0,
+                                 hybrid_sl_cap_pct=2.0)
+ST3_SLCAP_BANKNIFTY = make_strategy("st3_slcap", "BANKNIFTY", target_net_pct=5.0, stop_loss_pct=5.0,
+                                     hybrid_sl_cap_pct=2.0)
+ST3_TH_SLCAP_NIFTY = make_strategy("st3_threshold_slcap", "NIFTY", target_net_pct=5.0, stop_loss_pct=5.0,
+                                    daily_profit_lock=True, daily_loss_lock=True, group="threshold",
+                                    hybrid_sl_cap_pct=2.0)
+ST2_TH_SLCAP_BANKNIFTY = make_strategy("st2_threshold_slcap", "BANKNIFTY", target_net_pct=5.0, stop_loss_pct=2.0,
+                                        daily_profit_lock=True, daily_loss_lock=True, group="threshold",
+                                        hybrid_sl_cap_pct=2.0)
+
 ALL_STRATEGIES = [
     (check_or_open_generic, SIMPLE_ST1_NIFTY),
     (check_or_open_generic, SIMPLE_ST1_BANKNIFTY),
@@ -219,4 +257,12 @@ ALL_STRATEGIES = [
     (check_or_open_pcr_vix_combo, PCR_VIX_COMBO_BANKNIFTY),
     (check_or_open_oi_iv_combo, OI_IV_COMBO_NIFTY),
     (check_or_open_oi_iv_combo, OI_IV_COMBO_BANKNIFTY),
+    (check_or_open_generic, SIMPLE_ST1_SLCAP_NIFTY),
+    (check_or_open_generic, SIMPLE_ST1_SLCAP_BANKNIFTY),
+    (check_or_open_generic, ST2_SLCAP_NIFTY),
+    (check_or_open_generic, ST2_SLCAP_BANKNIFTY),
+    (check_or_open_generic, ST3_SLCAP_NIFTY),
+    (check_or_open_generic, ST3_SLCAP_BANKNIFTY),
+    (check_or_open_generic, ST3_TH_SLCAP_NIFTY),
+    (check_or_open_generic, ST2_TH_SLCAP_BANKNIFTY),
 ]

@@ -21,7 +21,7 @@ import 'fyers_login_screen.dart';
 // TEST DATA ONLY - every price here is a real Fyers quote, but these
 // are paper trades only, not live trading.
 
-const _strategyNames = ['simple_st1', 'st2', 'st3', 'st4', 'gapfill', 'vix_filter', 'oi_footprint', 'credit_spread', 'pcr_momentum', 'max_pain_drift', 'pcr_vix_combo', 'oi_iv_combo'];
+const _strategyNames = ['simple_st1', 'st2', 'st3', 'st4', 'gapfill', 'vix_filter', 'oi_footprint', 'credit_spread', 'pcr_momentum', 'max_pain_drift', 'pcr_vix_combo', 'oi_iv_combo', 'simple_st1_slcap', 'st2_slcap', 'st3_slcap'];
 
 // Added 06-Aug-2026 - one-line plain-language summary per strategy,
 // shown under its index tabs so it's clear what each is actually
@@ -39,6 +39,9 @@ const _strategyDescriptions = {
   'max_pain_drift': 'Max Pain strike (जिथे option विक्रेत्यांचं सर्वात कमी नुकसान) कुठल्या दिशेने सरकतोय त्यावरून CE/PE - फक्त expiry च्या 2 दिवस आधीच entry.',
   'pcr_vix_combo': 'PCR Momentum + India VIX त्याच्याच 30-70 percentile band मध्ये (calm) असेल तरच entry - दोन signals एकत्र.',
   'oi_iv_combo': 'OI-buildup signal + option ची implied volatility त्याच्या underlying च्या realized volatility च्या 1.5 पटीपेक्षा जास्त नसेल तरच entry (महाग options टाळणे).',
+  'simple_st1_slcap': 'simple_st1 सारखंच entry/Target, पण Stop-Loss आता hybrid cap (flat 2% आणि त्या trade च्या भांडवलाच्या 2% यातलं जे लहान) - जुना overshoot-प्रवण Stop-Loss ऐवजी.',
+  'st2_slcap': 'st2 सारखंच entry/Target, पण Stop-Loss hybrid cap (flat 2% वि. deployed-capital चा 2%, जे लहान ते).',
+  'st3_slcap': 'st3 सारखंच entry/Target, पण Stop-Loss hybrid cap (flat 2% वि. deployed-capital चा 2%, जे लहान ते).',
 };
 
 // Added 08-Aug-2026 - vix_filter is BANKNIFTY-only (NIFTY was already
@@ -47,6 +50,13 @@ const _strategyDescriptions = {
 // runs both indices. Default (any name not listed) is both.
 const _strategyIndices = {
   'vix_filter': ['banknifty'],
+  // Added 14-Aug-2026 - only the specific books whose retrospective
+  // hybrid-SL-cap replay showed a real improvement got an _slcap
+  // variant (see strategy/options_strategies.py) - st3_threshold_slcap
+  // is NIFTY-only, st2_threshold_slcap is BANKNIFTY-only, unlike every
+  // other threshold strategy which runs both indices.
+  'st3_threshold_slcap': ['nifty'],
+  'st2_threshold_slcap': ['banknifty'],
 };
 
 List<String> _indicesFor(String strategyName) => _strategyIndices[strategyName] ?? ['nifty', 'banknifty'];
@@ -70,7 +80,7 @@ class FyersMultiStrategyOptionsScreen extends StatefulWidget {
     this.strategyNames = _strategyNames,
     this.strategyDescriptions = _strategyDescriptions,
     this.bannerText =
-        '12 strategies, each with its own ₹1,00,000 (vix_filter is BANKNIFTY-only) - real live premium quotes, paper trades only.',
+        '15 strategies, each with its own ₹1,00,000 (vix_filter is BANKNIFTY-only) - real live premium quotes, paper trades only.',
   });
 
   @override

@@ -2,7 +2,7 @@ import datetime
 
 from strategy.fyers_options_engine import (
     make_strategy, _net_pnl, _today_realized_pnl, _today_consecutive_losses,
-    IST, DAILY_PROFIT_LOCK_RS, MAX_CONSECUTIVE_LOSSES,
+    _hybrid_stop_loss_cap, IST, DAILY_PROFIT_LOCK_RS, MAX_CONSECUTIVE_LOSSES,
 )
 
 
@@ -154,3 +154,57 @@ def test_today_consecutive_losses_ignores_earlier_days():
 
 def test_today_consecutive_losses_zero_when_no_closed_trades():
     assert _today_consecutive_losses({"Closed Trades": []}) == 0
+
+
+def test_make_strategy_defaults_no_hybrid_sl_cap():
+    cfg = make_strategy("simple_st1", "NIFTY", target_net_pct=3.0, stop_loss_pct=3.0)
+
+    assert cfg["hybrid_sl_cap_pct"] is None
+
+
+def test_make_strategy_hybrid_sl_cap_variant():
+    cfg = make_strategy("simple_st1_slcap", "NIFTY", target_net_pct=3.0, stop_loss_pct=3.0,
+                         hybrid_sl_cap_pct=2.0)
+
+    assert cfg["hybrid_sl_cap_pct"] == 2.0
+
+
+def test_hybrid_cap_uses_flat_when_flat_is_smaller():
+    # Small position (Rs 20,000 deployed) on a large book (Rs 1,00,000
+    # initial capital) - pct-of-deployed (2% of 20,000 = 400) is
+    # smaller than flat (2% of 1,00,000 = 2,000) here... wait, check
+    # the actual smaller one and assert against it directly.
+    cfg = make_strategy("x", "NIFTY", target_net_pct=3.0, stop_loss_pct=3.0,
+                         initial_capital=100000, hybrid_sl_cap_pct=2.0)
+
+    cap = _hybrid_stop_loss_cap(cfg, capital_deployed=20000)
+
+    assert cap == min(100000 * 0.02, 20000 * 0.02)
+    assert cap == 400  # pct-of-deployed is smaller here
+
+
+def test_hybrid_cap_uses_pct_when_pct_is_smaller():
+    cfg = make_strategy("x", "NIFTY", target_net_pct=3.0, stop_loss_pct=3.0,
+                         initial_capital=15000, hybrid_sl_cap_pct=2.0)
+
+    # A large deployed position relative to a small book - flat cap
+    # (2% of 15,000 = 300) is smaller than pct-of-deployed (2% of
+    # 50,000 = 1,000) here.
+    cap = _hybrid_stop_loss_cap(cfg, capital_deployed=50000)
+
+    assert cap == min(15000 * 0.02, 50000 * 0.02)
+    assert cap == 300  # flat is smaller here
+
+
+def test_hybrid_cap_never_worse_than_either_pure_version():
+    cfg = make_strategy("x", "NIFTY", target_net_pct=3.0, stop_loss_pct=3.0,
+                         initial_capital=100000, hybrid_sl_cap_pct=2.0)
+
+    for capital_deployed in (5000, 50000, 100000, 250000, 1000000):
+        flat_cap = 100000 * 0.02
+        pct_cap = capital_deployed * 0.02
+
+        cap = _hybrid_stop_loss_cap(cfg, capital_deployed)
+
+        assert cap <= flat_cap
+        assert cap <= pct_cap

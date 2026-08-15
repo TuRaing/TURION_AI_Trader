@@ -56,6 +56,14 @@ const _books = [
   ('pcr_vix_combo', 'BANKNIFTY', 'banknifty'),
   ('oi_iv_combo', 'NIFTY', 'nifty'),
   ('oi_iv_combo', 'BANKNIFTY', 'banknifty'),
+  ('simple_st1_slcap', 'NIFTY', 'nifty'),
+  ('simple_st1_slcap', 'BANKNIFTY', 'banknifty'),
+  ('st2_slcap', 'NIFTY', 'nifty'),
+  ('st2_slcap', 'BANKNIFTY', 'banknifty'),
+  ('st3_slcap', 'NIFTY', 'nifty'),
+  ('st3_slcap', 'BANKNIFTY', 'banknifty'),
+  ('st3_threshold_slcap', 'NIFTY', 'nifty'),
+  ('st2_threshold_slcap', 'BANKNIFTY', 'banknifty'),
 ];
 
 class FyersOptionsSummaryScreen extends StatefulWidget {

@@ -510,6 +510,21 @@ findings as extra context for the 14-Aug review itself:
     -> place_stop_loss_order() pipeline, no new function needed. Full
     writeup in PROJECT_STATUS.md's "HYBRID SL CAP" entry.
 
+0e. _slcap BOOKS BUILT + DEPLOYED, 14-Aug: implemented the hybrid SL
+    cap as 8 new PAPER-TRADING books, alongside (not replacing) the
+    originals - strategy/fyers_options_engine.py gained an optional
+    hybrid_sl_cap_pct parameter + pure _hybrid_stop_loss_cap() helper
+    (5 new tests), and strategy/options_strategies.py gained
+    simple_st1_slcap/st2_slcap/st3_slcap (both indices) + st3_
+    threshold_slcap (NIFTY) + st2_threshold_slcap (BANKNIFTY) - 8
+    books, ALL_STRATEGIES 33 -> 41. Wired into all 3 mobile-app option
+    screens, .gitignore, and the GitHub Actions workflow, same pattern
+    as every other same-day strategy deployment. 344 tests passing.
+    Both the original and _slcap book-sets now run in parallel, so the
+    hybrid-cap hypothesis gets a real, not just retrospective, test
+    going forward. Full writeup in PROJECT_STATUS.md's "_slcap BOOKS
+    BUILT + DEPLOYED" entry.
+
 1. 14-Aug review checkpoint - now explicitly split: (a) simple_st1/
    st2/st3/st4 and their threshold variants have enough sample to
    decide on now (NIFTY and BANKNIFTY threshold legs separately -

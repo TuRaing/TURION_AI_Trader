@@ -4625,6 +4625,41 @@ strategy later.
 
 ==================================================
 
+_slcap BOOKS BUILT + DEPLOYED (PAPER TRADING), 14-Aug - the hybrid SL
+cap (min of flat-2%-of-initial-capital and 2%-of-that-trade's-
+deployed-capital - see the two entries above) implemented as 8 new
+paper-trading books, alongside (not replacing) the 8 originals that
+the "MAJOR CORRECTION" finding was based on, per this repo's own
+"never modify a working module" rule and the user's explicit choice to
+build new rather than change the originals.
+
+strategy/fyers_options_engine.py gained hybrid_sl_cap_pct (new optional
+make_strategy() parameter, default None = original behavior
+unchanged) and a new pure helper _hybrid_stop_loss_cap(cfg,
+capital_deployed) that returns min(flat_cap, pct_cap) - _check_position
+uses it INSTEAD of the plain stop_loss_pct check whenever
+hybrid_sl_cap_pct is set on a config; Target/profit-taking is
+untouched either way. 5 new tests (pure function, no network needed).
+
+8 new books in strategy/options_strategies.py, same entry/Target as
+each original, hybrid_sl_cap_pct=2.0:
+  NIFTY: simple_st1_slcap, st2_slcap, st3_slcap, st3_threshold_slcap
+  BANKNIFTY: simple_st1_slcap, st2_slcap, st3_slcap, st2_threshold_slcap
+(st2_threshold/BANKNIFTY was the one book that stayed negative under
+every cap tried in testing - deliberately NOT given an _slcap variant).
+ALL_STRATEGIES grew 33 -> 41. Wired into the mobile app (3 screens:
+main Options tab gets the 3 non-threshold _slcap books, Threshold
+Options tab gets the 2 threshold-group _slcap books with their
+NIFTY/BANKNIFTY-only index restriction, Summary tab lists all 8),
+.gitignore, and the GitHub Actions workflow's git-add list, following
+the same pattern as every other same-day-deployed strategy this month.
+344 tests passing overall. Deployed same day as built (paper trading,
+zero real-money risk) - the 2 parallel book-sets (original vs _slcap)
+will make the hybrid-cap hypothesis directly comparable on real future
+trades, not just the retrospective replay it's based on so far.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
@@ -4650,11 +4685,11 @@ Status
 
 Current Version
 
-v0.0.38
+v0.0.39
 
 Next Version
 
-v0.0.39
+v0.0.40
 
 ==================================================
 

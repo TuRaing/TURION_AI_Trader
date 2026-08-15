@@ -1,13 +1,15 @@
 from strategy.options_strategies import ALL_STRATEGIES
 
 
-def test_all_strategies_has_33_books():
+def test_all_strategies_has_41_books():
     # 5 original strategies + 5 threshold variants (x 2 indices each) +
     # 1 BANKNIFTY-only vix_filter book + 2 oi_footprint books + 2
     # credit_spread books + 2 pcr_momentum books + 2 max_pain_drift
     # books + 2 pcr_vix_combo books + 2 oi_iv_combo books (all deployed
-    # 13-Aug, same day built).
-    assert len(ALL_STRATEGIES) == 33
+    # 13-Aug, same day built) + 8 _slcap books (14-Aug, hybrid Stop-
+    # Loss cap on the 8 previously-weak RSI-family books - see
+    # PROJECT_STATUS.md's "MAJOR CORRECTION" + "HYBRID SL CAP" entries).
+    assert len(ALL_STRATEGIES) == 41
 
 
 def test_original_books_have_no_daily_profit_lock():
@@ -24,7 +26,10 @@ def test_original_books_have_no_daily_profit_lock():
         if cfg.get("group") != "threshold" and cfg["name"] not in standalone_names
     ]
 
-    assert len(originals) == 10
+    # 10 original (non-threshold, non-standalone) books + 6 non-
+    # threshold _slcap books (simple_st1_slcap/st2_slcap/st3_slcap x 2
+    # indices each - the other 2 _slcap books are threshold-group).
+    assert len(originals) == 16
     assert all(cfg["daily_profit_lock"] is False for cfg in originals)
 
 
@@ -80,8 +85,26 @@ def test_oi_iv_combo_runs_on_both_indices():
 def test_threshold_books_all_have_daily_profit_lock_on():
     threshold = [cfg for _, cfg in ALL_STRATEGIES if cfg.get("group") == "threshold"]
 
-    assert len(threshold) == 10
+    # 10 original threshold books + 2 threshold _slcap books
+    # (st3_threshold_slcap/NIFTY, st2_threshold_slcap/BANKNIFTY).
+    assert len(threshold) == 12
     assert all(cfg["daily_profit_lock"] is True for cfg in threshold)
+
+
+def test_slcap_books_have_hybrid_sl_cap_set():
+    slcap_names = {"simple_st1_slcap", "st2_slcap", "st3_slcap", "st3_threshold_slcap", "st2_threshold_slcap"}
+    slcap_books = [cfg for _, cfg in ALL_STRATEGIES if cfg["name"] in slcap_names]
+
+    assert len(slcap_books) == 8
+    assert all(cfg["hybrid_sl_cap_pct"] == 2.0 for cfg in slcap_books)
+
+
+def test_non_slcap_books_have_no_hybrid_sl_cap():
+    slcap_names = {"simple_st1_slcap", "st2_slcap", "st3_slcap", "st3_threshold_slcap", "st2_threshold_slcap"}
+    non_slcap_books = [cfg for _, cfg in ALL_STRATEGIES if cfg["name"] not in slcap_names]
+
+    for cfg in non_slcap_books:
+        assert cfg.get("hybrid_sl_cap_pct") is None
 
 
 def test_every_book_has_a_unique_portfolio_file():
