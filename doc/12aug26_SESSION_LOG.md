@@ -735,6 +735,43 @@ findings as extra context for the 14-Aug review itself:
    Full writeup in PROJECT_STATUS.md's "SHARED BACKTEST-LIVE ENGINE"
    entry.
 
+10. DONE, 15-Aug: Desktop App - Android parity, the last of the
+    14-Aug plan's 5 items. Scoped step by step after the user
+    confirmed desktop usage is "जवळपास नाहीच" (almost never) -
+    turned out cheap enough (a few hours total, each step landed
+    faster than estimated) to just build once actually scoped. Went
+    from 4 tabs (all yfinance) to 12: Options Grouped, Options
+    Summary, Options, Threshold Options, History, News, Fyers (Test),
+    Best Trade Shortlist - all new, original 4 untouched throughout.
+    Reused options_strategies.ALL_STRATEGIES directly (can't go stale
+    the way mobile's hand-maintained lists already have) and called
+    strategy/options_transaction_costs.py's real cost function
+    directly (no Dart-style port needed in Python). Caught two real
+    gaps after first declaring it "done" (user asked "sagala app
+    zala ka?" - honest answer was no): Fyers-sourced Swing/Intraday
+    test engines had zero desktop view, and Best Trade's shortlist/
+    ranking ("why today's pick") wasn't covered by History's closed-
+    trade list alone - built both. Building them caught a real bug:
+    the shared history-rendering helper only read trade["PnL"],
+    wrong for the new Fyers-sourced trades which carry the real
+    post-cost "Net PnL" separately - fixed, verified it changes
+    nothing for the pre-existing yfinance tab.
+    FOLLOW-UP same day: user asked if the app auto-refreshes from
+    the internet - honest answer was no, the 8 new tabs only re-read
+    the local git checkout. Rejected an in-app `git pull` (real risk
+    of colliding with this session's own ongoing git activity) in
+    favor of what the mobile app already does - fetch each report
+    JSON straight from GitHub's raw-content URL. Built fetch_github_
+    json() + a generic JsonFetchWorker(QThread), converted all 8 new
+    tabs plus TradeDetailDialog and the strategy pickers to use it.
+    Verified every tab's numbers came back byte-identical to the
+    earlier local-file test - confirms correctness, not just "didn't
+    crash." Rebuilt and relaunched the .exe twice (once per major
+    change), including asking the user to close their already-open
+    copy before the second rebuild since Windows had it locked.
+    367 tests passing throughout. Full writeup in PROJECT_STATUS.md's
+    "DESKTOP APP - ANDROID PARITY, FULL BUILD" entry.
+
 ==================================================
 
 END OF SESSION

@@ -5141,6 +5141,116 @@ step by step:
 
 ==================================================
 
+DESKTOP APP - ANDROID PARITY, FULL BUILD (15-Aug) - the last of the
+14-Aug plan's 5 items. Was deferred earlier the same session pending
+scope, then scoped after the user confirmed desktop usage is "जवळपास
+नाहीच" (almost never) - real work only used because it turned out
+cheap (a few hours) once actually scoped step by step, not because
+desktop usage grew.
+
+BEFORE: desktop_app.py (PySide6) had 4 tabs (Market Overview, Chart,
+Watchlist, Paper Trading) - all yfinance-only, ZERO visibility into
+Fyers, options, or the 59-book options ecosystem that's now the bulk
+of this project's real activity.
+
+BUILT, 6 planned steps + 2 gaps found afterward + 1 follow-up fix,
+all against real data, all with the original 4 tabs left completely
+untouched:
+
+1. Options Grouped tab - ported FyersOptionsGroupedScreen's 4-group
+   classification (New SL-cap / Profitable / Loss-making / No data
+   yet), reading options_strategies.ALL_STRATEGIES directly instead
+   of mobile's hand-maintained _allBooks copy (can't go stale the way
+   mobile's list already has twice). TradeDetailDialog reuses
+   strategy/options_transaction_costs.py's real cost function
+   directly - no Dart-style port needed, this already runs in Python.
+   Verified against real data: 26/4/18/11 = 59, matches mobile
+   exactly.
+2. Options Summary tab - flat sortable table, all 59 books, same
+   ALL_STRATEGIES-direct approach. Totals cross-checked against
+   Portfolio Aggregation's own number (-Rs 5,28,260.06) - matched
+   exactly.
+3. Options + Threshold Options tabs - one shared build_strategy_
+   picker_tab() builder (strategy+index dropdowns instead of mobile's
+   nested TabBars) instantiated twice, matching mobile's own re-use
+   of FyersMultiStrategyOptionsScreen with different params. Ported
+   both strategy-description dicts verbatim (English, not Marathi -
+   the rest of this file's comments are English). Same index-override
+   exceptions as mobile (vix_filter BANKNIFTY-only, st3_threshold_
+   slcap NIFTY-only, st2_threshold_slcap BANKNIFTY-only) - verified
+   these fire correctly against real data. Also added the strategy
+   description into TradeDetailDialog (user's explicit request, so
+   Options Grouped's detail view gets the same context without a
+   separate screen).
+4. History + News tabs - History intentionally overlaps the existing
+   Paper Trading tab's Swing content (user chose to keep it, matching
+   mobile's own screen structure, over consolidating) but the real
+   gap it fills is Intraday (Best Trade) - reports/best_trade_
+   portfolio.json had NO view anywhere on desktop before this. News
+   ports reports/best_trade_shortlist.json's Market Headlines with
+   sentiment coloring - genuinely new, no overlap anywhere.
+5. Packaging - PyInstaller rebuild (TURION_Desktop.spec, unchanged),
+   ~104MB .exe, actually launched and confirmed it stays running (not
+   just that it builds) both before and after every later change in
+   this entry.
+6. TWO GAPS found after declaring parity "done" and asked directly
+   ("sagala app zala ka?") - honest answer was no:
+   - "Fyers (Test)" tab - the Fyers-SOURCED Swing+Intraday test
+     engines (reports/fyers_test_portfolio.json, reports/fyers_best_
+     trade_portfolio.json) had zero desktop visibility, completely
+     separate from the yfinance-sourced History/Paper Trading tabs.
+   - "Best Trade Shortlist" tab - mirrors mobile's BestTradeScreen:
+     today's locked pick + reason + full ranked shortlist (reports/
+     best_trade_pick.json) - the "why" behind today's entry decision,
+     genuinely different content from History's closed-trade outcomes.
+   Building these caught and fixed a real bug: the shared _fill_
+   history_section() helper only read trade["PnL"], never falling
+   back from/to "Net PnL" - correct for yfinance trades (which never
+   carry a Net PnL field) but WRONG for the new Fyers-sourced trades
+   (which do, and where PnL is the pre-cost gross figure) - fixed to
+   prefer Net PnL when present, verified the fix changes nothing for
+   the pre-existing yfinance History tab and fixes the new Fyers Test
+   tab's numbers to match its real recorded Net PnL.
+
+FOLLOW-UP, same day - "मला कशे बघू शकतो" (how do I even see this)
+led to a real UX question: "is this app online, does it auto-
+refresh?" - answered honestly that the 8 new tabs only re-read the
+LOCAL git checkout, which does not update itself; asked "काय
+करायला पाहिजे" (what would it take) to fix that properly:
+  - REJECTED: an in-app `git pull` on a timer - this repo has other
+    sessions committing/pushing to it regularly (this very session
+    included), and an app-triggered pull firing automatically risks
+    a real lock conflict with that unrelated git activity.
+  - BUILT: every one of the 8 new tabs (plus TradeDetailDialog and
+    the strategy pickers) now fetches its report JSON straight from
+    GitHub's raw-content URL (same https://raw.githubusercontent.com/
+    TuRaing/TURION_AI_Trader/main base mobile_app/lib/api.dart
+    already uses, same cache-busting-with-timestamp trick) instead of
+    a local file - new fetch_github_json() helper + a generic
+    JsonFetchWorker(QThread) reused across History/News/Fyers Test/
+    Best Trade Shortlist/strategy pickers (Options Grouped/Summary
+    keep their own existing worker classes, just swapped their
+    internal open() for the same helper). No git operations from the
+    app at all - zero conflict risk. The original 4 tabs are
+    UNCHANGED: Market Overview/Chart/Watchlist were already genuinely
+    live (yfinance), Paper Trading still reads strategy.paper_
+    trading.load_portfolio() untouched, per this repo's "never modify
+    a working module" rule.
+  Verified end-to-end against the real GitHub repo: every one of the
+  8 tabs' numbers came back byte-identical to the earlier local-file
+  test run, confirming the HTTP path is correct, not just that it
+  doesn't crash. Rebuilt and relaunched the .exe again after this
+  change (had to ask the user to close their already-open instance
+  first - two copies were running from the earlier build).
+
+FINAL STATE: 12 tabs total (4 original + 8 new), 367 tests passing
+throughout every step. Real Android-app parity achieved, plus the 8
+new tabs are now genuinely live (no manual sync step), which the
+mobile app itself needed a whole separate architecture decision
+(api.dart's raw-content-URL approach) to first solve.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
