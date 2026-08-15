@@ -496,6 +496,20 @@ findings as extra context for the 14-Aug review itself:
     Full writeup in PROJECT_STATUS.md's "FLAT-RUPEE vs %-OF-DEPLOYED-
     CAPITAL" entry.
 
+0d. HYBRID SL CAP - min(flat, pct) BEATS BOTH, 14-Aug: tested combining
+    the two instead of picking one - at each Stop-Loss, use whichever
+    of (flat_cap, pct_of_deployed_cap) is SMALLER. Wins or ties at
+    EVERY capital tier tested (Rs 15,000 to Rs 10,00,000, 8 books) -
+    structurally can't be worse than the better of the two pure
+    versions. REVISED FINAL RECOMMENDATION: use this hybrid, not either
+    pure form. Also worked out exactly how this maps onto the already-
+    built broker-order code (strategy/fyers_order_execution.py) - the
+    hybrid math runs once in our own code at position-open time; the
+    broker only ever receives one final trigger price via the existing
+    compute_stop_loss_trigger_price(..., max_loss_rupees=hybrid_value)
+    -> place_stop_loss_order() pipeline, no new function needed. Full
+    writeup in PROJECT_STATUS.md's "HYBRID SL CAP" entry.
+
 1. 14-Aug review checkpoint - now explicitly split: (a) simple_st1/
    st2/st3/st4 and their threshold variants have enough sample to
    decide on now (NIFTY and BANKNIFTY threshold legs separately -

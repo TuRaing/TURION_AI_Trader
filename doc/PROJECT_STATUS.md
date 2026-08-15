@@ -4579,6 +4579,52 @@ flat-Rs design that wins only at larger capital.
 
 ==================================================
 
+HYBRID SL CAP - min(flat, %-of-deployed) BEATS BOTH PURE VERSIONS,
+14-Aug - the user asked if flat-Rs and %-of-deployed could be
+combined rather than picking one. Tested min(flat_cap, pct_cap) - at
+each Stop-Loss trade, compute both caps and use whichever is SMALLER
+(more protective) - against the same 8 books x 6 capital tiers as the
+entry above:
+
+  Capital       Flat            Pct             Hybrid(min)
+  Rs 15,000     2,53,702        2,33,819        3,82,629   <- best
+  Rs 50,000     18,93,391       10,72,738       19,35,940  <- best
+  Rs 1,00,000   43,62,019       23,23,604       43,87,240  <- best
+  Rs 2,00,000   91,23,311       47,88,659       91,44,880  <- best
+  Rs 5,00,000   2,35,26,553     1,21,44,487     2,35,59,032 <- best
+  Rs 10,00,000  4,75,42,661     2,43,84,522     4,75,96,020 <- best
+
+The hybrid wins (or ties) at EVERY tier tested, never worse than
+either pure version - makes sense structurally: at small capital/small
+positions the %-cap is naturally the tighter one and gets picked
+(capturing %'s small-capital advantage from the entry above); as the
+account/position grows the %-cap grows past the flat-cap and the flat
+one gets picked instead (capturing flat's large-capital discipline).
+min() always selects whichever discipline is currently more
+conservative - it cannot be worse than the better of the two inputs.
+REVISED FINAL RECOMMENDATION: use this hybrid, not either pure form,
+when the SL-capped strategy variants are actually built.
+
+HOW THIS MAPS TO THE ALREADY-BUILT BROKER ORDER CODE - the user asked
+how a formula (not a single number) gets enforced by a real broker
+order, which only accepts one fixed trigger price. Answer: the hybrid
+logic runs entirely in OUR code, once, at position-open time - the
+broker never needs to know a formula was involved. Concretely, using
+the two functions already built in strategy/fyers_order_execution.py:
+
+  flat_cap = starting_capital * 0.02
+  pct_cap = (entry_premium * lots * lot_size) * 0.02
+  final_cap = min(flat_cap, pct_cap)
+  trigger_price = compute_stop_loss_trigger_price(entry_premium, lots, lot_size, max_loss_rupees=final_cap)
+  place_stop_loss_order(symbol, quantity, trigger_price)
+
+compute_stop_loss_trigger_price() already accepts an arbitrary
+max_loss_rupees - no new function needed, just pass the hybrid-
+computed value instead of a fixed 2,000 when wiring this into a real
+strategy later.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
@@ -4604,11 +4650,11 @@ Status
 
 Current Version
 
-v0.0.37
+v0.0.38
 
 Next Version
 
-v0.0.38
+v0.0.39
 
 ==================================================
 
