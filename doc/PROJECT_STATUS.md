@@ -4826,6 +4826,109 @@ calculation is byte-for-byte consistent with the live Python engine's.
 
 ==================================================
 
+TICK-BY-TICK DATA STORAGE - VPS LIMITS, CLOUD-VS-PHYSICAL COST,
+COMPRESSION OPTIONS (15-Aug, discussion only, no code built) -
+follow-up to the earlier tick-data-usefulness discussion above.
+Answers three concrete questions the user asked, for future
+reference when Stage 2 (VPS) or the narrow position-window tick-
+capture idea (see LIVE-DATA ARCHITECTURE section) is actually built.
+
+1. VPS'S OWN LIMIT (before any external storage): the ~Rs 400-600/
+   month small India-region VPS already planned for Stage 2 (1 vCPU,
+   1-2GB RAM, 40-60GB SSD, ~2TB/month transfer) is NOT bottlenecked
+   by CPU or bandwidth at 100-300 ticks/sec combined (a single vCPU
+   parses/writes that volume trivially; even 300 ticks/sec stays
+   well under the 2TB transfer cap). The real bottleneck is the LOCAL
+   DISK: at full 228-instrument capture the ~30-40GB free disk fills
+   in 1-5 days depending on rate (100-300 ticks/sec). Practical
+   VPS-only limit: ~100 ticks/sec AND a narrow ~20-30 instrument scope
+   (only the ATM strikes actually traded, not the full chain) - that
+   keeps a full month's data within the VPS's own disk with no
+   external storage needed.
+
+2. WITH EXTERNAL CLOUD STORAGE ADDED (upload nightly, keep only a
+   1-2 day rolling buffer on the VPS itself): disk stops being the
+   constraint. Compared three options:
+     - Cloud OBJECT storage (Backblaze B2 / S3): ~Rs 500/TB/month -
+       cheapest, no filesystem-mount needed, VPS just uploads daily
+       files.
+     - Cloud BLOCK storage (AWS EBS / Lightsail extra disk): ~Rs
+       800-900/TB/month - ~1.5-2x pricier than object storage, only
+       worth it if the VPS needs to query the data directly as a
+       live filesystem (not needed for tick archival).
+     - Physical SSD (one-time purchase, Rs 4,000-11,000 for 1-2TB):
+       CANNOT be plugged into a cloud VPS directly - only usable if
+       kept at the user's own home, which reintroduces the exact
+       problem the VPS was solving (needs a second machine on 24/7,
+       own electricity cost, own internet/power reliability, no
+       built-in redundancy if the drive fails). Breaks even vs cloud
+       object storage at ~10 months of 1TB retention, but only if
+       the home-reliability/electricity costs are ignored. RECOMMEND
+       cloud object storage (B2) over physical SSD given this
+       project's system is meant to run unattended on the VPS.
+   Cost at B2 rates, by scope x tick-rate (recurring, GB generated
+   PER MONTH, not cumulative):
+     - Narrow scope (~25 instruments actually traded):
+       100/sec -> Rs 15-20/mo | 200/sec -> Rs 30-35/mo |
+       300/sec -> Rs 45-50/mo
+     - Full scope (228 instruments, whole chain + both indices'
+       constituents):
+       100/sec -> Rs 125-150/mo | 200/sec -> Rs 250-300/mo |
+       300/sec -> Rs 375-450/mo
+   New real limit once storage is cheap: VPS CPU (1 vCPU) caps out
+   around ~300-500 ticks/sec combined across instruments - going
+   higher needs a bigger VPS, not more storage. Also worth noting:
+   a single liquid option contract rarely ticks faster than ~2-5/sec
+   in reality - 200-300 ticks/sec only makes sense as a TOTAL across
+   many instruments, never per contract.
+
+3. IF NEVER DELETED (data kept forever, growing every month) vs
+   ROLLING WINDOW (old data deleted, constant monthly footprint) -
+   this matters a lot for a 1-year total:
+     - Full scope, 300/sec, kept forever: bill grows monthly (Rs 450
+       -> Rs 900 -> ... -> Rs 5,400 by month 12) - YEAR 1 TOTAL ~Rs
+       35,100, and by year-end storage sits at 10.8TB with the
+       monthly bill still climbing into year 2.
+     - Full scope, 300/sec, rolling/rotated: flat Rs 450/month x 12
+       = Rs 5,400/year, never grows.
+     - Narrow scope, 100/sec, kept forever: YEAR 1 TOTAL ~Rs 1,050.
+     - Narrow scope, 100/sec, rolling: flat Rs 15/month x 12 = Rs
+       180/year.
+   RECOMMEND rolling/rotated retention (delete data older than the
+   analysis window actually needs) over "keep everything forever" -
+   ~200x cheaper at the narrow-scope end, and the cost otherwise
+   never stops climbing.
+
+4. COMPRESSION OPTIONS BEYOND PLAIN GZIP (~22 bytes/tick baseline
+   used in the above estimates), and which are safe (lossless) vs
+   need care:
+     LOSSLESS (mathematically guaranteed, no data lost, use freely):
+     - Binary format instead of JSON (no repeated field-name text) -
+       ~3-5x smaller before compression.
+     - Delta encoding (store the change from the previous tick, not
+       the absolute value) - smaller numbers compress better, fully
+       reversible.
+     - zstd instead of gzip - better ratio, faster, still 100%
+       lossless (same category as gzip, not lossy like JPEG/MP3).
+     NEEDS CARE (genuinely lossy if implemented naively):
+     - Skip ticks where nothing changed ("heartbeat" ticks) - SAFE
+       only if price, volume, AND open interest are all checked for
+       no-change before skipping; checking price alone risks
+       silently dropping real volume/OI updates that occurred at an
+       unchanged price.
+     - Store Open Interest at a lower frequency than price/volume -
+       SAFE only down to the exchange's own real OI-refresh rate
+       (OI doesn't update every tick at the source anyway); sampling
+       slower than that genuinely loses real OI data points.
+   Combined effect estimate: Rs 450/month (full scope, 300/sec)
+   could realistically drop to ~Rs 90-100/month (~5x) with binary +
+   delta + zstd + careful unchanged-tick skipping - at the cost of
+   meaningfully more implementation/maintenance complexity than
+   plain JSON+gzip. Recommended to start simple (JSON+gzip) and only
+   add these once real usage confirms the cost is worth optimizing.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.

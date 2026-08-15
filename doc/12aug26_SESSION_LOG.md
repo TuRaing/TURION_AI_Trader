@@ -605,6 +605,32 @@ findings as extra context for the 14-Aug review itself:
    pcr_momentum.py in the "built, awaiting a deployment decision"
    pile for the 14-Aug review.
 
+5. DONE, 15-Aug (discussion only, no code): tick-by-tick data
+   storage follow-up. User asked three concrete questions in
+   sequence - (a) given the Stage 2 VPS's own spec (Rs 400-600/mo,
+   40-60GB SSD), what tick-rate/scope can it sustain by itself
+   (answer: disk is the bottleneck, not CPU/bandwidth - ~100
+   ticks/sec on a narrow ~25-instrument scope fits within the VPS's
+   own disk); (b) what changes if external cloud storage is added
+   (answer: disk stops being the constraint, cost becomes the real
+   lever - Rs 15-450/month depending on scope x tick-rate at
+   Backblaze B2 rates, new ceiling becomes the VPS's 1-vCPU compute
+   at ~300-500 ticks/sec); (c) cloud object storage vs cloud block
+   storage vs a physical SSD (answer: physical SSD can't attach to a
+   cloud VPS directly, only usable at home which reintroduces the
+   always-on-machine problem the VPS was meant to solve - recommend
+   cloud object storage/B2). Also worked out the "store forever"
+   trap (cost climbs every month, ~Rs 35,100 for year 1 at the
+   priciest scope) vs rolling/rotated retention (flat, ~200x cheaper
+   at the cheap end) and 5 concrete compression techniques beyond
+   plain gzip (binary format, delta encoding, zstd - all lossless;
+   skip-unchanged-ticks and lower-frequency OI sampling - only safe
+   if implemented carefully, genuinely lossy otherwise). Full
+   writeup in PROJECT_STATUS.md's "TICK-BY-TICK DATA STORAGE" entry,
+   filed as reference for whenever Stage 2 VPS or the narrow
+   position-window tick-capture idea actually gets built - nothing
+   actioned yet.
+
 ==================================================
 
 END OF SESSION
