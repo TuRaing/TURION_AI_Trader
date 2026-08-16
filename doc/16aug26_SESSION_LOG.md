@@ -79,4 +79,59 @@ than answered from theory.
    verdicts) in PROJECT_STATUS.md's "PORTFOLIO PROFITABILITY AUDIT +
    LEVERAGE-CONCENTRATION FINDING" entry.
 
+✅ User asked for a retrospective backtest of st2_threshold/NIFTY and
+   simple_st1_threshold/NIFTY with hybrid SL (2% cap, same design as
+   the existing live _slcap books) PLUS the daily profit-lock changed
+   from the fixed DAILY_PROFIT_LOCK_RS = Rs 2,000 to 2% of that
+   capital tier's own starting capital, swept across 13 capital tiers
+   (Rs 10,000 to Rs 10,00,000). One-off scratchpad script (matches
+   this project's established sequential-replay convention - cash
+   carried trade-to-trade, lots recomputed fresh at each step, real
+   Entry/Exit Premium, calculate_options_round_trip_cost() reused).
+   RESULT: st2_threshold/NIFTY improves at EVERY tier (flips a loss
+   to a profit at Rs 10,000: -Rs 370 to +Rs 2,868; stays ~5 points of
+   ROI better at every tier above that, e.g. 40.8% to 45.9% at Rs
+   10,00,000). simple_st1_threshold/NIFTY improves in the Rs 10,000-
+   1,00,000 range (the actual Stage-3 real-capital range) but is
+   marginally worse above Rs 2,00,000 (a single trade gets cut off
+   earlier by the tighter dynamic lock at that scale - a small,
+   real crossover, not noise). Combined across both books, the new
+   variant wins at every tier tested, gap widening with capital (+Rs
+   4,122 at Rs 10,000 to +Rs 45,266 at Rs 10,00,000). Flagged one
+   honest limitation matching this project's own "MAJOR CORRECTION"
+   precedent: the real trade record was captured under the original
+   fixed Rs 2,000 lock at Rs 1,00,000 capital, so tiers where the new
+   2%-of-capital lock is LOOSER than that (above Rs 1,00,000) cannot
+   manufacture extra trades that were never taken historically -
+   results above Rs 1,00,000 are a same-recorded-trades replay, not
+   proof more trades would have fired. Full tables in PROJECT_
+   STATUS.md's "HYBRID SL + DYNAMIC PROFIT-LOCK CAPITAL SWEEP" entry.
+   Analysis only - no code changed, no new books built yet.
+
+✅ User asked for a further variant: hybrid SL kept, but replace the
+   fixed Target with a minimum-2%-profit trailing stop and unlimited
+   upside (trail the peak once +2% is reached, no fixed cap above
+   it) - same shape as oi_footprint's already-live "trailing" variant
+   (strategy/fyers_options_oi_footprint_variants.py). Checked whether
+   this is backtestable against st2_threshold/simple_st1_threshold's
+   real closed trades the same way as the capital sweep above -
+   it is NOT: a trailing exit needs to know the PEAK premium reached
+   during the trade, and the real portfolio JSON only stores Entry
+   Premium and Exit Premium, no intraday price path. This is the
+   EXACT SAME limitation this project already hit and documented for
+   oi_footprint's own profit-booking-filter ideas (see PROJECT_
+   STATUS.md, 14-Aug - "6 live paper-trading tests... could NOT be
+   retrospectively backtested"), which is why those were built as new
+   LIVE books instead of backtested. Told the user honestly rather
+   than fabricating an approximate number from incomplete data.
+
+DECISION, end of session: everything above documented; the two
+follow-up builds (hybrid-SL + 2%-lock variant, backtest-verified; and
+the trailing variant, live-only per the data limitation) deferred to
+the next session when the user has time - "sagala doc kar, udya time
+milalya war tayar karu" (document everything, build tomorrow when
+there's time). NOT built yet - next session should build these as
+NEW separate books (never modify a working module), matching the
+_slcap / oi_footprint-variant precedent exactly.
+
 ==================================================
