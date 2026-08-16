@@ -5443,6 +5443,60 @@ redesign directly ("thik disla") before this was documented.
 
 ==================================================
 
+FYERS MCP - EXPLORED, NOT CONNECTED (15-Aug) - the last of the 4
+loose threads from the full-doc audit ("Fyers dashboard's AI-
+connection/MCP tab never checked"). Found it: FYERS now ships an
+official MCP (Model Context Protocol) server at myapi.fyers.in/
+fyersmcp, letting an AI assistant query live positions/orders/
+option chains/market data directly from a real Fyers account.
+Genuinely relevant to this project - would let live sessions cross-
+check real broker state against the paper-trading records, and
+could directly solve the earlier-flagged gap that real bid/ask
+depth data has never been captured (needed for a true, measured
+slippage figure instead of the theoretical stress-test done
+earlier today).
+
+WHAT WAS TRIED: the page documents two paths - (1) a one-click
+Windows/Mac installer that installs Node.js + Claude DESKTOP (a
+separate app from Claude Code, would NOT give this project's own
+Claude Code sessions access) and logs in there; (2) a manual JSON
+config for developer clients (shown for Cursor) - `{"mcpServers":
+{"FIA-MCP": {"url": "https://mcp.fyers.in/mcp", "type": "sse",
+"headers": {"Authorization": "${FIA_TOKEN}"}}}}`. Went with (2)
+since it's the only path that could reach Claude Code directly.
+Hunted across the API Dashboard, API Connect docs, and account
+menus for where to generate the FIA_TOKEN value - not found
+anywhere in FYERS' own UI (API Connect turned out to be an
+unrelated product - a JS SDK for embedding real Buy/Sell order
+buttons into a website, not related to MCP at all). A web search
+suggested some MCP server implementations auto-trigger an OAuth
+browser login on first use without a pre-existing token - tested
+by adding a project-level .mcp.json with the server URL and no
+Authorization header at all, then testing from a SEPARATE new
+Claude Code session (this session's own MCP config can't hot-
+reload without a restart, and the user did not want to end this
+session to test). RESULT: the server registers as "FIA-MCP" but
+never finishes connecting - no tools ever load, no OAuth prompt
+appears, just an indefinite pending state. The auto-OAuth behavior
+found in the web search was most likely describing a DIFFERENT,
+third-party MCP server implementation, not FYERS' own official
+endpoint - FYERS' own server appears to genuinely require a real
+pre-obtained token that its UI does not expose a way to generate.
+
+CONCLUSION: removed the non-functional .mcp.json (would otherwise
+show a permanently-stuck "connecting" server in every future
+session on any device that pulls this repo, pure clutter with no
+upside). NOT connected. If revisited later, the only clearly-
+documented working path is the Claude Desktop installer - separate
+app, separate context, but confirmed by FYERS' own docs to work
+end-to-end (download installer -> installs Node.js + Claude
+Desktop -> log into FYERS there -> authorised). Real Primary-IP-
+whitelist mismatch also found and fixed as a side effect of this
+detour (122.171.18.5 -> 122.171.22.100, confirmed via whatismyip
+addresscom and saved on the FYERS API Dashboard).
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.

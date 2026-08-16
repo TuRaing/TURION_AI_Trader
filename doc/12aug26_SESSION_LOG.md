@@ -893,6 +893,27 @@ findings as extra context for the 14-Aug review itself:
     Fyers dashboard's AI-connection/MCP tab - still need the user's
     own check (no API access to either), not yet done.
 
+18. DONE, 15-Aug: closed out the last 2 loose threads. (c) Fyers
+    Primary IP whitelist - found genuinely stale (122.171.18.5
+    whitelisted vs the user's real current 122.171.22.100, confirmed
+    via whatismyipaddress.com), user updated and saved it on the API
+    Dashboard. (d) FYERS MCP tab - explored thoroughly (API
+    Dashboard, API Connect docs turned out unrelated, a web search)
+    trying to connect it to THIS Claude Code project - added a
+    project .mcp.json for the official server (https://mcp.fyers.in/
+    mcp), tested from a second, separate Claude Code session (this
+    session's own MCP config needs a restart to reload, which the
+    user didn't want to do here) - it registered as "FIA-MCP" but
+    never finished connecting, no OAuth prompt, no tools loaded.
+    Concluded FYERS' own official MCP server needs a real pre-
+    obtained token that its UI doesn't expose anywhere - removed the
+    non-functional .mcp.json rather than leave a permanently-stuck
+    server showing up in every future session. Not connected -
+    filed for later; the only clearly-documented working path is
+    the separate Claude Desktop installer, not Claude Code directly.
+    Full writeup in PROJECT_STATUS.md's "FYERS MCP - EXPLORED, NOT
+    CONNECTED" entry.
+
 ==================================================
 
 END OF SESSION
