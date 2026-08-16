@@ -881,6 +881,18 @@ findings as extra context for the 14-Aug review itself:
     revisited, Fyers dashboard's AI-connection/MCP tab never
     checked) - not yet acted on, filed for the next session.
 
+17. DONE, 15-Aug: chased down the 4 loose threads from item 16.
+    (a) pcr_momentum/max_pain_drift cron triggers - CONFIRMED healthy
+    via real GitHub Actions log inspection (not just commit-log
+    boilerplate): grepped actual "STRATEGY_NAME:" lines across a
+    sample of 14-Aug runs, found real dispatches for both
+    (pcr_momentum x3, max_pain_drift x1 - the lower count expected,
+    it only fires within 2 days of expiry). (b) Duplicate
+    "Threshold Options Trigger (Copy)" cron-job.org job - user
+    confirmed removed. (c) Fyers API Primary IP whitelist and (d)
+    Fyers dashboard's AI-connection/MCP tab - still need the user's
+    own check (no API access to either), not yet done.
+
 ==================================================
 
 END OF SESSION
