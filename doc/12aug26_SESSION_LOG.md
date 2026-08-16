@@ -911,8 +911,24 @@ findings as extra context for the 14-Aug review itself:
     server showing up in every future session. Not connected -
     filed for later; the only clearly-documented working path is
     the separate Claude Desktop installer, not Claude Code directly.
-    Full writeup in PROJECT_STATUS.md's "FYERS MCP - EXPLORED, NOT
-    CONNECTED" entry.
+
+19. DONE, 15-Aug (same MCP thread, follow-up): user asked to keep
+    digging via web search - found a third path, quantabox/fyers-
+    mcp-server, a community-built local MCP server reusing existing
+    FYERS API credentials instead of the official server's
+    undocumented FIA_TOKEN. Before pursuing it, user asked directly
+    "pan he legal aahe ka?" - answered honestly: not a legality
+    issue, but a real trust/safety one - it's an unaudited single-
+    developer tool with real brokerage credential access, and its
+    own README says it supports real order placement, not just
+    reading data. DECLINED deliberately, matching this project's
+    staged/verify-first discipline rather than rushing a live
+    account's credentials into an unaudited tool with write access
+    to save setup time. Filed for later only with proper diligence
+    first (read the source, confirm a real read-only mode, check
+    FYERS' ToS) - not ruled out permanently. Full writeup in
+    PROJECT_STATUS.md's "FYERS MCP - EXPLORED, NOT CONNECTED" entry
+    (including this follow-up).
 
 ==================================================
 

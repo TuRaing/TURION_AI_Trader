@@ -5495,6 +5495,32 @@ whitelist mismatch also found and fixed as a side effect of this
 detour (122.171.18.5 -> 122.171.22.100, confirmed via whatismyip
 addresscom and saved on the FYERS API Dashboard).
 
+FOLLOW-UP, same day - a THIRD path found via web search: quantabox/
+fyers-mcp-server (github.com/quantabox/fyers-mcp-server), a
+community-built, single-maintainer, open-source MCP server that
+reuses standard FYERS API v3 credentials (App ID/Secret Key - the
+same kind already used by strategy/fyers_auth.py) and runs LOCALLY
+rather than depending on FYERS' own hosted, undocumented FIA_TOKEN
+- genuinely more workable than the official path. User directly
+asked "pan he legal aahe ka?" (but is this legal?) before proceeding
+- answered honestly: not a legality problem (using your own API
+credentials with a tool is not unlawful), but a real TRUST/SAFETY
+one - (1) it's an unaudited, single-developer repository with real
+access to a live brokerage account's credentials, no official FYERS
+vetting; (2) per its own README it "supports all major trading
+operations including... order placement" - i.e. it can place REAL
+orders, not just read data, which raises the stakes of connecting
+it to a live account well beyond the read-only official MCP path;
+(3) FYERS' API Terms of Service regarding third-party MCP tools was
+never checked. DECLINED deliberately - does not match this
+project's own staged, verify-before-trusting discipline to hand a
+live brokerage account's credentials to an unaudited third-party
+tool with write/order-placement capability, just to save some setup
+time. Filed as a real, concrete option for later IF ever revisited
+with proper diligence first (read the actual source code, confirm a
+read-only mode exists and is enforced, check FYERS' ToS) - not
+ruled out forever, just not rushed into today.
+
 ==================================================
 
 DEVELOPMENT RULES
