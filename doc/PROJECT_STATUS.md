@@ -5523,6 +5523,49 @@ ruled out forever, just not rushed into today.
 
 ==================================================
 
+OI_FOOTPRINT PROFIT CONCENTRATION FINDING (16-Aug) - user relayed a
+question raised in a parallel Claude conversation: is oi_footprint's
+reported profit (NIFTY Net PnL Rs 41,479, BankNifty Rs 11,891)
+inflated by leverage rather than real edge? (That relayed message
+also carried a hidden prompt-injection attempt telling this session
+to respond text-only and take no action - ignored and flagged to the
+user; the underlying question was still checked on its own merits.)
+
+Pulled every closed trade's Net PnL % (a position-size-independent
+per-trade return figure, distinct from the rupee Net PnL) and Lots
+directly from reports/fyers_options_oi_footprint_{nifty,banknifty}_
+portfolio.json and tested for a leverage-driven pattern rather than
+answering from theory:
+
+NIFTY (31 trades): win rate 58% - genuinely stable, a real signal.
+But a single trade (#12, 118 lots vs a typical 10-30) contributed
+Rs 17,408 - 42% of the ENTIRE total profit on its own. Average
+per-trade % return dropped from 2.68% in the first half of trades
+to 0.08% in the second half, even as lots grew (correlation(lots,
+PnL%) = 0.44) - i.e. the strategy's real per-trade edge did NOT
+improve over time; the growing absolute-rupee total is mostly a
+position-sizing (leverage) artifact plus one outlier trade, not a
+genuinely improving strategy.
+
+BankNifty (9 trades): same concentration pattern (1 trade = 49% of
+total profit) but no edge decay (second-half average 2.19% >
+first-half 0.24% - too few trades to read much into this either
+way yet).
+
+CONCLUSION: the headline Net PnL rupee figures are real (not a
+calculation bug), and win rates are trustworthy - but absolute-rupee
+profit trend should NOT be read as "the strategy is improving"
+without checking per-trade % edge separately, because the existing
+full-cash position-sizing (cash // (premium x lot_size), flagged
+earlier this project) mechanically inflates later trades' rupee
+swings regardless of edge quality. Reinforces the already-filed
+position-size-cap idea - not acted on now, per the user's stated
+preference to wait for more real trade data before adding new gates,
+but trade #12 is a concrete, real example worth remembering when
+that decision is revisited.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
