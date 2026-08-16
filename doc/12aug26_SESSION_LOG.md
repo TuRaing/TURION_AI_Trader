@@ -843,6 +843,28 @@ findings as extra context for the 14-Aug review itself:
     one). Full writeup in PROJECT_STATUS.md's "PER-BOOK PASSBOOK TAB"
     entry.
 
+15. DONE, 15-Aug: Desktop App visual redesign - turned out the user's
+    original "boring, not professional" complaint was about the
+    DESKTOP app, not mobile ("actullay mala desktop app changala
+    karayacha hota, tu mobile app kelas") - the mockup had been
+    phone-shaped and nobody caught the mismatch until after mobile
+    Phase 1 already shipped. Applied the exact same approved
+    direction to desktop_app.py: near-black + violet/cyan + neon
+    status colors, a real painted 4-blob mesh background (new
+    MeshBackground(QWidget) overriding paintEvent with QRadialGradient,
+    since QSS can't stack multiple gradients like CSS can - same
+    positions/colors as the mobile version), glow via QGraphicsDrop
+    ShadowEffect on the most prominent PnL totals. GREEN/RED/YELLOW
+    constants updated to match mobile's neon values, which alone
+    flows the new palette through every tab's existing color-coded
+    cells without touching each tab's own code. Verified: syntax
+    clean, full smoke test still byte-identical to every earlier
+    check this session, .exe rebuilt and launches fine. Screenshot
+    automation failed again (captured the wrong window this time,
+    not a device restriction) - user visually confirmed correct
+    ("thik disla") before this got documented. Full writeup in
+    PROJECT_STATUS.md's "DESKTOP APP VISUAL REDESIGN" entry.
+
 ==================================================
 
 END OF SESSION

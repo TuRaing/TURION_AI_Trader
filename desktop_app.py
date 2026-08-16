@@ -11,12 +11,12 @@ from matplotlib.figure import Figure
 import requests
 
 from PySide6.QtCore import Qt, QThread, Signal, QTimer
-from PySide6.QtGui import QColor
+from PySide6.QtGui import QColor, QPainter, QRadialGradient, QBrush
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QTabWidget, QLabel, QPushButton, QTableWidget, QTableWidgetItem,
     QGroupBox, QGridLayout, QHeaderView, QComboBox, QDialog, QScrollArea,
-    QAbstractItemView
+    QAbstractItemView, QGraphicsDropShadowEffect
 )
 
 from indicators.ema import calculate_ema
@@ -210,47 +210,144 @@ def classify_group(name, pnl, trades):
 
     return "Loss-making"
 
-DARK_STYLESHEET = """
-QMainWindow, QWidget { background-color: #1e1e2e; color: #cdd6f4; }
-QGroupBox {
-    border: 1px solid #45475a;
-    border-radius: 6px;
+# Redesigned 15-Aug-2026 - same fluorescent/neon direction as the
+# mobile app's Phase 1 redesign (mobile_app/lib/theme.dart), same
+# token values: near-black base, electric violet/cyan brand pair,
+# neon success/danger/warning. QSS can't stack multiple radial
+# gradients the way CSS can, so the mesh itself is a real painted
+# background (MeshBackground below, same 4-blob positions/colors as
+# widgets/mesh_background.dart) rather than a stylesheet gradient -
+# QGroupBox/QTableWidget/QTabBar keep their own opaque "surface"
+# color so they read as cards sitting on top of the mesh, exactly
+# like the mobile cards do.
+BG_COLOR = "#08060f"
+SURFACE_COLOR = "#12101d"
+SURFACE_RAISED_COLOR = "#1a1729"
+ACCENT_COLOR = "#a855ff"
+ACCENT2_COLOR = "#00e5ff"
+TEXT_COLOR = "#f4f1ff"
+FAINT_COLOR = "#665f8a"
+
+DARK_STYLESHEET = f"""
+QMainWindow {{ color: {TEXT_COLOR}; }}
+QWidget {{ color: {TEXT_COLOR}; }}
+QGroupBox {{
+    background-color: {SURFACE_COLOR};
+    border: 1px solid rgba(168, 85, 255, 60);
+    border-radius: 10px;
     margin-top: 10px;
+    padding-top: 6px;
     font-weight: bold;
-}
-QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 4px; }
-QTableWidget {
-    background-color: #181825;
-    gridline-color: #45475a;
-    color: #cdd6f4;
-}
-QHeaderView::section {
-    background-color: #313244;
-    color: #cdd6f4;
-    padding: 4px;
+}}
+QGroupBox::title {{ subcontrol-origin: margin; left: 10px; padding: 0 4px; color: {ACCENT2_COLOR}; }}
+QTableWidget {{
+    background-color: {SURFACE_COLOR};
+    alternate-background-color: {SURFACE_RAISED_COLOR};
+    gridline-color: rgba(168, 85, 255, 40);
+    color: {TEXT_COLOR};
     border: none;
-}
-QPushButton {
-    background-color: #89b4fa;
-    color: #1e1e2e;
-    border-radius: 4px;
+    border-radius: 8px;
+}}
+QHeaderView::section {{
+    background-color: {SURFACE_RAISED_COLOR};
+    color: {ACCENT2_COLOR};
+    padding: 6px;
+    border: none;
+    font-weight: bold;
+}}
+QPushButton {{
+    background-color: {ACCENT_COLOR};
+    color: #050108;
+    border-radius: 6px;
     padding: 6px 14px;
     font-weight: bold;
-}
-QPushButton:disabled { background-color: #45475a; color: #6c7086; }
-QTabWidget::pane { border: 1px solid #45475a; }
-QTabBar::tab {
-    background: #313244;
-    color: #cdd6f4;
+}}
+QPushButton:hover {{ background-color: {ACCENT2_COLOR}; }}
+QPushButton:disabled {{ background-color: {FAINT_COLOR}; color: #050108; }}
+QTabWidget::pane {{ border: 1px solid rgba(168, 85, 255, 60); border-radius: 8px; top: -1px; }}
+QTabBar::tab {{
+    background: {SURFACE_COLOR};
+    color: {FAINT_COLOR};
     padding: 8px 16px;
-}
-QTabBar::tab:selected { background: #89b4fa; color: #1e1e2e; }
-QComboBox { background-color: #313244; color: #cdd6f4; padding: 4px; }
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    margin-right: 2px;
+}}
+QTabBar::tab:selected {{ background: {SURFACE_RAISED_COLOR}; color: {ACCENT2_COLOR}; font-weight: bold; }}
+QComboBox {{
+    background-color: {SURFACE_COLOR};
+    color: {TEXT_COLOR};
+    padding: 4px;
+    border: 1px solid rgba(168, 85, 255, 60);
+    border-radius: 6px;
+}}
+QComboBox QAbstractItemView {{ background-color: {SURFACE_RAISED_COLOR}; color: {TEXT_COLOR}; }}
+QScrollArea {{ border: none; background: transparent; }}
+QDialog {{ background-color: {BG_COLOR}; }}
 """
 
-GREEN = QColor("#a6e3a1")
-RED = QColor("#f38ba8")
-YELLOW = QColor("#f9e2af")
+GREEN = QColor("#4cff8f")
+RED = QColor("#ff2f7e")
+YELLOW = QColor("#ffd60a")
+ACCENT = QColor(ACCENT_COLOR)
+ACCENT2 = QColor(ACCENT2_COLOR)
+
+# Same 4-blob mesh as widgets/mesh_background.dart's meshBlobs -
+# (relative x, relative y, color, alpha).
+MESH_BLOBS = [
+    (0.15, 0.15, QColor(168, 85, 255), 0.32),
+    (0.85, 0.15, QColor(0, 229, 255), 0.26),
+    (0.75, 0.85, QColor(255, 47, 126), 0.20),
+    (0.15, 0.85, QColor(76, 255, 143), 0.14),
+]
+
+
+class MeshBackground(QWidget):
+    """
+    The chosen redesign background (mockup option "E"), painted for
+    real since QSS can't stack multiple radial gradients - one soft
+    QRadialGradient blob per corner over a solid near-black base,
+    same positions/colors as the mobile version. Used as MainWindow's
+    central widget so every tab sits on top of it automatically.
+    """
+
+    def paintEvent(self, event):
+
+        painter = QPainter(self)
+        painter.fillRect(self.rect(), QColor(BG_COLOR))
+
+        w, h = self.width(), self.height()
+        radius = max(w, h) * 0.65
+
+        for fx, fy, color, alpha in MESH_BLOBS:
+
+            gradient = QRadialGradient(fx * w, fy * h, radius)
+
+            edge = QColor(color)
+            edge.setAlphaF(alpha)
+            transparent = QColor(color)
+            transparent.setAlphaF(0)
+
+            gradient.setColorAt(0, edge)
+            gradient.setColorAt(1, transparent)
+
+            painter.fillRect(self.rect(), QBrush(gradient))
+
+        super().paintEvent(event)
+
+
+def apply_glow(widget, color, blur=28):
+    """
+    Soft neon glow behind a "hero" label - the PySide6 equivalent of
+    the mobile redesign's glowShadow() (widgets/common.dart). Applied
+    to the most prominent PnL/total labels across the app's tabs.
+    """
+
+    effect = QGraphicsDropShadowEffect(widget)
+    effect.setColor(color)
+    effect.setBlurRadius(blur)
+    effect.setOffset(0, 0)
+    widget.setGraphicsEffect(effect)
 
 
 def bias_color(bias):
@@ -479,8 +576,10 @@ class TradeDetailDialog(QDialog):
                 cost = calculate_options_round_trip_cost(entry, exit_, lot_size, lots)
                 box_layout.addWidget(QLabel(f"Trading cost (brokerage/STT/exchange/stamp/SEBI/GST): Rs {cost:.2f}"))
 
+            pnl_color = GREEN if net_pnl > 0 else RED
             pnl_label = QLabel(f"Net PnL: Rs {net_pnl:.2f}")
-            pnl_label.setStyleSheet(f"color: {(GREEN if net_pnl > 0 else RED).name()}; font-weight: bold;")
+            pnl_label.setStyleSheet(f"color: {pnl_color.name()}; font-weight: bold; font-size: 15px;")
+            apply_glow(pnl_label, pnl_color)
             box_layout.addWidget(pnl_label)
 
             inner_layout.addWidget(box)
@@ -507,7 +606,7 @@ class MainWindow(QMainWindow):
         self.worker = None
         self.chart_data = {}
 
-        central = QWidget()
+        central = MeshBackground()
         self.setCentralWidget(central)
 
         layout = QVBoxLayout(central)
@@ -1484,6 +1583,10 @@ class MainWindow(QMainWindow):
                 table.setItem(row_index, 3, pnl_item)
 
         self.options_grouped_summary_label.setText(f"{len(rows)} books  |  Total PnL: Rs {total_pnl:+.2f}")
+        self.options_grouped_summary_label.setStyleSheet(
+            f"color: {(GREEN if total_pnl > 0 else RED).name()}; font-weight: bold; font-size: 14px;"
+        )
+        apply_glow(self.options_grouped_summary_label, GREEN if total_pnl > 0 else RED)
         self.options_grouped_status_label.setText(
             f"Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
         )
@@ -1535,6 +1638,10 @@ class MainWindow(QMainWindow):
             f"Total Initial: Rs {total_initial:.2f}   Total Current: Rs {total_current:.2f}   "
             f"Total Profit: Rs {total_profit:+.2f}"
         )
+        self.options_summary_total_label.setStyleSheet(
+            f"color: {(GREEN if total_profit > 0 else RED).name()}; font-weight: bold; font-size: 14px;"
+        )
+        apply_glow(self.options_summary_total_label, GREEN if total_profit > 0 else RED)
         self.options_summary_status_label.setText(
             f"Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
         )

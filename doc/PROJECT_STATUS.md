@@ -5396,6 +5396,49 @@ still silently failed).
 
 ==================================================
 
+DESKTOP APP VISUAL REDESIGN - SAME FLUORESCENT DIRECTION (15-Aug) -
+correction of a real mix-up: when the user first asked for the "not
+professional, boring and complicated" redesign, they meant the
+Desktop App (PySide6), not mobile - the mockup was built phone-
+shaped and the user didn't catch the mismatch until AFTER the mobile
+Phase 1 redesign had already shipped ("actullay mala desktop app
+changala karayacha hota, tu mobile app kelas"). Applied the exact
+same approved direction (near-black base, electric violet #A855FF +
+cyan #00E5FF brand pair, neon success/danger/warning, 4-blob mesh
+background, glow on hero numbers) to desktop_app.py, with explicit
+instruction not to make it boring and to match the Android app.
+
+KEY DIFFERENCE FROM THE MOBILE IMPLEMENTATION: Qt stylesheets (QSS)
+can't stack multiple radial gradients the way CSS can (only one
+gradient per background property), so the mesh is a REAL painted
+background rather than a stylesheet trick - new MeshBackground(QWidget)
+overrides paintEvent() to draw the same 4 QRadialGradient blobs at the
+same relative positions/colors as widgets/mesh_background.dart's
+meshBlobs, used as MainWindow's central widget so every tab sits on
+top of it automatically. QGroupBox/QTableWidget/QTabBar all kept
+their own opaque "surface" color (#12101d) in the rewritten
+DARK_STYLESHEET so they read as cards over the mesh, same visual
+language as the mobile cards. Glow itself uses QGraphicsDropShadow
+Effect (apply_glow() helper) instead of CSS text-shadow - applied to
+TradeDetailDialog's per-trade Net PnL label and the two most
+prominent "hero" totals (Options Grouped's and Options Summary's
+combined PnL labels).
+
+GREEN/RED/YELLOW color constants updated to the same neon values as
+mobile's successColor/dangerColor/warningColor - this alone flows the
+new palette through every existing table cell/status color across all
+12 tabs without touching each tab's own code, same "shared foundation,
+minimal invasive changes" approach as the mobile Phase 1 work.
+
+Verified: syntax clean, full offscreen smoke test (all 8 HTTP-backed
+tabs) still returns byte-identical real data to every prior check
+this session, rebuilt .exe launches and stays running. On-device
+screenshot automation failed here too (captured the wrong window,
+a tooling limitation not an app issue) - user visually confirmed the
+redesign directly ("thik disla") before this was documented.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
