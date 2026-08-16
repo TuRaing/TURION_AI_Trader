@@ -50,11 +50,33 @@ than answered from theory.
    into yet). Win rates (58% NIFTY, 67% BankNifty) are genuinely
    stable and real - the concern is specifically about reading the
    absolute-rupee trend as "the strategy is improving," not about the
-   numbers being fabricated. Full writeup in PROJECT_STATUS.md's
-   "OI_FOOTPRINT PROFIT CONCENTRATION FINDING" entry. Reinforces the
-   already-filed position-size-cap idea; not acted on now, per the
-   user's stated preference to wait for more real trade data before
-   adding new gates - filed as a concrete example (trade #12) to keep
-   in mind when that decision is revisited.
+   numbers being fabricated. Reinforces the already-filed position-
+   size-cap idea; not acted on now, per the user's stated preference
+   to wait for more real trade data before adding new gates - filed
+   as a concrete example (trade #12) to keep in mind when that
+   decision is revisited.
+
+✅ User directly challenged the scope: "did you look at ALL
+   strategies, or only the profitable one?" - a fair catch, the above
+   only covered oi_footprint because that was the strategy named in
+   the relayed question. Scanned all 27 report books with closed
+   trades (of 50 total portfolio files). Found a materially bigger
+   picture: only 4 of 27 books are net profitable, 23 are net losing,
+   combined Net PnL across every book is Rs -5,85,289. The 4
+   profitable books: oi_footprint/NIFTY (+41,479), st2_threshold/
+   NIFTY (+38,546), simple_st1_threshold/NIFTY (+35,348), oi_
+   footprint/BankNifty (+11,891). Then re-ran the leverage-
+   concentration diagnostic across all 4 profitable books (not just
+   oi_footprint) to check whether the leverage-inflation pattern
+   generalizes - it does NOT: only oi_footprint/NIFTY is genuinely
+   leverage-driven (biggest trade used 7x the book's median lot
+   count). The other 3 profitable books' biggest trades were at or
+   below their book's median lot size - their profit concentration
+   is a small-sample artifact (9-33 trades), not leverage; simple_
+   st1_threshold/NIFTY in particular reads as a genuinely clean edge
+   (72.7% win rate, stable ~3% per-trade return across both halves).
+   Full writeup (both the scope-expansion and the per-strategy
+   verdicts) in PROJECT_STATUS.md's "PORTFOLIO PROFITABILITY AUDIT +
+   LEVERAGE-CONCENTRATION FINDING" entry.
 
 ==================================================

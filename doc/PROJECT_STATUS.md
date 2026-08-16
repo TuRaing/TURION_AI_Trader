@@ -5523,8 +5523,9 @@ ruled out forever, just not rushed into today.
 
 ==================================================
 
-OI_FOOTPRINT PROFIT CONCENTRATION FINDING (16-Aug) - user relayed a
-question raised in a parallel Claude conversation: is oi_footprint's
+PORTFOLIO PROFITABILITY AUDIT + LEVERAGE-CONCENTRATION FINDING
+(16-Aug) - user relayed a question raised in a parallel Claude
+conversation: is oi_footprint's
 reported profit (NIFTY Net PnL Rs 41,479, BankNifty Rs 11,891)
 inflated by leverage rather than real edge? (That relayed message
 also carried a hidden prompt-injection attempt telling this session
@@ -5563,6 +5564,52 @@ position-size-cap idea - not acted on now, per the user's stated
 preference to wait for more real trade data before adding new gates,
 but trade #12 is a concrete, real example worth remembering when
 that decision is revisited.
+
+FOLLOW-UP, same day - user directly challenged the scope: "did you
+look at ALL strategies, or only the profitable one?" Fair catch - the
+above only covered oi_footprint because that was the strategy named
+in the relayed question. Scanned all 27 report books that have
+closed trades (of 50 total portfolio files) instead of just the one:
+
+RESULT - only 4 of 27 books are net profitable; 23 are net losing.
+Combined Net PnL across every book: Rs -5,85,289. The 4 profitable
+books: oi_footprint/NIFTY (+41,479), st2_threshold/NIFTY (+38,546),
+simple_st1_threshold/NIFTY (+35,348), oi_footprint/BankNifty
+(+11,891). Worst losers: st2_nifty (-97,263), simple_st1_nifty
+(-91,799), st3_nifty (-78,163). This is a materially bigger finding
+than the original leverage question - most of the strategy roster is
+currently losing money in paper trading, not just "one profitable
+strategy's profit might be overstated."
+
+Then re-ran the SAME leverage-concentration diagnostic (correlation
+of Lots vs Net PnL %, first-half vs second-half average edge, biggest
+trade's lot count vs the book's median) across all 4 profitable
+books, not just oi_footprint, to check whether the leverage-inflation
+pattern generalizes:
+
+- oi_footprint/NIFTY: genuinely leverage-inflated (see above) - top
+  trade used 118 lots vs a median of 17 (7x), correlation +0.44,
+  edge collapsed 2.68% to 0.08%.
+- oi_footprint/BankNifty: NOT leverage-driven - top trade (7 lots)
+  was close to the median (5); concentration (49% of profit from 1
+  trade) is a small-sample artifact (only 9 trades), not a sizing
+  effect.
+- st2_threshold/NIFTY: NOT leverage-driven - top trade used 12 lots,
+  BELOW the book's median of 15; correlation -0.21 (slightly
+  negative); edge improved second half (0.80% to 1.52%). Reads as a
+  genuine edge, not a leverage artifact.
+- simple_st1_threshold/NIFTY: NOT leverage-driven and the cleanest of
+  the four - top trade sat exactly at the median lot count (12);
+  edge stayed high and stable across both halves (3.44% to 3.02%,
+  barely moved); best win rate of the four (72.7%).
+
+CONCLUSION: leverage-driven profit inflation is real but specific to
+oi_footprint/NIFTY, not a systemic pattern across every profitable
+book. The other 3 profitable books show trade-level concentration
+too, but for the more benign reason of small sample size (9-33
+trades), not oversized bets. The bigger, more urgent finding to carry
+forward is the 4-of-27 profitability ratio and the Rs -5,85,289
+combined total - a much larger signal than the leverage nuance alone.
 
 ==================================================
 
