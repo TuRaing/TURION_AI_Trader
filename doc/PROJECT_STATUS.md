@@ -794,19 +794,23 @@ KNOWN ISSUES
   Play Store dialog - worth reaching for first next
   time this happens instead of guessing.
 
-• NOT YET FIXED, confirmed 3x (25-Jul, 28-Jul, 29-Jul):
-  every GitHub Actions build_android_apk.yml run signs the
-  APK with a fresh, runner-local debug keystore (nothing
-  persists one across runs), so `adb install -r` against
-  the previous build always fails with
-  INSTALL_FAILED_UPDATE_INCOMPATIBLE ("signatures do not
-  match"). Worked around each time by uninstalling the old
-  copy first - harmless (app has no local state worth
-  keeping, everything lives in the GitHub-hosted JSON) but
-  repetitive. Real fix: commit a fixed debug.keystore to
-  the repo and point mobile_app/android/app/
-  build.gradle.kts at it so every build signs identically
-  and `adb install -r` can update in place. Not done yet.
+• FIXED, 29-Jul (confirmed 3x recurring first - 25-Jul,
+  28-Jul, 29-Jul - before the actual fix landed same day):
+  every GitHub Actions build_android_apk.yml run was
+  signing the APK with a fresh, runner-local debug
+  keystore (nothing persisted one across runs), so `adb
+  install -r` against the previous build always failed
+  with INSTALL_FAILED_UPDATE_INCOMPATIBLE ("signatures do
+  not match"). Real fix landed 29-Jul: committed a fixed
+  mobile_app/android/app/debug.keystore (standard Android
+  debug credentials, not a secret) and added a
+  "sharedDebug" signingConfig in build.gradle.kts pointing
+  at it. VERIFIED then (built twice in a row, second `adb
+  install -r` succeeded with no uninstall step) and the
+  keystore file is still present in the repo as of 15-Aug -
+  this entry was stale (still read as "not done yet") until
+  a full-doc audit that day caught the mismatch between this
+  section and the actual 29-Jul fix.
 
 • CONFIRMED 20-Jul: GitHub Actions' free-tier cron
   scheduler badly under-fires the Best Trade Entry

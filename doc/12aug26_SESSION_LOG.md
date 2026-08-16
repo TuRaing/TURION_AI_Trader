@@ -865,6 +865,22 @@ findings as extra context for the 14-Aug review itself:
     ("thik disla") before this got documented. Full writeup in
     PROJECT_STATUS.md's "DESKTOP APP VISUAL REDESIGN" entry.
 
+16. DONE, 15-Aug: full-documentation audit (user asked to read every
+    doc/session-log file and report what's active/deferred/pending/
+    dropped). Caught one real doc bug in the process: the Known
+    Issues section's debug-keystore/APK-signing entry still read
+    "NOT YET FIXED" even though it was actually fixed and verified
+    on 29-Jul (mobile_app/android/app/debug.keystore + a
+    "sharedDebug" signingConfig) - confirmed the keystore file is
+    still present in the repo before rewriting the entry to FIXED.
+    Audit also surfaced 4 loose threads worth a follow-up check
+    (pcr_momentum/max_pain_drift cron triggers never reconfirmed
+    live, a duplicate "Threshold Options Trigger (Copy)" cron job
+    flagged 08-Aug for deletion never confirmed removed, Fyers API's
+    Primary IP whitelist flagged as possibly-dynamic and never
+    revisited, Fyers dashboard's AI-connection/MCP tab never
+    checked) - not yet acted on, filed for the next session.
+
 ==================================================
 
 END OF SESSION
