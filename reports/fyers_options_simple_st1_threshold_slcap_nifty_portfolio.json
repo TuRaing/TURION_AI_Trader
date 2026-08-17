@@ -1,6 +1,19 @@
 {
   "Cash": 100000,
-  "Position": null,
+  "Position": {
+    "Symbol": "NSE:NIFTY2681824300PE",
+    "Strike": 24300,
+    "Option Type": "PE",
+    "Entry Time": "2026-08-17 03:45:21",
+    "Entry Spot": 24312.85,
+    "Entry Premium": 52.35,
+    "Entry RSI": 24.47,
+    "Lots": 25,
+    "Quantity": 1875,
+    "Capital Deployed": 98156.25,
+    "Last Premium": 52.35,
+    "Last Checked": "2026-08-17 03:45:21"
+  },
   "Closed Trades": [],
   "Data Source": "Fyers (real premium)",
   "Strategy": "simple_st1_threshold_slcap",
