@@ -2,7 +2,8 @@ import datetime
 
 from strategy.fyers_options_engine import (
     make_strategy, _net_pnl, _today_realized_pnl, _today_consecutive_losses,
-    _hybrid_stop_loss_cap, IST, DAILY_PROFIT_LOCK_RS, MAX_CONSECUTIVE_LOSSES,
+    _hybrid_stop_loss_cap, _daily_profit_lock_threshold, IST, DAILY_PROFIT_LOCK_RS,
+    MAX_CONSECUTIVE_LOSSES, TRAIL_PCT,
 )
 
 
@@ -208,3 +209,62 @@ def test_hybrid_cap_never_worse_than_either_pure_version():
 
         assert cap <= flat_cap
         assert cap <= pct_cap
+
+
+def test_make_strategy_defaults_no_daily_profit_lock_pct():
+    cfg = make_strategy("simple_st1", "NIFTY", target_net_pct=3.0, stop_loss_pct=3.0)
+
+    assert cfg["daily_profit_lock_pct"] is None
+
+
+def test_daily_profit_lock_threshold_uses_flat_rs_when_pct_unset():
+    cfg = make_strategy("simple_st1_threshold", "NIFTY", target_net_pct=3.0, stop_loss_pct=3.0,
+                         daily_profit_lock=True, group="threshold")
+
+    assert _daily_profit_lock_threshold(cfg) == DAILY_PROFIT_LOCK_RS
+
+
+def test_daily_profit_lock_threshold_uses_pct_of_capital_when_set():
+    cfg = make_strategy("st2_threshold_slcap2pctlock", "NIFTY", target_net_pct=5.0, stop_loss_pct=2.0,
+                         daily_profit_lock=True, group="threshold", hybrid_sl_cap_pct=2.0,
+                         daily_profit_lock_pct=2.0, initial_capital=10000)
+
+    # 2% of Rs 10,000 = Rs 200, not the flat Rs 2,000 - the whole point
+    # of this variant (see PROJECT_STATUS.md's "HYBRID SL + DYNAMIC
+    # PROFIT-LOCK CAPITAL SWEEP" entry).
+    assert _daily_profit_lock_threshold(cfg) == 200
+
+
+def test_daily_profit_lock_threshold_matches_flat_at_1_lakh():
+    # 2% of the default Rs 1,00,000 initial_capital equals the original
+    # flat Rs 2,000 exactly - the two variants only diverge away from
+    # that one capital tier.
+    cfg = make_strategy("st2_threshold_slcap2pctlock", "NIFTY", target_net_pct=5.0, stop_loss_pct=2.0,
+                         daily_profit_lock=True, group="threshold", hybrid_sl_cap_pct=2.0,
+                         daily_profit_lock_pct=2.0)
+
+    assert _daily_profit_lock_threshold(cfg) == DAILY_PROFIT_LOCK_RS == 2000
+
+
+def test_make_strategy_defaults_no_trailing_min_pct():
+    cfg = make_strategy("simple_st1", "NIFTY", target_net_pct=3.0, stop_loss_pct=3.0)
+
+    assert cfg["trailing_min_pct"] is None
+
+
+def test_make_strategy_trailing_variant():
+    cfg = make_strategy("st2_threshold_trailing2pct", "NIFTY", target_net_pct=5.0, stop_loss_pct=2.0,
+                         daily_profit_lock=True, group="threshold", hybrid_sl_cap_pct=2.0,
+                         trailing_min_pct=2.0)
+
+    assert cfg["trailing_min_pct"] == 2.0
+    # target_net_pct is kept for interface consistency but becomes
+    # inert once trailing_min_pct is set (see _check_position()).
+    assert cfg["target_net_pct"] == 5.0
+
+
+def test_trail_pct_is_30_percent():
+    # Same giveback-from-peak already used and analyzed for
+    # oi_footprint's own live trailing variant - reused here rather
+    # than inventing a second, untested value.
+    assert TRAIL_PCT == 0.30

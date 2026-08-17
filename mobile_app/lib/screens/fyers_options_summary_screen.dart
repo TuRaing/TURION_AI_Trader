@@ -92,6 +92,12 @@ const _books = [
   ('oi_hybrid_sl_laddered', 'BANKNIFTY', 'banknifty'),
   ('oi_hybrid_sl_indicator', 'NIFTY', 'nifty'),
   ('oi_hybrid_sl_indicator', 'BANKNIFTY', 'banknifty'),
+  // Added 17-Aug-2026 - see fyers_options_grouped_screen.dart's same-
+  // day comment for the full reasoning. NIFTY-only.
+  ('st2_threshold_slcap2pctlock', 'NIFTY', 'nifty'),
+  ('simple_st1_threshold_slcap2pctlock', 'NIFTY', 'nifty'),
+  ('st2_threshold_trailing2pct', 'NIFTY', 'nifty'),
+  ('simple_st1_threshold_trailing2pct', 'NIFTY', 'nifty'),
 ];
 
 class FyersOptionsSummaryScreen extends StatefulWidget {

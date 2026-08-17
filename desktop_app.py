@@ -152,6 +152,14 @@ OPTIONS_BANNER_TEXT = (
 THRESHOLD_STRATEGY_NAMES = [
     "simple_st1_threshold", "st2_threshold", "st3_threshold", "st4_threshold",
     "gapfill_threshold", "st3_threshold_slcap", "st2_threshold_slcap",
+    # Added 17-Aug-2026 - hybrid SL + dynamic 2%-of-capital profit lock
+    # (backtest-verified, PROJECT_STATUS.md's "HYBRID SL + DYNAMIC
+    # PROFIT-LOCK CAPITAL SWEEP" entry) and hybrid SL + minimum-2%-
+    # profit trailing stop with unlimited upside (live-only, could not
+    # be backtested - see the same day's PROJECT_STATUS.md entry).
+    # NIFTY-only, matching the user's own request.
+    "st2_threshold_slcap2pctlock", "simple_st1_threshold_slcap2pctlock",
+    "st2_threshold_trailing2pct", "simple_st1_threshold_trailing2pct",
 ]
 
 THRESHOLD_STRATEGY_DESCRIPTIONS = {
@@ -160,13 +168,18 @@ THRESHOLD_STRATEGY_DESCRIPTIONS = {
     "st3_threshold": "Same as st3, but stops opening new trades once today's profit hits Rs 2,000+.",
     "st4_threshold": "Same as st4, but stops opening new trades once today's profit hits Rs 2,000+.",
     "gapfill_threshold": "Same as gapfill, but stops opening new trades once today's profit hits Rs 2,000+.",
-    "st3_threshold_slcap": "Same as st3_threshold, plus hybrid Stop-Loss cap - NIFTY only.",
-    "st2_threshold_slcap": "Same as st2_threshold, plus hybrid Stop-Loss cap - BANKNIFTY only.",
+    "st3_threshold_slcap": "Same as st3_threshold, plus hybrid Stop-Loss cap.",
+    "st2_threshold_slcap": "Same as st2_threshold, plus hybrid Stop-Loss cap.",
+    "st2_threshold_slcap2pctlock": "Same as st2_threshold_slcap, but the profit-lock is 2% of capital instead of a flat Rs 2,000.",
+    "simple_st1_threshold_slcap2pctlock": "Same as simple_st1_threshold_slcap, but the profit-lock is 2% of capital instead of a flat Rs 2,000.",
+    "st2_threshold_trailing2pct": "Same as st2_threshold, hybrid Stop-Loss cap, no fixed Target - trails once profit first reaches 2%.",
+    "simple_st1_threshold_trailing2pct": "Same as simple_st1_threshold, hybrid Stop-Loss cap, no fixed Target - trails once profit first reaches 2%.",
 }
 
 THRESHOLD_BANNER_TEXT = (
-    "Same strategies as Options (+ 2 hybrid-SL-cap variants), but stop opening new trades "
-    "once today's realized profit hits Rs 2,000+ - locks in the day's gain."
+    "Same strategies as Options (+ 6 hybrid-SL-cap variants), but stop opening new trades "
+    "once today's realized profit hits Rs 2,000+ (or 2% of capital for the 2 _slcap2pctlock "
+    "books) - locks in the day's gain. The 2 _trailing2pct books have no fixed Target instead."
 )
 
 # Combined lookup for TradeDetailDialog (reached from Options Grouped,
@@ -179,8 +192,10 @@ ALL_STRATEGY_DESCRIPTIONS = {**OPTIONS_STRATEGY_DESCRIPTIONS, **THRESHOLD_STRATE
 # every other name here runs both indices.
 STRATEGY_INDEX_OVERRIDES = {
     "vix_filter": ["BANKNIFTY"],
-    "st3_threshold_slcap": ["NIFTY"],
-    "st2_threshold_slcap": ["BANKNIFTY"],
+    "st2_threshold_slcap2pctlock": ["NIFTY"],
+    "simple_st1_threshold_slcap2pctlock": ["NIFTY"],
+    "st2_threshold_trailing2pct": ["NIFTY"],
+    "simple_st1_threshold_trailing2pct": ["NIFTY"],
 }
 
 

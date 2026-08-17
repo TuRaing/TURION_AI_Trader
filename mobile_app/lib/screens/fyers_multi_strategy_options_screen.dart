@@ -50,13 +50,20 @@ const _strategyDescriptions = {
 // runs both indices. Default (any name not listed) is both.
 const _strategyIndices = {
   'vix_filter': ['banknifty'],
-  // Added 14-Aug-2026 - only the specific books whose retrospective
-  // hybrid-SL-cap replay showed a real improvement got an _slcap
-  // variant (see strategy/options_strategies.py) - st3_threshold_slcap
-  // is NIFTY-only, st2_threshold_slcap is BANKNIFTY-only, unlike every
-  // other threshold strategy which runs both indices.
-  'st3_threshold_slcap': ['nifty'],
-  'st2_threshold_slcap': ['banknifty'],
+  // Added 17-Aug-2026 - st2_threshold_slcap2pctlock/simple_st1_
+  // threshold_slcap2pctlock/st2_threshold_trailing2pct/simple_st1_
+  // threshold_trailing2pct are NIFTY-only, matching the user's own
+  // request (see strategy/options_strategies.py). NOTE: the older
+  // st3_threshold_slcap NIFTY-only / st2_threshold_slcap BANKNIFTY-
+  // only overrides that used to be here were REMOVED same day - they
+  // were stale (both now run on BOTH indices, since 14-Aug's later
+  // "4 more threshold _slcap books" batch added the missing sibling
+  // for each - this override was never updated to match, silently
+  // hiding 2 real, live books from the app).
+  'st2_threshold_slcap2pctlock': ['nifty'],
+  'simple_st1_threshold_slcap2pctlock': ['nifty'],
+  'st2_threshold_trailing2pct': ['nifty'],
+  'simple_st1_threshold_trailing2pct': ['nifty'],
 };
 
 List<String> _indicesFor(String strategyName) => _strategyIndices[strategyName] ?? ['nifty', 'banknifty'];

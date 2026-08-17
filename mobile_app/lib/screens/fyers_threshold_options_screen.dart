@@ -25,6 +25,14 @@ const _thresholdStrategyNames = [
   'gapfill_threshold',
   'st3_threshold_slcap',
   'st2_threshold_slcap',
+  // Added 17-Aug-2026 - hybrid SL + dynamic 2%-of-capital profit lock
+  // (backtest-verified) and hybrid SL + minimum-2%-profit trailing
+  // stop with unlimited upside (live-only, could not be backtested).
+  // NIFTY-only.
+  'st2_threshold_slcap2pctlock',
+  'simple_st1_threshold_slcap2pctlock',
+  'st2_threshold_trailing2pct',
+  'simple_st1_threshold_trailing2pct',
 ];
 
 const _thresholdStrategyDescriptions = {
@@ -37,9 +45,17 @@ const _thresholdStrategyDescriptions = {
   'gapfill_threshold':
       'gapfill सारखंच (gap-reversion, PE/CE), पण आजचा profit ₹2,000+ झाला की नवीन trade बंद.',
   'st3_threshold_slcap':
-      'st3_threshold सारखंच, पण Stop-Loss आता hybrid cap (flat 2% वि. deployed-capital चा 2%, जे लहान ते) - फक्त NIFTY.',
+      'st3_threshold सारखंच, पण Stop-Loss आता hybrid cap (flat 2% वि. deployed-capital चा 2%, जे लहान ते).',
   'st2_threshold_slcap':
-      'st2_threshold सारखंच, पण Stop-Loss hybrid cap (flat 2% वि. deployed-capital चा 2%, जे लहान ते) - फक्त BANKNIFTY.',
+      'st2_threshold सारखंच, पण Stop-Loss hybrid cap (flat 2% वि. deployed-capital चा 2%, जे लहान ते).',
+  'st2_threshold_slcap2pctlock':
+      'st2_threshold_slcap सारखंच, पण profit-lock आता ₹2,000 fixed ऐवजी capital च्या 2% - फक्त NIFTY.',
+  'simple_st1_threshold_slcap2pctlock':
+      'simple_st1_threshold_slcap सारखंच, पण profit-lock आता ₹2,000 fixed ऐवजी capital च्या 2% - फक्त NIFTY.',
+  'st2_threshold_trailing2pct':
+      'st2_threshold सारखंच (hybrid SL सह), पण fixed Target नाही - profit +2% झाल्यावर trailing सुरू, वरची मर्यादा नाही - फक्त NIFTY.',
+  'simple_st1_threshold_trailing2pct':
+      'simple_st1_threshold सारखंच (hybrid SL सह), पण fixed Target नाही - profit +2% झाल्यावर trailing सुरू, वरची मर्यादा नाही - फक्त NIFTY.',
 };
 
 class FyersThresholdOptionsScreen extends StatelessWidget {
@@ -51,7 +67,7 @@ class FyersThresholdOptionsScreen extends StatelessWidget {
       strategyNames: _thresholdStrategyNames,
       strategyDescriptions: _thresholdStrategyDescriptions,
       bannerText:
-          'Options tab सारख्याच strategies (+ 2 नवीन hybrid-SL-cap variants), पण रोजचा profit ₹2,000+ झाला की त्या दिवसासाठी नवीन trade बंद - नफा लॉक करण्यासाठी.',
+          'Options tab सारख्याच strategies (+ 6 नवीन hybrid-SL-cap variants), पण रोजचा profit ₹2,000+ (किंवा 2 _slcap2pctlock books साठी capital च्या 2%) झाला की त्या दिवसासाठी नवीन trade बंद - नफा लॉक करण्यासाठी. 2 _trailing2pct books ला त्याऐवजी fixed Target नाही.',
     );
   }
 }

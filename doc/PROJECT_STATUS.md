@@ -5901,6 +5901,95 @@ weight rather than a theoretical justification.
 
 ==================================================
 
+BROKER-SIDE SL CORRECTION + WEBSOCKET CODE-PREP DECISION + 4 NEW
+BOOKS BUILT (17-Aug) - direct follow-up to the overshoot finding
+above, same session.
+
+CORRECTION: user asked whether the broker-side SL fix (Fyers GTT/
+SL-M) actually works for PAPER trading. It does NOT - GTT/SL-M orders
+attach to a REAL brokerage position, which paper trading never
+creates (it only reads real quotes and simulates the outcome). That
+fix is Stage-3 (real capital) only. For paper trading, the real
+available mitigation is the ALREADY-PLANNED Stage 2 VPS + Fyers
+WebSocket architecture (event-driven checks every few seconds instead
+of ~1-min polling, see "LIVE-DATA ARCHITECTURE" entry above) - user
+asked to accelerate this. AGREED APPROACH: split CODE-PREP (WebSocket
+client + event-driven rewrite via the already-built-but-unused Shared
+Backtest-Live Engine, needs no VPS, doesn't touch any live book) from
+actual VPS deployment (still deferred) - code-prep starts now instead
+of waiting for the original 1-Sep target. Not yet started - user
+redirected to finish yesterday's deferred build first (below).
+
+FRESH PROFITABILITY CHECK, all 55 books with real trades through
+today: 19 books show net profit on raw totals, but only 4 survive a
+multi-day-track-record filter (>=4 real trading days) - the same 4
+identified 16-Aug (st2_threshold/NIFTY, simple_st1_threshold/NIFTY,
+oi_footprint/NIFTY, oi_footprint/BankNifty). Today's huge single-day
+volume in several 1-2-day-old _slcap books (e.g. simple_st1_slcap/
+NIFTY: 93 trades but only 1 real trading day) was creating a false
+"more profitable strategies" impression - same "don't trust one day"
+discipline as the choppiness-filter check.
+
+4 NEW BOOKS BUILT (yesterday's deferred plan, finished today): 2 new
+opt-in params added to fyers_options_engine.py's make_strategy()/
+check_or_open()/_check_position() - daily_profit_lock_pct (dynamic
+%-of-capital profit lock, backtest-verified) and trailing_min_pct
+(minimum-2%-profit trailing stop, unlimited upside, TRAIL_PCT=30%
+reused from oi_footprint's own live trailing variant - live-only, NOT
+backtestable). Both default None, zero behavior change for any
+existing strategy. 4 new NIFTY-only books added to options_
+strategies.py/ALL_STRATEGIES: st2_threshold_slcap2pctlock, simple_
+st1_threshold_slcap2pctlock (hybrid SL + dynamic 2% lock - backtest-
+verified), st2_threshold_trailing2pct, simple_st1_threshold_
+trailing2pct (hybrid SL + trailing - NOT backtestable, live-only).
+Tests updated/added (book-count 59->63, threshold-group 18->22, new
+coverage for both mechanisms) - 380/380 passing, no regressions. User
+directly asked whether both mechanisms are equally tested - clarified
+honestly: only slcap2pctlock has real backtest evidence; trailing2pct
+has none, a reasoned but unproven design choice.
+
+STALE APP BUG FOUND + FIXED (user's own independent question): why
+does the app show st3_threshold_slcap as NIFTY-only and st2_
+threshold_slcap as BANKNIFTY-only? Traced it - a REAL bug, not by
+design: those restrictions were only ever correct for a few hours on
+14-Aug, before that same day's later "4 more threshold _slcap books"
+batch gave each its missing sibling (both now run on BOTH indices,
+with real trades/cash - confirmed st3_threshold_slcap/BANKNIFTY has
+Rs 1,07,283 cash/1 trade, st2_threshold_slcap/NIFTY has Rs 1,13,528/
+1 trade). The app's hardcoded index-restriction maps (desktop_app.py's
+STRATEGY_INDEX_OVERRIDES, mobile's _strategyIndices) were never
+updated - silently hiding 2 real, live books' data from the user this
+whole time. FIXED in both apps (removed the 2 stale entries), and
+wired in the 4 new 17-Aug books to both (desktop's THRESHOLD_
+STRATEGY_NAMES/DESCRIPTIONS/STRATEGY_INDEX_OVERRIDES; mobile's fyers_
+threshold_options_screen.dart plus the hand-maintained _allBooks lists
+in fyers_options_grouped_screen.dart and fyers_options_summary_
+screen.dart, and _isSlcap()'s classification so the 4 new books group
+under "New SL-cap" instead of falling through to raw-PnL grouping).
+`dart analyze` clean, Python syntax clean, 380/380 tests still pass.
+
+CRON-JOB.ORG SETUP + 2 REAL ISSUES FOUND VIA THE ACTUAL API: gave the
+user the workflow_dispatch POST-body table for the 4 new STRATEGY_
+NAME values (same pattern as every prior strategy). User set the 4
+jobs up but the test-run reportedly failed ("server busy"). Checked
+via the real GitHub Actions API instead of guessing - found TWO
+separate, real causes, neither being cron-job.org's fault: (1) the
+new strategy code had NOT actually been pushed to origin/main yet
+(confirmed via `git show origin/main:strategy/options_strategies.py`
+- zero matches for the new names) - even a working dispatch would
+have found no matching strategy; (2) independently, the one dispatch
+that DID reach GitHub Actions (st2_threshold_trailing2pct, 15:30 UTC/
+21:00 IST) hit a real, unrelated problem: Fyers' own daily API quota
+was exhausted ({'code': -353, 'message': 'API Limit exceeded per
+day'}) - affecting every strategy, not just the new ones, though
+market was already closed by then (15:15 IST square-off) so no real
+trading was actually missed today. Pushing all of today's code (engine
++ 4 books + both apps' fixes) now so everything is live and ready to
+verify tomorrow, once both the market reopens and Fyers' daily quota
+resets.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.

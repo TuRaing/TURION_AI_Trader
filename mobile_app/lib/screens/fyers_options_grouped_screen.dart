@@ -84,9 +84,21 @@ const _allBooks = [
   ('oi_hybrid_sl_laddered', 'BANKNIFTY', 'banknifty'),
   ('oi_hybrid_sl_indicator', 'NIFTY', 'nifty'),
   ('oi_hybrid_sl_indicator', 'BANKNIFTY', 'banknifty'),
+  // Added 17-Aug-2026 - hybrid SL + dynamic 2%-of-capital profit lock
+  // (backtest-verified) and hybrid SL + minimum-2%-profit trailing
+  // stop with unlimited upside (live-only, could not be backtested).
+  // NIFTY-only.
+  ('st2_threshold_slcap2pctlock', 'NIFTY', 'nifty'),
+  ('simple_st1_threshold_slcap2pctlock', 'NIFTY', 'nifty'),
+  ('st2_threshold_trailing2pct', 'NIFTY', 'nifty'),
+  ('simple_st1_threshold_trailing2pct', 'NIFTY', 'nifty'),
 ];
 
-bool _isSlcap(String name) => name.endsWith('_slcap') || name.startsWith('oi_hybrid_sl');
+bool _isSlcap(String name) =>
+    name.endsWith('_slcap') ||
+    name.startsWith('oi_hybrid_sl') ||
+    name.endsWith('_slcap2pctlock') ||
+    name.endsWith('_trailing2pct');
 
 enum _Group { newSlcap, profitable, lossMaking, noData }
 

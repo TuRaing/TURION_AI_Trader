@@ -1,7 +1,7 @@
 from strategy.options_strategies import ALL_STRATEGIES
 
 
-def test_all_strategies_has_59_books():
+def test_all_strategies_has_63_books():
     # 5 original strategies + 5 threshold variants (x 2 indices each) +
     # 1 BANKNIFTY-only vix_filter book + 2 oi_footprint books + 2
     # credit_spread books + 2 pcr_momentum books + 2 max_pain_drift
@@ -14,8 +14,13 @@ def test_all_strategies_has_59_books():
     # 6 more threshold _slcap books (14-Aug, later the same day -
     # simple_st1_threshold x2, st2_threshold/NIFTY, st3_threshold/
     # BANKNIFTY, st4_threshold x2 - completing hybrid-cap coverage on
-    # every threshold book that was retrospectively tested).
-    assert len(ALL_STRATEGIES) == 59
+    # every threshold book that was retrospectively tested) + 4 more
+    # 17-Aug (st2_threshold/simple_st1_threshold _slcap2pctlock - hybrid
+    # SL + dynamic 2%-of-capital profit lock; and _trailing2pct - hybrid
+    # SL + minimum-2%-profit trailing stop, unlimited upside - both
+    # NIFTY-only, see fyers_options_engine.py's daily_profit_lock_pct/
+    # trailing_min_pct docstrings and PROJECT_STATUS.md's 17-Aug entries).
+    assert len(ALL_STRATEGIES) == 63
 
 
 def test_original_books_have_no_daily_profit_lock():
@@ -96,8 +101,11 @@ def test_threshold_books_all_have_daily_profit_lock_on():
     # 10 original threshold books + 8 threshold _slcap books (st3_
     # threshold_slcap x2, st2_threshold_slcap x2, simple_st1_threshold_
     # slcap x2, st4_threshold_slcap x2 - every threshold book that was
-    # retrospectively tested with the hybrid cap now has one).
-    assert len(threshold) == 18
+    # retrospectively tested with the hybrid cap now has one) + 4 more
+    # 17-Aug (st2_threshold/simple_st1_threshold _slcap2pctlock and
+    # _trailing2pct, NIFTY-only - both inherit daily_profit_lock=True
+    # from their _threshold parent).
+    assert len(threshold) == 22
     assert all(cfg["daily_profit_lock"] is True for cfg in threshold)
 
 
@@ -117,12 +125,18 @@ def test_slcap_books_have_hybrid_sl_cap_set():
     assert all(cfg["hybrid_sl_cap_pct"] == 2.0 for cfg in slcap_books)
 
 
+HYBRID17AUG_NAMES = {
+    "st2_threshold_slcap2pctlock", "simple_st1_threshold_slcap2pctlock",
+    "st2_threshold_trailing2pct", "simple_st1_threshold_trailing2pct",
+}
+
+
 def test_non_slcap_books_have_no_hybrid_sl_cap():
     # oi_footprint variant books also use hybrid_sl_cap_pct (see
     # fyers_options_oi_footprint_variants.py) - excluded here alongside
-    # the _slcap RSI-family/st4 books, all are legitimate hybrid-cap
-    # users.
-    excluded_names = ALL_SLCAP_NAMES | {
+    # the _slcap RSI-family/st4 books and the 4 new 17-Aug hybrid
+    # variants, all are legitimate hybrid-cap users.
+    excluded_names = ALL_SLCAP_NAMES | HYBRID17AUG_NAMES | {
         "oi_hybrid_sl", "oi_hybrid_sl_trailing", "oi_hybrid_sl_atr", "oi_hybrid_sl_breakeven",
         "oi_hybrid_sl_laddered", "oi_hybrid_sl_indicator",
     }
@@ -130,6 +144,28 @@ def test_non_slcap_books_have_no_hybrid_sl_cap():
 
     for cfg in non_slcap_books:
         assert cfg.get("hybrid_sl_cap_pct") is None
+
+
+def test_slcap2pctlock_books_have_dynamic_profit_lock():
+    names = {"st2_threshold_slcap2pctlock", "simple_st1_threshold_slcap2pctlock"}
+    books = [cfg for _, cfg in ALL_STRATEGIES if cfg["name"] in names]
+
+    assert len(books) == 2
+    assert all(cfg["index"] == "NIFTY" for cfg in books)
+    assert all(cfg["hybrid_sl_cap_pct"] == 2.0 for cfg in books)
+    assert all(cfg["daily_profit_lock_pct"] == 2.0 for cfg in books)
+    assert all(cfg.get("trailing_min_pct") is None for cfg in books)
+
+
+def test_trailing2pct_books_have_trailing_min_pct_set():
+    names = {"st2_threshold_trailing2pct", "simple_st1_threshold_trailing2pct"}
+    books = [cfg for _, cfg in ALL_STRATEGIES if cfg["name"] in names]
+
+    assert len(books) == 2
+    assert all(cfg["index"] == "NIFTY" for cfg in books)
+    assert all(cfg["hybrid_sl_cap_pct"] == 2.0 for cfg in books)
+    assert all(cfg["trailing_min_pct"] == 2.0 for cfg in books)
+    assert all(cfg.get("daily_profit_lock_pct") is None for cfg in books)
 
 
 def test_oi_footprint_variant_books_run_on_both_indices():

@@ -263,6 +263,43 @@ ST4_TH_SLCAP_NIFTY = make_st4_config("NIFTY", name="st4_threshold_slcap", daily_
 ST4_TH_SLCAP_BANKNIFTY = make_st4_config("BANKNIFTY", name="st4_threshold_slcap", daily_profit_lock=True,
                                           group="threshold", hybrid_sl_cap_pct=2.0)
 
+# st2_threshold/simple_st1_threshold _slcap2pctlock - added 17-Aug-2026,
+# user's direct request following the 16-Aug capital-tier sweep
+# (PROJECT_STATUS.md's "HYBRID SL + DYNAMIC PROFIT-LOCK CAPITAL SWEEP"
+# entry): same hybrid SL cap as the existing _slcap books, PLUS the
+# daily profit-lock threshold changed from the flat DAILY_PROFIT_LOCK_RS
+# = Rs 2,000 to 2% of initial_capital (daily_profit_lock_pct, added
+# same day to fyers_options_engine.py). Backtest-verified: wins at
+# every one of 13 capital tiers tested for st2_threshold/NIFTY, and in
+# the Rs 10,000-1,00,000 range for simple_st1_threshold/NIFTY (the
+# actual Stage-3 real-capital range). NIFTY only - matches the user's
+# own request, which named these two specific books.
+ST2_TH_SLCAP2PCTLOCK_NIFTY = make_strategy("st2_threshold_slcap2pctlock", "NIFTY", target_net_pct=5.0,
+                                            stop_loss_pct=2.0, daily_profit_lock=True, group="threshold",
+                                            hybrid_sl_cap_pct=2.0, daily_profit_lock_pct=2.0)
+SIMPLE_ST1_TH_SLCAP2PCTLOCK_NIFTY = make_strategy("simple_st1_threshold_slcap2pctlock", "NIFTY", target_net_pct=3.0,
+                                                   stop_loss_pct=3.0, daily_profit_lock=True, group="threshold",
+                                                   hybrid_sl_cap_pct=2.0, daily_profit_lock_pct=2.0)
+
+# st2_threshold/simple_st1_threshold _trailing2pct - added 17-Aug-2026,
+# same day, user's direct follow-up request: same hybrid SL cap, but
+# the fixed Target is replaced entirely by a minimum-2%-profit trailing
+# stop with NO upper cap (trailing_min_pct=2.0, added same day to
+# fyers_options_engine.py - once peak Net PnL %% first reaches 2%, trail
+# TRAIL_PCT=30%% below the peak instead of exiting at a fixed target;
+# unlimited upside otherwise). Could NOT be retrospectively backtested
+# (needs each trade's own intraday PEAK premium, which real historical
+# records don't capture - only Entry/Exit Premium) - built as a LIVE-
+# ONLY variant instead, same reasoning and same TRAIL_PCT already used
+# for oi_footprint's own live trailing variant (fyers_options_
+# oi_footprint_variants.py). NIFTY only, matching the user's request.
+ST2_TH_TRAILING2PCT_NIFTY = make_strategy("st2_threshold_trailing2pct", "NIFTY", target_net_pct=5.0,
+                                           stop_loss_pct=2.0, daily_profit_lock=True, group="threshold",
+                                           hybrid_sl_cap_pct=2.0, trailing_min_pct=2.0)
+SIMPLE_ST1_TH_TRAILING2PCT_NIFTY = make_strategy("simple_st1_threshold_trailing2pct", "NIFTY", target_net_pct=3.0,
+                                                  stop_loss_pct=3.0, daily_profit_lock=True, group="threshold",
+                                                  hybrid_sl_cap_pct=2.0, trailing_min_pct=2.0)
+
 # oi_footprint variants - added 14-Aug-2026, same day as the _slcap
 # RSI-family books, per the user's own request: 6 live paper-trading
 # tests of the profit-booking-filter ideas that could NOT be
@@ -336,6 +373,10 @@ ALL_STRATEGIES = [
     (check_or_open_generic, ST3_TH_SLCAP_BANKNIFTY),
     (check_or_open_st4, ST4_TH_SLCAP_NIFTY),
     (check_or_open_st4, ST4_TH_SLCAP_BANKNIFTY),
+    (check_or_open_generic, ST2_TH_SLCAP2PCTLOCK_NIFTY),
+    (check_or_open_generic, SIMPLE_ST1_TH_SLCAP2PCTLOCK_NIFTY),
+    (check_or_open_generic, ST2_TH_TRAILING2PCT_NIFTY),
+    (check_or_open_generic, SIMPLE_ST1_TH_TRAILING2PCT_NIFTY),
     (check_or_open_oi_footprint_variant, OI_HYBRID_SL_NIFTY),
     (check_or_open_oi_footprint_variant, OI_HYBRID_SL_BANKNIFTY),
     (check_or_open_oi_footprint_variant, OI_HYBRID_SL_TRAILING_NIFTY),

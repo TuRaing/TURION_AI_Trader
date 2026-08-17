@@ -45,6 +45,13 @@ MARKET_OPEN_TIME = (9, 15)  # NSE regular trading start - before this is
 # place.
 DAILY_PROFIT_LOCK_RS = 2000
 
+# Added 17-Aug-2026 - shared with the trailing_min_pct opt-in
+# mechanism below. Same 30% peak-giveback already used and analyzed
+# for oi_footprint's own live trailing variant (fyers_options_
+# oi_footprint_variants.py) - reused here rather than inventing a
+# second, untested value.
+TRAIL_PCT = 0.30
+
 INDEX_CONFIG = {
     "NIFTY": {
         "underlying_symbol": "NSE:NIFTY50-INDEX",
@@ -64,7 +71,8 @@ INDEX_CONFIG = {
 def make_strategy(name, index, target_net_pct, stop_loss_pct,
                    initial_capital=100000, squareoff_time=(15, 15),
                    daily_profit_lock=False, daily_loss_lock=False, group=None,
-                   hybrid_sl_cap_pct=None):
+                   hybrid_sl_cap_pct=None, daily_profit_lock_pct=None,
+                   trailing_min_pct=None):
     """
     Build one named strategy's config for one index. `name` (e.g.
     "simple_st1") only affects the portfolio filename - reports/
@@ -73,11 +81,23 @@ def make_strategy(name, index, target_net_pct, stop_loss_pct,
 
     `daily_profit_lock` (added 08-Aug-2026) - when True, check_or_open
     stops opening NEW trades for the rest of the IST calendar day once
-    DAILY_PROFIT_LOCK_RS has already been realized that day (see
+    the day's lock threshold has already been realized that day (see
     _today_realized_pnl). Default False keeps the original strategies'
     behavior unchanged - the user asked for this as a SEPARATE "same
     strategy but with a profit-lock" variant (the Threshold Options
     tab/group), not a change to the originals.
+
+    `daily_profit_lock_pct` (added 17-Aug-2026) - when set (and
+    daily_profit_lock=True), the lock threshold is this percentage of
+    initial_capital instead of the flat DAILY_PROFIT_LOCK_RS = Rs
+    2,000. A fixed Rs 2,000 lock makes no sense once the same rule
+    runs across wildly different capital tiers (trivial at Rs
+    10,00,000, huge at Rs 10,000) - see PROJECT_STATUS.md's "HYBRID SL
+    + DYNAMIC PROFIT-LOCK CAPITAL SWEEP" entry, which backtested this
+    combined with hybrid_sl_cap_pct across 13 capital tiers and found
+    it wins (or is close) at every tier for st2_threshold/NIFTY and
+    simple_st1_threshold/NIFTY. Default None keeps the original flat-
+    Rs behavior.
 
     `daily_loss_lock` (added 13-Aug-2026) - when True, check_or_open
     stops opening NEW trades for the rest of the IST calendar day once
@@ -100,6 +120,22 @@ def make_strategy(name, index, target_net_pct, stop_loss_pct,
     Default None keeps the original strategies' behavior unchanged -
     this is a SEPARATE "_slcap" variant, not a change to the originals.
 
+    `trailing_min_pct` (added 17-Aug-2026) - when set, REPLACES the
+    plain target_net_pct check entirely: the position is left to run
+    with no fixed upper target, and once its peak Net PnL %% first
+    reaches trailing_min_pct, a trailing stop (TRAIL_PCT giveback from
+    the peak - same 30%% used by oi_footprint's own live trailing
+    variant, see fyers_options_oi_footprint_variants.py) takes over.
+    Before the peak first reaches trailing_min_pct, the position is
+    only governed by the Stop-Loss side (hybrid or plain) and Square-
+    Off - target_net_pct itself becomes inert when this is set (kept
+    in the config only for logging/interface consistency). Could NOT
+    be retrospectively backtested (needs the trade's own intraday
+    price PEAK, which real historical Entry/Exit-Premium-only records
+    don't capture) - built as a live-only variant instead, same
+    reasoning as oi_footprint's own trailing variant. Default None
+    keeps the original fixed-Target behavior unchanged.
+
     `group` (e.g. "threshold") is just a filter tag for fyers_multi_
     strategy_options_run.py's STRATEGY_NAME - not used by the trading
     logic itself.
@@ -112,8 +148,10 @@ def make_strategy(name, index, target_net_pct, stop_loss_pct,
         "index": index,
         "group": group,
         "daily_profit_lock": daily_profit_lock,
+        "daily_profit_lock_pct": daily_profit_lock_pct,
         "daily_loss_lock": daily_loss_lock,
         "hybrid_sl_cap_pct": hybrid_sl_cap_pct,
+        "trailing_min_pct": trailing_min_pct,
         "portfolio_file": f"reports/fyers_options_{name}_{index.lower()}_portfolio.json",
         "underlying_symbol": index_cfg["underlying_symbol"],
         "index_symbol_for_rsi": index_cfg["index_symbol_for_rsi"],
@@ -421,7 +459,19 @@ def _check_position(cfg, portfolio):
     now_ist = datetime.datetime.now(IST)
     past_squareoff = (now_ist.hour, now_ist.minute) >= cfg["squareoff_time"]
 
-    if net_pnl_pct >= cfg["target_net_pct"]:
+    if cfg.get("trailing_min_pct") is not None:
+        # Replaces the plain target_net_pct check entirely when set -
+        # no fixed upper target, trail once the peak first reaches
+        # trailing_min_pct instead. See make_strategy()'s docstring.
+        peak_pnl_pct = max(position.get("Peak PnL %", net_pnl_pct), net_pnl_pct)
+        position["Peak PnL %"] = peak_pnl_pct
+
+        if peak_pnl_pct >= cfg["trailing_min_pct"]:
+            trail_floor_pct = peak_pnl_pct * (1 - TRAIL_PCT)
+            if net_pnl_pct <= trail_floor_pct:
+                return _close_position(cfg, portfolio, current_premium, "Trailing Stop", current_spot)
+
+    elif net_pnl_pct >= cfg["target_net_pct"]:
         return _close_position(cfg, portfolio, current_premium, "Target", current_spot)
 
     if cfg.get("hybrid_sl_cap_pct") is not None:
@@ -441,6 +491,21 @@ def _check_position(cfg, portfolio):
     position["Last Checked"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     return portfolio, f"HOLD (net {round(net_pnl, 2)} / {round(net_pnl_pct, 3)}%)"
+
+
+def _daily_profit_lock_threshold(cfg):
+    """
+    Rs threshold for daily_profit_lock - cfg["daily_profit_lock_pct"]
+    of initial_capital when set (added 17-Aug-2026, see make_strategy()'s
+    docstring), otherwise the original flat DAILY_PROFIT_LOCK_RS.
+    """
+
+    pct = cfg.get("daily_profit_lock_pct")
+
+    if pct is not None:
+        return cfg["initial_capital"] * (pct / 100)
+
+    return DAILY_PROFIT_LOCK_RS
 
 
 def check_or_open(cfg):
@@ -469,8 +534,8 @@ def check_or_open(cfg):
             action = "SKIPPED (before market open, pre-open session quotes not tradeable)"
         elif now_hm >= cfg["squareoff_time"]:
             action = "SKIPPED (past square-off time, market closed or about to close)"
-        elif cfg.get("daily_profit_lock") and _today_realized_pnl(portfolio) >= DAILY_PROFIT_LOCK_RS:
-            action = f"SKIPPED (today's profit already Rs {DAILY_PROFIT_LOCK_RS}+, no more new trades today)"
+        elif cfg.get("daily_profit_lock") and _today_realized_pnl(portfolio) >= _daily_profit_lock_threshold(cfg):
+            action = f"SKIPPED (today's profit already Rs {_daily_profit_lock_threshold(cfg):.0f}+, no more new trades today)"
         elif cfg.get("daily_loss_lock") and _today_consecutive_losses(portfolio) >= MAX_CONSECUTIVE_LOSSES:
             action = f"SKIPPED (today already has {MAX_CONSECUTIVE_LOSSES}+ consecutive losses, no more new trades today)"
         else:
