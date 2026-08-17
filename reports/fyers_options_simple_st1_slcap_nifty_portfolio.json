@@ -1,6 +1,19 @@
 {
-  "Cash": 94037.62161808755,
-  "Position": null,
+  "Cash": 105484.23615795755,
+  "Position": {
+    "Symbol": "NSE:NIFTY2681824300PE",
+    "Strike": 24300,
+    "Option Type": "PE",
+    "Entry Time": "2026-08-17 04:42:50",
+    "Entry Spot": 24279.6,
+    "Entry Premium": 62.1,
+    "Entry RSI": 25.69,
+    "Lots": 22,
+    "Quantity": 1650,
+    "Capital Deployed": 102465.0,
+    "Last Premium": 62.1,
+    "Last Checked": "2026-08-17 04:46:04"
+  },
   "Closed Trades": [
     {
       "Symbol": "NSE:NIFTY2681824350PE",
@@ -136,6 +149,66 @@
       "Exit Reason": "Stop Loss",
       "Net PnL": -7294.89,
       "Net PnL %": -7.295
+    },
+    {
+      "Symbol": "NSE:NIFTY2681824300PE",
+      "Strike": 24300,
+      "Option Type": "PE",
+      "Entry Time": "2026-08-17 04:21:01",
+      "Entry Premium": 53.05,
+      "Entry Spot": 24307.75,
+      "Exit Time": "2026-08-17 04:23:47",
+      "Exit Premium": 55.25,
+      "Exit Spot": 24302,
+      "Lots": 23,
+      "Exit Reason": "Target",
+      "Net PnL": 3572.31,
+      "Net PnL %": 3.572
+    },
+    {
+      "Symbol": "NSE:NIFTY2681824300PE",
+      "Strike": 24300,
+      "Option Type": "PE",
+      "Entry Time": "2026-08-17 04:25:03",
+      "Entry Premium": 57.25,
+      "Entry Spot": 24299.5,
+      "Exit Time": "2026-08-17 04:29:39",
+      "Exit Premium": 61.75,
+      "Exit Spot": 24286.5,
+      "Lots": 22,
+      "Exit Reason": "Target",
+      "Net PnL": 7191.68,
+      "Net PnL %": 7.192
+    },
+    {
+      "Symbol": "NSE:NIFTY2681824300PE",
+      "Strike": 24300,
+      "Option Type": "PE",
+      "Entry Time": "2026-08-17 04:31:13",
+      "Entry Premium": 60.25,
+      "Entry Spot": 24285.8,
+      "Exit Time": "2026-08-17 04:36:54",
+      "Exit Premium": 58.05,
+      "Exit Spot": 24291.65,
+      "Lots": 23,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -4030.05,
+      "Net PnL %": -4.03
+    },
+    {
+      "Symbol": "NSE:NIFTY2681824300PE",
+      "Strike": 24300,
+      "Option Type": "PE",
+      "Entry Time": "2026-08-17 04:37:43",
+      "Entry Premium": 59.7,
+      "Entry Spot": 24292.05,
+      "Exit Time": "2026-08-17 04:42:00",
+      "Exit Premium": 62.7,
+      "Exit Spot": 24279.85,
+      "Lots": 22,
+      "Exit Reason": "Target",
+      "Net PnL": 4712.67,
+      "Net PnL %": 4.713
     }
   ],
   "Data Source": "Fyers (real premium)",
