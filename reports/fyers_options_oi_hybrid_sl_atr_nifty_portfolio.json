@@ -2,7 +2,12 @@
   "Cash": 100000,
   "Position": null,
   "Closed Trades": [],
-  "Last OI Snapshot": null,
+  "Last OI Snapshot": {
+    "spot": 24302.2,
+    "strike": 24300,
+    "ce_oi": 5062850,
+    "pe_oi": 11958700
+  },
   "Data Source": "Fyers (real premium)",
   "Strategy": "oi_hybrid_sl_atr",
   "Index": "NIFTY"
