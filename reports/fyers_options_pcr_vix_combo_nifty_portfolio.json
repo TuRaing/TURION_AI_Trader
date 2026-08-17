@@ -1,11 +1,24 @@
 {
   "Cash": 100000,
-  "Position": null,
+  "Position": {
+    "Symbol": "NSE:NIFTY2681824300PE",
+    "Strike": 24300,
+    "Option Type": "PE",
+    "Entry Time": "2026-08-17 03:47:02",
+    "Entry Spot": 24296.45,
+    "Entry Premium": 60.6,
+    "Entry PCR": 1.2681,
+    "Lots": 22,
+    "Quantity": 1650,
+    "Capital Deployed": 99990.0,
+    "Last Premium": 60.6,
+    "Last Checked": "2026-08-17 03:47:02"
+  },
   "Closed Trades": [],
   "Last Chain Snapshot": {
-    "spot": 24305.45,
-    "pcr": 1.418992718446602,
-    "total_volume": 79517425
+    "spot": 24294.8,
+    "pcr": 1.2680529721972595,
+    "total_volume": 126292140
   },
   "Data Source": "Fyers (real premium)",
   "Strategy": "pcr_vix_combo",
