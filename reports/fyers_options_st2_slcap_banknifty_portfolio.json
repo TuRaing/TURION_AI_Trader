@@ -1,6 +1,19 @@
 {
   "Cash": 100000,
-  "Position": null,
+  "Position": {
+    "Symbol": "NSE:BANKNIFTY26AUG57300PE",
+    "Strike": 57300,
+    "Option Type": "PE",
+    "Entry Time": "2026-08-17 03:46:06",
+    "Entry Spot": 57263.25,
+    "Entry Premium": 384.55,
+    "Entry RSI": 18.5,
+    "Lots": 8,
+    "Quantity": 240,
+    "Capital Deployed": 92292.0,
+    "Last Premium": 384.55,
+    "Last Checked": "2026-08-17 03:46:06"
+  },
   "Closed Trades": [],
   "Data Source": "Fyers (real premium)",
   "Strategy": "st2_slcap",
