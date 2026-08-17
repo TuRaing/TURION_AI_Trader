@@ -225,4 +225,41 @@ started coming in.
    accumulate (user's own plan: revisit this evening after today's
    full session is a 7th data point, and again as more days come in).
 
+✅ Live-day re-check a few hours later (13:14 IST, ~4 hours into
+   trading): 471 closed trades so far today, total realized Rs
+   +6,80,877 (up sharply from the +56,114 seen at 9:50 IST), overall
+   win rate 49.9%. Market direction flipped from the morning - all 12
+   open positions at this check were CE (bullish), vs the morning's
+   all-PE pattern - consistent with RSI turning >=50 in the afternoon.
+   oi_footprint stayed negative on both indices (NIFTY -27,084,
+   BankNifty -7,882) while the RSI/slcap family kept compounding
+   large gains (simple_st1_slcap/NIFTY +1,49,327, simple_st1/NIFTY
+   +1,32,208, st3_slcap/NIFTY +1,31,972).
+
+✅ User asked directly: "आपला SL 2% आहे पण काही ठिकाणी 10%, 15% SL
+   trigger झालाय, check करतोस का" - checked properly rather than
+   dismissing it. Pulled every Stop-Loss exit today and computed
+   |Net PnL %| for the plain-%, hybrid-2%, and rupee-1500 books (vix_
+   filter, gapfill, credit_spread excluded - they use spot/ATR/credit-
+   multiple exit rules, not a %-of-capital or flat-rupee cap, so
+   "overshoot vs a %% cap" isn't a meaningful comparison for them).
+   Worst individual case: simple_st1/NIFTY, intended 3% (Rs 3,000),
+   actual -26.91% (Rs 26,911) - a 9x overshoot. st2/NIFTY (intended
+   2%) and st3_slcap/NIFTY (intended hybrid 2%) both hit ~14% actual
+   (7x overshoot) on separate trades. Then quantified the FULL scale
+   across all 234 overshooting Stop-Loss exits today (comparable
+   books only): total actual SL-exit loss Rs 11,01,839 vs Rs 4,90,222
+   if every SL had capped exactly at its intended level - TOTAL
+   OVERSHOOT = Rs 6,11,617, more than HALF of today's entire realized
+   Stop-Loss loss. ROOT CAUSE (same as the already-documented 14-Aug
+   finding, not new): checks run only every ~1 min (GitHub Actions +
+   cron-job.org throttling) - in a fast-moving session like today's
+   afternoon, premium can move well past the intended cap between
+   checks before the bot catches and closes it. This directly connects
+   to the already-filed, NOT-YET-BUILT Priority-1 mitigation from the
+   14-Aug CIRCUIT-BREAKER PROTECTION IDEAS entry: a real broker-side
+   Stop-Loss order (Fyers GTT/SL-M) instead of pure software polling.
+   Full numbers in PROJECT_STATUS.md's "17-AUG LIVE SL-OVERSHOOT
+   QUANTIFIED" entry. Analysis only - no code changed.
+
 ==================================================

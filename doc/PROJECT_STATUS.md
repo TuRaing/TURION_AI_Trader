@@ -5834,6 +5834,73 @@ point) and periodically after. No code changed, no filter built.
 
 ==================================================
 
+17-AUG LIVE SL-OVERSHOOT QUANTIFIED - Rs 6,11,617 IN ONE DAY (17-Aug)
+- follow-up live-day re-check at 13:14 IST (~4 hours into trading)
+first: 471 closed trades so far, total realized Rs +6,80,877 (sharply
+up from +56,114 at 9:50 IST), win rate 49.9%. Market direction
+flipped from the morning's all-PE pattern - all 12 open positions at
+this check were CE, consistent with RSI turning bullish (>=50) in the
+afternoon. oi_footprint stayed negative both indices (NIFTY -27,084,
+BankNifty -7,882) while the RSI/slcap family kept compounding large
+gains (simple_st1_slcap/NIFTY +1,49,327, simple_st1/NIFTY +1,32,208,
+st3_slcap/NIFTY +1,31,972).
+
+USER'S DIRECT QUESTION: "आपला SL 2% आहे पण काही ठिकाणी 10%, 15% SL
+trigger झालाय, check करतोस का" - checked with real numbers rather than
+a general answer. Pulled every Stop-Loss exit today and computed each
+one's |Net PnL %| against that book's own intended cap:
+
+  - PLAIN %-based books (simple_st1 3%, simple_st1_threshold 3%, st2
+    2%, st2_threshold 2%, st3 5%, st3_threshold 5%, st4/st4_threshold
+    3% initial-phase) - intended cap = initial_capital x pct%.
+  - HYBRID 2%-cap books (all _slcap variants, oi_hybrid_sl and its 5
+    oi_footprint-variant siblings) - intended cap = min(initial_
+    capital x 2%, that trade's own deployed capital x 2%), same
+    formula as _hybrid_stop_loss_cap() in fyers_options_engine.py.
+  - RUPEE-fixed books (oi_footprint, oi_iv_combo, pcr_momentum,
+    max_pain_drift, pcr_vix_combo) - intended cap = Rs 1,500 flat.
+  - EXCLUDED as not comparable: vix_filter (spot/ATR-based target),
+    gapfill/gapfill_threshold (spot-based, previous-close/ATR),
+    credit_spread (cost-to-close vs 2x entry credit, a different
+    mechanism entirely) - none of these use a %-of-capital or flat-
+    rupee premium cap, so "overshoot vs a % cap" isn't a meaningful
+    comparison for them; their real PnL today is still real, just not
+    included in this specific quantification.
+
+WORST INDIVIDUAL CASES: simple_st1/NIFTY, intended Rs 3,000 (3%),
+actual Rs 26,911 (26.91%) - a 9x overshoot on one trade. st2/NIFTY
+(intended Rs 2,000) and st3_slcap/NIFTY (intended hybrid ~Rs 2,000)
+both had separate trades hit ~Rs 14,000+ (~14%, a 7x overshoot).
+
+FULL SCALE, ALL comparable books today: 234 Stop-Loss exits
+overshot their intended cap. Total actual Stop-Loss-exit loss Rs
+11,01,839; total INTENDED Stop-Loss loss if every one had capped
+exactly at its own rule Rs 4,90,222. TOTAL OVERSHOOT = Rs 6,11,617 -
+more than HALF of today's entire realized Stop-Loss loss was pure
+overshoot beyond what each book's own rule was designed to allow.
+
+ROOT CAUSE - not a new finding, the same mechanism already documented
+14-Aug (see CIRCUIT-BREAKER PROTECTION IDEAS entry above): checks run
+only every ~1 minute (GitHub Actions triggered via cron-job.org,
+itself throttled), so in a fast-moving session like today's afternoon
+the premium can move well past a book's intended cap between two
+checks before the bot catches up and closes the position. Today is
+the first time this project has quantified the REAL rupee scale of
+that gap on a single live day (Rs 6,11,617) rather than a retrospective
+estimate - directly reinforces that the already-filed, NOT-YET-BUILT
+Priority-1 mitigation (a real broker-side Stop-Loss order - Fyers GTT
+/ SL-M - instead of pure software polling) is the correct next
+infrastructure priority, not a tuning change to any strategy's Target/
+SL percentages themselves (those are fine; the EXECUTION of them is
+what's failing).
+
+CONCLUSION: analysis only, no code changed. The fix (broker-side SL
+order) was already identified and prioritized 14-Aug but never built
+or live-tested - today's real number gives it concrete, measured
+weight rather than a theoretical justification.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
