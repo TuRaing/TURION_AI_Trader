@@ -1,4 +1,5 @@
 from strategy.fyers_options_collector import snapshot as collect_options_snapshot
+from strategy.fyers_depth_collector import snapshot as collect_depth_snapshot
 from strategy.fyers_options_paper_trading import check_or_open as check_options_position
 from strategy.fyers_paper_trading import run_watchlist_paper_trading
 from fyers_daily_best_trade import main as run_best_trade_check
@@ -45,6 +46,26 @@ def run_options_snapshot():
         print(f"Options snapshot failed (continuing): {error}")
 
 
+def run_depth_snapshot():
+
+    # Added 17-Aug-2026 - same cadence as run_options_snapshot() (both
+    # called together every 5 min from fyers_scheduled_run.py), same
+    # try/except-and-continue shape. Deliberately lightweight (only 6
+    # API calls per run - ATM CE+PE depth x 2 indices, plus the 2 chain
+    # calls to locate ATM) - checked against Fyers' real documented
+    # quota (100,000/day, 200/min) before wiring this in: at 5-min
+    # cadence this adds ~450 calls/day, under 0.5% of the daily budget,
+    # not the actual cause of 17-Aug's API-limit-exceeded incident
+    # (that was live-trading check volume on an unusually high-volume
+    # 676-trade day - see PROJECT_STATUS.md).
+    print("\n--- Options depth snapshot ---")
+    try:
+        count = collect_depth_snapshot()
+        print(f"Wrote {count} depth records.")
+    except Exception as error:
+        print(f"Depth snapshot failed (continuing): {error}")
+
+
 def run_swing_and_intraday():
 
     print("\n--- Swing (Watchlist) paper trading ---")
@@ -67,5 +88,6 @@ def run_swing_and_intraday():
 def run_all_tasks():
 
     run_options_snapshot()
+    run_depth_snapshot()
     run_options_check()
     run_swing_and_intraday()

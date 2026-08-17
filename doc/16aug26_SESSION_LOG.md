@@ -417,4 +417,27 @@ started coming in.
    exhausted today - see the SL-overshoot entry). First real run
    should be treated as a verification run, not assumed correct.
 
+✅ User asked how long real depth-slippage measurement would take, and
+   separately asked to wire the collector into an automatic trigger
+   after checking the real API-quota impact first (not guessing).
+   Checked Fyers' actual documented rate limits via real web search:
+   10/sec, 200/min, 1,00,000/day. Traced how the existing premium
+   collector already gets its own real cadence (fyers_scheduled_run.py,
+   triggered every 5 min via fyers_scheduled_check.yml -> cron-job.org
+   - confirmed via the real data: 655 unique snapshot timestamps across
+   ~9-10 real trading days = ~65-70/day). Estimated the depth collector
+   would need a similar ~7-10 real trading days at that same cadence to
+   reach a comparable sample size to today's spread analysis, and would
+   add only ~450 calls/day (6 calls x ~75 runs/day) - under 0.5% of the
+   daily quota, not a meaningful contributor to today's API-limit
+   incident (that was live-trading check volume on an unusually heavy
+   676-trade day). WIRED IN: added run_depth_snapshot() to strategy/
+   fyers_daily_tasks.py (same try/except-and-continue shape as run_
+   options_snapshot()), called it from fyers_scheduled_run.py's main()
+   right alongside the existing premium snapshot call, and from run_
+   all_tasks(). No new workflow file needed - rides the existing 5-min
+   trigger. 389/389 tests still passing (no new tests needed - this is
+   thin wiring calling already-tested/collector code, matching this
+   project's own established scope for orchestration scripts).
+
 ==================================================

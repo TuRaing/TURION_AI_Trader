@@ -6083,6 +6083,34 @@ reopens) should be treated as a VERIFICATION run, not assumed correct
 unexpected shape) specifically so a wrong assumption fails safely
 instead of silently writing garbage data.
 
+DEPTH COLLECTOR WIRED INTO THE EXISTING 5-MIN TRIGGER, same day
+follow-up: user asked how long real measurement would take, then to
+wire it up automatically but only after checking the real API-quota
+impact first. Checked Fyers' actual documented rate limits (real web
+search, not guessed): 10/sec, 200/min, 1,00,000/day. Confirmed how the
+existing premium collector already runs automatically (fyers_
+scheduled_run.py, every 5 min via fyers_scheduled_check.yml -> cron-
+job.org) by reading its own real data: 655 unique snapshot timestamps
+across ~9-10 real trading days = ~65-70/day. Estimated the depth
+collector needs a similar ~7-10 real trading days at that cadence for
+a comparable sample size to today's spread analysis, adding only ~450
+calls/day (6 calls x ~75 runs/day) - under 0.5% of the daily quota,
+confirming it is NOT a meaningful contributor to today's API-limit
+incident (that was live-trading check volume on an unusually heavy
+676-trade day).
+
+WIRED: added run_depth_snapshot() to strategy/fyers_daily_tasks.py
+(same try/except-and-continue shape as run_options_snapshot()), called
+from fyers_scheduled_run.py's main() alongside the existing premium
+snapshot call, and from run_all_tasks(). No new workflow/cron job
+needed - rides the already-working 5-min trigger. 389/389 tests still
+passing (no new tests - thin orchestration wiring calling already-
+tested collector code, matching this project's established scope for
+these thin scripts). Real depth data collection starts automatically
+from tomorrow's market open, no further action needed - the honest
+"first run is a verification run" caveat from the entry above still
+applies to whether the response parses correctly.
+
 ==================================================
 
 DEVELOPMENT RULES

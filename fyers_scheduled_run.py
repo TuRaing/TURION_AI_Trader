@@ -3,7 +3,7 @@ import sys
 sys.stdout.reconfigure(encoding="utf-8")
 
 from strategy.fyers_auth import verify_connection
-from strategy.fyers_daily_tasks import run_options_snapshot, run_swing_and_intraday
+from strategy.fyers_daily_tasks import run_options_snapshot, run_depth_snapshot, run_swing_and_intraday
 
 # Added 05-Aug-2026, split further same day - runs every 5 min through
 # market hours (via an external cron-job.org trigger -> .github/
@@ -17,6 +17,12 @@ from strategy.fyers_daily_tasks import run_options_snapshot, run_swing_and_intra
 # timeframes. If the token is missing/expired, verify_connection()
 # fails and this exits cleanly rather than running against a dead
 # token and generating confusing downstream errors.
+#
+# run_depth_snapshot() added 17-Aug-2026, same 5-min cadence, same
+# "doesn't need to be as frequent as position checks" reasoning as
+# run_options_snapshot() - see strategy/fyers_daily_tasks.py's comment
+# for the real Fyers rate-limit math (adds ~450 calls/day, under 0.5%
+# of the 1,00,000/day quota).
 
 
 def main():
@@ -28,6 +34,7 @@ def main():
         sys.exit(0)
 
     run_options_snapshot()
+    run_depth_snapshot()
     run_swing_and_intraday()
 
 
