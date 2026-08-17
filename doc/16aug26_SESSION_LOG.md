@@ -363,4 +363,58 @@ started coming in.
    threshold_slcap index visibility live in the app, not just in the
    backend.
 
+✅ User asked directly which of the 8 real F&O cost components (Gross
+   Profit - Brokerage - STT - Exchange charges - GST - Stamp duty -
+   Slippage - Spread) the paper-trading cost model already covers.
+   Read strategy/options_transaction_costs.py fully: 6 of 8 (Brokerage,
+   STT, Exchange charges, GST, Stamp duty, plus SEBI charges as a
+   bonus not in the user's list) are already real, correctly modeled.
+   Slippage and Spread were NOT modeled - the engine fills at LTP (or
+   bid-ask midpoint), never accounting for the real cost of crossing
+   the spread.
+
+✅ "पण खरा spread कसा मोजायचा" - found the raw data to measure it
+   ALREADY EXISTS: reports/options_premium_history.jsonl (a separate
+   collector, running since 04-Aug, 28,820 real Bid/Ask/LTP snapshots)
+   was never analyzed for spread before. Computed it directly: real
+   median spread is NIFTY 0.26%, BANKNIFTY 0.31% of premium (p90 under
+   ~1.3%, p99 up to ~3.3-3.8%) - comfortably below the ~1-1.3% break-
+   even threshold found in 15-Aug's theoretical slippage stress-test,
+   good news for typical conditions. User said add it - added
+   SPREAD_COST_PCT_NIFTY/BANKNIFTY constants + an opt-in `spread_pct`
+   param to calculate_options_round_trip_cost() (default None, zero
+   change to any existing book, same opt-in pattern as every other
+   addition today). User was asked whether to turn it on for the 63
+   live books now or keep it as a tool for the new VPS/WebSocket work
+   only - dismissed the question (no decision), then separately said
+   "vps paper trading साठी वापर" - resolved: NOT applied to the 63
+   existing books, will be used in the new event-driven engine instead.
+
+✅ Slippage clarified as TWO separate things, not one: (1) timing/
+   latency slippage (price moving between decision and fill) - this
+   IS already measured, it's the SAME thing as today's Rs 10,34,598
+   SL-overshoot finding, and already has a planned fix (the VPS/
+   WebSocket rewrite). (2) market-depth/order-size slippage (a real
+   order exceeding what's resting at the best price, forced to fill
+   worse) - genuinely unmeasured, needs real order-book depth data
+   this project has never fetched. Researched Fyers' actual /depth
+   API via real web search (not guessed) - confirmed it exists,
+   returns real 5-level bid/ask depth (price/volume/order-count per
+   level) plus totalbuyqty/totalsellqty, same base URL pattern this
+   project's /quotes and /options-chain-v3 already use. Built a NEW,
+   separate collector (strategy/fyers_depth_collector.py, never
+   touches fyers_options_collector.py) - snapshots ATM CE+PE depth for
+   both indices into reports/options_depth_history.jsonl, API-quota-
+   conscious (4 depth calls + 2 chain calls per run, matching today's
+   real API-limit lesson), not wired into any cron trigger yet
+   (manual-run, matching the existing premium collector's own nature).
+   6 new tests for the one pure/testable function (_parse_depth_
+   response) - 389/389 passing overall. HONEST CAVEAT: Fyers' own docs
+   never published a complete raw JSON example for /depth - parsing
+   assumes the same envelope shape already verified working for the
+   sibling /quotes endpoint, but could NOT be live-tested before
+   committing (local token expired AND Fyers' daily quota was
+   exhausted today - see the SL-overshoot entry). First real run
+   should be treated as a verification run, not assumed correct.
+
 ==================================================

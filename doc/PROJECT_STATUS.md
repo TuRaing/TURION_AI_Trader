@@ -6004,6 +6004,87 @@ committed to the backend.
 
 ==================================================
 
+REAL SPREAD MEASURED FROM COLLECTED DATA + MARKET-DEPTH COLLECTOR
+BUILT (17-Aug) - user asked which of the 8 real F&O cost components
+(Gross Profit - Brokerage - STT - Exchange charges - GST - Stamp duty
+- Slippage - Spread) strategy/options_transaction_costs.py already
+models. Read it fully: Brokerage, STT, Exchange charges, GST, Stamp
+duty are real and correct (plus SEBI charges, a bonus not asked
+about) - 6 of 8. Slippage and Spread were NOT modeled - the engine
+fills at LTP (or bid-ask midpoint), never paying the real cost of
+crossing the spread.
+
+REAL SPREAD MEASURED (not assumed): user asked how to actually
+measure real spread. Found the raw data already exists and was never
+analyzed - reports/options_premium_history.jsonl, a separate collector
+running since 04-Aug (strategy/fyers_options_collector.py), 28,820
+real Bid/Ask/LTP snapshots. Computed directly: median spread NIFTY
+0.26%, BANKNIFTY 0.31% of premium (p90 <~1.3%, p99 up to ~3.3-3.8%) -
+comfortably under the ~1-1.3% breakeven threshold found in 15-Aug's
+theoretical slippage stress-test (POSITION-SIZE-CAP "SLIPPAGE
+PROTECTION" entry above) - reassuring for typical conditions, though
+the rare tail can still exceed it.
+
+Added SPREAD_COST_PCT_NIFTY=0.26 / SPREAD_COST_PCT_BANKNIFTY=0.31 to
+strategy/options_transaction_costs.py, plus an opt-in `spread_pct`
+parameter on calculate_options_round_trip_cost() (default None - zero
+change to any of the 63 existing books' cost basis, same opt-in
+pattern as every other addition today - hybrid_sl_cap_pct/daily_
+profit_lock_pct/trailing_min_pct). User asked whether to turn it on
+for the 63 live books now (more realistic Net PnL going forward, but
+breaks continuity with their own past history) or keep it available
+only for new work - user's answer: NOT applied to the existing books,
+reserved for the upcoming VPS/WebSocket event-driven engine instead.
+
+SLIPPAGE IS TWO SEPARATE THINGS, clarified: (1) timing/latency
+slippage (price moving between decision and fill, due to the ~1-min
+polling gap) - this is NOT a new thing to add, it IS today's Rs
+10,34,598 SL-overshoot finding (see the entry above) - already
+measured, already has a planned fix (the VPS/WebSocket rewrite, in
+progress). (2) market-depth/order-size slippage (a real order larger
+than what's resting at the best price, forced to fill at worse
+levels) - genuinely unmeasured, this project has never fetched real
+order-book depth data before.
+
+MARKET-DEPTH API RESEARCHED (real web search, not guessed - see
+sources below): confirmed Fyers v3 has a /depth REST endpoint (same
+https://api-t1.fyers.in/data base this project's /quotes and
+/options-chain-v3 already use), returning real 5-level bid/ask depth
+(price, volume, order-count per level) plus totalbuyqty/totalsellqty.
+Sources: pkg.go.dev/github.com/dragonzurfer/fyersgo/api, pkg.go.dev/
+github.com/nihalsuthar/fyers-go-sdk/fyers_api, support.fyers.in's
+Market Depth API article, github.com/sunnysaxena/Extract-data-from-
+fyers-api.
+
+BUILT: strategy/fyers_depth_collector.py - a NEW, separate collector
+(fyers_options_collector.py untouched, per "never modify a working
+module"). snapshot() fetches the ATM CE+PE leg's real depth for both
+indices (same ATM formula as fyers_options_engine.py's _pick_atm_leg)
+and appends to reports/options_depth_history.jsonl. API-quota-
+conscious by design (4 depth calls + 2 chain calls per run, only ATM,
+not the full 5-strike chain) - explicitly NOT wired into any cron
+trigger yet, matching today's real API-limit lesson and the existing
+premium collector's own manual-run nature. 6 new tests for the one
+pure/testable function (_parse_depth_response) - 389/389 passing.
+
+HONEST CAVEAT, not glossed over: Fyers' own documentation never
+published a complete raw JSON response example for /depth - only the
+inner field names, confirmed via community/SDK sources, not a live
+response sample. The collector's parsing assumes the same outer
+envelope shape (`{"s":"ok","d":[{"n":symbol,"v":{...}}]}`) already
+verified working for the sibling /quotes endpoint in this exact
+codebase - a reasoned assumption, not a confirmed one. COULD NOT be
+live-tested before committing - the local session's Fyers token is
+expired AND Fyers' own daily API quota was exhausted today (same
+issue as the cron-trigger investigation above), both blocking any
+real call right now. The first real run (once quota resets, market
+reopens) should be treated as a VERIFICATION run, not assumed correct
+- parsing is defensive (prints raw response and skips cleanly on any
+unexpected shape) specifically so a wrong assumption fails safely
+instead of silently writing garbage data.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
