@@ -1,35 +1,15 @@
 {
-  "Generated At": "2026-08-17 04:43:27",
+  "Generated At": "2026-08-17 05:36:30",
   "Stocks": [
     {
       "Name": "TITAN",
       "Symbol": "TITAN.NS",
-      "Price": 5075.1,
+      "Price": 5082.1,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 80.0,
       "ATR": 98.2,
       "Candle Pattern": "Bullish Engulfing"
-    },
-    {
-      "Name": "EICHERMOT",
-      "Symbol": "EICHERMOT.NS",
-      "Price": 8103.0,
-      "Decision": "BUY",
-      "Bias": "Bullish",
-      "Confidence": 80.0,
-      "ATR": 138.48,
-      "Candle Pattern": "Bullish Engulfing"
-    },
-    {
-      "Name": "INFY",
-      "Symbol": "INFY.NS",
-      "Price": 1149.8,
-      "Decision": "BUY",
-      "Bias": "Bullish",
-      "Confidence": 60.0,
-      "ATR": 28.52,
-      "Candle Pattern": "No Pattern"
     },
     {
       "Name": "KOTAKBANK",
@@ -44,22 +24,42 @@
     {
       "Name": "ADANIPORTS",
       "Symbol": "ADANIPORTS.NS",
-      "Price": 1693.0,
+      "Price": 1683.0,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
-      "ATR": 36.71,
+      "ATR": 36.94,
+      "Candle Pattern": "No Pattern"
+    },
+    {
+      "Name": "GRASIM",
+      "Symbol": "GRASIM.NS",
+      "Price": 3246.7,
+      "Decision": "BUY",
+      "Bias": "Bullish",
+      "Confidence": 60.0,
+      "ATR": 88.45,
       "Candle Pattern": "No Pattern"
     },
     {
       "Name": "BRITANNIA",
       "Symbol": "BRITANNIA.NS",
-      "Price": 5517.5,
+      "Price": 5503.5,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 60.0,
-      "ATR": 109.06,
+      "ATR": 109.88,
       "Candle Pattern": "No Pattern"
+    },
+    {
+      "Name": "UPL",
+      "Symbol": "UPL.NS",
+      "Price": 565.5,
+      "Decision": "SELL",
+      "Bias": "Bearish",
+      "Confidence": 60.0,
+      "ATR": 12.19,
+      "Candle Pattern": "Doji"
     }
   ],
   "Options": [
@@ -67,8 +67,8 @@
       "Name": "NIFTY 50",
       "Bias": "Bullish",
       "Decision": "NO TRADE",
-      "Confidence": 28.0,
-      "Reason": "Price action Bullish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 28.0% is below the 60% threshold."
+      "Confidence": 14.0,
+      "Reason": "Price action Bullish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 14.0% is below the 60% threshold."
     },
     {
       "Name": "BANK NIFTY",
@@ -90,24 +90,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "EICHERMOT": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "INFY": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "KOTAKBANK": {
       "Headlines": [],
       "Positive": 0,
@@ -118,6 +100,15 @@
       "Confidence": 0.0
     },
     "ADANIPORTS": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "GRASIM": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -148,13 +139,11 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "HINDALCO": {
-      "Headlines": [
-        "Hindalco Share Price Live Updates: Hindalco Stock Details"
-      ],
+    "INFY": {
+      "Headlines": [],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 1,
+      "Neutral": 0,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -164,17 +153,6 @@
       "Positive": 0,
       "Negative": 0,
       "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "ITC": {
-      "Headlines": [
-        "ITC Share Price Live Updates: ITC Stock Details"
-      ],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 1,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -191,17 +169,37 @@
     "LT": {
       "Headlines": [
         "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
+        "NMDC shares decline 4% after Q1 results. Should you buy, sell or hold the stock?",
         "Voltas shares in focus after Q1 profit surges 52%. Buy, Sell or Hold?",
         "Max Healthcare among 4 F&amp;O stocks with sharp rise in futures OI",
+        "LTIMindtree Share Price Live Updates: LTIMindtree's Current Price and Market Performance",
         "Ashok Leyland shares rise 2% post Q1 results. What Citi and  Nomura suggest",
         "UltraTech Cem Share Price Live Updates: UltraTech Cement's Price Decline Below 100-Day SMA"
       ],
       "Positive": 3,
       "Negative": 1,
-      "Neutral": 1,
+      "Neutral": 3,
       "Sentiment": "Bullish",
       "Score": 0.5,
       "Confidence": 50.0
+    },
+    "BAJFINANCE": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "NTPC": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
     },
     "POWERGRID": {
       "Headlines": [],
@@ -248,9 +246,18 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "GRASIM": {
+    "EICHERMOT": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "HINDALCO": {
       "Headlines": [
-        "Grasim Inds Share Price Live Updates: Grasim Inds. Stock Details"
+        "Hindalco Share Price Live Updates: Hindalco Stock Details"
       ],
       "Positive": 0,
       "Negative": 0,
@@ -259,7 +266,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "HEROMOTOCO": {
+    "RELIANCE": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -273,6 +280,17 @@
       "Positive": 0,
       "Negative": 0,
       "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "ITC": {
+      "Headlines": [
+        "ITC Share Price Live Updates: ITC Stock Details"
+      ],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 1,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -295,11 +313,22 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "BAJFINANCE": {
+    "ASIANPAINT": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
       "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "MARUTI": {
+      "Headlines": [
+        "Maruti Suzuki Share Price Live Updates: Maruti Suzuki Stock Details"
+      ],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 1,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -322,15 +351,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "ULTRACEMCO": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "NESTLEIND": {
       "Headlines": [],
       "Positive": 0,
@@ -341,19 +361,12 @@
       "Confidence": 0.0
     },
     "ONGC": {
-      "Headlines": [],
+      "Headlines": [
+        "ONGC Share Price Live Updates: ONGC Stock Details"
+      ],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "NTPC": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
+      "Neutral": 1,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -404,6 +417,17 @@
       "Confidence": 0.0
     },
     "CIPLA": {
+      "Headlines": [
+        "Cipla Share Price Live Updates: Cipla's Price Movement Signals Weakness"
+      ],
+      "Positive": 0,
+      "Negative": 1,
+      "Neutral": 0,
+      "Sentiment": "Bearish",
+      "Score": -1.0,
+      "Confidence": 100.0
+    },
+    "HEROMOTOCO": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -430,18 +454,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "BPCL": {
-      "Headlines": [
-        "BPCL Share Price Live Updates: BPCL's beta value highlights investment considerations"
-      ],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 1,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "SHREECEM": {
+    "TECHM": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -450,7 +463,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "RELIANCE": {
+    "BPCL": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -479,22 +492,11 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "ASIANPAINT": {
+    "ULTRACEMCO": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
       "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "MARUTI": {
-      "Headlines": [
-        "Maruti Suzuki Share Price Live Updates: Maruti Suzuki Stock Details"
-      ],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 1,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -526,7 +528,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "TECHM": {
+    "SHREECEM": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -572,6 +574,22 @@
       "Sentiment": "Bullish"
     },
     {
+      "Headline": "NMDC shares decline 4% after Q1 results. Should you buy, sell or hold the stock?",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "How India's digital infrastructure opened global markets to Indian investors",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "PhysicsWallah shares rally 8% after Q1 loss narrows, revenue rises 24% YoY. Should you buy?",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "US Stock Market: Tiger Global trims big tech bets, adds AMD and SpaceX in Q2",
+      "Sentiment": "Neutral"
+    },
+    {
       "Headline": "Top Nifty50 stocks analysts suggest buying in this volatile week",
       "Sentiment": "Bullish"
     },
@@ -604,6 +622,10 @@
       "Sentiment": "Bullish"
     },
     {
+      "Headline": "LTIMindtree Share Price Live Updates: LTIMindtree's Current Price and Market Performance",
+      "Sentiment": "Neutral"
+    },
+    {
       "Headline": "LG Electronics among 6 stocks flashing bullish signals, hinting at a possible uptrend",
       "Sentiment": "Bullish"
     },
@@ -616,7 +638,7 @@
       "Sentiment": "Bullish"
     },
     {
-      "Headline": "Horizon Industrial Parks IPO opens today: Check GMP, price band and key details",
+      "Headline": "Horizon Industrial Parks\u2019 Rs 2,600 crore IPO opens. Check GMP, price band and other key details",
       "Sentiment": "Neutral"
     },
     {
@@ -644,6 +666,10 @@
       "Sentiment": "Bullish"
     },
     {
+      "Headline": "Tata Consumer Share Price Live Updates: Tata Consumer's Financial Snapshot",
+      "Sentiment": "Neutral"
+    },
+    {
       "Headline": "UPL Share Price Live Updates: UPL Experiences New 52-Week Low",
       "Sentiment": "Neutral"
     },
@@ -652,7 +678,23 @@
       "Sentiment": "Bullish"
     },
     {
+      "Headline": "ICICI Bank Share Price Live Updates: ICICI Bank's Market Movement Today",
+      "Sentiment": "Neutral"
+    },
+    {
       "Headline": "Maruti Suzuki Share Price Live Updates: Maruti Suzuki Stock Details",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "HUL Share Price Live Updates: HUL's Current Market Position",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Cipla Share Price Live Updates: Cipla's Price Movement Signals Weakness",
+      "Sentiment": "Bearish"
+    },
+    {
+      "Headline": "Tata Steel Share Price Live Updates: Tata Steel's Current Market Position",
       "Sentiment": "Neutral"
     },
     {
@@ -664,7 +706,11 @@
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "IndusInd Bank Share Price Live Updates: IndusInd Bank's beta highlights its risk profile",
+      "Headline": "ONGC Share Price Live Updates: ONGC Stock Details",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "IndusInd Bank Share Price Live Updates: IndusInd Bank's Price Movement and Returns",
       "Sentiment": "Neutral"
     },
     {
@@ -677,6 +723,14 @@
     },
     {
       "Headline": "Hindalco Share Price Live Updates: Hindalco Stock Details",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Infosys Share Price Live Updates: Infosys Price Decline Signals Below EMA",
+      "Sentiment": "Bearish"
+    },
+    {
+      "Headline": "RIL Share Price Live Updates: RIL's Recent Performance",
       "Sentiment": "Neutral"
     },
     {
@@ -702,58 +756,6 @@
     {
       "Headline": "UltraTech Cem Share Price Live Updates: UltraTech Cement's Price Decline Below 100-Day SMA",
       "Sentiment": "Bearish"
-    },
-    {
-      "Headline": "HDFC Bank Share Price Live Updates: HDFC Bank Stock Details",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Sun Pharma Share Price Live Updates: Sun Pharma's six-month beta reflects stability",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "SBI Life Share Price Live Updates: SBI Life's beta highlights its market positioning",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Grasim Inds Share Price Live Updates: Grasim Inds. Stock Details",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Axis Bank Share Price Live Updates: Axis Bank's Market Position Strengthens",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Asian Paints Share Price Live Updates: Asian Paints Stock Details",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Molbio Diagnostics shares list at 21% premium over IPO price on BSE, NSE",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Lalithaa Jewellery Mart's Rs 1,700-cr IPO opens: GMP signals 15% premium. Should you subscribe?",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Jio Financial Services Share Price Live Updates: Jio Financial Services Experiences Decline Below EMA",
-      "Sentiment": "Bearish"
-    },
-    {
-      "Headline": "SBI Share Price Live Updates: SBI Stock Details",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Power Grid Share Price Live Updates: Power Grid's Price Movement Today",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "BPCL Share Price Live Updates: BPCL's beta value highlights investment considerations",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "L&amp;T Share Price Live Updates: L&amp;T's Volatility Indicator",
-      "Sentiment": "Neutral"
     }
   ]
 }
