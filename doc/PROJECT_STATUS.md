@@ -5988,6 +5988,20 @@ trading was actually missed today. Pushing all of today's code (engine
 verify tomorrow, once both the market reopens and Fyers' daily quota
 resets.
 
+Pushed and confirmed on origin/main (git show origin/main:strategy/
+options_strategies.py now matches locally - resolves cause #1 above).
+
+MOBILE APP REBUILT + INSTALLED, same day: user asked to update the
+real app, not just source. `flutter build apk --release --dart-define=
+GITHUB_PAT="$GITHUB_PAT"` (this flag is REQUIRED - its omission is a
+recurring regression already hit twice before, 07-Aug and 14-Aug,
+checked correctly this time) - built clean, app-release.apk (49.3MB).
+No phone connected initially (`adb devices` empty); user connected it,
+`adb install -r` succeeded once detected (`ZD2222BC2Q`). The phone now
+actually has the 4 new Threshold Options books and the fixed st3_
+threshold_slcap/st2_threshold_slcap index visibility live, not just
+committed to the backend.
+
 ==================================================
 
 DEVELOPMENT RULES

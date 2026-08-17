@@ -347,4 +347,20 @@ started coming in.
    everything is live and ready for tomorrow's real test, once both
    the market reopens and Fyers' daily quota resets.
 
+✅ Code pushed and confirmed landed on origin/main (git show origin/
+   main:strategy/options_strategies.py now matches - the earlier
+   unpushed-code cause is resolved).
+
+✅ "mobile app update kar" - rebuilt and installed the real APK, not
+   just source. `flutter build apk --release --dart-define=GITHUB_PAT=
+   "$GITHUB_PAT"` (the PAT flag is REQUIRED or the Fyers login button
+   silently breaks - recurring regression first hit 07-Aug, again
+   14-Aug, checked correctly again this time) - built clean, app-
+   release.apk (49.3MB). No phone connected at first (`adb devices`
+   empty) - told the user, they connected it, re-checked (`ZD2222BC2Q`
+   appeared), then `adb install -r` succeeded. Phone now has the 4 new
+   Threshold Options books and the fixed st3_threshold_slcap/st2_
+   threshold_slcap index visibility live in the app, not just in the
+   backend.
+
 ==================================================
