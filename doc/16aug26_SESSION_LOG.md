@@ -135,3 +135,94 @@ NEW separate books (never modify a working module), matching the
 _slcap / oi_footprint-variant precedent exactly.
 
 ==================================================
+
+--------------------------------------------------
+
+Date
+
+17-Aug-2026
+
+--------------------------------------------------
+
+17-Aug Achievements
+
+Same continuing session (S20260816-001). No code changes - a login/
+sync check, then live-day monitoring and analysis as real trades
+started coming in.
+
+✅ Fyers login check, at the user's request: local session's own
+   verify_connection() call showed "token expired" (code -8) - but
+   traced this to a LOCAL-ONLY problem, not a real login failure. The
+   local .env's FYERS_ACCESS_TOKEN was last written 06-Aug (11 days
+   stale) - the mobile/desktop app's login button updates the GitHub
+   Actions secret directly, never this local session's .env file.
+   Confirmed via the GitHub Actions API directly (not guessing) that
+   the REAL login (the one that matters - cron-triggered live paper
+   trading) succeeded: today's 08:37 IST workflow run log showed
+   FYERS_ACCESS_TOKEN accepted with no error, correctly SKIPPED only
+   because market hadn't opened yet (before 9:15). Offered to also
+   refresh the local .env (would need the user to complete a real
+   browser login and paste back the redirected URL, since GitHub
+   Secrets can't be read back and Claude can't complete a Fyers login
+   itself) - user said leave it, not needed.
+
+✅ Also checked local git vs GitHub sync directly (git fetch + rev-
+   list) - found perfectly synced at that moment (0 ahead/0 behind).
+   Separately clarified the stray root-level TURION_Desktop.exe copy
+   (untracked, not gitignored since it sits outside build/dist/) -
+   user said leave it as-is, no .gitignore change made.
+
+✅ "आजचा trading analysis कर सगळ्या strategy" - ran a live check once
+   the market had been open ~35 minutes. First pass showed ZERO
+   trades - turned out the local clone was 514 commits behind origin/
+   main (GitHub Actions' own automated "Update multi-strategy options
+   portfolios [skip ci]" commits accumulate fast once the market is
+   open and every ~1-min cron check pushes). git pull brought local
+   current, then the real scan showed 144 real closed trades already
+   in ~35 minutes, total realized Rs +56,114 across all books (56
+   Target hits +Rs 4,25,910; 79 Stop-Loss -Rs 3,69,036; a few smaller
+   trailing/partial/indicator exits). Broke it down per book (best:
+   st2_threshold/NIFTY +22,285, simple_st1_threshold/NIFTY +19,212;
+   worst: oi_hybrid_sl_trailing/NIFTY -24,326, oi_hybrid_sl/NIFTY
+   -17,174, oi_footprint/NIFTY -11,110) and flagged that oi_footprint
+   - one of only 4 historically-profitable books - was having a bad
+   day on BOTH indices.
+
+✅ User asked directly why: "जी चांगली होती ती खराब झाली, जी खराब होती
+   ती चांगली" - pulled oi_footprint/NIFTY's actual trade-by-trade Entry
+   Spot/Exit Spot alongside simple_st1/NIFTY's, for the same morning
+   window. Found a real, numbers-backed explanation: NIFTY spot has
+   been range-bound all morning (~24,280-24,325, a ~45-point band) -
+   oi_footprint's OI-buildup signal (recomputed every ~1-min check)
+   flipped direction 5 times in 15 minutes (PE->CE->CE->CE->PE->PE),
+   including 3 CONSECUTIVE CE (bullish) bets while spot was flat-to-
+   down each time - a directional-prediction strategy getting whip-
+   sawed by a genuinely trendless market reading its own signal as
+   noise. simple_st1/NIFTY, by contrast, doesn't predict direction at
+   all - it just scalps ANY quick premium wiggle after entry (all 9
+   of its trades today were PE, RSI stayed persistently <50, but it
+   profited on wiggles either way) - exactly the shape of edge that
+   thrives in a choppy market. Explicitly flagged this as a snapshot
+   of TODAY'S regime, not a permanent verdict - a real trending day
+   would likely flip which family does better.
+
+✅ User asked if a choppiness filter is worth building for
+   oi_footprint. Rather than deciding from one day, ran a retrospective
+   check on oi_footprint/NIFTY's own 6 real prior trading days (10, 11,
+   12, 13, 14, 17-Aug): for each day, computed the day's own intraday
+   spot range (from real Entry/Exit Spot values already in the
+   portfolio JSON - no external API call possible anyway, since the
+   local session's Fyers token is expired) as a %, then correlated
+   against that day's real PnL. RESULT: correlation is weak (0.150)
+   and NOT consistent - 13-Aug had the NARROWEST range of all 6 days
+   (0.08%) yet was one of the BEST days (100% win rate, +Rs 11,302),
+   directly contradicting the "choppy = bad for oi_footprint"
+   hypothesis that today's single bad day suggested. CONCLUSION: not
+   enough real evidence yet to justify building a choppiness filter -
+   only 6 real trading days, with one clear counter-example. Matches
+   the user's own standing preference to wait for more real data
+   before adding new gates. Filed for a re-check once more days
+   accumulate (user's own plan: revisit this evening after today's
+   full session is a 7th data point, and again as more days come in).
+
+==================================================
