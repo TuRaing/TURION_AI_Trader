@@ -1,9 +1,11 @@
+import os
 import sys
 
 sys.stdout.reconfigure(encoding="utf-8")
 
 from report.firebase_realtime_sync import fetch_access_token
 from strategy.event_driven_runner import main as run_event_driven_engine
+from strategy.execution_backend import resolve_execution_backend
 
 # Added 18-Aug-2026 - the VPS entry point for tonight's WebSocket
 # event-driven engine (strategy/event_driven_runner.py). Same "top-
@@ -28,9 +30,21 @@ from strategy.event_driven_runner import main as run_event_driven_engine
 # configured Firebase Realtime Database, and a real live connection
 # attempt - none of which exist yet (see strategy/event_driven_
 # runner.py and live_tick_harness.py's own matching caveats).
+#
+# TURION_EXECUTION_MODE - added 18-Aug-2026, at the user's request:
+# resolved HERE (this is the "top-level script resolves real config"
+# half of the split described above), so going from paper to real
+# (live) trading later needs only this one env var changed on the VPS
+# - no code in strategy/event_driven_runner.py, event_driven_engine.py,
+# or live_tick_harness.py ever needs to change. Defaults to "paper" if
+# unset. See strategy/execution_backend.py's module docstring - "live"
+# deliberately isn't built yet and raises a clear error rather than
+# silently running as paper or crashing unexplained.
 
 
 def main():
+
+    execution_backend = resolve_execution_backend(os.environ.get("TURION_EXECUTION_MODE", "paper"))
 
     access_token = fetch_access_token()
 
@@ -40,7 +54,7 @@ def main():
         sys.exit(0)
 
     print("Got today's access_token via Firebase - starting the event-driven engine...")
-    run_event_driven_engine(access_token)
+    run_event_driven_engine(access_token, execution_backend)
 
 
 if __name__ == "__main__":

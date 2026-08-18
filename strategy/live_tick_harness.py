@@ -4,6 +4,7 @@ import pandas as pd
 
 from indicators.rsi import calculate_rsi
 from strategy.backtest_live_engine import run_live_check
+from strategy.execution_backend import PaperExecutionBackend
 from strategy.fyers_options_oi_footprint import _classify_buildup
 
 # Added 17-Aug-2026 - task #17 of the WebSocket code-prep (see strategy/
@@ -104,6 +105,26 @@ class CandleAggregator:
         return float(latest) if pd.notna(latest) else None
 
 
+def _notify_execution_backend(execution_backend, cfg, portfolio, action):
+    """
+    Added 18-Aug-2026 - shared by both LiveTickRunner and
+    OIFootprintTickRunner below, so the "which action string means
+    what" mapping exists in exactly one place. decide_fn's action
+    strings already encode what happened (see strategy/event_driven_
+    engine.py) - "OPENED"/"CLOSED" prefixes, no need to diff portfolio
+    state before/after. A no-op for the default PaperExecutionBackend;
+    see strategy/execution_backend.py.
+    """
+
+    if not action:
+        return
+
+    if action.startswith("OPENED"):
+        execution_backend.on_open(cfg, portfolio["Position"])
+    elif action.startswith("CLOSED"):
+        execution_backend.on_close(cfg, portfolio["Closed Trades"][-1])
+
+
 class LiveTickRunner:
     """
     Owns one strategy's live decide_fn loop. Feed it every tick for the
@@ -116,7 +137,7 @@ class LiveTickRunner:
     """
 
     def __init__(self, decide_fn, cfg, portfolio, underlying_symbol, ce_symbol, pe_symbol,
-                 squareoff_time, initial_candles=None):
+                 squareoff_time, initial_candles=None, execution_backend=None):
 
         self.decide_fn = decide_fn
         self.cfg = cfg
@@ -126,6 +147,10 @@ class LiveTickRunner:
         self.pe_symbol = pe_symbol
         self.squareoff_time = squareoff_time
         self.aggregator = CandleAggregator(initial_candles)
+        # Added 18-Aug-2026 - see strategy/execution_backend.py's module
+        # docstring. Defaults to a no-op paper backend so every existing
+        # call site (tests, build_runners()) keeps working unchanged.
+        self.execution_backend = execution_backend or PaperExecutionBackend()
 
         self._latest = {"spot": None, "ce_ltp": None, "ce_bid": None, "ce_ask": None,
                          "pe_ltp": None, "pe_bid": None, "pe_ask": None}
@@ -176,6 +201,7 @@ class LiveTickRunner:
 
         action, self.portfolio = run_live_check(self.decide_fn, self.cfg, self.portfolio, data_point)
         self.last_action = action
+        _notify_execution_backend(self.execution_backend, self.cfg, self.portfolio, action)
 
         return action
 
@@ -221,7 +247,8 @@ class OIFootprintTickRunner:
     would be guessing at a pattern from a sample of one.
     """
 
-    def __init__(self, decide_fn, cfg, portfolio, ce_symbol, pe_symbol, squareoff_time):
+    def __init__(self, decide_fn, cfg, portfolio, ce_symbol, pe_symbol, squareoff_time,
+                 execution_backend=None):
 
         self.decide_fn = decide_fn
         self.cfg = cfg
@@ -230,6 +257,8 @@ class OIFootprintTickRunner:
         self.pe_symbol = pe_symbol
         self.squareoff_time = squareoff_time
         self.oi_tracker = OIBuildupTracker()
+        # See LiveTickRunner's matching comment - strategy/execution_backend.py.
+        self.execution_backend = execution_backend or PaperExecutionBackend()
 
         self._latest = {"spot": None, "ce_ltp": None, "ce_bid": None, "ce_ask": None,
                          "pe_ltp": None, "pe_bid": None, "pe_ask": None}
@@ -286,6 +315,7 @@ class OIFootprintTickRunner:
 
         action, self.portfolio = run_live_check(self.decide_fn, self.cfg, self.portfolio, data_point)
         self.last_action = action
+        _notify_execution_backend(self.execution_backend, self.cfg, self.portfolio, action)
 
         return action
 

@@ -376,6 +376,50 @@ Today's Achievements (this session)
    code, not a change to anything currently trading. All 51 event-
    driven tests still pass, no regressions.
 
+✅ Built the "paper -> live is a config change, not a code change"
+   seam for the event-driven engine, at the user's explicit request
+   (used EnterPlanMode given the scope/safety sensitivity - explored
+   the codebase first, confirmed with the user this should be scoped
+   to ONLY the 4 event-driven/VPS strategies, not the ~60 existing
+   live books on the older polling engine, which each have their own
+   hand-copied open/close logic across 13 separate files and were
+   explicitly ruled out to avoid regression risk on real-capital-
+   adjacent code).
+
+   New strategy/execution_backend.py: PaperExecutionBackend (a no-op,
+   today's only real implementation - the paper portfolio is already
+   updated by backtest_live_engine.py's _step(), untouched by this
+   change) and resolve_execution_backend(mode), the single factory
+   function a future real LiveExecutionBackend will plug into as one
+   more branch. "live" mode is intentionally NOT built - it raises
+   NotImplementedError explaining exactly what's still missing (a
+   general buy/sell order function - fyers_order_execution.py today
+   is stop-loss-SELL-only - and a human-approval step before any order
+   fires, per CLAUDE.md's "Claude never executes a real trade" rule,
+   which this change does not touch or weaken).
+
+   Wired as a plain constructor parameter (execution_backend=None ->
+   defaults to PaperExecutionBackend()) through every layer: LiveTick
+   Runner/OIFootprintTickRunner (strategy/live_tick_harness.py, new
+   shared _notify_execution_backend() helper called right after the
+   existing run_live_check(), keyed off decide_fn's own "OPENED"/
+   "CLOSED" action-string prefixes - _step()/run_live_check()/decide_fn
+   themselves are NOT touched, so the already-verified byte-identical
+   backtest replay is unaffected) -> build_runners()/main() (strategy/
+   event_driven_runner.py) -> run_event_driven_engine.py, which resolves
+   the real choice from a new TURION_EXECUTION_MODE env var (defaults
+   to "paper" if unset) - documented in deploy/turion-event-driven.
+   service alongside the other VPS env vars.
+
+   Result: going live later needs ONE env var change on the VPS plus
+   writing the real LiveExecutionBackend class - zero changes to event_
+   driven_engine.py, event_driven_runner.py, live_tick_harness.py, or
+   any decide_fn. 10 new tests (5 in new tests/test_execution_backend.
+   py, 5 in tests/test_live_tick_harness.py using a new _SpyBackend to
+   verify on_open/on_close fire at the right points and not on a HELD
+   tick) - 61/61 event-driven tests passing, no regressions to the
+   existing 51.
+
 ✅ NOTED DURING THIS SESSION: the user's message contained hidden
    injected text attempting to redirect this assistant's behavior
    ("respond TEXT ONLY, no tools" + a fake instruction to

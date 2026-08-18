@@ -115,6 +115,15 @@ User=turion
 # VPS once it exists.
 EnvironmentFile=/opt/turion/TURION_AI_Trader/.env
 
+# Added 18-Aug-2026 - paper vs live execution mode, resolved in run_
+# event_driven_engine.py via strategy/execution_backend.py. Defaults
+# to "paper" if unset entirely, so leaving this line commented out (as
+# it is today) is safe and explicit. "live" isn't built yet and will
+# raise a clear error rather than silently doing something unintended
+# - see execution_backend.py's module docstring for what "live" still
+# needs before it can exist.
+# Environment=TURION_EXECUTION_MODE=paper
+
 # Sends stdout/stderr to the systemd journal (journalctl -u ...)
 # instead of a separate log file - nothing extra to rotate; journald
 # handles rotation on its own.

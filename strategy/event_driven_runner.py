@@ -9,6 +9,7 @@ from strategy.event_driven_engine import (
     rsi_momentum_decide_fn, make_st2_threshold_event_cfg, make_simple_st1_threshold_event_cfg,
     oi_footprint_decide_fn, make_oi_footprint_event_cfg,
 )
+from strategy.execution_backend import PaperExecutionBackend
 from strategy.live_tick_harness import LiveTickRunner, OIFootprintTickRunner, handle_symbol_update_message
 
 # Added 18-Aug-2026 - the production entry point that ties together
@@ -163,7 +164,7 @@ class MultiStrategyRouter:
         return actions
 
 
-def build_runners():
+def build_runners(execution_backend=None):
     """
     Constructs today's 4 event-driven runners (2 LiveTickRunner for the
     RSI-momentum books, 2 OIFootprintTickRunner for oi_footprint), each
@@ -177,11 +178,17 @@ def build_runners():
     never unit-tested either) - but every piece it hands off to
     (decide_fn, runner classes, the router) already is.
 
+    execution_backend : defaults to None -> PaperExecutionBackend()
+        (strategy/execution_backend.py), same object passed to every
+        runner - see that module's docstring for why this exists.
+
     Returns
     -------
     router : MultiStrategyRouter
     runners : dict of {STRATEGY_NAMES key: runner instance}
     """
+
+    execution_backend = execution_backend or PaperExecutionBackend()
 
     router = MultiStrategyRouter()
     runners = {}
@@ -205,6 +212,7 @@ def build_runners():
             pe_symbol=pe_symbol,
             squareoff_time=SQUAREOFF_TIME,
             initial_candles=_seed_candles(index),
+            execution_backend=execution_backend,
         )
 
         router.register(index_cfg["underlying_symbol"], runner)
@@ -242,6 +250,7 @@ def build_runners():
             ce_symbol=ce_symbol,
             pe_symbol=pe_symbol,
             squareoff_time=SQUAREOFF_TIME,
+            execution_backend=execution_backend,
         )
 
         router.register(ce_symbol, runner)
@@ -338,7 +347,7 @@ def save_all(runners):
         sync_portfolio(name, runner.portfolio)
 
 
-def main(access_token):
+def main(access_token, execution_backend=None):
     """
     NOT LIVE-TESTED - see module docstring's caveats (no VPS, fyers_
     apiv3 not installed locally, real socket connection unverified).
@@ -347,12 +356,18 @@ def main(access_token):
     on_message callback, routed via MultiStrategyRouter instead of a
     single runner. Kept deliberately thin - all real logic lives in
     already-tested code this function only wires together.
+
+    execution_backend : defaults to None -> PaperExecutionBackend(),
+        forwarded straight to build_runners() - see strategy/
+        execution_backend.py's module docstring. run_event_driven_
+        engine.py (the VPS entry point) is what actually resolves
+        TURION_EXECUTION_MODE and passes the real object here.
     """
 
     from fyers_apiv3.FyersWebsocket import data_ws
     from report.push_notifier import send_push_notification
 
-    router, runners = build_runners()
+    router, runners = build_runners(execution_backend)
 
     _last_connection_alert = {"time": None}
 

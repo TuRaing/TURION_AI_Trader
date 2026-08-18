@@ -85,7 +85,22 @@ def _seeded_candles(n, start_price=100.0):
     return pd.DataFrame(rows, index=idx)
 
 
-def _runner(hybrid_sl_cap_pct=2.0, spread_pct=None):
+class _SpyBackend:
+    """Records on_open/on_close calls - isolates the execution_backend
+    wiring in live_tick_harness.py from any real broker/paper logic."""
+
+    def __init__(self):
+        self.opens = []
+        self.closes = []
+
+    def on_open(self, cfg, position):
+        self.opens.append((cfg, position))
+
+    def on_close(self, cfg, trade_record):
+        self.closes.append((cfg, trade_record))
+
+
+def _runner(hybrid_sl_cap_pct=2.0, spread_pct=None, execution_backend=None):
     cfg = make_st2_threshold_event_cfg(index="NIFTY", lot_size=75, initial_capital=100000,
                                         hybrid_sl_cap_pct=hybrid_sl_cap_pct, spread_pct=spread_pct)
     portfolio = {"Cash": 100000, "Position": None, "Closed Trades": []}
@@ -100,6 +115,7 @@ def _runner(hybrid_sl_cap_pct=2.0, spread_pct=None):
         pe_symbol="NSE:NIFTY2681824500PE",
         squareoff_time=(15, 15),
         initial_candles=seeded,
+        execution_backend=execution_backend,
     )
 
 
@@ -147,6 +163,54 @@ def test_full_open_then_target_close_sequence_via_ticks():
     assert runner.portfolio["Cash"] > 100000
 
 
+def test_open_notifies_execution_backend_on_open():
+    backend = _SpyBackend()
+    runner = _runner(execution_backend=backend)
+
+    runner.on_tick(runner.underlying_symbol, _ts(20), 24500.0)
+    runner.on_tick(runner.ce_symbol, _ts(20, 1), 100.0)  # opens CE
+
+    assert len(backend.opens) == 1
+    cfg, position = backend.opens[0]
+    assert position["Option Type"] == "CE"
+    assert len(backend.closes) == 0
+
+
+def test_target_close_notifies_execution_backend_on_close():
+    backend = _SpyBackend()
+    runner = _runner(execution_backend=backend)
+
+    runner.on_tick(runner.underlying_symbol, _ts(20), 24500.0)
+    runner.on_tick(runner.ce_symbol, _ts(20, 1), 100.0)  # opens CE
+    runner.on_tick(runner.ce_symbol, _ts(21), 115.0)  # jumps to Target
+
+    assert len(backend.closes) == 1
+    cfg, trade_record = backend.closes[0]
+    assert trade_record["Exit Reason"] == "Target"
+
+
+def test_held_tick_does_not_notify_execution_backend():
+    backend = _SpyBackend()
+    runner = _runner(execution_backend=backend)
+
+    runner.on_tick(runner.underlying_symbol, _ts(20), 24500.0)
+    runner.on_tick(runner.ce_symbol, _ts(20, 1), 100.0)  # opens CE
+    runner.on_tick(runner.ce_symbol, _ts(20, 30), 101.0)  # neither Target nor SL - HELD
+
+    assert len(backend.opens) == 1  # only the original open
+    assert len(backend.closes) == 0
+
+
+def test_runner_without_a_backend_defaults_to_a_working_no_op():
+    # No execution_backend passed - must not raise (PaperExecutionBackend default).
+    runner = _runner()
+
+    runner.on_tick(runner.underlying_symbol, _ts(20), 24500.0)
+    action = runner.on_tick(runner.ce_symbol, _ts(20, 1), 100.0)
+
+    assert "OPENED CE" in action
+
+
 def test_past_squareoff_is_computed_from_tick_timestamp():
     runner = _runner()
 
@@ -188,7 +252,7 @@ def test_oi_tracker_no_signal_on_strike_change():
     assert signal is None
 
 
-def _oi_runner():
+def _oi_runner(execution_backend=None):
     cfg = make_oi_footprint_event_cfg(index="NIFTY", lot_size=75, initial_capital=100000)
     portfolio = {"Cash": 100000, "Position": None, "Closed Trades": []}
 
@@ -199,6 +263,7 @@ def _oi_runner():
         ce_symbol="NSE:NIFTY2681824500CE",
         pe_symbol="NSE:NIFTY2681824500PE",
         squareoff_time=(15, 15),
+        execution_backend=execution_backend,
     )
 
 
@@ -227,6 +292,23 @@ def test_oi_runner_full_signal_to_open_to_target_sequence():
     action = runner.on_tick(runner.ce_symbol, _ts(26), 62.0)
     assert "CLOSED (Target)" in action
     assert runner.portfolio["Cash"] > 100000
+
+
+def test_oi_runner_notifies_execution_backend_on_open_and_close():
+    backend = _SpyBackend()
+    runner = _oi_runner(execution_backend=backend)
+
+    runner.on_oi_snapshot(_ts(20), spot=24500, strike=24500, ce_oi=100000, pe_oi=90000)
+    runner.on_oi_snapshot(_ts(25), spot=24520, strike=24500, ce_oi=115000, pe_oi=100000)
+    runner.on_tick(runner.ce_symbol, _ts(25, 30), 60.0)  # opens CE
+
+    assert len(backend.opens) == 1
+    assert backend.opens[0][1]["Option Type"] == "CE"
+
+    runner.on_tick(runner.ce_symbol, _ts(26), 62.0)  # Target close
+
+    assert len(backend.closes) == 1
+    assert backend.closes[0][1]["Exit Reason"] == "Target"
 
 
 # --- handle_symbol_update_message() - the one piece of connect_and_run()
