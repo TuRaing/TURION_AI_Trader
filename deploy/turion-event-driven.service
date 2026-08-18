@@ -1,0 +1,80 @@
+# Added 18-Aug-2026 - systemd unit for running run_event_driven_engine.py
+# continuously on the (future) VPS, with auto-restart on crash and
+# auto-start on boot. Same "code-prep now, live-test later" status as
+# the rest of tonight's event-driven work (see run_event_driven_engine.
+# py, strategy/event_driven_runner.py, live_tick_harness.py) - this is
+# a config file, not Python/Dart, so there is no unit test for it
+# either way; it can only be checked for syntax, not actually run,
+# until a real Linux/systemd VPS exists.
+#
+# NOT LIVE-TESTED. The paths and user below are PLACEHOLDERS - fill in
+# the real ones once the VPS exists, then install with:
+#
+#   sudo cp deploy/turion-event-driven.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable turion-event-driven   # auto-start on boot
+#   sudo systemctl start turion-event-driven
+#
+# Useful commands once running:
+#   sudo systemctl status turion-event-driven   # is it up, last exit code
+#   journalctl -u turion-event-driven -f        # follow live logs
+#   sudo systemctl restart turion-event-driven  # manual restart
+#
+# Every day's access_token still arrives via Firebase Realtime Database
+# (see run_event_driven_engine.py) - this service does not need to be
+# restarted for a new token; it re-fetches at its own startup only, so
+# a fresh login each morning is a separate concern from this service
+# staying up. (Whether the engine should re-check Firebase intra-day
+# without a full process restart is an open question for when the VPS
+# actually exists - not decided yet.)
+
+[Unit]
+Description=TURION Event-Driven Options Engine (WebSocket, real-time)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+
+# PLACEHOLDER - set to wherever this repo is checked out on the VPS.
+WorkingDirectory=/opt/turion/TURION_AI_Trader
+
+# PLACEHOLDER - use the VPS's venv, not system python.
+ExecStart=/opt/turion/TURION_AI_Trader/venv/bin/python run_event_driven_engine.py
+
+# Crash (bad tick data, WebSocket drop the fyers_apiv3 client doesn't
+# recover from, etc.) restarts after a short delay rather than leaving
+# the engine down for the rest of the trading day. A clean exit code 0
+# (Firebase has no token yet - see run_event_driven_engine.py) is NOT
+# a crash and is intentionally NOT restarted by this policy; systemd
+# only restarts on failure, so a clean "nothing to do today" exit just
+# ends the unit until it's next started (manually, or via the timer/
+# cron approach if this ends up needing a daily kick - not decided).
+Restart=on-failure
+RestartSec=10
+
+# Caps restart attempts so a persistently-crashing engine doesn't spin
+# forever - 5 attempts within 5 minutes, then systemd gives up and the
+# unit needs a manual `systemctl restart` after the underlying issue
+# (bad credentials, Fyers API down, etc.) is fixed.
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+# PLACEHOLDER - a non-root service account, not root. Create with
+# `sudo useradd -r -s /usr/sbin/nologin turion` once the VPS exists.
+User=turion
+
+# PLACEHOLDER - secrets (none currently needed at this layer - the
+# access_token comes from Firebase, not an env var - but kept as a
+# placeholder in case a future FIREBASE_SERVICE_ACCOUNT path or similar
+# ends up read from the environment instead of a committed file).
+# EnvironmentFile=/opt/turion/TURION_AI_Trader/.env
+
+# Sends stdout/stderr to the systemd journal (journalctl -u ...)
+# instead of a separate log file - nothing extra to rotate; journald
+# handles rotation on its own.
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

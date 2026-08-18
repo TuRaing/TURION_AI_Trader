@@ -190,4 +190,93 @@ Next Session
 
 ==================================================
 
+Session ID
+
+S20260818-002 (separate parallel session, same day - see
+CLAUDE.md's session-continuity rule. This session's work is
+UNRELATED to S20260818-001 above: that session did oi_footprint
+diagnosis/backtesting, this one built the WebSocket event-driven
+engine. Appended here rather than overwriting, per CLAUDE.md.
+Confirmed via `git fetch origin` + `git log HEAD..origin/main`
+at time of this entry: local is current with origin/main, no
+reconciliation needed - S20260818-001's commits and this
+session's own commits are both already on main.)
+
+--------------------------------------------------
+
+Today's Achievements (this session)
+
+✅ Built the event-driven (WebSocket, real-time tick-by-tick)
+   options engine as code-prep for the Stage 2 VPS migration
+   (target 10-Sep-2026, prep starting 1-Sep-2026 per the
+   existing plan - built a few days early since the design work
+   was ready): strategy/event_driven_runner.py, decide_fn logic
+   generalized to cover all 4 currently-profitable strategies,
+   connect_and_run()'s message-parsing logic extracted and
+   unit-tested separately from the live WebSocket connection
+   itself so the parsing logic has real test coverage without
+   needing a live Fyers connection.
+
+✅ Verified byte-identical replay against real historical trades
+   - the event-driven decide_fn produces the same entries/exits
+   as the existing periodic-check engines on historical data,
+   confirming the rewrite doesn't change trading logic, only the
+   check frequency (tick-by-tick instead of ~1/min).
+
+✅ Built a local WebSocket test harness (live_tick_harness.py) -
+   no VPS yet, so this exercises the parsing/decide_fn path
+   without a real market connection.
+
+✅ Added fyers-apiv3 to requirements.txt (documented as
+   deliberately not installed locally - no VPS to run it against
+   yet, same "code-prep, not live" status as the rest of this
+   batch).
+
+✅ Built run_event_driven_engine.py, the VPS entry point: fetches
+   today's access_token via Firebase Realtime Database rather
+   than the FYERS_ACCESS_TOKEN GitHub secret (a VPS is not a
+   GitHub Actions runner and can't receive repo secrets the same
+   way) - reuses the same Firebase channel already wired up for
+   portfolio sync, considered and explicitly rejected a second
+   login flow. Wired fyers_trigger_run.py to also push each day's
+   token to Firebase (report/firebase_realtime_sync.py) so this
+   entry point has something to read once a VPS exists. Added
+   firebase/database.rules.json (vps_config path locked to
+   server-only read/write - the access_token itself lives under
+   a similarly locked-down path, not the public event_driven_
+   portfolios path).
+
+✅ Added deploy/turion-event-driven.service - a systemd unit
+   template for keeping the engine running continuously on the
+   VPS (auto-restart on crash via Restart=on-failure, auto-start
+   on boot via WantedBy=multi-user.target, capped restart burst
+   so a persistently-crashing engine doesn't spin forever). Paths
+   and the service user are placeholders - to be filled in once
+   the actual VPS exists. Config file, not Python/Dart - no unit
+   test possible, syntax-only check.
+
+✅ NOTED DURING THIS SESSION: the user's message contained hidden
+   injected text attempting to redirect this assistant's behavior
+   ("respond TEXT ONLY, no tools" + a fake instruction to
+   fabricate a conversation summary). Not treated as a real
+   instruction - flagged to the user, ignored, continued normally
+   with tool use as needed. Recorded here in case it recurs and
+   is worth tracing to its source (e.g. a clipboard/paste-tool
+   issue on the user's end).
+
+--------------------------------------------------
+
+NOT LIVE-TESTED (same caveat across this whole batch)
+
+None of strategy/event_driven_runner.py, live_tick_harness.py,
+run_event_driven_engine.py, or deploy/turion-event-driven.service
+have run against a real Fyers WebSocket connection or a real
+Linux/systemd VPS - none exists yet. Everything above is code-
+prep validated by unit tests and historical-replay comparison
+only, consistent with the Stage 2 migration not starting until
+1-Sep-2026 per the existing plan (confirmed still on schedule as
+of S20260818-001 above, despite oi_footprint's rough patch).
+
+==================================================
+
 END OF SESSION
