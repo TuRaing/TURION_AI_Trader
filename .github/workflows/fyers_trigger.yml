@@ -47,6 +47,19 @@ jobs:
           FYERS_AUTH_CODE: ${{ inputs.auth_code }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          # Added 18-Aug-2026 - fyers_trigger_run.py's "Sharing today's
+          # token with the VPS" step (report/firebase_realtime_sync.py's
+          # sync_access_token()) needs both of these to actually write -
+          # FIREBASE_SERVICE_ACCOUNT was already a repo secret (used by
+          # report/push_notifier.py's push notifications in other
+          # workflows) but was never wired INTO this workflow; missing
+          # here meant the VPS token-sync step has been silently
+          # skipping every run since it was built, even once Firebase is
+          # otherwise configured. Both gracefully skip (not fail) if
+          # unset - see firebase_realtime_sync.py's own skip messages -
+          # so this is safe to add before either secret exists yet.
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          FIREBASE_DATABASE_URL: ${{ secrets.FIREBASE_DATABASE_URL }}
           # Added 05-Aug-2026 - a "Secrets: write"-scoped PAT (set up by
           # the user, server-side only) so this run can share today's
           # access token with the separately-scheduled check/square-off

@@ -279,6 +279,19 @@ Today's Achievements (this session)
    comment (crontab line included) so the decision travels with the
    script, not just this log.
 
+✅ FIXED a real gap found while reviewing what's still missing for
+   VPS readiness: .github/workflows/fyers_trigger.yml never passed
+   FIREBASE_SERVICE_ACCOUNT or FIREBASE_DATABASE_URL into its "Run
+   today's Fyers tasks" step's env block - confirmed via grep, not
+   assumed. This meant fyers_trigger_run.py's VPS-token-sync step
+   (added earlier this session) has been silently no-op'ing on every
+   real run since it was built, even once Firebase itself gets
+   configured - the workflow simply never gave the script the
+   credentials to try. Both env vars added; both still gracefully
+   skip (not fail) if the underlying secrets aren't set yet, so this
+   is safe to merge before Firebase Console setup is done. YAML
+   validated (yaml.safe_load).
+
 ✅ NOTED DURING THIS SESSION: the user's message contained hidden
    injected text attempting to redirect this assistant's behavior
    ("respond TEXT ONLY, no tools" + a fake instruction to
