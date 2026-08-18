@@ -1,8 +1,25 @@
 {
-  "Cash": 100000,
+  "Cash": 114999.0353772675,
   "Position": null,
-  "Closed Trades": [],
-  "Last Trade Date": null,
+  "Closed Trades": [
+    {
+      "Symbol": "NSE:NIFTY2681824200PE",
+      "Strike": 24200,
+      "Option Type": "PE",
+      "Entry Time": "2026-08-18 05:44:32",
+      "Entry Premium": 26.85,
+      "Entry Spot": 24204.65,
+      "Peak Spot": 24184.7,
+      "Exit Spot": 24198.65,
+      "Exit Time": "2026-08-18 06:14:24",
+      "Exit Premium": 31,
+      "Lots": 49,
+      "Exit Reason": "Trailing Stop",
+      "Net PnL": 14999.04,
+      "Net PnL %": 14.999
+    }
+  ],
+  "Last Trade Date": "2026-08-18",
   "Data Source": "Fyers (real premium)",
   "Strategy": "st4_threshold_slcap",
   "Index": "NIFTY"
