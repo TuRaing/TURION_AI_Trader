@@ -1,6 +1,19 @@
 {
   "Cash": 89125.75592381999,
-  "Position": null,
+  "Position": {
+    "Symbol": "NSE:NIFTY2681824200PE",
+    "Strike": 24200,
+    "Option Type": "PE",
+    "Entry Time": "2026-08-18 05:21:48",
+    "Entry Spot": 24197.4,
+    "Entry Premium": 32.4,
+    "Entry Max Pain": 24200,
+    "Lots": 36,
+    "Quantity": 2700,
+    "Capital Deployed": 87480.0,
+    "Last Premium": 32.4,
+    "Last Checked": "2026-08-18 05:21:48"
+  },
   "Closed Trades": [
     {
       "Symbol": "NSE:NIFTY2681824300PE",
@@ -108,7 +121,7 @@
       "Net PnL %": -3.213
     }
   ],
-  "Last Max Pain": 24250,
+  "Last Max Pain": 24200,
   "Data Source": "Fyers (real premium)",
   "Strategy": "max_pain_drift",
   "Index": "NIFTY"
