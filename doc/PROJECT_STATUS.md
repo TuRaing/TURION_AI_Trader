@@ -6766,6 +6766,26 @@ behalf) - next step is a guided walkthrough of the actual signup.
 
 ==================================================
 
+DEPTH COLLECTOR BUG FOUND + FIXED (18-Aug) - user asked how much real
+market-depth data had accumulated since the 17-Aug collector (strategy/
+fyers_depth_collector.py) was wired into the 5-min scheduled trigger.
+Checked reports/options_depth_history.jsonl directly rather than
+assuming "still collecting" - it did not exist AT ALL, despite
+snapshot() creating the file on its very first line (before any network
+call), meaning it had never successfully run and persisted output even
+once. Root cause: .github/workflows/fyers_scheduled_check.yml's commit
+step never had a `git add reports/options_depth_history.jsonl` line -
+the exact same missing-git-add bug class already fixed once in this
+project (05-Aug, fyers_trigger.yml). Every scheduled run had likely
+been creating and writing the file correctly on its own ephemeral
+runner, then losing it unstaged at the end of every run since 17-Aug.
+Fixed with one added line. Real depth data collection genuinely starts
+from the next scheduled run onward - the original ~7-10 trading day
+estimate for a usable market-depth-slippage sample now counts from
+18-Aug, not 17-Aug.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.

@@ -49,6 +49,19 @@ jobs:
           # (a single missing file among several silently discards
           # staging ALL of them, `|| true` alone doesn't prevent that).
           git add reports/options_premium_history.jsonl || true
+          # Added 18-Aug-2026 - reports/options_depth_history.jsonl was
+          # never added here when the depth collector itself was built
+          # (17-Aug) - found while checking how much real depth data had
+          # accumulated: the file didn't exist AT ALL, even though
+          # snapshot() creates it (open(..., "a")) on its very first
+          # line, before any network call. Confirmed via strategy/fyers_
+          # depth_collector.py's own code, not assumed. Root cause: this
+          # workflow's ephemeral runner was creating + writing the file
+          # every run, but never staging it - so it was silently
+          # discarded at the end of every single run since 17-Aug, same
+          # missing-git-add class of bug as fyers_trigger.yml's 05-Aug
+          # fix referenced in the comment above.
+          git add reports/options_depth_history.jsonl || true
           git add reports/fyers_test_portfolio.json || true
           git add reports/fyers_best_trade_portfolio.json || true
           git add reports/fyers_options_portfolio.json || true

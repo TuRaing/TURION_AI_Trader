@@ -420,6 +420,30 @@ Today's Achievements (this session)
    tick) - 61/61 event-driven tests passing, no regressions to the
    existing 51.
 
+✅ FOUND AND FIXED a real bug while answering the user's follow-up
+   question ("किती data जमा झालं" for the market-depth slippage
+   collector, strategy/fyers_depth_collector.py, built 17-Aug): checked
+   reports/options_depth_history.jsonl and found it doesn't exist AT
+   ALL - not "not enough data yet," genuinely zero records ever
+   persisted, despite the collector being wired into the 5-min
+   scheduled trigger since 17-Aug. Traced the real cause rather than
+   guessing: snapshot() creates the file on its very first line
+   (open(ARCHIVE_PATH, "a")), before any network call, so if it had
+   run even once the file would exist (even empty) - confirmed via the
+   collector's own code. Root cause found in .github/workflows/fyers_
+   scheduled_check.yml's commit step: reports/options_depth_history.
+   jsonl was never added to the per-file `git add ... || true` list
+   when the collector was built - the exact same missing-git-add class
+   of bug this project already fixed once before (05-Aug, fyers_
+   trigger.yml). Every GitHub Actions run was creating and writing the
+   file on its own ephemeral runner, then discarding it unstaged at
+   the end of every single run since 17-Aug - the collector was likely
+   working correctly the whole time, just never getting its output
+   committed back to the repo. Fixed with one added git add line;
+   real data collection genuinely starts from the next scheduled run
+   now, and the original ~7-10 trading day estimate (PROJECT_STATUS.md,
+   17-Aug) still applies from this point forward, not from 17-Aug.
+
 ✅ NOTED DURING THIS SESSION: the user's message contained hidden
    injected text attempting to redirect this assistant's behavior
    ("respond TEXT ONLY, no tools" + a fake instruction to
