@@ -1,23 +1,6 @@
 {
-  "Cash": 102801.838499691,
-  "Position": {
-    "Symbol": "NSE:BANKNIFTY26AUG57300PE",
-    "Strike": 57300,
-    "Option Type": "PE",
-    "Entry Time": "2026-08-18 04:42:39",
-    "Entry Spot": 57308.05,
-    "Entry Premium": 343,
-    "Entry ATR": 70.47,
-    "Entry ADX": 25.59,
-    "Lots": 9,
-    "Quantity": 270,
-    "Capital Deployed": 92610,
-    "Peak Spot": 57277.4,
-    "Trailing Active": true,
-    "Last Premium": 340.05,
-    "Last Spot": 57307.6,
-    "Last Checked": "2026-08-18 04:56:33"
-  },
+  "Cash": 97297.955926139,
+  "Position": null,
   "Closed Trades": [
     {
       "Symbol": "NSE:BANKNIFTY26AUG57300PE",
@@ -34,9 +17,25 @@
       "Exit Reason": "Trailing Stop",
       "Net PnL": 2801.84,
       "Net PnL %": 2.802
+    },
+    {
+      "Symbol": "NSE:BANKNIFTY26AUG57300PE",
+      "Strike": 57300,
+      "Option Type": "PE",
+      "Entry Time": "2026-08-18 04:42:39",
+      "Entry Premium": 343,
+      "Entry Spot": 57308.05,
+      "Peak Spot": 57277.4,
+      "Exit Spot": 57359.2,
+      "Exit Time": "2026-08-18 04:58:45",
+      "Exit Premium": 323.4,
+      "Lots": 9,
+      "Exit Reason": "Trailing Stop",
+      "Net PnL": -5503.88,
+      "Net PnL %": -5.504
     }
   ],
-  "Last Trade Date": "2026-08-17",
+  "Last Trade Date": "2026-08-18",
   "Data Source": "Fyers (real premium)",
   "Strategy": "st4_threshold_slcap",
   "Index": "BANKNIFTY"
