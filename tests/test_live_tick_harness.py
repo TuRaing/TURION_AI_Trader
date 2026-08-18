@@ -9,7 +9,7 @@ from strategy.event_driven_engine import (
 )
 from strategy.live_tick_harness import (
     CandleAggregator, LiveTickRunner, MIN_CANDLES_FOR_RSI,
-    OIBuildupTracker, OIFootprintTickRunner,
+    OIBuildupTracker, OIFootprintTickRunner, handle_symbol_update_message,
 )
 
 
@@ -227,3 +227,95 @@ def test_oi_runner_full_signal_to_open_to_target_sequence():
     action = runner.on_tick(runner.ce_symbol, _ts(26), 62.0)
     assert "CLOSED (Target)" in action
     assert runner.portfolio["Cash"] > 100000
+
+
+# --- handle_symbol_update_message() - the one piece of connect_and_run()
+# that IS testable without a live connection (see its own docstring).
+# Real message shape confirmed via 17-Aug's WebSocket research, not
+# guessed - matches an actual Fyers SymbolUpdate example payload.
+
+def _real_shaped_message(**overrides):
+    message = {
+        "ltp": 60.0, "bid_price": 59.9, "ask_price": 60.1,
+        "vol_traded_today": 1632306, "bid_size": 59, "ask_size": 16,
+        "last_traded_time": 1755500000, "exch_feed_time": 1755500001,
+        "last_traded_qty": 9, "tot_buy_qty": 69427, "tot_sell_qty": 234706,
+        "avg_trade_price": 60.0, "low_price": 58.0, "high_price": 62.0,
+        "lower_ckt": 0, "upper_ckt": 0, "open_price": 59.0, "prev_close_price": 58.5,
+        "type": "sf", "symbol": "NSE:NIFTY2681824500CE", "ch": 1.5, "chp": 2.5,
+    }
+    message.update(overrides)
+    return message
+
+
+class _SpyRunner:
+    """Minimal fake, not a real LiveTickRunner - isolates handle_symbol_
+    update_message()'s own extraction/wiring logic from decide_fn."""
+
+    def __init__(self):
+        self.calls = []
+
+    def on_tick(self, symbol, timestamp, ltp, bid, ask):
+        self.calls.append({"symbol": symbol, "timestamp": timestamp, "ltp": ltp, "bid": bid, "ask": ask})
+        return f"recorded {symbol}"
+
+
+def test_handle_symbol_update_extracts_real_field_names_correctly():
+    spy = _SpyRunner()
+
+    handle_symbol_update_message(_real_shaped_message(), spy)
+
+    assert len(spy.calls) == 1
+    call = spy.calls[0]
+    assert call["symbol"] == "NSE:NIFTY2681824500CE"
+    assert call["ltp"] == 60.0
+    assert call["bid"] == 59.9   # from bid_price, not "bid"
+    assert call["ask"] == 60.1   # from ask_price, not "ask"
+
+
+def test_handle_symbol_update_prefers_exch_feed_time_over_last_traded_time():
+    spy = _SpyRunner()
+
+    handle_symbol_update_message(
+        _real_shaped_message(exch_feed_time=1755500999, last_traded_time=1755500000), spy
+    )
+
+    expected = datetime.datetime.fromtimestamp(
+        1755500999, tz=datetime.timezone(datetime.timedelta(hours=5, minutes=30))
+    )
+    assert spy.calls[0]["timestamp"] == expected
+
+
+def test_handle_symbol_update_falls_back_to_last_traded_time_when_exch_feed_time_missing():
+    spy = _SpyRunner()
+    message = _real_shaped_message()
+    del message["exch_feed_time"]
+
+    handle_symbol_update_message(message, spy)
+
+    expected = datetime.datetime.fromtimestamp(
+        message["last_traded_time"], tz=datetime.timezone(datetime.timedelta(hours=5, minutes=30))
+    )
+    assert spy.calls[0]["timestamp"] == expected
+
+
+def test_handle_symbol_update_end_to_end_through_a_real_liveTickRunner():
+    # Proves the full real-shaped-message -> handle_symbol_update_
+    # message -> LiveTickRunner.on_tick -> decide_fn pipeline works
+    # together, not just each piece in isolation.
+    runner = _runner()
+
+    handle_symbol_update_message(
+        _real_shaped_message(symbol=runner.underlying_symbol, ltp=24500.0), runner
+    )
+    action = handle_symbol_update_message(
+        _real_shaped_message(symbol=runner.ce_symbol, ltp=100.0), runner
+    )
+
+    # _runner()'s seeded candles are a steady uptrend (same fixture the
+    # earlier RSI tests rely on) -> RSI comfortably >= 50 -> CE, same
+    # deterministic outcome as test_underlying_tick_with_seeded_rsi_
+    # can_open_a_position above, just reached via the real message
+    # shape this time instead of calling on_tick() directly.
+    assert "OPENED CE" in action
+    assert runner.portfolio["Position"]["Option Type"] == "CE"

@@ -705,4 +705,41 @@ Same continuing session (S20260816-001), a new real trading day.
    data-verified to the rupee against its own book's actual trade
    history. Nothing deployed to a VPS - code-prep only, as planned.
 
+✅ "ata live websocket test kar" - checked all 3 real blockers before
+   attempting: market closed (17:35 IST), local Fyers token expired,
+   fyers_apiv3 SDK not installed. User then tried logging in anyway to
+   prep for tomorrow - correctly caught their own mistake before I had
+   to: "pan ata login kela tari udya sathi waparata yenar nahi to?"
+   (confirmed via strategy/fyers_auth.py's own comment - the token is
+   a DAILY token, today's login is invalidated by tomorrow morning
+   regardless). Pasted an auth_code anyway; the exchange failed
+   ({'code': -437, 'message': 'invalid auth code'} - one-time-use/
+   short-lived codes commonly fail on any delay) - told the user
+   honestly rather than retrying, and agreed not to bother again since
+   it would not have helped tomorrow anyway.
+
+✅ "connect_and_run() yala backtest karun check karata yenar nahi ka"
+   - good, precise question, answered honestly rather than a flat
+   yes/no: the actual socket I/O (connect/subscribe/auth-over-
+   websocket) fundamentally cannot be backtested - there is no
+   "historical WebSocket" to replay. But connect_and_run()'s on_
+   message callback also does real PARSING work (extracting symbol/
+   ltp/bid/ask/timestamp from a raw Fyers tick dict) that IS pure and
+   was previously untestable only because it lived as a closure inside
+   connect_and_run() itself. Pulled it out into a standalone handle_
+   symbol_update_message(message, runner) function (strategy/live_
+   tick_harness.py) - connect_and_run() now just wires it in as the
+   on_message callback, same behavior, now testable. 4 new tests using
+   a REAL Fyers-shaped SymbolUpdate payload (confirmed schema from
+   17-Aug's WebSocket research, not guessed): correct field extraction
+   (bid_price/ask_price, not bid/ask), exch_feed_time preferred over
+   last_traded_time for the timestamp with a working fallback, and a
+   full end-to-end test proving a real-shaped message flows correctly
+   through to LiveTickRunner -> decide_fn -> an actual opened position.
+   430/430 tests passing overall. Honest boundary now precisely drawn:
+   everything EXCEPT the raw socket connection itself is verified
+   without needing a live connection; only real auth-over-websocket,
+   subscribe() actually receiving ticks, and reconnect behavior remain
+   genuinely untestable until tomorrow's real market-hours attempt.
+
 ==================================================

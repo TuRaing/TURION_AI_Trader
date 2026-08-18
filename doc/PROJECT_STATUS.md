@@ -6454,6 +6454,58 @@ earlier API-quota exhaustion, resolves with tomorrow's market open).
 
 ==================================================
 
+LIVE WEBSOCKET TEST ATTEMPT + connect_and_run() PARSING NOW UNIT-
+TESTED (18-Aug evening) - user asked to test the live WebSocket now.
+Checked all 3 real blockers before attempting anything: market closed
+(17:35 IST), local Fyers token expired, fyers_apiv3 SDK not installed
+in this environment. Offered to prep (install the SDK, refresh the
+local token) for tomorrow morning instead.
+
+User then tried logging in anyway - and caught their own mistake
+before it mattered: "pan ata login kela tari udya sathi waparata
+yenar nahi to?" - correct, confirmed via strategy/fyers_auth.py's own
+comment that the access token is a DAILY token, invalidated by
+tomorrow regardless of tonight's login. Pasted an auth_code anyway;
+the exchange failed ({'code': -437, 'message': 'invalid auth code'} -
+consistent with Fyers' codes being one-time-use/short-lived, likely
+invalidated by the delay or a prior use) - reported honestly, did not
+retry, since it would not have helped tomorrow's real test anyway.
+
+USER'S FOLLOW-UP QUESTION, more productive: "connect_and_run() yala
+backtest karun check karata yenar nahi ka" - answered precisely rather
+than a flat yes/no. The real socket I/O (connect/subscribe/auth-over-
+websocket) cannot be backtested - no "historical WebSocket" exists to
+replay. But connect_and_run()'s on_message callback also does real,
+PURE parsing work (extracting symbol/ltp/bid/ask/timestamp from a raw
+Fyers tick dict) that was only untestable because it lived as an
+inline closure. Extracted it to a standalone handle_symbol_update_
+message(message, runner) function in strategy/live_tick_harness.py -
+connect_and_run() now just wires it in as the callback, identical
+behavior, now testable in isolation.
+
+4 new tests using a REAL Fyers-shaped SymbolUpdate payload (the exact
+schema confirmed during 17-Aug's WebSocket research, not guessed):
+correct field extraction (bid_price/ask_price, not the shorter bid/
+ask), exch_feed_time preferred over last_traded_time for the
+timestamp with a working fallback when it's absent, and a full end-
+to-end test proving a real-shaped message flows correctly all the way
+through LiveTickRunner -> rsi_momentum_decide_fn -> an actual opened
+Position. 430/430 tests passing overall.
+
+HONEST BOUNDARY now precisely drawn (not just "not live-tested" as a
+blanket caveat): everything in the WebSocket code-prep EXCEPT the raw
+socket connection itself is now verified without needing a live
+connection - decision logic (both decide_fns), state assembly
+(CandleAggregator/OIBuildupTracker/LiveTickRunner/OIFootprintTickRunner),
+AND message parsing (handle_symbol_update_message) are all unit-
+tested. Only real auth actually succeeding over the websocket,
+subscribe() actually receiving live ticks, and reconnect behavior on
+a real disconnect remain genuinely untestable until a real market-
+hours attempt - which needs tomorrow's fresh login, fyers_apiv3
+installed, and the market open.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.

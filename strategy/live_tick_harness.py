@@ -290,13 +290,49 @@ class OIFootprintTickRunner:
         return action
 
 
+def handle_symbol_update_message(message, runner):
+    """
+    Added 18-Aug-2026 - pulled out of connect_and_run()'s on_message
+    closure so this ONE piece (parsing a real Fyers SymbolUpdate tick
+    dict and calling the right runner method) can be unit-tested
+    without a live connection - the user asked directly whether
+    connect_and_run() can be backtest-checked; this is the honest
+    answer: the socket I/O itself cannot (there is no "historical
+    WebSocket" to replay), but this parsing/wiring step is pure and
+    CAN be, so it now is (see tests/test_live_tick_harness.py). What
+    still can't be verified without a real connection: auth actually
+    succeeding over the socket, subscribe() actually receiving real
+    ticks, reconnect behavior, and any production quirk (message
+    ordering, a field being unexpectedly absent, etc.).
+
+    `runner` may be a LiveTickRunner (RSI-momentum books) or an
+    OIFootprintTickRunner (oi_footprint) - both expose the same
+    on_tick(symbol, timestamp, ltp, bid, ask) shape, so this one
+    function works for either.
+    """
+
+    timestamp = datetime.datetime.fromtimestamp(
+        message.get("exch_feed_time", message.get("last_traded_time")),
+        tz=datetime.timezone(datetime.timedelta(hours=5, minutes=30)),
+    )
+
+    return runner.on_tick(
+        symbol=message["symbol"],
+        timestamp=timestamp,
+        ltp=message.get("ltp"),
+        bid=message.get("bid_price"),
+        ask=message.get("ask_price"),
+    )
+
+
 def connect_and_run(access_token, runner, symbols):
     """
     NOT LIVE-TESTED - see module docstring's caveat. Written to match
     the verified fyers_apiv3 SDK pattern (FyersDataSocket, on_message
     callback receiving a dict per tick, subscribe(symbols=..., data_
     type="SymbolUpdate")). Kept deliberately thin - all the actual
-    logic lives in LiveTickRunner.on_tick(), already unit-tested above.
+    logic lives in LiveTickRunner.on_tick() and handle_symbol_update_
+    message() above, both already unit-tested.
     """
 
     from fyers_apiv3.FyersWebsocket import data_ws  # imported here, not
@@ -307,17 +343,7 @@ def connect_and_run(access_token, runner, symbols):
     # requirements.txt) - add it before running this function for real.
 
     def on_message(message):
-        timestamp = datetime.datetime.fromtimestamp(
-            message.get("exch_feed_time", message.get("last_traded_time")),
-            tz=datetime.timezone(datetime.timedelta(hours=5, minutes=30)),
-        )
-        runner.on_tick(
-            symbol=message["symbol"],
-            timestamp=timestamp,
-            ltp=message.get("ltp"),
-            bid=message.get("bid_price"),
-            ask=message.get("ask_price"),
-        )
+        handle_symbol_update_message(message, runner)
 
     def on_error(message):
         print(f"[fyers websocket error] {message}")
