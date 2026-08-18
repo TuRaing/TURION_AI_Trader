@@ -1,5 +1,8 @@
 from strategy.backtest_live_engine import run_backtest, run_live_check
-from strategy.event_driven_engine import st2_threshold_decide_fn, make_st2_threshold_event_cfg
+from strategy.event_driven_engine import (
+    st2_threshold_decide_fn, make_st2_threshold_event_cfg,
+    oi_footprint_decide_fn, make_oi_footprint_event_cfg,
+)
 
 
 def _cfg(**overrides):
@@ -169,3 +172,96 @@ def test_run_live_check_matches_run_backtest_for_the_same_points_fed_one_at_a_ti
         _, live_portfolio = run_live_check(st2_threshold_decide_fn, cfg, live_portfolio, point)
 
     assert live_portfolio == batch_portfolio
+
+
+# --- oi_footprint_decide_fn ---
+
+def _oi_cfg(**overrides):
+    cfg = make_oi_footprint_event_cfg(index="NIFTY", lot_size=75, initial_capital=100000)
+    cfg.update(overrides)
+    return cfg
+
+
+def _oi_data_point(**overrides):
+    point = {
+        "timestamp": "2026-08-18 09:20:00",
+        "spot": 24500.0,
+        "oi_signal": "CE",
+        "ce_symbol": "NSE:NIFTY2681824500CE", "ce_ltp": 60.0, "ce_bid": 59.9, "ce_ask": 60.1,
+        "pe_symbol": "NSE:NIFTY2681824500PE", "pe_ltp": 55.0, "pe_bid": 54.9, "pe_ask": 55.1,
+        "past_squareoff": False,
+    }
+    point.update(overrides)
+    return point
+
+
+def test_oi_footprint_opens_ce_on_ce_signal():
+    action, position, trade = oi_footprint_decide_fn(_oi_cfg(), None, _oi_data_point(oi_signal="CE"))
+
+    assert "OPENED CE" in action
+    assert position["Option Type"] == "CE"
+    assert position["Entry Premium"] == 60.0
+
+
+def test_oi_footprint_opens_pe_on_pe_signal():
+    action, position, trade = oi_footprint_decide_fn(_oi_cfg(), None, _oi_data_point(oi_signal="PE"))
+
+    assert "OPENED PE" in action
+    assert position["Option Type"] == "PE"
+    assert position["Entry Premium"] == 55.0
+
+
+def test_oi_footprint_skips_open_when_no_signal():
+    action, position, trade = oi_footprint_decide_fn(_oi_cfg(), None, _oi_data_point(oi_signal=None))
+
+    assert "SKIPPED" in action
+    assert position is None
+
+
+def test_oi_footprint_closes_at_fixed_rupee_target():
+    cfg = _oi_cfg()
+    _, position, _ = oi_footprint_decide_fn(cfg, None, _oi_data_point(oi_signal="CE", ce_ltp=60.0))
+
+    # lots = 100000 // (60*75) = 22; Target Rs 1,500 needs a real jump.
+    action, new_position, trade = oi_footprint_decide_fn(cfg, position, _oi_data_point(ce_ltp=62.0))
+
+    assert "CLOSED (Target)" in action
+    assert trade["Net PnL"] >= 1500
+
+
+def test_oi_footprint_closes_at_fixed_rupee_stop_loss():
+    cfg = _oi_cfg()
+    _, position, _ = oi_footprint_decide_fn(cfg, None, _oi_data_point(oi_signal="CE", ce_ltp=60.0))
+
+    action, new_position, trade = oi_footprint_decide_fn(cfg, position, _oi_data_point(ce_ltp=58.0))
+
+    assert "CLOSED (Stop Loss)" in action
+    assert trade["Net PnL"] <= -1500
+
+
+def test_oi_footprint_hybrid_sl_cap_overrides_fixed_rupee_sl():
+    cfg = _oi_cfg(hybrid_sl_cap_pct=2.0)
+    _, position, _ = oi_footprint_decide_fn(cfg, None, _oi_data_point(oi_signal="CE", ce_ltp=60.0))
+
+    # Hybrid cap here = min(2% of 1,00,000, 2% of deployed) = Rs 2,000,
+    # LOOSER than the fixed Rs 1,500 - a loss between the two should
+    # still be held under the hybrid rule but would have closed under
+    # the original fixed rule.
+    action, new_position, trade = oi_footprint_decide_fn(cfg, position, _oi_data_point(ce_ltp=59.1))
+
+    assert "HELD" in action
+
+
+def test_oi_footprint_run_backtest_full_sequence():
+    cfg = _oi_cfg()
+    data_points = [
+        _oi_data_point(timestamp="t1", oi_signal="CE", ce_ltp=60.0),
+        _oi_data_point(timestamp="t2", ce_ltp=61.0),
+        _oi_data_point(timestamp="t3", ce_ltp=62.0),
+    ]
+
+    portfolio, actions = run_backtest(oi_footprint_decide_fn, cfg, data_points, initial_capital=100000)
+
+    assert "OPENED" in actions[0]
+    assert len(portfolio["Closed Trades"]) == 1
+    assert portfolio["Cash"] > 100000

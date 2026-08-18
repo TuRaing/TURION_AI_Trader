@@ -6359,6 +6359,67 @@ check time: -Rs 2,05,443 realized so far (251 trades, 43.0% win rate)
 
 ==================================================
 
+PR #6 MERGED (cross-session reconciliation) + oi_footprint PORTED TO
+THE EVENT-DRIVEN ENGINE (18-Aug) - user asked to merge a same-day
+cloud-session PR ("Document 18-Aug oi_footprint SL-overshoot analysis
++ hybrid-cap backtest"), with explicit re-verification steps rather
+than trusting an earlier description. Re-fetched and re-read the live
+diff (still doc-only - 2 files, 240 insertions, 0 deletions - despite
+a lot of automated portfolio commits having landed on main since the
+PR was opened). gh CLI unavailable in this environment; the GitHub
+API's PR-merge endpoint returned 403 (GITHUB_PAT lacks that scope), so
+merged via `git merge` + `git push` instead, which GitHub correctly
+auto-detected and closed PR #6 as merged. Branch deletion also 403'd
+(same scope gap) - left in place, harmless.
+
+RECONCILED explicitly per CLAUDE.md's rule rather than silently
+accepting stale guidance: the merged session's "Next Session" notes
+said VPS code-prep starts 1-Sep-2026 - already outdated by this same
+session's own decision earlier tonight to start code-prep same-day
+("sadya kali karu"). Flagged this to the user directly.
+
+The merged content independently corroborates tonight's own SL-
+overshoot work via a different, oi_footprint-specific analysis: that
+session found oi_footprint/NIFTY reversed from +Rs 56,330 (14-Aug
+peak) to -Rs 47,607 by 18-Aug, root-caused to the same polling-
+overshoot issue already documented in this file, and backtested both
+a flat -Rs 2,000 cap (NIFTY +Rs 1,14,580 swing, BANKNIFTY +Rs 10,333)
+and the hybrid 2% cap (combined +Rs 3,090 better than flat) - see
+doc/18aug26_SESSION_LOG.md and this file's "oi_footprint EXIT-
+MECHANISM DEEP DIVE, 14-Aug" entry's 18-Aug updates for the full
+numbers. oi_footprint has no "_slcap" live variant yet, unlike st1-4.
+
+USER PICKED oi_footprint AS THE SECOND EVENT-DRIVEN-ENGINE STRATEGY,
+given it now has the worst measured overshoot damage AND is one of
+the 4 real-verified profitable books. Built oi_footprint_decide_fn
+(strategy/event_driven_engine.py) - same fixed Rs 1,500 Target/Stop-
+Loss as the original, hybrid_sl_cap_pct offered as an opt-in matching
+the merged PR's own finding for this book. KEY DESIGN DIFFERENCE from
+st2_threshold_decide_fn: the OI-buildup entry signal needs a PREVIOUS
+OI snapshot to classify against (the same kind of rolling state RSI
+needed) - reuses fyers_options_oi_footprint.py's own
+_classify_buildup() UNCHANGED (imported, not duplicated), classified
+UPSTREAM in a new OIBuildupTracker (strategy/live_tick_harness.py),
+which decide_fn receives as an already-resolved `oi_signal` field -
+keeping decide_fn itself pure, same principle already used for RSI.
+Also built OIFootprintTickRunner - OI is NOT a field the real
+SymbolUpdate tick schema carries (confirmed during 17-Aug's WebSocket
+research), so it is fed via periodic snapshots instead of the tick
+stream, same source (option-chain REST call) the original polling
+engine already uses, just far less often than price needs checking.
+
+34 new tests (20 in event_driven_engine's suite, 14 in live_tick_
+harness's) - 423/423 passing overall. REPLAY-VERIFIED against all 60
+real oi_footprint trades (47 NIFTY + 13 BankNifty) - 0 mismatches, Net
+PnL matches to the rupee, same verification standard already applied
+to st2_threshold. The event-driven engine prototype now covers 2 of
+the 4 real-verified profitable strategies (st2_threshold/NIFTY,
+oi_footprint - both indices); simple_st1_threshold/NIFTY remains the
+one not yet ported. Nothing deployed to a VPS - still deliberately
+deferred, this stays code-prep.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.

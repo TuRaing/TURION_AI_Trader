@@ -199,3 +199,145 @@ def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
         "hybrid_sl_cap_pct": hybrid_sl_cap_pct,
         "spread_pct": spread_pct,
     }
+
+
+# Added 18-Aug-2026 - second decide_fn, oi_footprint - the user's own
+# follow-up pick after today's merged 18-Aug cloud-session PR found the
+# SAME polling-overshoot root cause independently for this specific
+# book (oi_footprint/NIFTY: +Rs 56,330 peak on 14-Aug down to -Rs
+# 47,607 by 18-Aug, almost entirely from overshot Rs 1,500 Stop-
+# Losses - see PROJECT_STATUS.md's "oi_footprint EXIT-MECHANISM DEEP
+# DIVE" entry and its 18-Aug updates) - the book with the tightest
+# Target/Stop-Loss band in the project, so the most exposed to exactly
+# the check-frequency gap this whole WebSocket rewrite exists to close.
+#
+# KEY DIFFERENCE from st2_threshold_decide_fn: the entry signal is OI-
+# BUILDUP (price direction + Open Interest change at the ATM strike
+# between two checks - see fyers_options_oi_footprint.py's module
+# docstring for the full Long/Short Buildup/Covering/Unwinding
+# framework), not RSI. Classifying that needs a PREVIOUS OI snapshot to
+# compare against - the exact same kind of rolling state RSI needed,
+# so the same design rule applies: classification happens UPSTREAM
+# (see live_tick_harness.py's OIBuildupTracker, which reuses fyers_
+# options_oi_footprint.py's own _classify_buildup() unchanged - no
+# second copy of that decision rule), and decide_fn receives an already-
+# resolved `oi_signal` field ("CE"/"PE"/None) on the data_point, keeping
+# decide_fn itself pure. Target/Stop-Loss stay Rs 1,500 FIXED (rupee,
+# not %-of-capital) matching the original design's own explicit "quick
+# in and out, not a big bet" choice - hybrid_sl_cap_pct is offered as
+# an opt-in override (default None keeps the original fixed-Rs
+# behavior) since today's cloud-session backtest found it edges out a
+# flat -Rs 2,000 cap slightly for this book too, same direction as the
+# original 8-book HYBRID SL CAP finding.
+
+
+def oi_footprint_decide_fn(cfg, position, data_point):
+    """
+    Faithful event-driven port of oi_footprint's real rules. See this
+    module's own header comment above for the OI-signal-precomputed-
+    upstream design note. Pure function, per the Shared Backtest-Live
+    Engine contract - no I/O, no clock, no network.
+
+    data_point adds `oi_signal` ("CE"/"PE"/None, precomputed upstream)
+    to the same ce/pe_symbol/ce/pe_ltp/spot/timestamp/past_squareoff
+    shape st2_threshold_decide_fn's data_point already uses.
+
+    Returns
+    -------
+    (action, new_position, trade_record)
+    """
+
+    if position is None:
+
+        oi_signal = data_point.get("oi_signal")
+
+        if oi_signal is None:
+            return "SKIPPED (no meaningful OI buildup)", None, None
+
+        if data_point.get("past_squareoff"):
+            return "SKIPPED (past square-off time)", None, None
+
+        option_type = oi_signal
+        symbol = data_point[f"{option_type.lower()}_symbol"]
+        entry_premium = data_point[f"{option_type.lower()}_ltp"]
+
+        if not entry_premium or entry_premium <= 0:
+            return "SKIPPED (no valid premium quote)", None, None
+
+        lots = int(cfg["initial_capital"] // (entry_premium * cfg["lot_size"]))
+
+        if lots < 1:
+            return f"SKIPPED (capital insufficient for 1 lot at premium {entry_premium})", None, None
+
+        new_position = {
+            "Option Type": option_type,
+            "Symbol": symbol,
+            "Entry Premium": entry_premium,
+            "Entry Spot": data_point["spot"],
+            "Entry Time": data_point["timestamp"],
+            "Lots": lots,
+            "Capital Deployed": round(entry_premium * lots * cfg["lot_size"], 2),
+        }
+
+        return f"OPENED {option_type} @ {entry_premium} (OI buildup signal)", new_position, None
+
+    option_type = position["Option Type"]
+    current_premium = data_point[f"{option_type.lower()}_ltp"]
+
+    if not current_premium or current_premium <= 0:
+        return "HELD (no valid premium quote)", position, None
+
+    net_pnl = _net_pnl(cfg, position["Entry Premium"], current_premium, position["Lots"])
+
+    reason = None
+
+    if net_pnl >= cfg["target_rupees"]:
+        reason = "Target"
+    elif cfg.get("hybrid_sl_cap_pct") is not None:
+        if net_pnl <= -_hybrid_stop_loss_cap(cfg, position["Capital Deployed"]):
+            reason = "Stop Loss"
+    elif net_pnl <= -cfg["stop_loss_rupees"]:
+        reason = "Stop Loss"
+
+    if reason is None and data_point.get("past_squareoff"):
+        reason = "Square-Off"
+
+    if reason is None:
+        return f"HELD (net {round(net_pnl, 2)})", position, None
+
+    trade_record = {
+        "Symbol": position["Symbol"],
+        "Option Type": option_type,
+        "Entry Time": position["Entry Time"],
+        "Entry Premium": position["Entry Premium"],
+        "Entry Spot": position["Entry Spot"],
+        "Exit Time": data_point["timestamp"],
+        "Exit Premium": current_premium,
+        "Exit Spot": data_point["spot"],
+        "Lots": position["Lots"],
+        "Exit Reason": reason,
+        "Net PnL": round(net_pnl, 2),
+        "Net PnL %": round(net_pnl / cfg["initial_capital"] * 100, 3),
+    }
+
+    return f"CLOSED ({reason}) net {round(net_pnl, 2)}", None, trade_record
+
+
+def make_oi_footprint_event_cfg(index, lot_size, initial_capital=100000,
+                                 hybrid_sl_cap_pct=None, spread_pct=None):
+    """
+    cfg builder for oi_footprint_decide_fn. hybrid_sl_cap_pct defaults
+    to None (the original fixed Rs 1,500 Stop-Loss) - pass 2.0 to use
+    the hybrid cap today's cloud-session backtest found slightly better
+    for this book (see this module's header comment).
+    """
+
+    return {
+        "index": index,
+        "lot_size": lot_size,
+        "initial_capital": initial_capital,
+        "target_rupees": 1500,
+        "stop_loss_rupees": 1500,
+        "hybrid_sl_cap_pct": hybrid_sl_cap_pct,
+        "spread_pct": spread_pct,
+    }

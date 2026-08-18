@@ -4,6 +4,7 @@ import pandas as pd
 
 from indicators.rsi import calculate_rsi
 from strategy.backtest_live_engine import run_live_check
+from strategy.fyers_options_oi_footprint import _classify_buildup
 
 # Added 17-Aug-2026 - task #17 of the WebSocket code-prep (see strategy/
 # event_driven_engine.py's module docstring for the full plan/context).
@@ -166,6 +167,116 @@ class LiveTickRunner:
             "timestamp": timestamp.strftime("%Y-%m-%d %H:%M:%S"),
             "spot": self._latest["spot"],
             "rsi": self.aggregator.current_rsi(),
+            "ce_symbol": self.ce_symbol, "ce_ltp": self._latest["ce_ltp"],
+            "ce_bid": self._latest["ce_bid"], "ce_ask": self._latest["ce_ask"],
+            "pe_symbol": self.pe_symbol, "pe_ltp": self._latest["pe_ltp"],
+            "pe_bid": self._latest["pe_bid"], "pe_ask": self._latest["pe_ask"],
+            "past_squareoff": self._past_squareoff(timestamp),
+        }
+
+        action, self.portfolio = run_live_check(self.decide_fn, self.cfg, self.portfolio, data_point)
+        self.last_action = action
+
+        return action
+
+
+class OIBuildupTracker:
+    """
+    Added 18-Aug-2026, for oi_footprint_decide_fn (event_driven_engine.
+    py) - the OI-buildup equivalent of CandleAggregator above. Reuses
+    fyers_options_oi_footprint.py's own _classify_buildup() UNCHANGED
+    (imported, not copied) - no second copy of that decision rule to
+    drift out of sync, same principle the whole decide_fn pattern
+    exists for.
+
+    OI is not a field the real-time SymbolUpdate tick stream carries
+    (confirmed against the real schema found during 17-Aug's WebSocket
+    research - ltp/bid/ask/volume/etc., no OI) - so unlike price/RSI,
+    this is fed via periodic snapshots (still a REST option-chain call,
+    same source the original polling engine already uses, just called
+    far less often than price needs to be checked), not from the tick
+    stream itself.
+    """
+
+    def __init__(self):
+        self._last_snapshot = None
+        self.latest_signal = None
+
+    def on_oi_snapshot(self, spot, strike, ce_oi, pe_oi):
+
+        current = {"spot": spot, "strike": strike, "ce_oi": ce_oi, "pe_oi": pe_oi}
+        self.latest_signal = _classify_buildup(self._last_snapshot, current)
+        self._last_snapshot = current
+
+        return self.latest_signal
+
+
+class OIFootprintTickRunner:
+    """
+    Analogous to LiveTickRunner, wired for oi_footprint_decide_fn
+    instead of an RSI-momentum decide_fn - separate class rather than
+    generalizing LiveTickRunner, since the signal source is genuinely
+    different in kind (periodic OI snapshots, not continuous ticks) and
+    there is only one example of each shape so far; a shared abstraction
+    would be guessing at a pattern from a sample of one.
+    """
+
+    def __init__(self, decide_fn, cfg, portfolio, ce_symbol, pe_symbol, squareoff_time):
+
+        self.decide_fn = decide_fn
+        self.cfg = cfg
+        self.portfolio = portfolio
+        self.ce_symbol = ce_symbol
+        self.pe_symbol = pe_symbol
+        self.squareoff_time = squareoff_time
+        self.oi_tracker = OIBuildupTracker()
+
+        self._latest = {"spot": None, "ce_ltp": None, "ce_bid": None, "ce_ask": None,
+                         "pe_ltp": None, "pe_bid": None, "pe_ask": None}
+        self.last_action = None
+
+    def _past_squareoff(self, timestamp):
+
+        return (timestamp.hour, timestamp.minute) >= self.squareoff_time
+
+    def on_oi_snapshot(self, timestamp, spot, strike, ce_oi, pe_oi):
+        """
+        Call this far less often than on_tick() - once per real option-
+        chain poll (the original engine's own cadence), not per price
+        tick. Updates the OI-buildup signal and immediately runs
+        decide_fn once, so a fresh signal is acted on right away rather
+        than waiting for the next incidental price tick.
+        """
+
+        self.oi_tracker.on_oi_snapshot(spot, strike, ce_oi, pe_oi)
+        self._latest["spot"] = spot
+
+        return self._maybe_decide(timestamp)
+
+    def on_tick(self, symbol, timestamp, ltp, bid=None, ask=None):
+
+        if symbol == self.ce_symbol:
+            self._latest["ce_ltp"] = ltp
+            self._latest["ce_bid"] = bid
+            self._latest["ce_ask"] = ask
+        elif symbol == self.pe_symbol:
+            self._latest["pe_ltp"] = ltp
+            self._latest["pe_bid"] = bid
+            self._latest["pe_ask"] = ask
+        else:
+            return None
+
+        return self._maybe_decide(timestamp)
+
+    def _maybe_decide(self, timestamp):
+
+        if self._latest["spot"] is None:
+            return None  # no OI snapshot yet at all
+
+        data_point = {
+            "timestamp": timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+            "spot": self._latest["spot"],
+            "oi_signal": self.oi_tracker.latest_signal,
             "ce_symbol": self.ce_symbol, "ce_ltp": self._latest["ce_ltp"],
             "ce_bid": self._latest["ce_bid"], "ce_ask": self._latest["ce_ask"],
             "pe_symbol": self.pe_symbol, "pe_ltp": self._latest["pe_ltp"],

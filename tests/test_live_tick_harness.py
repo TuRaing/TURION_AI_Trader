@@ -3,8 +3,14 @@ import datetime
 import pandas as pd
 
 from indicators.rsi import calculate_rsi
-from strategy.event_driven_engine import st2_threshold_decide_fn, make_st2_threshold_event_cfg
-from strategy.live_tick_harness import CandleAggregator, LiveTickRunner, MIN_CANDLES_FOR_RSI
+from strategy.event_driven_engine import (
+    st2_threshold_decide_fn, make_st2_threshold_event_cfg,
+    oi_footprint_decide_fn, make_oi_footprint_event_cfg,
+)
+from strategy.live_tick_harness import (
+    CandleAggregator, LiveTickRunner, MIN_CANDLES_FOR_RSI,
+    OIBuildupTracker, OIFootprintTickRunner,
+)
 
 
 def _ts(minute, second=0, hour=9):
@@ -150,3 +156,74 @@ def test_past_squareoff_is_computed_from_tick_timestamp():
     action = runner.on_tick(runner.ce_symbol, _ts(20, hour=15, second=30), 100.5)
 
     assert "CLOSED (Square-Off)" in action
+
+
+# --- OIBuildupTracker / OIFootprintTickRunner ---
+
+def test_oi_tracker_no_signal_on_first_snapshot():
+    tracker = OIBuildupTracker()
+
+    signal = tracker.on_oi_snapshot(spot=24500, strike=24500, ce_oi=100000, pe_oi=90000)
+
+    assert signal is None  # nothing to compare against yet
+
+
+def test_oi_tracker_classifies_long_buildup_as_ce():
+    tracker = OIBuildupTracker()
+    tracker.on_oi_snapshot(spot=24500, strike=24500, ce_oi=100000, pe_oi=90000)
+
+    # Price up + OI up (>= MIN_OI_CHANGE_PCT) -> Long Buildup -> CE.
+    signal = tracker.on_oi_snapshot(spot=24520, strike=24500, ce_oi=115000, pe_oi=100000)
+
+    assert signal == "CE"
+    assert tracker.latest_signal == "CE"
+
+
+def test_oi_tracker_no_signal_on_strike_change():
+    tracker = OIBuildupTracker()
+    tracker.on_oi_snapshot(spot=24500, strike=24500, ce_oi=100000, pe_oi=90000)
+
+    signal = tracker.on_oi_snapshot(spot=24560, strike=24550, ce_oi=115000, pe_oi=100000)
+
+    assert signal is None
+
+
+def _oi_runner():
+    cfg = make_oi_footprint_event_cfg(index="NIFTY", lot_size=75, initial_capital=100000)
+    portfolio = {"Cash": 100000, "Position": None, "Closed Trades": []}
+
+    return OIFootprintTickRunner(
+        decide_fn=oi_footprint_decide_fn,
+        cfg=cfg,
+        portfolio=portfolio,
+        ce_symbol="NSE:NIFTY2681824500CE",
+        pe_symbol="NSE:NIFTY2681824500PE",
+        squareoff_time=(15, 15),
+    )
+
+
+def test_oi_runner_on_oi_snapshot_before_any_price_tick_holds_back():
+    runner = _oi_runner()
+
+    action = runner.on_oi_snapshot(_ts(20), spot=24500, strike=24500, ce_oi=100000, pe_oi=90000)
+
+    assert action is not None  # spot is now known, decide_fn runs...
+    assert "SKIPPED" in action  # ...but no signal yet (first snapshot)
+
+
+def test_oi_runner_full_signal_to_open_to_target_sequence():
+    runner = _oi_runner()
+
+    runner.on_oi_snapshot(_ts(20), spot=24500, strike=24500, ce_oi=100000, pe_oi=90000)
+    action = runner.on_oi_snapshot(_ts(25), spot=24520, strike=24500, ce_oi=115000, pe_oi=100000)
+
+    # No CE price known yet - decide_fn should skip the open (not crash
+    # on a None premium), not fabricate a trade at whatever's cached.
+    assert "SKIPPED" in action
+
+    action = runner.on_tick(runner.ce_symbol, _ts(25, 30), 60.0)
+    assert "OPENED CE" in action
+
+    action = runner.on_tick(runner.ce_symbol, _ts(26), 62.0)
+    assert "CLOSED (Target)" in action
+    assert runner.portfolio["Cash"] > 100000
