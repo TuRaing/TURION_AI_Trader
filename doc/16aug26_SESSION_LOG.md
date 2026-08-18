@@ -583,3 +583,50 @@ started coming in.
    once actually connected to a live feed and confirmed.
 
 ==================================================
+
+--------------------------------------------------
+
+Date
+
+18-Aug-2026
+
+--------------------------------------------------
+
+18-Aug Achievements
+
+Same continuing session (S20260816-001), a new real trading day.
+
+✅ "ajache trade check kar" - ran the usual live-day scan at 10:28 IST
+   (~1h13m into trading): 251 closed trades, total realized Rs
+   -2,05,443 so far today (43.0% win rate) - a losing morning, unlike
+   17-Aug's eventual positive close. Worst: oi_footprint/NIFTY
+   (-54,397), simple_st1_slcap/NIFTY (-54,018), oi_hybrid_sl/NIFTY
+   (-34,201). Best: simple_st1/NIFTY (+70,092), simple_st1_slcap/
+   BANKNIFTY (+21,568). The 4 new 17-Aug books (st2_threshold_
+   slcap2pctlock, simple_st1_threshold_slcap2pctlock, st2_threshold_
+   trailing2pct, simple_st1_threshold_trailing2pct) showed no trades
+   yet in the local scan - checked why via the real GitHub Actions API
+   rather than assuming they were broken or just quiet.
+
+✅ FOUND AND FIXED A REAL BUG, same class as the 08-Aug gapfill
+   incident this project already has on record: st2_threshold_
+   slcap2pctlock/NIFTY's trigger DID run today and DID open a real
+   position (confirmed in the run's own log - "OPENED PE 24250 @
+   43.55"), but that run's log also showed "No changes to commit" -
+   the new portfolio file was silently never staged, because .github/
+   workflows/fyers_multi_strategy_options.yml's git-add step is a
+   HARDCODED per-file list that was never updated when the 4 new
+   17-Aug books were built. Confirmed via the actual workflow YAML
+   (the 4 new book filenames were genuinely absent from the git add
+   list) - this was a self-inflicted gap from yesterday's own work, not
+   a Fyers-side or infra issue. FIXED: added the 4 missing `git add`
+   lines. Consequence of the bug: that first real trade's outcome
+   (Target/SL/Square-Off - never known) is permanently lost, since the
+   in-memory position state was discarded when the runner shut down -
+   but Cash was never debited either (nothing was ever saved), so no
+   real capital-tracking harm, just one missing data point for that
+   book's history. Pushed the fix (6 retries needed - the market was
+   very active, commits racing every few seconds) so the NEXT trigger
+   for any of these 4 books will actually persist correctly.
+
+==================================================

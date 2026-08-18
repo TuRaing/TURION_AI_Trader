@@ -6285,6 +6285,33 @@ a reset API quota to attempt.
 
 ==================================================
 
+18-AUG SILENTLY-LOST-TRADE BUG FOUND + FIXED (same class as 08-Aug's
+gapfill incident) - live-day check at 10:28 IST found the 4 new 17-Aug
+books (st2_threshold_slcap2pctlock, simple_st1_threshold_slcap2pctlock,
+st2_threshold_trailing2pct, simple_st1_threshold_trailing2pct) showing
+no trades in the local portfolio scan. Checked via the real GitHub
+Actions API instead of assuming they were broken or just quiet: st2_
+threshold_slcap2pctlock/NIFTY's trigger DID run and DID open a real
+position today ("OPENED PE 24250 @ 43.55" in the run's own log), but
+that same run logged "No changes to commit" - the new portfolio file
+was never staged. Root cause confirmed in .github/workflows/fyers_
+multi_strategy_options.yml: its git-add step is a hardcoded per-file
+list, never updated when the 4 new books were built yesterday - a
+self-inflicted gap from that same work, not a Fyers or infra issue.
+
+FIXED: added the 4 missing `git add` lines. CONSEQUENCE: that first
+real trade's outcome (Target/SL/Square-Off - never recorded) is
+permanently lost, since the in-memory position was discarded when the
+runner shut down - but Cash was never debited either (nothing was ever
+saved), so no real capital-tracking harm, just one missing data point
+in that book's future history. Pushed (6 retries needed - market very
+active, commits racing every few seconds) so the next trigger for any
+of these 4 books persists correctly. Today's broader live picture at
+check time: -Rs 2,05,443 realized so far (251 trades, 43.0% win rate)
+- a losing morning, unlike 17-Aug's eventual positive close.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
