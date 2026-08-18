@@ -440,4 +440,47 @@ started coming in.
    thin wiring calling already-tested/collector code, matching this
    project's own established scope for orchestration scripts).
 
+✅ User asked what else (beyond Brokerage/STT/Exchange/GST/Stamp duty/
+   Slippage/Spread) is needed for trade/profit realism. Answered with
+   two categories: trade-level (order rejection, partial fills, market
+   vs limit order choice, freeze quantity, real margin, circuit halts)
+   and take-home-level (human-approval latency specific to this
+   project's "Claude never executes a real trade" design, income tax,
+   broker/infra downtime). User asked to research Real Margin first,
+   then Order Rejection/Partial Fill (initially asked one at a time,
+   then said do both).
+
+   REAL MARGIN (SPAN+Exposure) - researched via real web search, not
+   guessed. Found the actual endpoint: https://api.fyers.in/api/v3/
+   span_margin (different base URL than the data-API endpoints this
+   project already uses), request needs symbol/qty/side/type/
+   productType. Could NOT confirm the response schema from public docs
+   - AND found a real, concrete warning: a Fyers community thread shows
+   a user hitting a 503 error on this exact endpoint, with a Fyers
+   moderator confirming "this api is currently not working" at the
+   time. CONCLUSION: this validates strategy/fyers_options_credit_
+   spread.py's existing choice (conservative max-loss-based position
+   sizing instead of the real margin API) - not just undocumented but
+   demonstrably unreliable, real capital position-sizing should not
+   depend on it. No code change - the existing conservative proxy
+   stays as the intentional choice, now with real evidence backing it.
+
+   ORDER REJECTION / PARTIAL FILL - researched real order-response
+   fields (filledQty, remainingQuantity, status, message - confirmed
+   via real Fyers API response examples) and the real, documented
+   rejection reasons most relevant to this project's ATM-CE/PE-
+   buying, intraday strategies: Peak Margin Rule (margin must be
+   maintained THROUGHOUT the day, not just at entry - relevant for
+   real position-sizing buffers), Strike Out of Range (options limited
+   to +-15% of spot intraday - ATM normally comfortably inside this,
+   worth knowing the boundary exists), tick-size rounding (Rs 0.05
+   multiples, relevant if a future real order ever uses Limit orders),
+   circuit limits/freeze quantity (confirms the earlier depth-slippage
+   discussion's real order-size constraint), and after-hours rejection
+   (confirms this project's existing MARKET_OPEN_TIME gate already
+   matches the real constraint). Filed as reference for Stage 3's real
+   Order Execution/OMS design (not built yet, not blocking anything
+   now) - these are the real fields/reasons that design will need to
+   check once real order placement exists.
+
 ==================================================

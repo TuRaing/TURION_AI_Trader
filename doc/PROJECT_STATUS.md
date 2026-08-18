@@ -6113,6 +6113,65 @@ applies to whether the response parses correctly.
 
 ==================================================
 
+REAL MARGIN API + ORDER REJECTION/PARTIAL FILL - RESEARCHED FOR
+FUTURE STAGE 3 OMS DESIGN (17-Aug) - user asked what else, beyond the
+8-component transaction-cost formula, is needed for trade/profit
+realism. Answered in two categories: trade-level (order rejection,
+partial fills, market-vs-limit order choice, freeze quantity, real
+margin, circuit halts) and take-home-level (this project's own human-
+approval latency by design, income tax, broker/infra downtime). User
+asked to research both.
+
+REAL MARGIN (SPAN+Exposure) - real web search, not guessed. Found the
+actual endpoint: https://api.fyers.in/api/v3/span_margin (a different
+base URL than this project's existing data-API endpoints), request
+needs symbol/qty/side/type/productType. Response schema could NOT be
+confirmed from public docs - and a real, concrete warning surfaced: a
+Fyers community thread shows a user hitting a 503 error on this exact
+endpoint, with a Fyers moderator confirming "this api is currently not
+working" at the time asked. CONCLUSION: this validates strategy/
+fyers_options_credit_spread.py's existing choice (conservative max-
+loss-based position sizing instead of the real margin API, already
+documented in that file's own MARGIN comment) - not just undocumented,
+demonstrably unreliable. Real capital position-sizing should not
+depend on this endpoint. No code change - existing conservative proxy
+stays, now with real evidence backing the original caution rather than
+just an absence of documentation.
+
+ORDER REJECTION / PARTIAL FILL - researched real order-response
+fields (filledQty, remainingQuantity, status, message - confirmed via
+real Fyers API response examples in community threads) and the real,
+documented rejection reasons most relevant to this project's actual
+strategies (ATM CE/PE buying, intraday, square-off by 15:15):
+  - Peak Margin Rule - margin must be maintained THROUGHOUT the day
+    (checked at random intraday snapshots by the exchange), not just
+    at entry - relevant for real position-sizing buffers at Stage 3.
+  - Strike Out of Range - options limited to +-15% of spot for
+    intraday execution - ATM strikes normally comfortably inside this,
+    worth knowing the boundary exists for extreme-volatility days.
+  - Tick-size rounding (Rs 0.05 multiples) - relevant only if a future
+    real order ever uses Limit orders (current paper-trading fills at
+    LTP/midpoint, no rounding concern there).
+  - Circuit limits / freeze quantity - confirms the market-depth-
+    slippage discussion's real order-size constraint from a second,
+    independent angle.
+  - After-hours placement auto-rejected - confirms this project's
+    existing MARKET_OPEN_TIME gate (fyers_options_engine.py) already
+    matches the real constraint, nothing to change there.
+
+FILED for Stage 3's real Order Execution/OMS design (see STAGED
+CAPITAL PLAN entry above) - not built, not blocking anything now.
+These are the real fields/reasons that future design will need to
+check once real order placement exists; captured here so this research
+doesn't need repeating when that stage actually starts.
+
+Sources: fyers.in/community "Fyers Margin Calculation" thread,
+pkg.go.dev/github.com/nihalsuthar/fyers-go-sdk/fyers_api, support.
+fyers.in "How to Fix Common Order Rejection Errors on FYERS", support.
+fyers.in's Order API Knowledge Base (api-v3/order-api).
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
