@@ -119,6 +119,28 @@ Today's Achievements
    from 1-Sep-2026, both already recorded in this file before
    today).
 
+✅ SECOND BACKTEST, same session, at the user's request: also
+   re-ran the project's separately-established HYBRID SL CAP
+   formula (min(flat_cap, pct_of_deployed_cap) at 2%, the same
+   one behind the st1-st4 "_slcap" variants) against
+   oi_footprint's same 60-trade history, to compare against the
+   flat -Rs 2,000-only cap above:
+
+     Index      Actual        Flat -Rs2,000     Hybrid (2%)
+     NIFTY      -Rs 47,607    +Rs 66,972        +Rs 69,490
+     BANKNIFTY   -Rs 6,067    +Rs 4,267         +Rs 4,839
+     Combined   -Rs 53,674    +Rs 71,239        +Rs 74,329
+
+   Hybrid edges out the flat cap slightly (+Rs 3,090 combined) -
+   same direction as the original 8-book finding. NIFTY's larger
+   positions mean the flat Rs 2,000 side binds more often there
+   (22/26 Stop-Loss trades); BANKNIFTY's smaller lot size means
+   the %-of-deployed side binds more often there (6/7). Documented
+   as a second UPDATE under the same 14-Aug PROJECT_STATUS.md
+   entry. oi_footprint does not have an "_slcap" live variant yet
+   (unlike st1-st4) - flagged as a future option, not built this
+   session (not requested).
+
 ==================================================
 
 Bugs Fixed

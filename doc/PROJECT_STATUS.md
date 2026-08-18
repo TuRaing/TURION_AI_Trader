@@ -4285,6 +4285,31 @@ existing decision to land this via the VPS (Stage 2) migration
 rather than rush a broker-side-order wiring change into the current
 GitHub-Actions-cron setup. Analysis only, nothing implemented.
 
+UPDATE 18-Aug (2) - also re-ran the project's separately-established
+HYBRID SL CAP formula (see "HYBRID SL CAP - min(flat, %-of-deployed)
+BEATS BOTH PURE VERSIONS" entry below; the same min(flat_cap,
+pct_of_deployed_cap) at 2% used by the st1/st2/st3/st4 "_slcap"
+variants, strategy/fyers_options_engine.py's _hybrid_stop_loss_cap())
+against oi_footprint's same 60-trade history, at the user's request,
+to compare against the flat -Rs 2,000-only cap above:
+
+  Index      Actual        Flat -Rs2,000 cap   Hybrid (2% flat/deployed)
+  NIFTY      -Rs 47,607    +Rs 66,972           +Rs 69,490
+  BANKNIFTY   -Rs 6,067    +Rs 4,267            +Rs 4,839
+  Combined   -Rs 53,674    +Rs 71,239           +Rs 74,329
+
+Hybrid edges out the flat cap slightly (+Rs 3,090 combined), same
+direction as the original 8-book HYBRID SL CAP finding. Which side
+binds varies by index: for NIFTY, the flat Rs 2,000 cap was tighter
+in 22 of 26 Stop-Loss trades (larger positions there push the %-of-
+deployed side above Rs 2,000); for BANKNIFTY, the %-of-deployed side
+was tighter in 6 of 7 (smaller lot size = smaller capital deployed
+per trade). Average realized cap: ~Rs 1,903 (NIFTY), ~Rs 1,883
+(BANKNIFTY) - both close to but under the Rs 2,000 flat ceiling.
+oi_footprint does not have an "_slcap" live variant yet (unlike
+st1-st4) - not built this session, flagged as an option for later,
+not requested yet. Analysis only, nothing implemented.
+
 RETROSPECTIVE FINDING 3 - ATR-scaled dynamic version of the same -2,000
 SL cap (dynamic_cap = 2,000 x (that day's real NIFTY/BANKNIFTY ATR14 /
 average ATR14 over the trade sample), real ATR14 fetched via yfinance)
