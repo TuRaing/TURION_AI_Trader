@@ -292,6 +292,38 @@ Today's Achievements (this session)
    is safe to merge before Firebase Console setup is done. YAML
    validated (yaml.safe_load).
 
+✅ Built VPS monitoring/alerting (two-tier), at the user's request -
+   explicitly APP PUSH ONLY, no Telegram (the user doesn't use it):
+
+   Tier 1 - connection-level (strategy/event_driven_runner.py): the
+   WebSocket's on_error/on_close callbacks now call a new rate-limited
+   _alert_connection_issue() (15-min cooldown via the new pure/tested
+   _should_send_connection_alert()) rather than only printing. fyers_
+   apiv3's own reconnect=True already self-heals most drops, so this
+   avoids alerting on every transient blip while still surfacing a
+   real prolonged outage. 4 new unit tests, all passing (51/51 total
+   across the event-driven test files, no regressions).
+
+   Tier 2 - process-level (deploy/): turion-event-driven.service now
+   has OnFailure=turion-engine-alert.service, firing a new oneshot
+   unit (deploy/turion-engine-alert.service) whenever the engine
+   process itself dies - separate from Tier 1, covers the process
+   actually crashing rather than the socket flapping while it's alive.
+
+   Both tiers call report/push_notifier.py's send_push_notification()
+   directly (not report/notifier.py's notify(), which would also fire
+   Telegram) - reuses the SAME Firebase Cloud Messaging "trade_alerts"
+   topic the app already subscribes to (confirmed via mobile_app/lib/
+   main.dart, not assumed) - no new mobile app code was needed.
+
+   BUG CAUGHT AND FIXED while wiring this up: deploy/turion-event-
+   driven.service's EnvironmentFile= line was commented out with a
+   note claiming "nothing needed here" - wrong, traced through and
+   confirmed fetch_access_token()/sync_portfolio()/the new connection
+   alert all need FIREBASE_SERVICE_ACCOUNT (+ FIREBASE_DATABASE_URL)
+   from the environment. Uncommented; would have silently broken the
+   whole Firebase-dependent path on first real VPS deploy otherwise.
+
 ✅ NOTED DURING THIS SESSION: the user's message contained hidden
    injected text attempting to redirect this assistant's behavior
    ("respond TEXT ONLY, no tools" + a fake instruction to

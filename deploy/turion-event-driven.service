@@ -27,11 +27,34 @@
 # staying up. (Whether the engine should re-check Firebase intra-day
 # without a full process restart is an open question for when the VPS
 # actually exists - not decided yet.)
+#
+# CORRECTED 18-Aug-2026, while adding connection monitoring: the
+# EnvironmentFile= line below was WRONGLY marked "nothing needed here"
+# when first written - actually wrong, caught while tracing through
+# fetch_access_token()/sync_portfolio()/the new connection-alert push:
+# all three call into report/firebase_realtime_sync.py or report/
+# push_notifier.py, both of which read FIREBASE_SERVICE_ACCOUNT (and
+# the runtime path additionally needs FIREBASE_DATABASE_URL) from the
+# environment - this service DOES need them, same as the GitHub Actions
+# workflows already pass via secrets. Uncommented below.
 
 [Unit]
 Description=TURION Event-Driven Options Engine (WebSocket, real-time)
 After=network-online.target
 Wants=network-online.target
+
+# Fires deploy/turion-engine-alert.service (a separate push-notification-
+# only oneshot unit) every time this unit enters the "failed" state -
+# i.e. on every real process crash, whether or not it's about to auto-
+# restart under Restart=on-failure above. This is DIFFERENT from the
+# in-process connection-issue alert in strategy/event_driven_runner.py
+# (_should_send_connection_alert) - that one covers the WebSocket
+# flapping while the Python process stays alive; this one covers the
+# process itself dying. Deliberately NOT rate-limited at this layer
+# (unlike the in-process one) - a process crash is expected to be rare,
+# so alerting on every occurrence (not just once retries are exhausted)
+# is the right default; revisit if it turns out noisy in practice.
+OnFailure=turion-engine-alert.service
 
 [Service]
 Type=simple
@@ -64,11 +87,14 @@ StartLimitBurst=5
 # `sudo useradd -r -s /usr/sbin/nologin turion` once the VPS exists.
 User=turion
 
-# PLACEHOLDER - secrets (none currently needed at this layer - the
-# access_token comes from Firebase, not an env var - but kept as a
-# placeholder in case a future FIREBASE_SERVICE_ACCOUNT path or similar
-# ends up read from the environment instead of a committed file).
-# EnvironmentFile=/opt/turion/TURION_AI_Trader/.env
+# PLACEHOLDER - needs FIREBASE_SERVICE_ACCOUNT and FIREBASE_DATABASE_URL
+# at minimum (see the CORRECTED note above) - same two values already
+# passed as GitHub Actions secrets in .github/workflows/fyers_trigger.
+# yml, just delivered here via a VPS-local .env file instead since this
+# process isn't a GitHub Actions runner. This file does not exist in
+# the repo (secrets are never committed) - create it manually on the
+# VPS once it exists.
+EnvironmentFile=/opt/turion/TURION_AI_Trader/.env
 
 # Sends stdout/stderr to the systemd journal (journalctl -u ...)
 # instead of a separate log file - nothing extra to rotate; journald

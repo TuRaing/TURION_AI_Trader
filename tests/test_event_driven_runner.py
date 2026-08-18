@@ -1,4 +1,8 @@
-from strategy.event_driven_runner import MultiStrategyRouter, load_portfolio, save_portfolio
+import datetime
+
+from strategy.event_driven_runner import (
+    MultiStrategyRouter, load_portfolio, save_portfolio, _should_send_connection_alert,
+)
 from strategy import event_driven_runner
 
 
@@ -85,3 +89,28 @@ def test_save_then_load_portfolio_round_trips(tmp_path, monkeypatch):
     reloaded = load_portfolio("some_book")
 
     assert reloaded == original
+
+
+def test_connection_alert_fires_on_the_first_ever_event():
+    assert _should_send_connection_alert(last_alert_at=None, now=datetime.datetime(2026, 8, 18, 10, 0, 0)) is True
+
+
+def test_connection_alert_suppressed_within_the_cooldown_window():
+    last = datetime.datetime(2026, 8, 18, 10, 0, 0)
+    soon_after = last + datetime.timedelta(minutes=5)  # well under the 15-min cooldown
+
+    assert _should_send_connection_alert(last, soon_after) is False
+
+
+def test_connection_alert_fires_again_once_the_cooldown_has_passed():
+    last = datetime.datetime(2026, 8, 18, 10, 0, 0)
+    later = last + datetime.timedelta(minutes=16)  # past the 15-min cooldown
+
+    assert _should_send_connection_alert(last, later) is True
+
+
+def test_connection_alert_boundary_is_inclusive():
+    last = datetime.datetime(2026, 8, 18, 10, 0, 0)
+    exactly_at_cooldown = last + datetime.timedelta(seconds=900)
+
+    assert _should_send_connection_alert(last, exactly_at_cooldown) is True

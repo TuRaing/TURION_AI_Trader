@@ -261,6 +261,49 @@ def refresh_oi_snapshots(runners):
             runner.on_oi_snapshot(now, snapshot["spot"], snapshot["strike"], snapshot["ce_oi"], snapshot["pe_oi"])
 
 
+# Added 18-Aug-2026 - connection-level monitoring, at the user's
+# request while reviewing VPS readiness. The fyers_apiv3 SDK already
+# self-heals transient WebSocket drops (reconnect=True, passed to
+# FyersDataSocket in main() below) - on_error/on_close firing does NOT
+# necessarily mean the engine is down, most are short blips the SDK
+# recovers from within seconds. Alerting on every single one would be
+# noise, not signal, so this rate-limits to at most one push per
+# _CONNECTION_ALERT_COOLDOWN_SECONDS - a real prolonged outage still
+# surfaces quickly, a flapping-then-recovering connection doesn't spam.
+#
+# App push notification ONLY (report/push_notifier.py's
+# send_push_notification(), not report/notifier.py's notify()) - the
+# user does not use Telegram, so this deliberately skips that channel
+# rather than sending an alert through a channel nobody's watching.
+# Reuses the SAME Firebase Cloud Messaging "trade_alerts" topic the
+# app already subscribes to (mobile_app/lib/main.dart) - no new
+# mobile app code needed, this alert just shows up as another push.
+#
+# This is DIFFERENT from, and does not replace, the systemd-level
+# OnFailure= alert on the process actually dying (see deploy/turion-
+# event-driven.service's OnFailure= + deploy/turion-engine-alert.
+# service) - that covers the process getting killed outright; this
+# covers the socket flapping while the process stays alive.
+_CONNECTION_ALERT_COOLDOWN_SECONDS = 900
+
+
+def _should_send_connection_alert(last_alert_at, now):
+    """
+    Pure/testable rate-limit decision, deliberately kept separate from
+    the actual send_push_notification() call (which needs live
+    Firebase credentials and can't be unit-tested) - same "extract the
+    testable decision, keep the wiring thin" split this module already
+    used for connect_and_run()'s message-parsing logic. True if no
+    alert has been sent yet this run (last_alert_at is None), or if
+    `now` is at least the cooldown past `last_alert_at`.
+    """
+
+    if last_alert_at is None:
+        return True
+
+    return (now - last_alert_at).total_seconds() >= _CONNECTION_ALERT_COOLDOWN_SECONDS
+
+
 def save_all(runners):
     """
     Local JSON stays the source of truth (same file this project's own
@@ -291,8 +334,21 @@ def main(access_token):
     """
 
     from fyers_apiv3.FyersWebsocket import data_ws
+    from report.push_notifier import send_push_notification
 
     router, runners = build_runners()
+
+    _last_connection_alert = {"time": None}
+
+    def _alert_connection_issue(kind, message):
+        now = datetime.datetime.now()
+        if _should_send_connection_alert(_last_connection_alert["time"], now):
+            _last_connection_alert["time"] = now
+            send_push_notification(
+                "TURION Engine - Connection Issue",
+                f"Event-driven engine WebSocket {kind}: {message}. "
+                f"Check the VPS if this keeps repeating.",
+            )
 
     def on_message(message):
         router.route(message)
@@ -300,9 +356,11 @@ def main(access_token):
 
     def on_error(message):
         print(f"[fyers websocket error] {message}")
+        _alert_connection_issue("error", message)
 
     def on_close(message):
         print(f"[fyers websocket closed] {message}")
+        _alert_connection_issue("closed", message)
 
     def on_open():
         socket.subscribe(symbols=router.all_symbols(), data_type="SymbolUpdate")
