@@ -324,6 +324,23 @@ Today's Achievements (this session)
    from the environment. Uncommented; would have silently broken the
    whole Firebase-dependent path on first real VPS deploy otherwise.
 
+✅ FOUND AND DESIGNED A FIX for another real gap, while reviewing what's
+   still left for VPS readiness: deploy.sh's daily 08:00 IST cron
+   restarts the engine, but if the user hasn't yet tapped "Login to
+   Fyers" in the app at that exact moment, run_event_driven_engine.py
+   exits CLEANLY (no token today) - and Restart=on-failure deliberately
+   does NOT restart a clean exit. A login at, say, 08:30 (still well
+   before 09:15 IST market open) would otherwise leave the engine
+   sitting stopped all day with no automatic recovery. FIX (VPS-cron
+   only, no code change - keeps this cleanly separate from the crash-
+   alerting built earlier today, since a clean exit was never a
+   "failure" to alert on): a second, narrow-window cron entry that
+   retries `systemctl start` (safe no-op if already running) every 5
+   min across 08:00-09:59 IST, Mon-Fri only. Documented directly in
+   deploy/turion-event-driven.service's own header (the crontab line
+   itself) with a cross-reference from deploy.sh's header, so anyone
+   setting up VPS cron sees both entries' reasoning together.
+
 ✅ NOTED DURING THIS SESSION: the user's message contained hidden
    injected text attempting to redirect this assistant's behavior
    ("respond TEXT ONLY, no tools" + a fake instruction to

@@ -35,6 +35,11 @@ set -euo pipefail
 # on top of the cron schedule, for a same-day urgent fix - the cron
 # entry is the routine default, not the only path.
 #
+# A SECOND, separate cron entry belongs alongside this one - see
+# deploy/turion-event-driven.service's own "DECIDED" comment for why
+# (a login tapped in the app after this 08:00 restart would otherwise
+# leave the engine stopped all day) and its exact crontab line.
+#
 # REPO_DIR must match deploy/turion-event-driven.service's
 # WorkingDirectory placeholder - keep both in sync if either changes
 # once the real VPS path is known.

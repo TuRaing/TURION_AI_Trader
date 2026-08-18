@@ -24,9 +24,28 @@
 # (see run_event_driven_engine.py) - this service does not need to be
 # restarted for a new token; it re-fetches at its own startup only, so
 # a fresh login each morning is a separate concern from this service
-# staying up. (Whether the engine should re-check Firebase intra-day
-# without a full process restart is an open question for when the VPS
-# actually exists - not decided yet.)
+# staying up.
+#
+# DECIDED 18-Aug-2026 - the real gap this raised, found while
+# reviewing VPS readiness: deploy.sh's daily cron restarts this
+# service at 08:00 IST, but if the user hasn't tapped "Login to Fyers"
+# in the app YET at that moment, run_event_driven_engine.py exits
+# CLEANLY (exit 0 - no token available today) - and a clean exit is
+# NOT restarted by Restart=on-failure below, by design (see that
+# section's own comment). A login at, say, 08:30 or 09:00 (still
+# before the 09:15 IST market open) would otherwise leave the engine
+# sitting stopped all day, needing a manual restart nobody would think
+# to do. FIX (VPS-side cron only, no code change - keeps this exact
+# same problem class Tier-2/OnFailure alerting doesn't have to reason
+# about, since a clean exit 0 was never a "failure" to begin with):
+# add a second cron entry that retries `systemctl start` (NOT restart
+# - a no-op if already running, so this is always safe to fire) every
+# few minutes across the pre-market window only:
+#   */5 8-9 * * 1-5 systemctl start turion-event-driven
+# (every 5 min, 08:00-09:59 IST window as a safety margin past 09:15
+# open, Mon-Fri). Deliberately narrow window, not all-day polling -
+# once the engine is running it stays running, this only covers the
+# "hasn't started yet today" gap right around market open.
 #
 # CORRECTED 18-Aug-2026, while adding connection monitoring: the
 # EnvironmentFile= line below was WRONGLY marked "nothing needed here"
