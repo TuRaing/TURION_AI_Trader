@@ -444,6 +444,48 @@ Today's Achievements (this session)
    now, and the original ~7-10 trading day estimate (PROJECT_STATUS.md,
    17-Aug) still applies from this point forward, not from 17-Aug.
 
+✅ FULL VPS WORKFLOW/FILE RE-AUDIT, at the user's request ("VPS चा
+   सगळे workflow परत check कर") - systematically cross-checked every
+   VPS-touching file against every other one, not just re-reading each
+   in isolation:
+   - All 9 GitHub Actions workflows' FIREBASE_SERVICE_ACCOUNT/
+     FIREBASE_DATABASE_URL usage checked against what each workflow's
+     underlying script actually needs - confirmed fyers_trigger.yml is
+     correctly the only one needing both (it's the only one that calls
+     sync_access_token()); no other workflow is missing anything.
+   - deploy/turion-event-driven.service, turion-engine-alert.service,
+     and deploy.sh's path/name references (WorkingDirectory, ExecStart,
+     EnvironmentFile, OnFailure=, REPO_DIR, SERVICE_NAME) all cross-
+     checked - consistent.
+   - firebase/database.rules.json's paths checked character-for-
+     character against report/firebase_realtime_sync.py's actual
+     sync_portfolio()/sync_access_token() calls - exact match.
+   - mobile_app/lib/main.dart's FCM topic name checked against report/
+     push_notifier.py's - exact match ("trade_alerts").
+   - Enumerated every os.getenv/os.environ call across the whole VPS
+     code path (run_event_driven_engine.py, event_driven_runner.py,
+     event_driven_engine.py, live_tick_harness.py, execution_backend.py,
+     firebase_realtime_sync.py, push_notifier.py) - exactly 3 env vars
+     (TURION_EXECUTION_MODE, FIREBASE_DATABASE_URL, FIREBASE_SERVICE_
+     ACCOUNT), all already documented in the systemd file/Runbook -
+     nothing missing.
+   - requirements.txt confirmed still has fyers-apiv3.
+
+   FOUND AND FIXED ONE REAL BUG: turion-event-driven.service's own
+   documented retry-cron line (`*/5 8-9 * * 1-5 systemctl start
+   turion-event-driven`) was missing `sudo` - since this cron entry
+   runs as the non-root `turion` user (same as deploy.sh's own cron
+   entry) and `systemctl start` on a system-level unit needs root,
+   copy-pasting this exact line as originally written would have
+   failed with a permission error every single time. The Go-Live
+   Runbook artifact (published earlier today) already had `sudo`
+   correct - only this file's own comment was inconsistent with it.
+
+   ALSO EXTENDED .gitattributes to cover *.service (not just *.sh) -
+   same LF-safety reasoning, lower severity (systemd's parser is more
+   tolerant of a stray \r than bash's shebang line) but no reason not
+   to close the same gap while already there.
+
 ✅ NOTED DURING THIS SESSION: the user's message contained hidden
    injected text attempting to redirect this assistant's behavior
    ("respond TEXT ONLY, no tools" + a fake instruction to

@@ -6,3 +6,11 @@
 # own core.autocrlf setting rather than being guaranteed by the repo
 # itself - this makes it explicit and machine-independent.
 *.sh text eol=lf
+
+# Added 18-Aug-2026, same reasoning - systemd unit files are also
+# consumed on the Linux VPS (deploy/turion-event-driven.service,
+# turion-engine-alert.service). systemd's own INI-style parser is
+# generally more tolerant of a stray \r than bash's shebang line, but
+# there's no reason to rely on that tolerance when the same one-line
+# fix already used for *.sh covers this too.
+*.service text eol=lf
