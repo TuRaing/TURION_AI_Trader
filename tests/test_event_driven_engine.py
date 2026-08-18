@@ -1,6 +1,6 @@
 from strategy.backtest_live_engine import run_backtest, run_live_check
 from strategy.event_driven_engine import (
-    st2_threshold_decide_fn, make_st2_threshold_event_cfg,
+    rsi_momentum_decide_fn, make_st2_threshold_event_cfg, make_simple_st1_threshold_event_cfg,
     oi_footprint_decide_fn, make_oi_footprint_event_cfg,
 )
 
@@ -25,7 +25,7 @@ def _data_point(**overrides):
 
 
 def test_opens_ce_when_rsi_at_or_above_50():
-    action, position, trade = st2_threshold_decide_fn(_cfg(), None, _data_point(rsi=55.0))
+    action, position, trade = rsi_momentum_decide_fn(_cfg(), None, _data_point(rsi=55.0))
 
     assert "OPENED CE" in action
     assert position["Option Type"] == "CE"
@@ -34,7 +34,7 @@ def test_opens_ce_when_rsi_at_or_above_50():
 
 
 def test_opens_pe_when_rsi_below_50():
-    action, position, trade = st2_threshold_decide_fn(_cfg(), None, _data_point(rsi=45.0))
+    action, position, trade = rsi_momentum_decide_fn(_cfg(), None, _data_point(rsi=45.0))
 
     assert "OPENED PE" in action
     assert position["Option Type"] == "PE"
@@ -42,7 +42,7 @@ def test_opens_pe_when_rsi_below_50():
 
 
 def test_skips_open_when_rsi_not_ready():
-    action, position, trade = st2_threshold_decide_fn(_cfg(), None, _data_point(rsi=None))
+    action, position, trade = rsi_momentum_decide_fn(_cfg(), None, _data_point(rsi=None))
 
     assert "SKIPPED" in action
     assert position is None
@@ -50,7 +50,7 @@ def test_skips_open_when_rsi_not_ready():
 
 
 def test_skips_open_when_past_squareoff():
-    action, position, trade = st2_threshold_decide_fn(_cfg(), None, _data_point(past_squareoff=True))
+    action, position, trade = rsi_momentum_decide_fn(_cfg(), None, _data_point(past_squareoff=True))
 
     assert "SKIPPED" in action
     assert position is None
@@ -58,7 +58,7 @@ def test_skips_open_when_past_squareoff():
 
 def test_skips_open_when_capital_insufficient_for_one_lot():
     # 75 lot_size x 100 premium = Rs 7,500/lot - Rs 5,000 capital can't buy even 1
-    action, position, trade = st2_threshold_decide_fn(_cfg(initial_capital=5000), None, _data_point(rsi=55.0))
+    action, position, trade = rsi_momentum_decide_fn(_cfg(initial_capital=5000), None, _data_point(rsi=55.0))
 
     assert "SKIPPED" in action
     assert position is None
@@ -66,9 +66,9 @@ def test_skips_open_when_capital_insufficient_for_one_lot():
 
 def test_holds_when_neither_target_nor_sl_hit():
     cfg = _cfg()
-    _, position, _ = st2_threshold_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ltp=100.0))
+    _, position, _ = rsi_momentum_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ltp=100.0))
 
-    action, new_position, trade = st2_threshold_decide_fn(cfg, position, _data_point(ce_ltp=101.0))
+    action, new_position, trade = rsi_momentum_decide_fn(cfg, position, _data_point(ce_ltp=101.0))
 
     assert "HELD" in action
     assert new_position is not None
@@ -77,11 +77,11 @@ def test_holds_when_neither_target_nor_sl_hit():
 
 def test_closes_at_target():
     cfg = _cfg()
-    _, position, _ = st2_threshold_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ltp=100.0))
+    _, position, _ = rsi_momentum_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ltp=100.0))
 
     # Target is 5% of initial_capital (Rs 5,000); need ce_ltp high enough to
     # clear both the 5% target AND real transaction costs.
-    action, new_position, trade = st2_threshold_decide_fn(cfg, position, _data_point(ce_ltp=115.0))
+    action, new_position, trade = rsi_momentum_decide_fn(cfg, position, _data_point(ce_ltp=115.0))
 
     assert "CLOSED (Target)" in action
     assert new_position is None
@@ -91,11 +91,11 @@ def test_closes_at_target():
 
 def test_closes_at_hybrid_stop_loss_when_set():
     cfg = _cfg(hybrid_sl_cap_pct=2.0)
-    _, position, _ = st2_threshold_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ltp=100.0))
+    _, position, _ = rsi_momentum_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ltp=100.0))
 
     # Hybrid cap here is min(2% of 1,00,000, 2% of capital deployed) = Rs 2,000.
     # A big premium drop should breach it.
-    action, new_position, trade = st2_threshold_decide_fn(cfg, position, _data_point(ce_ltp=70.0))
+    action, new_position, trade = rsi_momentum_decide_fn(cfg, position, _data_point(ce_ltp=70.0))
 
     assert "CLOSED (Stop Loss)" in action
     assert trade["Net PnL"] < 0
@@ -103,19 +103,19 @@ def test_closes_at_hybrid_stop_loss_when_set():
 
 def test_closes_at_plain_stop_loss_when_hybrid_not_set():
     cfg = _cfg(hybrid_sl_cap_pct=None)
-    _, position, _ = st2_threshold_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ltp=100.0))
+    _, position, _ = rsi_momentum_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ltp=100.0))
 
     # Plain stop_loss_pct = 2% of initial_capital, same Rs 2,000 threshold here.
-    action, new_position, trade = st2_threshold_decide_fn(cfg, position, _data_point(ce_ltp=70.0))
+    action, new_position, trade = rsi_momentum_decide_fn(cfg, position, _data_point(ce_ltp=70.0))
 
     assert "CLOSED (Stop Loss)" in action
 
 
 def test_closes_at_squareoff_when_neither_target_nor_sl_hit():
     cfg = _cfg()
-    _, position, _ = st2_threshold_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ltp=100.0))
+    _, position, _ = rsi_momentum_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ltp=100.0))
 
-    action, new_position, trade = st2_threshold_decide_fn(
+    action, new_position, trade = rsi_momentum_decide_fn(
         cfg, position, _data_point(ce_ltp=100.5, past_squareoff=True)
     )
 
@@ -127,11 +127,11 @@ def test_spread_pct_makes_the_same_trade_slightly_worse():
     cfg_no_spread = _cfg(spread_pct=None)
     cfg_with_spread = _cfg(spread_pct=0.26)
 
-    _, pos_a, _ = st2_threshold_decide_fn(cfg_no_spread, None, _data_point(rsi=55.0, ce_ltp=100.0))
-    _, pos_b, _ = st2_threshold_decide_fn(cfg_with_spread, None, _data_point(rsi=55.0, ce_ltp=100.0))
+    _, pos_a, _ = rsi_momentum_decide_fn(cfg_no_spread, None, _data_point(rsi=55.0, ce_ltp=100.0))
+    _, pos_b, _ = rsi_momentum_decide_fn(cfg_with_spread, None, _data_point(rsi=55.0, ce_ltp=100.0))
 
-    _, _, trade_no_spread = st2_threshold_decide_fn(cfg_no_spread, pos_a, _data_point(ce_ltp=115.0))
-    _, _, trade_with_spread = st2_threshold_decide_fn(cfg_with_spread, pos_b, _data_point(ce_ltp=115.0))
+    _, _, trade_no_spread = rsi_momentum_decide_fn(cfg_no_spread, pos_a, _data_point(ce_ltp=115.0))
+    _, _, trade_with_spread = rsi_momentum_decide_fn(cfg_with_spread, pos_b, _data_point(ce_ltp=115.0))
 
     assert trade_with_spread["Net PnL"] < trade_no_spread["Net PnL"]
 
@@ -144,7 +144,7 @@ def test_run_backtest_replays_a_full_open_then_close_sequence():
         _data_point(timestamp="t3", ce_ltp=115.0),             # closes at Target
     ]
 
-    portfolio, actions = run_backtest(st2_threshold_decide_fn, cfg, data_points, initial_capital=100000)
+    portfolio, actions = run_backtest(rsi_momentum_decide_fn, cfg, data_points, initial_capital=100000)
 
     assert "OPENED" in actions[0]
     assert "HELD" in actions[1]
@@ -165,13 +165,52 @@ def test_run_live_check_matches_run_backtest_for_the_same_points_fed_one_at_a_ti
         _data_point(timestamp="t3", ce_ltp=115.0),
     ]
 
-    batch_portfolio, _ = run_backtest(st2_threshold_decide_fn, cfg, data_points, initial_capital=100000)
+    batch_portfolio, _ = run_backtest(rsi_momentum_decide_fn, cfg, data_points, initial_capital=100000)
 
     live_portfolio = {"Cash": 100000, "Position": None, "Closed Trades": []}
     for point in data_points:
-        _, live_portfolio = run_live_check(st2_threshold_decide_fn, cfg, live_portfolio, point)
+        _, live_portfolio = run_live_check(rsi_momentum_decide_fn, cfg, live_portfolio, point)
 
     assert live_portfolio == batch_portfolio
+
+
+# --- rsi_momentum_decide_fn with simple_st1_threshold's cfg (3%/3%,
+# not st2_threshold's 5%/2%) - same decide_fn, proves the shared
+# function actually respects cfg rather than having 5%/2% baked in.
+
+def _st1_cfg(**overrides):
+    cfg = make_simple_st1_threshold_event_cfg(index="NIFTY", lot_size=75, initial_capital=100000)
+    cfg.update(overrides)
+    return cfg
+
+
+def test_simple_st1_threshold_cfg_uses_symmetric_3pct_ratios():
+    cfg = _st1_cfg()
+
+    assert cfg["target_net_pct"] == 3.0
+    assert cfg["stop_loss_pct"] == 3.0
+
+
+def test_simple_st1_threshold_closes_at_its_own_3pct_target():
+    cfg = _st1_cfg(hybrid_sl_cap_pct=None)
+    _, position, _ = rsi_momentum_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ltp=100.0))
+
+    # 3% of Rs 1,00,000 = Rs 3,000 - a smaller move than st2_threshold's
+    # 5% target needs, so this ce_ltp would only just clear st1's target.
+    action, new_position, trade = rsi_momentum_decide_fn(cfg, position, _data_point(ce_ltp=105.0))
+
+    assert "CLOSED (Target)" in action
+    assert trade["Net PnL"] >= 3000
+
+
+def test_simple_st1_threshold_closes_at_its_own_3pct_plain_stop_loss():
+    cfg = _st1_cfg(hybrid_sl_cap_pct=None)
+    _, position, _ = rsi_momentum_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ltp=100.0))
+
+    action, new_position, trade = rsi_momentum_decide_fn(cfg, position, _data_point(ce_ltp=95.0))
+
+    assert "CLOSED (Stop Loss)" in action
+    assert trade["Net PnL"] <= -3000
 
 
 # --- oi_footprint_decide_fn ---

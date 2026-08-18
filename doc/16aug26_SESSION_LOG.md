@@ -678,4 +678,31 @@ Same continuing session (S20260816-001), a new real trading day.
    threshold's verification. Event-driven engine now covers 2 of the 4
    real-verified profitable strategies.
 
+✅ "code prop lihayala ghe original" - user asked to complete the
+   remaining real-verified profitable strategy (simple_st1_threshold/
+   NIFTY). Recognized its RSI-momentum entry/exit is IDENTICAL in
+   shape to st2_threshold's (only target_net_pct/stop_loss_pct differ:
+   3.0/3.0 vs 5.0/2.0) - exactly like the original polling engine
+   already shares ONE generic check_or_open() across both via cfg
+   (fyers_options_engine.py's make_strategy()). Rather than duplicate
+   the decision logic under a new name (which would reintroduce the
+   exact two-hand-written-copies-drift risk this whole rewrite exists
+   to prevent), renamed st2_threshold_decide_fn -> rsi_momentum_
+   decide_fn (sed across event_driven_engine.py and both test files,
+   verified nothing broke) and added make_simple_st1_threshold_event_
+   cfg alongside the existing make_st2_threshold_event_cfg - one
+   decide_fn, two book-specific cfg builders. 9 new tests, including
+   ones that prove the shared function actually reads cfg's 3%/3%
+   ratios correctly rather than having 5%/2% baked in. REPLAY-VERIFIED
+   against all 33 real simple_st1_threshold/NIFTY trades - 0
+   mismatches. 426/426 tests passing overall.
+
+   ALL 4 of the real-verified profitable strategies (st2_threshold/
+   NIFTY, simple_st1_threshold/NIFTY, oi_footprint/NIFTY, oi_footprint/
+   BankNifty) are now covered by the event-driven engine, sharing just
+   2 decide_fn implementations (rsi_momentum_decide_fn for the two RSI
+   books, oi_footprint_decide_fn for the OI-buildup book), each real-
+   data-verified to the rupee against its own book's actual trade
+   history. Nothing deployed to a VPS - code-prep only, as planned.
+
 ==================================================

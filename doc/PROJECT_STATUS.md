@@ -6420,6 +6420,40 @@ deferred, this stays code-prep.
 
 ==================================================
 
+EVENT-DRIVEN ENGINE COMPLETED FOR ALL 4 REAL-VERIFIED PROFITABLE
+STRATEGIES (18-Aug) - user asked to finish simple_st1_threshold/
+NIFTY, the one book from the 4 real-verified profitable strategies
+not yet ported. Recognized its RSI-momentum entry/exit is IDENTICAL
+in shape to st2_threshold's (only target_net_pct/stop_loss_pct differ
+- 3.0/3.0 vs 5.0/2.0), exactly matching how the original polling
+engine already shares ONE generic check_or_open() across both via cfg
+(fyers_options_engine.py's make_strategy()). Rather than duplicate the
+decision logic under a new function name - which would reintroduce
+the exact two-hand-written-copies-drift risk this whole rewrite exists
+to prevent - renamed st2_threshold_decide_fn -> rsi_momentum_decide_fn
+throughout (event_driven_engine.py and both test files) and added
+make_simple_st1_threshold_event_cfg alongside the existing make_st2_
+threshold_event_cfg: one decide_fn, two book-specific cfg builders.
+
+9 new tests, including ones that specifically prove the shared
+function reads cfg's 3%/3% ratios correctly rather than having
+5%/2% hardcoded. REPLAY-VERIFIED against all 33 real simple_st1_
+threshold/NIFTY trades - 0 mismatches. 426/426 tests passing overall.
+
+RESULT: all 4 of the real-verified profitable strategies (st2_
+threshold/NIFTY, simple_st1_threshold/NIFTY, oi_footprint/NIFTY,
+oi_footprint/BankNifty) are now covered by the event-driven engine,
+sharing just 2 decide_fn implementations total (rsi_momentum_decide_
+fn for the two RSI-momentum books, oi_footprint_decide_fn for the
+OI-buildup book), each independently real-data-verified to the rupee
+against its own book's actual trade history. Nothing deployed to a
+VPS - this remains code-prep only, per the original plan; the next
+step whenever pursued is a real live WebSocket connection test
+(currently blocked by the local session's expired token and today's
+earlier API-quota exhaustion, resolves with tomorrow's market open).
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.

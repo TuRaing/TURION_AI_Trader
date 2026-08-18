@@ -4,7 +4,7 @@ import pandas as pd
 
 from indicators.rsi import calculate_rsi
 from strategy.event_driven_engine import (
-    st2_threshold_decide_fn, make_st2_threshold_event_cfg,
+    rsi_momentum_decide_fn, make_st2_threshold_event_cfg,
     oi_footprint_decide_fn, make_oi_footprint_event_cfg,
 )
 from strategy.live_tick_harness import (
@@ -92,7 +92,7 @@ def _runner(hybrid_sl_cap_pct=2.0, spread_pct=None):
     seeded = _seeded_candles(MIN_CANDLES_FOR_RSI + 5)  # RSI ready from tick 1
 
     return LiveTickRunner(
-        decide_fn=st2_threshold_decide_fn,
+        decide_fn=rsi_momentum_decide_fn,
         cfg=cfg,
         portfolio=portfolio,
         underlying_symbol="NSE:NIFTY50-INDEX",

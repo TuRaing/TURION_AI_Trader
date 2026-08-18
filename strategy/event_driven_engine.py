@@ -11,10 +11,20 @@ from strategy.options_transaction_costs import calculate_options_round_trip_cost
 # unused until now) - one function, reused for both backtest replay and
 # live event-driven checking, so there is no second hand-written copy
 # to drift out of sync (the exact problem that framework exists to
-# prevent). Deliberately starts with ONE strategy (st2_threshold - the
+# prevent). Deliberately started with ONE strategy (st2_threshold - the
 # strongest of the 4 real-data-verified profitable books, see 17-Aug's
 # fresh profitability check) as a working, tested prototype rather than
 # porting all 4 at once - prove the pattern first.
+#
+# GENERALIZED 18-Aug: simple_st1_threshold uses the IDENTICAL RSI-
+# momentum entry/exit shape as st2_threshold (only target_net_pct/
+# stop_loss_pct differ - 3.0/3.0 vs 5.0/2.0), exactly like the original
+# polling engine already shares ONE generic check_or_open() across both
+# via cfg (fyers_options_engine.py's make_strategy()). Renamed st2_
+# threshold_decide_fn -> rsi_momentum_decide_fn to match - two book-
+# specific cfg builders (make_st2_threshold_event_cfg, make_simple_st1_
+# threshold_event_cfg) share the one decide_fn, rather than a second,
+# identical copy of the decision logic under a different name.
 #
 # Only the DECISION logic lives here - this module places NO real or
 # paper orders itself. No VPS, no WebSocket connection code yet either
@@ -92,10 +102,11 @@ def _net_pnl(cfg, entry_premium, exit_premium, lots):
     return gross_pnl - cost
 
 
-def st2_threshold_decide_fn(cfg, position, data_point):
+def rsi_momentum_decide_fn(cfg, position, data_point):
     """
-    Faithful event-driven port of st2_threshold's real rules (RSI>=50 ->
-    CE else PE, ATM, Target 5%, hybrid Stop-Loss cap, Square-Off at
+    Faithful event-driven port of the shared RSI-momentum rules behind
+    both st2_threshold and simple_st1_threshold (RSI>=50 -> CE else PE,
+    ATM, Target %/hybrid Stop-Loss cap from cfg, Square-Off at
     squareoff_time) - see strategy/fyers_options_engine.py's
     make_strategy()/_check_position()/_open_position() for the original
     polling version this must match. Pure function, per the Shared
@@ -184,7 +195,7 @@ def st2_threshold_decide_fn(cfg, position, data_point):
 def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
                                   hybrid_sl_cap_pct=2.0, spread_pct=None):
     """
-    cfg builder for st2_threshold_decide_fn - mirrors fyers_options_
+    cfg builder for rsi_momentum_decide_fn - mirrors fyers_options_
     engine.py's make_strategy() field names where they overlap, so a
     real Fyers response can be mapped into a data_point without a
     second translation layer to keep in sync later.
@@ -201,6 +212,26 @@ def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
     }
 
 
+def make_simple_st1_threshold_event_cfg(index, lot_size, initial_capital=100000,
+                                         hybrid_sl_cap_pct=2.0, spread_pct=None):
+    """
+    cfg builder for rsi_momentum_decide_fn, simple_st1_threshold's real
+    ratios (Target 3%, Stop-Loss 3% - symmetric, vs st2_threshold's
+    5%/2%) - same decide_fn, only cfg differs, per this module's 18-Aug
+    generalization note above.
+    """
+
+    return {
+        "index": index,
+        "lot_size": lot_size,
+        "initial_capital": initial_capital,
+        "target_net_pct": 3.0,
+        "stop_loss_pct": 3.0,
+        "hybrid_sl_cap_pct": hybrid_sl_cap_pct,
+        "spread_pct": spread_pct,
+    }
+
+
 # Added 18-Aug-2026 - second decide_fn, oi_footprint - the user's own
 # follow-up pick after today's merged 18-Aug cloud-session PR found the
 # SAME polling-overshoot root cause independently for this specific
@@ -211,7 +242,7 @@ def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
 # Target/Stop-Loss band in the project, so the most exposed to exactly
 # the check-frequency gap this whole WebSocket rewrite exists to close.
 #
-# KEY DIFFERENCE from st2_threshold_decide_fn: the entry signal is OI-
+# KEY DIFFERENCE from rsi_momentum_decide_fn: the entry signal is OI-
 # BUILDUP (price direction + Open Interest change at the ATM strike
 # between two checks - see fyers_options_oi_footprint.py's module
 # docstring for the full Long/Short Buildup/Covering/Unwinding
@@ -240,7 +271,7 @@ def oi_footprint_decide_fn(cfg, position, data_point):
 
     data_point adds `oi_signal` ("CE"/"PE"/None, precomputed upstream)
     to the same ce/pe_symbol/ce/pe_ltp/spot/timestamp/past_squareoff
-    shape st2_threshold_decide_fn's data_point already uses.
+    shape rsi_momentum_decide_fn's data_point already uses.
 
     Returns
     -------
