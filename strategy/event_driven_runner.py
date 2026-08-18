@@ -215,7 +215,23 @@ def build_runners():
     for index, key in (("NIFTY", "oi_footprint_nifty"), ("BANKNIFTY", "oi_footprint_banknifty")):
         name = STRATEGY_NAMES[key]
         index_cfg = INDEX_CONFIG[index]
-        cfg = make_oi_footprint_event_cfg(index=index, lot_size=index_cfg["lot_size"])
+        # hybrid_sl_cap_pct=2.0 - added 18-Aug-2026, same choice already
+        # made by default for st2_threshold/simple_st1_threshold above.
+        # oi_footprint's plain Rs 1,500 fixed Stop-Loss is exactly the
+        # book that suffered real, live overshoot losses today (3
+        # consecutive Stop-Loss exits between 04:04-04:12 IST losing
+        # Rs 5,221/7,210/7,002 against an intended Rs 1,500 cap - the
+        # periodic-check-not-tick-by-tick issue this whole VPS migration
+        # exists to fix). Matches the hybrid-cap backtest already run
+        # against oi_footprint's real trade history (see PROJECT_STATUS.
+        # md/14-Aug's oi_footprint deep dive + its 18-Aug update): NIFTY
+        # -Rs 47,607 actual -> +Rs 69,490 hybrid-capped, BANKNIFTY
+        # -Rs 6,067 -> +Rs 4,839. The event-driven engine's tick-by-tick
+        # checking should make the overshoot itself far smaller, but the
+        # hybrid cap is a second, independent line of defense - no
+        # reason to run this book without it once the fix is this cheap
+        # (one flag, already implemented and tested).
+        cfg = make_oi_footprint_event_cfg(index=index, lot_size=index_cfg["lot_size"], hybrid_sl_cap_pct=2.0)
 
         spot, atm_strike, ce_symbol, pe_symbol = pick_atm_symbols(index)
 

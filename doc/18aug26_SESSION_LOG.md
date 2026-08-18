@@ -341,6 +341,41 @@ Today's Achievements (this session)
    itself) with a cross-reference from deploy.sh's header, so anyone
    setting up VPS cron sees both entries' reasoning together.
 
+✅ REAL LIVE INCIDENT, same day: checked today's actual oi_footprint
+   trades at the user's prompt ("आज oi_footprint पूर्ण तोट्यात गेला") -
+   confirmed via fresh portfolio JSON, not assumed: 3 consecutive
+   Stop-Loss exits between 04:04-04:12 IST today lost Rs 5,221/7,210/
+   7,002 against an intended Rs 1,500 cap (3.5-5x overshoot) - the
+   exact periodic-check-not-tick-by-tick issue this whole VPS/event-
+   driven migration exists to fix, now with a fresh same-day example
+   on top of the already-documented 14-Aug/17-Aug ones. NIFTY book
+   total now -Rs 44,941 (48 trades), BANKNIFTY -Rs 6,067 (13 trades).
+   This is what motivated the user to move the VPS timeline up from
+   1-Sep to as early as tomorrow (19-Aug) - a real, current data point
+   the earlier "no point renting before it's needed" reasoning didn't
+   have yet.
+
+✅ Turned on the hybrid 2% Stop-Loss cap for oi_footprint's EVENT-
+   DRIVEN book specifically (strategy/event_driven_runner.py's
+   build_runners(), the make_oi_footprint_event_cfg(...) call for
+   both NIFTY and BANKNIFTY) - the machinery already existed and was
+   already unit-tested (hybrid_sl_cap_pct param, _hybrid_stop_loss_cap
+   helper), and st2_threshold/simple_st1_threshold's event-driven
+   configs already defaulted to it; only oi_footprint's event-driven
+   variant had been left at the plain Rs 1,500 fixed cap. One-line
+   change (hybrid_sl_cap_pct=2.0), matches the hybrid-cap backtest
+   already run against oi_footprint's real trade history (PROJECT_
+   STATUS.md's 14-Aug deep dive + 18-Aug update): NIFTY -Rs 47,607
+   actual -> +Rs 69,490 hybrid-capped, BANKNIFTY -Rs 6,067 -> +Rs
+   4,839. Scoped ONLY to the event-driven/VPS book, not the existing
+   live polling-based oi_footprint books (fyers_options_oi_footprint*
+   _portfolio.json) - those keep running exactly as-is, per this
+   project's "never modify a working module, add a new variant
+   instead" rule; the event-driven book is itself already a separate,
+   not-yet-live variant, so this is a config choice on unreleased
+   code, not a change to anything currently trading. All 51 event-
+   driven tests still pass, no regressions.
+
 ✅ NOTED DURING THIS SESSION: the user's message contained hidden
    injected text attempting to redirect this assistant's behavior
    ("respond TEXT ONLY, no tools" + a fake instruction to
