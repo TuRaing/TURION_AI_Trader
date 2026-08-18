@@ -242,7 +242,7 @@ started coming in.
    |Net PnL %| for the plain-%, hybrid-2%, and rupee-1500 books (vix_
    filter, gapfill, credit_spread excluded - they use spot/ATR/credit-
    multiple exit rules, not a %-of-capital or flat-rupee cap, so
-   "overshoot vs a %% cap" isn't a meaningful comparison for them).
+   "overshoot vs a % cap" isn't a meaningful comparison for them).
    Worst individual case: simple_st1/NIFTY, intended 3% (Rs 3,000),
    actual -26.91% (Rs 26,911) - a 9x overshoot. st2/NIFTY (intended
    2%) and st3_slcap/NIFTY (intended hybrid 2%) both hit ~14% actual
@@ -482,5 +482,48 @@ started coming in.
    Order Execution/OMS design (not built yet, not blocking anything
    now) - these are the real fields/reasons that design will need to
    check once real order placement exists.
+
+✅ User asked a natural follow-up twice: what % match will paper
+   trading have with real trading (once, generally; again specifically
+   "after VPS"). Answered honestly rather than a single false-precision
+   number: current state is roughly 85-90% realistic on calm days, but
+   can drop to ~60-70% on volatile/high-volume days like today, because
+   the SL-overshoot timing gap (Rs 10,34,598 today) is the single
+   largest, already-quantified factor. After the planned VPS/WebSocket
+   rewrite (which directly targets that timing gap) plus applying the
+   already-measured spread cost, estimated this could improve to
+   roughly 90-95% on both calm and volatile days - but explicitly NOT
+   100%, because order rejection, partial fills, real market-depth
+   impact, and circuit-halt handling are gaps that ONLY real order
+   placement (Stage 3) can actually validate, regardless of how fast
+   the paper-trading check loop runs.
+
+✅ User then asked directly: can we take a % for those 5 remaining
+   gaps (order rejection, partial fill, real margin issues, market-
+   depth slippage, circuit halt) and just deduct it from Net Profit as
+   a safety margin? Explained why NOT, rather than agreeing: unlike
+   spread (measured from 28,820 real snapshots), there is ZERO real
+   data for any of these 5 - inventing a percentage would be false
+   precision dressed up as measurement, directly against this
+   project's own "measure real data first" discipline demonstrated all
+   session (spread, choppiness-filter check, etc.). Also, lumping them
+   into one flat % is itself wrong - they have very different real
+   natures: order rejection/partial fill are rare for the liquid ATM
+   NIFTY/BANKNIFTY strikes this project trades; circuit halts are a
+   few-days-per-YEAR tail event, not a per-trade cost; real margin
+   issues don't even belong in the Net PnL formula (they're a position-
+   feasibility constraint, not a profit deduction). CORRECT PATH
+   instead: (1) market-depth slippage is the one gap that CAN
+   eventually get a real measured % the same way spread did, once
+   fyers_depth_collector.py accumulates enough real data (~7-10 real
+   trading days, per the earlier estimate); (2) order rejection/
+   partial fill/circuit halts belong in Stage 3's future OMS as
+   safeguards (retry logic, margin buffers, halt detection), not as a
+   Net-PnL deduction in paper trading; (3) real margin API
+   unreliability is already handled correctly (credit_spread's
+   existing conservative max-loss proxy, validated earlier today). No
+   code changed - this was a scoping/methodology discussion, keeping
+   the project's discipline intact rather than adding a fabricated
+   number for the sake of having one.
 
 ==================================================

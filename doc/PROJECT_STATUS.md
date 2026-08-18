@@ -6172,6 +6172,48 @@ fyers.in's Order API Knowledge Base (api-v3/order-api).
 
 ==================================================
 
+PAPER-VS-REAL MATCH % ESTIMATED, BLANKET-HAIRCUT IDEA DECLINED (17-Aug)
+- user asked twice: what % does paper trading match real trading (once
+generally, once specifically "after VPS"). Answered without false
+precision: currently roughly 85-90% realistic on calm days, dropping to
+~60-70% on volatile/high-volume days like today, because the SL-
+overshoot timing gap (Rs 10,34,598 today) is the single largest,
+already-quantified factor. After the planned VPS/WebSocket rewrite
+(targets that exact timing gap) plus applying the already-measured
+spread cost, estimated this could reach roughly 90-95% on both calm
+and volatile days - explicitly NOT 100%, since order rejection,
+partial fills, real market-depth impact, and circuit-halt handling
+are gaps only real order placement (Stage 3) can validate, regardless
+of check-loop speed.
+
+User then asked directly whether to deduct a % for those same 5
+remaining gaps (order rejection, partial fill, real margin issues,
+market-depth slippage, circuit halt) as a blanket safety margin on Net
+Profit. DECLINED, with reasoning rather than just agreeing: unlike
+spread (measured from 28,820 real snapshots), there is ZERO real data
+for any of these 5 - inventing a % would be false precision dressed as
+measurement, against this project's own "measure real data first"
+discipline demonstrated all session. Also wrong to lump them into one
+flat %: order rejection/partial fill are rare for the liquid ATM
+NIFTY/BANKNIFTY strikes this project trades; circuit halts are a few-
+days-per-YEAR tail event, not a per-trade cost; real margin issues
+don't belong in the Net PnL formula at all (a position-feasibility
+constraint, not a profit deduction).
+
+CORRECT PATH per item instead: (1) market-depth slippage is the one
+gap that CAN eventually get a real measured % the same way spread did,
+once fyers_depth_collector.py accumulates enough data (~7-10 real
+trading days, per the earlier estimate); (2) order rejection/partial
+fill/circuit halts belong in Stage 3's future OMS as safeguards (retry
+logic, margin buffers, halt detection), not a Net-PnL deduction in
+paper trading; (3) real margin API unreliability is already handled
+correctly (credit_spread's existing conservative max-loss proxy,
+validated earlier today). No code changed - a scoping/methodology
+decision, keeping the project's discipline intact rather than adding a
+fabricated number for the sake of having one.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
