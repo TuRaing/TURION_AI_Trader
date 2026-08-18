@@ -4263,6 +4263,28 @@ Leave Target/profit-taking exactly as-is (do NOT add a symmetric
 broker-side target order - that would remove the beneficial overshoot
 Finding 1 just proved).
 
+UPDATE 18-Aug - re-ran Finding 2's exact methodology (asymmetric
+-Rs 2,000 Stop-Loss-only cap, Target left uncapped) on the extended
+trade history now that 17/18-Aug added more real, and notably worse,
+overshoot examples (two back-to-back 18-Aug losses at -Rs 24,375 and
+-Rs 23,571, both during the volatile ~9:15-9:30 AM open). Sample grew
+from 40 to 60 trades (NIFTY 47, BANKNIFTY 13):
+
+  NIFTY:      actual -Rs 47,607  ->  -Rs 2,000-capped +Rs 66,972  (+Rs 1,14,580)
+  BANKNIFTY:  actual  -Rs 6,067  ->  -Rs 2,000-capped  +Rs 4,267  (+Rs 10,333)
+
+Same conclusion as 14-Aug's Finding 2, now on 1.5x the data and
+including the two most extreme overshoot trades seen yet in this
+book: the entry signal is not the problem (both actual totals only
+recently turned negative, purely from a handful of badly-overshot
+Stop-Losses on 17/18-Aug), and the already-recommended fix (a real
+broker-side SL-M order, strategy/fyers_order_execution.py, built
+14-Aug but not wired in) would very likely have kept this book
+solidly profitable through today. Reinforces, does not change, the
+existing decision to land this via the VPS (Stage 2) migration
+rather than rush a broker-side-order wiring change into the current
+GitHub-Actions-cron setup. Analysis only, nothing implemented.
+
 RETROSPECTIVE FINDING 3 - ATR-scaled dynamic version of the same -2,000
 SL cap (dynamic_cap = 2,000 x (that day's real NIFTY/BANKNIFTY ATR14 /
 average ATR14 over the trade sample), real ATR14 fetched via yfinance)
