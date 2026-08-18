@@ -1,5 +1,5 @@
 {
-  "Cash": 66527.26794634499,
+  "Cash": 46323.319527165,
   "Position": null,
   "Closed Trades": [
     {
@@ -171,13 +171,64 @@
       "Exit Reason": "Stop Loss",
       "Net PnL": -1941.37,
       "Net PnL %": -1.941
+    },
+    {
+      "Symbol": "NSE:NIFTY2681824250PE",
+      "Strike": 24250,
+      "Option Type": "PE",
+      "Entry Time": "2026-08-18 03:47:16",
+      "Entry Premium": 50.45,
+      "Entry Spot": 24236.2,
+      "Exit Spot": 24236.25,
+      "Entry CE OI": 9644310,
+      "Entry PE OI": 11987820,
+      "Exit Time": "2026-08-18 03:51:14",
+      "Exit Premium": 48.2,
+      "Lots": 17,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -3031.47,
+      "Net PnL %": -3.031
+    },
+    {
+      "Symbol": "NSE:NIFTY2681824250PE",
+      "Strike": 24250,
+      "Option Type": "PE",
+      "Entry Time": "2026-08-18 03:53:15",
+      "Entry Premium": 48,
+      "Entry Spot": 24233.95,
+      "Exit Spot": 24246.6,
+      "Entry CE OI": 17883190,
+      "Entry PE OI": 15673320,
+      "Exit Time": "2026-08-18 03:55:12",
+      "Exit Premium": 45.35,
+      "Lots": 17,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -3534.95,
+      "Net PnL %": -3.535
+    },
+    {
+      "Symbol": "NSE:NIFTY2681824250CE",
+      "Strike": 24250,
+      "Option Type": "CE",
+      "Entry Time": "2026-08-18 03:57:36",
+      "Entry Premium": 49.05,
+      "Entry Spot": 24265.25,
+      "Exit Spot": 24246.55,
+      "Entry CE OI": 18220215,
+      "Entry PE OI": 19639230,
+      "Exit Time": "2026-08-18 03:59:45",
+      "Exit Premium": 37.8,
+      "Lots": 16,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -13637.53,
+      "Net PnL %": -13.638
     }
   ],
   "Last OI Snapshot": {
-    "spot": 24347.05,
-    "strike": 24350,
-    "ce_oi": 10500945,
-    "pe_oi": 13659490
+    "spot": 24219.75,
+    "strike": 24200,
+    "ce_oi": 24995555,
+    "pe_oi": 38102090
   },
   "Data Source": "Fyers (real premium)",
   "Strategy": "oi_hybrid_sl_trailing",

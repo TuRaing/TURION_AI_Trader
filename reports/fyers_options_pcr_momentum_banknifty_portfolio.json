@@ -1,5 +1,5 @@
 {
-  "Cash": 92842.948257812,
+  "Cash": 107810.504047707,
   "Position": null,
   "Closed Trades": [
     {
@@ -33,12 +33,44 @@
       "Exit Reason": "Stop Loss",
       "Net PnL": -4392.8,
       "Net PnL %": -4.393
+    },
+    {
+      "Symbol": "NSE:BANKNIFTY26AUG57600PE",
+      "Strike": 57600,
+      "Option Type": "PE",
+      "Entry Time": "2026-08-18 03:46:30",
+      "Entry Premium": 362.75,
+      "Entry Spot": 57558.65,
+      "Exit Spot": 57422.75,
+      "Entry PCR": 0.8236,
+      "Exit Time": "2026-08-18 03:50:42",
+      "Exit Premium": 435.85,
+      "Lots": 8,
+      "Exit Reason": "Target",
+      "Net PnL": 17310.13,
+      "Net PnL %": 17.31
+    },
+    {
+      "Symbol": "NSE:BANKNIFTY26AUG57400CE",
+      "Strike": 57400,
+      "Option Type": "CE",
+      "Entry Time": "2026-08-18 03:53:07",
+      "Entry Premium": 481.2,
+      "Entry Spot": 57416.4,
+      "Exit Spot": 57416,
+      "Entry PCR": 1.0733,
+      "Exit Time": "2026-08-18 03:55:11",
+      "Exit Premium": 471.15,
+      "Lots": 7,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -2342.58,
+      "Net PnL %": -2.343
     }
   ],
   "Last Chain Snapshot": {
-    "spot": 57712,
-    "pcr": 0.8236303966380001,
-    "total_volume": 48500250
+    "spot": 57317.35,
+    "pcr": 0.8926046258165539,
+    "total_volume": 15895260
   },
   "Data Source": "Fyers (real premium)",
   "Strategy": "pcr_momentum",

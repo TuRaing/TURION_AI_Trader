@@ -1,5 +1,5 @@
 {
-  "Cash": 88107.70238467249,
+  "Cash": 61982.67352290248,
   "Position": null,
   "Closed Trades": [
     {
@@ -81,12 +81,76 @@
       "Exit Reason": "Target",
       "Net PnL": 2566.18,
       "Net PnL %": 2.566
+    },
+    {
+      "Symbol": "NSE:NIFTY2681824250PE",
+      "Strike": 24250,
+      "Option Type": "PE",
+      "Entry Time": "2026-08-18 03:46:30",
+      "Entry Premium": 44.75,
+      "Entry Spot": 24246.75,
+      "Exit Spot": 24234.1,
+      "Entry PCR": 1.2954,
+      "Exit Time": "2026-08-18 03:48:32",
+      "Exit Premium": 49.95,
+      "Lots": 26,
+      "Exit Reason": "Target",
+      "Net PnL": 9916.23,
+      "Net PnL %": 9.916
+    },
+    {
+      "Symbol": "NSE:NIFTY2681824250PE",
+      "Strike": 24250,
+      "Option Type": "PE",
+      "Entry Time": "2026-08-18 03:50:41",
+      "Entry Premium": 49.6,
+      "Entry Spot": 24234.85,
+      "Exit Spot": 24238,
+      "Entry PCR": 1.0984,
+      "Exit Time": "2026-08-18 03:54:09",
+      "Exit Premium": 45.75,
+      "Lots": 26,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -7723.89,
+      "Net PnL %": -7.724
+    },
+    {
+      "Symbol": "NSE:NIFTY2681824250PE",
+      "Strike": 24250,
+      "Option Type": "PE",
+      "Entry Time": "2026-08-18 03:55:11",
+      "Entry Premium": 45.5,
+      "Entry Spot": 24245.9,
+      "Exit Spot": 24253.55,
+      "Entry PCR": 1.042,
+      "Exit Time": "2026-08-18 03:56:25",
+      "Exit Premium": 39.75,
+      "Lots": 26,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -11408.79,
+      "Net PnL %": -11.409
+    },
+    {
+      "Symbol": "NSE:NIFTY2681824250CE",
+      "Strike": 24250,
+      "Option Type": "CE",
+      "Entry Time": "2026-08-18 03:58:30",
+      "Entry Premium": 43.35,
+      "Entry Spot": 24253.65,
+      "Exit Spot": 24232.45,
+      "Entry PCR": 1.1492,
+      "Exit Time": "2026-08-18 04:00:35",
+      "Exit Premium": 34.05,
+      "Lots": 24,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -16908.58,
+      "Net PnL %": -16.909
     }
   ],
   "Last Chain Snapshot": {
-    "spot": 24345.55,
-    "pcr": 1.1688298419897756,
-    "total_volume": 5192639010
+    "spot": 24220.6,
+    "pcr": 0.8927093923773263,
+    "total_volume": 2693643030
   },
   "Data Source": "Fyers (real premium)",
   "Strategy": "pcr_momentum",
