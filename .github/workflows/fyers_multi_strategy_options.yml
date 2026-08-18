@@ -157,6 +157,18 @@ jobs:
           git add reports/fyers_options_oi_hybrid_sl_laddered_banknifty_portfolio.json || true
           git add reports/fyers_options_oi_hybrid_sl_indicator_nifty_portfolio.json || true
           git add reports/fyers_options_oi_hybrid_sl_indicator_banknifty_portfolio.json || true
+          # Added 18-Aug-2026 - the EXACT same class of bug this file's
+          # own 08-Aug fix note above describes (gapfill's portfolio
+          # updates silently lost, never committed, because this list
+          # is hardcoded and wasn't updated when the book was added).
+          # Caught live: st2_threshold_slcap2pctlock opened a real
+          # position today (18-Aug) that the log confirmed, but the
+          # run logged "No changes to commit" and the position was
+          # never pushed - these 4 new 17-Aug books were missing here.
+          git add reports/fyers_options_st2_threshold_slcap2pctlock_nifty_portfolio.json || true
+          git add reports/fyers_options_simple_st1_threshold_slcap2pctlock_nifty_portfolio.json || true
+          git add reports/fyers_options_st2_threshold_trailing2pct_nifty_portfolio.json || true
+          git add reports/fyers_options_simple_st1_threshold_trailing2pct_nifty_portfolio.json || true
           git add reports/fyers_candles.json || true
 
           if git diff --staged --quiet; then
