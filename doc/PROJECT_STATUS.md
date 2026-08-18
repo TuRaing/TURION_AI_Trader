@@ -6531,6 +6531,53 @@ Real live-connection testing deferred to when the VPS actually exists.
 
 ==================================================
 
+PRODUCTION RUNNER SCRIPT BUILT - strategy/event_driven_runner.py
+(18-Aug) - the final piece of tonight's WebSocket code-prep: ties
+together backtest_live_engine.py's decide_fn contract, event_driven_
+engine.py's 2 decide_fns (rsi_momentum_decide_fn, oi_footprint_
+decide_fn), and live_tick_harness.py's runners into what would
+actually run once a VPS exists. Still not deployable - same 3
+blockers as before (no VPS, fyers_apiv3 not installed locally, raw
+socket connection unverified) - purely the remaining glue code.
+
+NEW: MultiStrategyRouter - routes one incoming tick to every runner
+subscribed to that symbol, since production runs all 4 strategies
+over ONE real WebSocket connection rather than 4 separate ones (Fyers'
+own subscription capacity, confirmed during 17-Aug's research, covers
+up to 200 symbols - this needs at most a handful). Pure, fully unit-
+tested (6 new tests). load_portfolio/save_portfolio use DISTINCT
+filenames (st2_threshold_eventdriven, simple_st1_threshold_eventdriven,
+oi_footprint_eventdriven_nifty/banknifty) - the 63 existing live books
+are never touched, same "build new, never modify a working module"
+rule as every prior variant in this project. pick_atm_symbols() and
+_seed_candles() reuse fyers_options_engine.py's existing option-chain/
+RSI-history logic rather than re-deriving it. refresh_oi_snapshots()
+reuses fyers_options_oi_footprint.py's own _read_atm_oi_snapshot()
+(imported, not duplicated). build_runners() wires all 4 together;
+main(access_token) matches the same verified FyersDataSocket pattern
+as connect_and_run(), routed via MultiStrategyRouter instead of a
+single runner.
+
+KNOWN LIMITATION stated plainly in the module, not glossed over: ATM
+strike/symbols are picked ONCE at startup, not re-derived at every
+entry attempt the way the original polling engine's _pick_atm_leg()
+does - if spot drifts far enough intraday to shift ATM before this
+runner's next restart, it would keep watching the now-stale strike
+until restarted. Acceptable for a first real-world test; flagged for
+whoever extends this before treating it as production-final.
+
+6 new tests (router logic + tmp_path-based portfolio round-trip,
+matching this project's established test-isolation convention) -
+436/436 passing overall. Module imports cleanly without fyers_apiv3
+installed (main()'s import stays lazy, same pattern as connect_and_
+run()). All of tonight's WebSocket code-prep (research, 2 decide_fns,
+tick harness, message parsing, and now this production runner) is
+complete and real-data-verified everywhere verification was possible
+without a live connection - only that live connection attempt itself
+remains, deferred to when the VPS exists.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.

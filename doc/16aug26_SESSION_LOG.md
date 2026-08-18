@@ -773,4 +773,46 @@ Same continuing session (S20260816-001), a new real trading day.
    that future VPS environment) - just not installed on this local
    Windows session.
 
+✅ "Production runner script tayar kar" - built strategy/event_driven_
+   runner.py, the entry point that ties together everything from
+   tonight's WebSocket code-prep (backtest_live_engine.py's decide_fn
+   contract, event_driven_engine.py's 2 decide_fns, live_tick_
+   harness.py's runners) into what would actually run on the VPS.
+   Still not deployable (no VPS, fyers_apiv3 not installed locally,
+   raw socket connection still unverified) - this is the remaining
+   glue code-prep.
+
+   NEW pieces: MultiStrategyRouter (routes one incoming tick to every
+   runner subscribed to that symbol, since production runs all 4
+   strategies over ONE real WebSocket connection, not 4 separate ones
+   - pure, fully unit-tested, 6 new tests) - load_portfolio/save_
+   portfolio for the event-driven books, using DISTINCT filenames
+   (st2_threshold_eventdriven, simple_st1_threshold_eventdriven, oi_
+   footprint_eventdriven_nifty/banknifty) so the 63 existing live
+   books are never touched, same "build new, never modify a working
+   module" rule as every other variant in this project - pick_atm_
+   symbols() and _seed_candles(), reusing fyers_options_engine.py's
+   existing option-chain/RSI-history logic rather than re-deriving it
+   - refresh_oi_snapshots(), reusing fyers_options_oi_footprint.py's
+   own _read_atm_oi_snapshot() (imported, not duplicated) for the 2
+   oi_footprint runners - build_runners() wiring all 4 together - and
+   main(access_token), matching the same verified FyersDataSocket
+   pattern as connect_and_run(), just routed via MultiStrategyRouter
+   instead of one single-strategy runner.
+
+   KNOWN LIMITATION documented plainly in the module itself, not
+   glossed over: ATM strike/symbols are picked ONCE at startup, not
+   re-derived at every entry attempt the way the original polling
+   engine's _pick_atm_leg() does - if spot drifts far enough intraday
+   to shift ATM before this runner's next restart, it would keep
+   watching the now-stale strike. Acceptable for a first real-world
+   test, flagged for whoever extends this before calling it
+   production-final.
+
+   6 new tests (router logic + portfolio round-trip, tmp_path-based,
+   matching this project's established test-isolation convention) -
+   436/436 passing overall. Module imports cleanly without fyers_apiv3
+   installed (main()'s import stays lazy, same pattern as connect_
+   and_run()).
+
 ==================================================
