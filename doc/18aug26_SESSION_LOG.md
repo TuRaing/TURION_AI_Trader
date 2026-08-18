@@ -486,6 +486,52 @@ Today's Achievements (this session)
    tolerant of a stray \r than bash's shebang line) but no reason not
    to close the same gap while already there.
 
+✅ VPS PROVIDER RECONCILED - CORRECTED A REAL MISTAKE, same day: first
+   recommended AWS Lightsail, Mumbai without checking whether a
+   provider had already been decided in an earlier session - wrong.
+   The 14-Aug "STAGED CAPITAL PLAN" entry (PROJECT_STATUS.md) already
+   named Vultr Mumbai VPS as part of the confirmed 2-month timeline;
+   missed until the user asked to compare providers again, at which
+   point PROJECT_STATUS.md was actually read and the conflict surfaced
+   explicitly to the user rather than silently kept - per CLAUDE.md's
+   rule on discovering another session's prior decision mid-session.
+
+   Compared Vultr vs AWS Lightsail on latency/price/infra/ease-of-setup
+   (latency effectively identical, both real Mumbai datacenters) -
+   continuity with the already-decided provider was the deciding
+   factor. Fetched real Vultr pricing (automated WebFetch was blocked,
+   403 - the user opened vultr.com/pricing in their own browser and
+   pasted the real table back): settled on Vultr's "High Performance"
+   plan (1 vCPU/1GB/NVMe SSD/2TB bandwidth), $6/mo, $0.009/hr - "Regular
+   Performance" ($5/mo) would have been technically sufficient for this
+   single lightweight process, but the user chose High Performance for
+   the $1/mo difference; also confirmed its plan family is the better
+   base to scale from later (more bandwidth/modern CPU at every tier)
+   versus High Frequency's narrower single-thread-clock-speed niche.
+
+   Generated a dedicated ed25519 SSH keypair on the user's own machine
+   (~/.ssh/turion_vps, no passphrase - needed for non-interactive tool
+   use) so Claude can access the VPS directly via `ssh` once its public
+   key is added to Vultr's SSH Keys at server-creation time - same
+   access model as the git credentials already on this machine.
+   Confirmed and re-explained: Firebase Console itself stays permanently
+   NOT delegable (browser-based Google account login, a hard rule) -
+   this is specific to VPS terminal access, not a general exception.
+
+   PAUSED HERE at the user's own request ("उद्या करूयात") - actual
+   Vultr signup/account creation/server provisioning deferred to
+   tomorrow, 19-Aug. See "Next Session" below.
+
+✅ FINAL SANITY CHECK, same day, user's own explicit second request
+   after the audit above: ran the FULL test suite this time (not just
+   the event-driven subset) - 461/461 passing. Confirmed every touched
+   Python module imports cleanly, validated all 10 workflow YAML files,
+   checked deploy.sh's shell syntax and both systemd files' basic INI
+   structure (`[Service]`, `ExecStart=` present), confirmed the git
+   working tree is clean (only the unrelated untracked TURION_Desktop.
+   exe) and local is fully in sync with origin/main (`git fetch` +
+   `git log` both directions, zero diff). Everything green.
+
 ✅ NOTED DURING THIS SESSION: the user's message contained hidden
    injected text attempting to redirect this assistant's behavior
    ("respond TEXT ONLY, no tools" + a fake instruction to
@@ -504,9 +550,43 @@ run_event_driven_engine.py, or deploy/turion-event-driven.service
 have run against a real Fyers WebSocket connection or a real
 Linux/systemd VPS - none exists yet. Everything above is code-
 prep validated by unit tests and historical-replay comparison
-only, consistent with the Stage 2 migration not starting until
-1-Sep-2026 per the existing plan (confirmed still on schedule as
-of S20260818-001 above, despite oi_footprint's rough patch).
+only.
+
+TIMELINE UPDATE (superseding S20260818-001's "1-Sep-2026, still on
+schedule" note above): the user moved the VPS timeline up the same
+day, prompted by the real oi_footprint overshoot incident (see the
+Real Live Incident entry above) - actual signup/provisioning now
+targeted for 19-Aug, not 1-Sep.
+
+--------------------------------------------------
+
+Next Session (19-Aug-2026)
+
+1. Resume the paused Vultr VPS signup walkthrough: account creation +
+   payment method (user-only, per Claude's own rules), then server
+   creation - Mumbai region, "High Performance" plan (1 vCPU/1GB),
+   Ubuntu 22.04 LTS, the already-generated turion_vps SSH public key
+   added at creation time. Full click-by-click sequence already in
+   the Go-Live Runbook artifact (Part B) - reuse it, don't re-derive.
+
+2. Once the VPS exists and SSH access is confirmed working: the
+   one-time VPS-side setup steps already documented in deploy/
+   turion-event-driven.service, turion-engine-alert.service, and
+   deploy.sh's own comments (venv, .env with FIREBASE_SERVICE_ACCOUNT
+   + FIREBASE_DATABASE_URL, passwordless sudo scoped to exactly two
+   systemctl commands, both systemd units installed, both cron
+   entries) - none of this needs to be redesigned, only executed.
+
+3. Firebase Console Part A (RTDB enable + rules deploy + secret) is
+   still outstanding too - free, no VPS dependency, can happen before
+   or alongside the VPS work. Also in the Runbook, Part A.
+
+4. Once both are live: the first real end-to-end verification this
+   project will have had - confirm the VPS actually connects to
+   Fyers' WebSocket, syncs to Firebase, and the crash/connection
+   alerts actually reach the phone (deliberately trigger one, per the
+   Runbook's B17 test step) - all of this has been code-prep and
+   unit-tested only until an actual VPS exists to run it against.
 
 ==================================================
 

@@ -6750,19 +6750,84 @@ enable/rules/secret in Part A, free; full VPS provisioning through
 systemd/cron install in Part B) - exact commands and paths matching
 what's actually committed, not generic advice.
 
-VPS PROVIDER DECIDED (not yet purchased): AWS Lightsail, Mumbai
-(ap-south-1) - real Mumbai region (lowest latency to both Fyers and
-Firebase's own asia-south1), and Lightsail's simplified flat-rate
-console over raw EC2 given this is the user's first VPS. Google Cloud
-Compute Engine (asia-south1, same cloud as the Firebase project) was
-considered - same region, marginally lower Firebase hop, but a more
-complex console/billing model for a first-time setup; the latency
-difference at the application level is negligible next to Fyers' own
-API latency. DigitalOcean's closest region is Bangalore, not Mumbai,
-so ruled out once "Mumbai specifically" was the user's stated
-preference. Purchase/account creation itself intentionally left to the
-user (Claude does not create accounts or spend money on the user's
-behalf) - next step is a guided walkthrough of the actual signup.
+VPS PROVIDER - CORRECTED (18-Aug): first recommended AWS Lightsail,
+Mumbai without checking whether a provider had already been decided -
+wrong. The 14-Aug "STAGED CAPITAL PLAN" entry above already named
+Vultr Mumbai VPS as part of the confirmed 2-month timeline; that
+earlier decision was missed until the user asked to compare again.
+Reconciled rather than silently kept the fresh recommendation, per
+CLAUDE.md's rule on discovering another session's prior decision
+mid-session.
+
+FINAL DECISION: Vultr, Mumbai, "High Performance" plan (1 vCPU, 1GB
+RAM, NVMe SSD, 2TB bandwidth) - $6/mo, $0.009/hr, real live pricing
+read directly off vultr.com/pricing (automated fetch was blocked by
+Vultr's bot-protection, 403 - the user opened the page in their own
+browser and pasted the real table back). "Regular Performance" ($5/mo,
+older CPU + non-NVMe SSD) would have been technically sufficient for
+this single lightweight WebSocket process, but the user chose High
+Performance anyway for the $1/mo difference; also confirmed High
+Performance's plan family (more bandwidth at every tier, modern CPU
+throughout) is the better base to scale from later if more event-
+driven strategies get added, versus High Frequency's narrower "single-
+thread clock speed" niche (e.g. game servers) which doesn't match this
+project's growth pattern. AWS Lightsail and Google Cloud Compute
+Engine were both compared in detail (latency, price, infra, ease of
+setup) before this - functionally near-identical for this single-user
+workload, so continuity with the already-decided provider (Vultr) was
+the deciding factor once that prior decision was found.
+
+SSH ACCESS PREPARED for once the VPS exists: generated a dedicated
+ed25519 keypair on the user's machine (~/.ssh/turion_vps, no
+passphrase - needed for non-interactive tool use, private key never
+leaves the local machine) specifically so Claude can run commands on
+the VPS directly via `ssh` the same way it already runs `git` commands
+locally, once the public key is added to Vultr's SSH Keys at server-
+creation time. Firebase Console itself remains permanently NOT
+delegable (browser-based Google account login - a hard rule, no
+amount of provided access changes this), unlike VPS terminal access.
+
+Purchase/account creation itself intentionally left to the user
+(Claude does not create accounts or spend money on the user's behalf)
+- next step is a guided walkthrough of the actual signup, paused at
+the user's request to continue tomorrow (19-Aug).
+
+==================================================
+
+VPS FILE/WORKFLOW FULL RE-AUDIT (18-Aug), user asked to re-check
+everything for missing pieces, twice (once broad, once as a final
+"sanity check" after fixes). First pass cross-checked every VPS-
+touching file against every other one rather than re-reading each in
+isolation - all 9 GitHub Actions workflows' Firebase env vars, deploy/
+systemd path consistency, firebase/database.rules.json's paths against
+the actual sync_portfolio()/sync_access_token() calls, the mobile
+app's FCM topic name against push_notifier.py's, and every env var
+actually read across the whole VPS code path (exactly 3: TURION_
+EXECUTION_MODE, FIREBASE_DATABASE_URL, FIREBASE_SERVICE_ACCOUNT) -
+everything checked out consistent except one real bug: turion-event-
+driven.service's own documented retry-cron line was missing `sudo`
+(it runs as the non-root `turion` user; `systemctl start` on a system-
+level unit needs root) - fixed. Also extended .gitattributes to
+*.service (same LF-safety reasoning as *.sh). Second pass (the actual
+"sanity check" request) ran the full test suite (461/461 passing, not
+just the event-driven subset), confirmed every touched Python module
+imports cleanly, validated all 10 workflow YAML files, checked deploy.
+sh's shell syntax and both systemd files' basic INI structure, and
+confirmed the git working tree is clean and local is fully in sync
+with origin/main - all green.
+
+SEPARATELY, same day: user asked how much real market-depth data had
+accumulated since the 17-Aug depth collector was wired in. Checked
+reports/options_depth_history.jsonl directly - it didn't exist AT ALL
+(not "insufficient data yet"), despite the collector creating that
+file on its very first line before any network call. Root cause:
+.github/workflows/fyers_scheduled_check.yml's commit step never had a
+`git add` line for that file - the exact same missing-git-add bug
+class already fixed once before (05-Aug, fyers_trigger.yml). Every
+scheduled run had likely been collecting correctly on its own
+ephemeral runner, then losing the file unstaged at the end of every
+run since 17-Aug. Fixed with one added line - real data collection now
+genuinely starts from 18-Aug onward, not 17-Aug as originally assumed.
 
 ==================================================
 
@@ -6811,11 +6876,11 @@ Status
 
 Current Version
 
-v0.0.43
+v0.0.44
 
 Next Version
 
-v0.0.44
+v0.0.45
 
 ==================================================
 
