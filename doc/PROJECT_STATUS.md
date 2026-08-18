@@ -30,7 +30,7 @@ Project Started
 
 Last Updated
 
-07-Aug-2026
+18-Aug-2026
 
 --------------------------------------------------
 
@@ -6642,6 +6642,130 @@ else built tonight.
 
 ==================================================
 
+VPS DEPLOYMENT + MONITORING + PAPER-VS-LIVE SEAM (18-Aug, same day,
+continuing straight from the token-delivery/security-rules entry
+above) - user asked what else was still missing for VPS readiness
+beyond the WebSocket code-prep and Firebase wiring. Checked properly
+each time (grep/read, not assumed) and closed out the remaining
+pieces one at a time:
+
+DEPLOYMENT: deploy/turion-event-driven.service (systemd unit -
+Restart=on-failure, RestartSec=10, StartLimitBurst=5/300s so a
+persistently-crashing engine doesn't spin forever) and deploy/
+deploy.sh (fetches origin/main, fast-forward-only merge that refuses
+on any uncommitted VPS-side changes, reinstalls deps, restarts the
+service). Push-triggered CI/CD (GitHub Actions deploying on every
+commit to main) was explicitly considered and REJECTED, not deferred -
+this repo's main branch gets automated "[skip ci]" portfolio-update
+commits every 1-2 minutes all day; deploying on every push would
+restart the live engine dozens of times a day including mid-market-
+hours with open positions. CHOSEN instead: a VPS-side cron once daily
+at 08:00 IST, well before the 09:15 market open. A related gap found
+while documenting this - a login tapped in the app AFTER that 08:00
+restart would leave the engine sitting stopped all day, since a clean
+"no token yet" exit (code 0) is deliberately not auto-restarted by
+Restart=on-failure - fixed with a second, narrow cron entry retrying
+`systemctl start` (safe no-op if already running) every 5 min across
+08:00-09:59 IST only. Added .gitattributes (*.sh forced to LF) after
+noticing Windows' core.autocrlf would otherwise make deploy.sh's
+shebang line untrustworthy depending on whoever clones the repo next.
+
+MONITORING: explicitly APP PUSH ONLY, no Telegram (the user doesn't
+use it) - both tiers call report/push_notifier.py's send_push_
+notification() directly, reusing the app's existing "trade_alerts" FCM
+topic subscription (confirmed via mobile_app/lib/main.dart, not
+assumed) rather than report/notifier.py's notify() (which would also
+fire Telegram). Tier 1 (strategy/event_driven_runner.py): the
+WebSocket's on_error/on_close now alert via a new rate-limited
+_should_send_connection_alert() (15-min cooldown, pure/unit-tested) -
+fyers_apiv3's own reconnect=True already self-heals most drops, so
+this avoids alerting on every transient blip. Tier 2 (deploy/): a new
+OnFailure=turion-engine-alert.service on the main unit, firing a
+separate oneshot unit whenever the engine process itself dies -
+deliberately a different signal from Tier 1 (socket flapping vs. the
+whole process dying). Caught and fixed a real bug while wiring this
+up: turion-event-driven.service's EnvironmentFile= line had been
+commented out under an incorrect "nothing needed here" note when
+first written - wrong, traced through and confirmed fetch_access_
+token()/sync_portfolio()/the new alert all read FIREBASE_SERVICE_
+ACCOUNT + FIREBASE_DATABASE_URL from the environment; would have
+silently broken the whole Firebase-dependent path on first real
+deploy otherwise. Separately found and fixed the same class of bug in
+.github/workflows/fyers_trigger.yml - it never passed FIREBASE_
+SERVICE_ACCOUNT or FIREBASE_DATABASE_URL into its env block, so the
+VPS-token-sync step built earlier the same night had been silently
+no-op'ing on every run since it was written.
+
+REAL LIVE INCIDENT, same day: user reported oi_footprint had gone
+fully into loss. Checked fresh portfolio JSON, not assumed - 3
+consecutive Stop-Loss exits between 04:04-04:12 IST lost Rs 5,221/
+7,210/7,002 against an intended Rs 1,500 cap (3.5-5x overshoot), the
+exact periodic-check-not-tick-by-tick issue this whole VPS migration
+exists to fix, on top of the already-documented 14-Aug/17-Aug pattern.
+NIFTY book total -Rs 44,941 (48 trades), BANKNIFTY -Rs 6,067 (13
+trades). This is what moved the user's own VPS timeline up from 1-Sep
+to as early as 19-Aug - a fresh, real data point the earlier "no point
+renting before it's needed" reasoning didn't have. In direct response,
+turned on the hybrid 2% Stop-Loss cap (already-built machinery,
+already unit-tested) for oi_footprint's EVENT-DRIVEN book specifically
+(both NIFTY and BANKNIFTY) - matching what st2_threshold/simple_st1_
+threshold's event-driven configs already defaulted to, and matching
+the hybrid-cap backtest already run against oi_footprint's real trade
+history: NIFTY -Rs 47,607 actual -> +Rs 69,490 hybrid-capped,
+BANKNIFTY -Rs 6,067 -> +Rs 4,839. Scoped ONLY to the not-yet-live
+event-driven book - the existing live polling-based oi_footprint books
+are untouched, per this project's "never modify a working module, add
+a new variant instead" rule.
+
+PAPER-VS-LIVE EXECUTION SEAM: at the user's explicit request - "build
+the code so switching from paper to live trading later doesn't need a
+code change." Used EnterPlanMode given the scope/safety sensitivity;
+explored the codebase first (confirmed there are 14 separate "apply
+decision to portfolio" implementations across this project - 13 hand-
+copied ones in the older polling engine's strategy modules, plus 1
+shared pure decide_fn-based one in the new event-driven engine) and
+confirmed with the user this should be scoped to ONLY the 4 event-
+driven/VPS strategies, not the ~60 existing live books, to avoid
+regression risk on real-capital-adjacent code already running.
+Built strategy/execution_backend.py: PaperExecutionBackend (a no-op,
+today's only real implementation) and resolve_execution_backend(mode),
+the single factory function a future LiveExecutionBackend plugs into.
+"live" mode is intentionally NOT built yet - it raises a clear
+NotImplementedError rather than silently doing something unintended,
+explaining exactly what's still missing (a general buy/sell order
+function, since fyers_order_execution.py today is stop-loss-SELL-only,
+plus a human-approval step before any order fires, per CLAUDE.md's
+"Claude never executes a real trade" rule, which this change does not
+touch or weaken). Wired as a plain constructor parameter through every
+layer (LiveTickRunner/OIFootprintTickRunner -> build_runners()/main()
+-> run_event_driven_engine.py, which resolves the real choice from a
+new TURION_EXECUTION_MODE env var, default "paper") - backtest_live_
+engine.py's _step()/run_live_check() and every decide_fn are
+untouched, so the already-verified byte-identical backtest replay is
+unaffected. 10 new tests - 61/61 event-driven tests passing.
+
+RUNBOOK: published a step-by-step, checkbox-tracked Firebase Console +
+VPS setup guide as a Claude Artifact (Firebase Realtime Database
+enable/rules/secret in Part A, free; full VPS provisioning through
+systemd/cron install in Part B) - exact commands and paths matching
+what's actually committed, not generic advice.
+
+VPS PROVIDER DECIDED (not yet purchased): AWS Lightsail, Mumbai
+(ap-south-1) - real Mumbai region (lowest latency to both Fyers and
+Firebase's own asia-south1), and Lightsail's simplified flat-rate
+console over raw EC2 given this is the user's first VPS. Google Cloud
+Compute Engine (asia-south1, same cloud as the Firebase project) was
+considered - same region, marginally lower Firebase hop, but a more
+complex console/billing model for a first-time setup; the latency
+difference at the application level is negligible next to Fyers' own
+API latency. DigitalOcean's closest region is Bangalore, not Mumbai,
+so ruled out once "Mumbai specifically" was the user's stated
+preference. Purchase/account creation itself intentionally left to the
+user (Claude does not create accounts or spend money on the user's
+behalf) - next step is a guided walkthrough of the actual signup.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
@@ -6667,11 +6791,11 @@ Status
 
 Current Version
 
-v0.0.42
+v0.0.43
 
 Next Version
 
-v0.0.43
+v0.0.44
 
 ==================================================
 
