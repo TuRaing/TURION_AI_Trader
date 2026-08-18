@@ -6506,6 +6506,31 @@ installed, and the market open.
 
 ==================================================
 
+fyers-apiv3 ADDED TO requirements.txt, LOCAL INSTALL DELIBERATELY
+SKIPPED (18-Aug) - added the official Fyers SDK (needed only for
+data_ws.FyersDataSocket in live_tick_harness.py's connect_and_run() -
+every other Fyers integration here uses plain `requests`). Local
+`pip install` FAILED: tried building aiohttp's C extension from
+source, hit "Microsoft Visual C++ 14.0 or greater is required" (no
+Build Tools locally, and Python 3.14 is new enough that no prebuilt
+Windows wheel exists on PyPI yet either).
+
+DECISION: skip the local Windows install rather than install Visual
+C++ Build Tools (a real system-level change) - the actual target
+environment is Linux (the eventual VPS), where aiohttp has prebuilt
+wheels and this problem doesn't exist; a successful Windows-local
+install wouldn't fully validate production behavior anyway (socket/
+TLS handling can differ by OS). Everything but the raw socket
+connection is already unit-tested (430 tests - see the entry above),
+so this narrow untested surface staying untested a bit longer is a
+small, well-understood risk. Matches this project's own consistent
+"don't do work before it's needed" discipline, same reasoning that
+already deferred the VPS itself. requirements.txt keeps the fyers-
+apiv3 entry (correct for the future VPS) - just not installed here.
+Real live-connection testing deferred to when the VPS actually exists.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.

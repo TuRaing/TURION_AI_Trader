@@ -742,4 +742,35 @@ Same continuing session (S20260816-001), a new real trading day.
    subscribe() actually receiving ticks, and reconnect behavior remain
    genuinely untestable until tomorrow's real market-hours attempt.
 
+✅ User asked what the "fyers-apiv3 in requirements.txt" gap (flagged
+   in an earlier file-inventory table) actually is and to prepare it.
+   Explained: the official Fyers Python SDK, needed only for data_ws.
+   FyersDataSocket (live_tick_harness.py's connect_and_run()) - every
+   other Fyers integration in this project uses plain `requests`
+   against the REST API directly, so this was never a dependency
+   before tonight's WebSocket work. Added it to requirements.txt, then
+   attempted a real local install - FAILED: `pip install fyers-apiv3`
+   tried to build aiohttp's C extension from source and hit "Microsoft
+   Visual C++ 14.0 or greater is required" (no Build Tools installed
+   locally, and Python 3.14 is new enough that no prebuilt Windows
+   wheel exists yet on PyPI either).
+
+   Gave the user two real options rather than just installing Build
+   Tools unasked (a genuine system-level change) - recommended
+   skipping the local install entirely: (1) the actual target
+   environment is Linux (the eventual VPS), where aiohttp has prebuilt
+   wheels and this problem doesn't exist - a successful Windows-local
+   install wouldn't even fully validate production behavior anyway
+   (socket/TLS handling can differ by OS); (2) everything BUT the raw
+   socket connection is already unit-tested (430 tests, see the entry
+   above), so the actual untested surface area staying untested a bit
+   longer is a small, well-understood risk; (3) matches this project's
+   own consistent discipline all session - don't do work before it's
+   needed, same reasoning that already deferred the VPS itself. USER
+   AGREED: skip the local install, real live-connection testing
+   deferred to when the VPS actually exists (Linux, no Build Tools
+   problem). requirements.txt keeps the fyers-apiv3 entry (correct for
+   that future VPS environment) - just not installed on this local
+   Windows session.
+
 ==================================================

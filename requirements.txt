@@ -9,3 +9,10 @@ pytest
 feedparser
 firebase-admin
 pynacl
+# Added 18-Aug-2026 - only fyers_apiv3.FyersWebsocket.data_ws needs
+# this SDK (strategy/live_tick_harness.py's connect_and_run(), the
+# WebSocket code-prep). Every other Fyers integration in this project
+# uses plain `requests` against the REST API directly, not this SDK -
+# lazily imported inside connect_and_run() itself so the rest of that
+# module (all the tested logic) still works without it installed.
+fyers-apiv3
