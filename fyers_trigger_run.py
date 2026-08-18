@@ -23,6 +23,17 @@ from strategy.github_secrets import update_repo_secret
 # secret isn't configured yet, this step is skipped with a warning
 # rather than failing the whole run (keeps the original one-shot trigger
 # working even before continuous automation is fully set up).
+#
+# UPDATED 18-Aug-2026 - ALSO shares the same access_token via Firebase
+# Realtime Database (report/firebase_realtime_sync.py's sync_access_
+# token()), for the future VPS event-driven engine to read at startup
+# (strategy/event_driven_runner.py) - a VPS isn't a GitHub Actions
+# runner, so it can never receive the FYERS_ACCESS_TOKEN repo secret
+# the same way the scheduled workflows above do; reuses the SAME
+# Firebase channel already wired up for portfolio sync rather than a
+# second login flow/app (considered and explicitly decided against).
+# Same graceful-skip-if-not-configured behavior - harmless today, no
+# VPS or Firebase Realtime Database exists yet either.
 
 
 def main():
@@ -61,6 +72,18 @@ def main():
             print("Shared today's token as the FYERS_ACCESS_TOKEN repo secret.")
         except Exception as error:
             print(f"Could not share today's token (continuing): {error}")
+
+    print("\n--- Sharing today's token with the VPS (event-driven engine) ---")
+    try:
+        from report.firebase_realtime_sync import sync_access_token
+        access_token = os.environ["FYERS_ACCESS_TOKEN"]
+        if sync_access_token(access_token):
+            print("Shared today's token via Firebase Realtime Database.")
+        else:
+            print("Firebase not configured yet (FIREBASE_SERVICE_ACCOUNT/FIREBASE_DATABASE_URL) - "
+                  "skipping (harmless until the VPS actually exists).")
+    except Exception as error:
+        print(f"Could not share today's token with the VPS (continuing): {error}")
 
     run_all_tasks()
 

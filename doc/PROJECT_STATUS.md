@@ -6578,6 +6578,70 @@ remains, deferred to when the VPS exists.
 
 ==================================================
 
+TWO REAL VPS/FIREBASE GAPS FOUND + CLOSED (18-Aug) - user asked which
+VPS/Firebase files still remained beyond the WebSocket code-prep.
+Checked properly (real file searches, not assumed) and surfaced 2 real
+gaps never flagged before: (1) the daily Fyers token has no path to
+reach a VPS at all - GitHub Secrets only work for GitHub Actions
+runners, and a VPS isn't one; (2) Firebase Realtime Database has no
+security rules defined - left unconfigured, a real RTDB either denies
+everything by default or, if left in "test mode" during setup, becomes
+fully public.
+
+TOKEN-DELIVERY: user first considered a whole separate mobile app for
+VPS/real-money use. Advised against it now - premature (Stage 3 is
+months out per the staged real-capital roadmap) and would duplicate
+the existing OAuth/auth_code handling - suggested in-app visual
+separation for the eventual real-money UI as a lighter option, with
+that decision itself deferred to when Stage 3 actually approaches.
+User agreed: existing app for VPS paper trading now, decide about a
+separate real-money app later.
+
+Traced the real token flow before building anything: mobile_app/lib/
+screens/fyers_login_screen.dart never sees the actual access_token -
+only the raw auth_code; the real token is minted server-side in
+fyers_trigger_run.py, which already shares it with GitHub Actions via
+a repo secret (05-Aug). Added the SAME sharing step for the VPS,
+through Firebase (already wired up the same night for portfolio sync -
+no new channel): report/firebase_realtime_sync.py gained fetch_
+state()/sync_access_token()/fetch_access_token() (writes/reads
+/vps_config/fyers_access_token); fyers_trigger_run.py now also calls
+sync_access_token() right next to its existing GitHub-secret-sharing
+step (same try/except-and-continue safety, existing daily-login flow
+otherwise untouched); NEW run_event_driven_engine.py (the VPS entry
+point, same "top-level script fetches real credentials, strategy/
+module takes them as a parameter" split as fyers_scheduled_run.py)
+fetches the token via Firebase and exits cleanly if none is available
+yet - actually run locally (no Firebase configured here) to confirm
+the clean-exit path really works, not just assumed. 6 new tests -
+447/447 passing overall.
+
+SECURITY RULES: built firebase/database.rules.json (config, not app
+code - applied via the Firebase Console's Rules tab or CLI, not
+deployable by this session). Reasoned through what's actually needed
+rather than defaulting to "allow everything": the VPS's Python Admin
+SDK bypasses security rules entirely regardless of configuration, so
+rules only govern what the Flutter app's Client SDK can read.
+/event_driven_portfolios is low-sensitivity (this project's existing
+63 books' portfolio data is already publicly readable via GitHub raw-
+file URLs, so making this readable too is not a new privacy exposure)
+- allowed read, denied write (only the VPS ever writes there).
+/vps_config/fyers_access_token is HIGH-sensitivity (today's real,
+usable Fyers API credential) - denied both read and write for the
+client SDK entirely. A $other catch-all denies anything else
+explicitly rather than relying only on Firebase's own default-deny
+behavior. Verified both the JSON syntax and the $other wildcard
+pattern against Firebase's real, official documentation before
+finalizing, not assumed.
+
+User's own framing for scope: prepare what CAN be prepared now (the
+rules file itself), defer the rest (actually enabling Realtime
+Database in the Console and publishing these rules) to when the VPS
+goes live - same code-prep-now/deploy-later discipline as everything
+else built tonight.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.

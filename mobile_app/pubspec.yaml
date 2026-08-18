@@ -38,6 +38,13 @@ dependencies:
   intl: ^0.19.0
   firebase_core: ^3.8.0
   firebase_messaging: ^15.1.5
+  # Added 18-Aug-2026 - the Realtime Database half of the VPS live-
+  # data plan (see doc/PROJECT_STATUS.md's LIVE-DATA ARCHITECTURE
+  # entry) - a DIFFERENT Firebase product from firebase_messaging
+  # above (that's one-way push notifications; this is a live,
+  # subscribable data store). NOT live-tested yet - no VPS, no
+  # Realtime Database enabled in the Firebase Console yet either.
+  firebase_database: ^11.3.0
   url_launcher: ^6.3.1
 
 dev_dependencies:

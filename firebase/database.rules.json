@@ -1,0 +1,16 @@
+{
+  "rules": {
+    "event_driven_portfolios": {
+      ".read": true,
+      ".write": false
+    },
+    "vps_config": {
+      ".read": false,
+      ".write": false
+    },
+    "$other": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}

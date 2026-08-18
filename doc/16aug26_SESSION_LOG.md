@@ -815,4 +815,68 @@ Same continuing session (S20260816-001), a new real trading day.
    installed (main()'s import stays lazy, same pattern as connect_
    and_run()).
 
+✅ User asked which VPS/Firebase files still remained, beyond the
+   WebSocket code-prep - checked properly (real file searches, not
+   assumed) and surfaced 2 real gaps neither had been flagged before:
+   (1) the daily Fyers token has no path to reach a VPS at all (GitHub
+   Secrets only work for GitHub Actions runners, and a VPS isn't one),
+   (2) Firebase Realtime Database has no security rules defined yet -
+   left unconfigured, a real RTDB either denies everything by default
+   or (if accidentally left in "test mode" during setup) becomes fully
+   public.
+
+✅ TOKEN-DELIVERY GAP CLOSED - user considered a whole separate mobile
+   app for VPS/real-money use, asked for a recommendation. Advised
+   against building a second app now (premature - Stage 3 is still
+   months out per the staged roadmap, and it would duplicate the
+   existing OAuth/auth_code handling) - suggested in-app visual
+   separation for the eventual real-money UI instead, deferred that
+   decision itself to when Stage 3 actually approaches. User agreed:
+   existing app for VPS paper trading, decide about a separate real-
+   money app later.
+
+   Built the token-delivery fix with the SAME reasoning - reusing what
+   already exists rather than a new mechanism. Traced the real flow
+   first (fyers_login_screen.dart never sees the actual access_token -
+   only the raw auth_code; the real token is created server-side in
+   fyers_trigger_run.py, which already shares it with GitHub Actions
+   via a repo secret). Added the exact same sharing step for the VPS,
+   through Firebase (already wired up tonight for portfolio sync, no
+   new channel): report/firebase_realtime_sync.py gained fetch_state()/
+   sync_access_token()/fetch_access_token() (writes/reads /vps_config/
+   fyers_access_token); fyers_trigger_run.py now ALSO calls sync_
+   access_token() right next to its existing GitHub-secret-sharing
+   step (same try/except-and-continue safety, existing daily-login flow
+   untouched otherwise); NEW run_event_driven_engine.py (VPS entry
+   point, same "top-level script fetches real credentials, strategy/
+   module takes them as a parameter" split as fyers_scheduled_run.py)
+   fetches the token via Firebase and exits cleanly if not available
+   yet - actually ran it locally (no Firebase configured here) to
+   confirm the clean-exit path works, not just assumed. 6 new tests -
+   447/447 passing overall.
+
+✅ SECURITY RULES GAP - built firebase/database.rules.json (config,
+   not app code - applied via the Firebase Console's Rules tab or CLI,
+   not deployable by this session). Reasoned through what's actually
+   needed rather than defaulting to "allow everything": the VPS
+   (Python Admin SDK) bypasses security rules entirely regardless of
+   what's configured, so rules only govern what the Flutter app's
+   Client SDK can read. /event_driven_portfolios is low-sensitivity
+   (this project's existing 63 books' portfolio data is already
+   publicly readable via GitHub raw-file URLs, so making this readable
+   too is not a new privacy exposure) - allowed read, denied write
+   (only the VPS writes there). /vps_config/fyers_access_token is
+   HIGH-sensitivity (today's real, usable Fyers API credential) -
+   denied both read and write for the client SDK entirely. A $other
+   catch-all denies anything else, explicit rather than relying only
+   on Firebase's own default-deny behavior. Verified both the JSON
+   syntax and the $other wildcard pattern itself against Firebase's
+   real, official documentation (not assumed) before finalizing.
+
+   User's own framing: prepare what CAN be prepared now (the rules
+   file itself), defer the rest (actually enabling Realtime Database
+   in the Console and publishing these rules) to when the VPS goes
+   live - same code-prep-now/deploy-later discipline as everything
+   else built tonight.
+
 ==================================================

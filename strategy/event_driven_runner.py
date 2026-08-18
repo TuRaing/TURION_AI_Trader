@@ -262,9 +262,21 @@ def refresh_oi_snapshots(runners):
 
 
 def save_all(runners):
+    """
+    Local JSON stays the source of truth (same file this project's own
+    verification/replay tooling reads) - the Firebase Realtime Database
+    push is purely an ADDITIONAL live read-path for the app (see report/
+    firebase_realtime_sync.py's module docstring), never a replacement.
+    sync_portfolio() degrades gracefully (never raises, returns False)
+    if Firebase isn't configured yet, so this is safe to always call.
+    """
+
+    from report.firebase_realtime_sync import sync_portfolio
 
     for key, runner in runners.items():
-        save_portfolio(STRATEGY_NAMES[key], runner.portfolio)
+        name = STRATEGY_NAMES[key]
+        save_portfolio(name, runner.portfolio)
+        sync_portfolio(name, runner.portfolio)
 
 
 def main(access_token):
