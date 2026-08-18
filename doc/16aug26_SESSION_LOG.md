@@ -526,4 +526,60 @@ started coming in.
    the project's discipline intact rather than adding a fabricated
    number for the sake of having one.
 
+✅ User confirmed proceeding with the WebSocket code-prep tonight
+   ("sadya kali karu"). Completed all 4 remaining tasks in this
+   session:
+
+   1. WEBSOCKET API RESEARCH - real web search (not guessed): fyers_
+      apiv3's data_ws.FyersDataSocket class, constructor params (access_
+      token, log_path, litemode, write_to_file, reconnect, on_connect/
+      on_close/on_error/on_message callbacks), subscribe(symbols=...,
+      data_type="SymbolUpdate"). Confirmed the real SymbolUpdate tick
+      schema with an actual example payload (ltp, bid_price, ask_price,
+      vol_traded_today, tot_buy_qty, tot_sell_qty, last_traded_time,
+      exch_feed_time, and more).
+
+   2. NEW strategy/event_driven_engine.py - st2_threshold_decide_fn(),
+      a faithful port of st2_threshold's real rules (RSI>=50->CE else
+      PE, ATM, Target 5%, hybrid Stop-Loss cap, Square-Off) built
+      through strategy/backtest_live_engine.py's decide_fn contract
+      (added 15-Aug, unused until now) - same function for backtest
+      replay and live checking, no second hand-written copy to drift.
+      Started with ONE strategy (the strongest of the 4 real-verified
+      profitable books) as a working prototype rather than porting all
+      4 at once. 13 new tests, including the framework's own core
+      guarantee (run_backtest() fed a batch vs run_live_check() fed
+      one point at a time produce byte-identical portfolios).
+
+   3. REPLAY-VERIFIED against real data: replayed all 34 real st2_
+      threshold/NIFTY closed trades (their actual recorded Entry/Exit
+      Premium and Lots) through the new decide_fn - 0 mismatches, Net
+      PnL matches the real recorded numbers to the rupee. Validates the
+      PnL math and exit-reason logic faithfully match the original
+      polling engine (caveat: only entry->exit points could be checked,
+      same historical-tick-data limitation already documented for
+      oi_footprint's trailing-variant backtesting - this does not prove
+      moment-to-moment tick decisions would match, only that the
+      decision RULES and PnL arithmetic are a faithful port).
+
+   4. NEW strategy/live_tick_harness.py - CandleAggregator (builds
+      live 5m candles from ticks, RSI via the SAME calculate_rsi()
+      every existing strategy already uses) + LiveTickRunner (tracks
+      latest spot/CE/PE state, assembles data_points, calls decide_fn
+      via run_live_check() once enough state exists) - both fully
+      unit-tested with synthetic ticks, no network needed (9 new
+      tests). connect_and_run() wires this to a real FyersDataSocket
+      per the verified SDK pattern - deliberately the SMALLEST, most
+      isolated part of this module, and explicitly NOT live-tested
+      (local token expired + Fyers' daily quota exhausted today, same
+      blocker as the depth collector). fyers_apiv3 imported lazily
+      inside the function, not at module level, so the rest of the
+      module (all the tested logic) works without that SDK installed.
+
+   411/411 tests passing overall. Nothing deployed to VPS yet (that
+   remains deliberately deferred, per the original plan) - this is
+   purely the code-prep phase, now with a working, tested, real-data-
+   verified prototype for one strategy, ready to extend to the other 3
+   once actually connected to a live feed and confirmed.
+
 ==================================================

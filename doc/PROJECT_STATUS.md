@@ -6214,6 +6214,77 @@ fabricated number for the sake of having one.
 
 ==================================================
 
+WEBSOCKET CODE-PREP - WORKING, REAL-DATA-VERIFIED PROTOTYPE BUILT
+(17-Aug) - user confirmed proceeding with the Stage 2 code-prep the
+same evening ("sadya kali karu"), continuing from the earlier decision
+to split code-prep (no VPS needed) from actual VPS deployment (still
+deferred). Completed all 4 planned steps:
+
+1. WEBSOCKET API RESEARCH (real web search, not guessed): fyers_apiv3's
+   data_ws.FyersDataSocket - constructor (access_token, log_path,
+   litemode, write_to_file, reconnect, on_connect/on_close/on_error/
+   on_message), subscribe(symbols=[...], data_type="SymbolUpdate"), and
+   a confirmed real SymbolUpdate tick schema (ltp, bid_price, ask_price,
+   vol_traded_today, tot_buy_qty, tot_sell_qty, last_traded_time,
+   exch_feed_time, and more - real example payload found, not assumed).
+
+2. NEW strategy/event_driven_engine.py - st2_threshold_decide_fn(), a
+   faithful port of st2_threshold's real live rules (RSI>=50->CE else
+   PE, ATM, Target 5%, hybrid Stop-Loss cap, Square-Off), built THROUGH
+   strategy/backtest_live_engine.py's decide_fn contract (added 15-Aug,
+   sat unused until now - built specifically to prevent the two-hand-
+   written-copies-drift problem, and this is its first real use).
+   Started with ONE strategy (the strongest of the 4 real-verified
+   profitable books from earlier today's fresh audit) as a working
+   prototype, not all 4 at once - prove the pattern first, matching
+   this project's own incremental discipline. Also plugged in the
+   spread_pct opt-in cost parameter from earlier today, ready for use
+   (not applied to the 63 existing live books, per that earlier
+   decision - this new engine is exactly where it was reserved for).
+   13 new tests, including the framework's core guarantee itself:
+   run_backtest() fed a batch vs run_live_check() fed one point at a
+   time produce byte-identical portfolios.
+
+3. REPLAY-VERIFIED against real trade data: replayed all 34 real st2_
+   threshold/NIFTY closed trades (actual recorded Entry/Exit Premium,
+   Lots) through the new decide_fn - 0 mismatches, Net PnL matches the
+   real recorded numbers to the rupee. This validates the PnL math and
+   exit-reason logic are a faithful port of the original polling
+   engine. Honest caveat: only entry->exit points could be checked (no
+   historical intraday tick data exists, same limitation already
+   documented for oi_footprint's trailing-variant backtesting) - this
+   proves the decision RULES and arithmetic are faithful, not that
+   moment-to-moment tick timing would produce identical exits (that
+   still needs a real live run to confirm).
+
+4. NEW strategy/live_tick_harness.py - CandleAggregator (builds real
+   5-minute candles from a live tick stream, computes RSI via the
+   EXACT SAME calculate_rsi() every existing polling strategy already
+   uses - not a re-derived approximation) + LiveTickRunner (tracks
+   latest spot/CE/PE state from ticks, assembles data_points, calls
+   decide_fn via run_live_check() once enough state exists). Both
+   fully unit-tested with synthetic ticks, zero network dependency (9
+   new tests). connect_and_run() wires this to a real FyersDataSocket
+   per the verified SDK pattern - deliberately the smallest, most
+   isolated piece of this module, and explicitly NOT live-tested yet
+   (local session's Fyers token is expired AND Fyers' own daily API
+   quota was exhausted today - same blocker noted for the depth
+   collector earlier). fyers_apiv3 is imported lazily inside that one
+   function, not at module level, so the rest of the module (all the
+   tested logic) works even without that SDK installed as a project
+   dependency yet.
+
+411/411 tests passing overall. NOTHING deployed to a VPS - that stays
+deliberately deferred per the original plan. This is the code-prep
+phase completed with a real, working, data-verified prototype for one
+strategy (st2_threshold) - the template to extend to the other 3
+profitable books (simple_st1_threshold/NIFTY, oi_footprint/NIFTY,
+oi_footprint/BankNifty) once this one is actually confirmed against a
+real live WebSocket connection, which needs tomorrow's market open and
+a reset API quota to attempt.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
