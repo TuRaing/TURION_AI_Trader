@@ -1,0 +1,8 @@
+# Added 18-Aug-2026 - deploy/deploy.sh (and any future .sh) must reach
+# the Linux VPS with LF line endings, not CRLF, or bash fails with
+# "bad interpreter" on the shebang line. The committed blob is already
+# LF (checked via `git show :deploy/deploy.sh | xxd` - confirmed, not
+# assumed), but that currently depends on every future contributor's
+# own core.autocrlf setting rather than being guaranteed by the repo
+# itself - this makes it explicit and machine-independent.
+*.sh text eol=lf

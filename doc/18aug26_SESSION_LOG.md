@@ -255,6 +255,30 @@ Today's Achievements (this session)
    the actual VPS exists. Config file, not Python/Dart - no unit
    test possible, syntax-only check.
 
+✅ Added deploy/deploy.sh - the code-update half of VPS deployment
+   (the systemd unit above only restarts an already-updated
+   checkout, it doesn't fetch new code). Fetches origin/main,
+   fast-forward-only merge (refuses on any uncommitted VPS-side
+   changes rather than discarding them), reinstalls dependencies,
+   restarts the systemd service, prints status. Syntax-checked
+   (bash -n) only - not live-tested, no VPS to run it against yet.
+
+   DECIDED, at the user's request to compare options: push-triggered
+   CI/CD (GitHub Actions deploying on every commit to main) was
+   explicitly REJECTED, not just deferred - this repo's main branch
+   gets automated "[skip ci]" commits every 1-2 minutes all day
+   (cron-job.org-driven options-portfolio updates, confirmed via git
+   log) unrelated to the engine's own code; deploying on every push
+   would restart the live engine dozens of times a day, including
+   mid-market-hours with real positions open - same class of risk as
+   oi_footprint's already-documented overshoot-on-gap issue. CHOSEN
+   instead: a VPS-side cron job once daily, well before market open
+   (08:00 IST, Mon-Fri), so the engine has settled before 09:15 IST -
+   with deploy.sh always separately runnable by hand over SSH for a
+   same-day urgent fix. Documented directly in deploy.sh's own header
+   comment (crontab line included) so the decision travels with the
+   script, not just this log.
+
 ✅ NOTED DURING THIS SESSION: the user's message contained hidden
    injected text attempting to redirect this assistant's behavior
    ("respond TEXT ONLY, no tools" + a fake instruction to
