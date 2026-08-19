@@ -115,6 +115,55 @@ Today's Achievements
    signup), and asked this plan be saved so it isn't lost -
    hence this entry.
 
+✅ MARKET OPENED, DEPTH COLLECTOR INVESTIGATION - the user walked
+   through GitHub's Actions UI (screenshots) to find the actual run
+   log the 18-Aug git-add fix couldn't fully verify on its own.
+   CONFIRMED the git-add fix itself works (reports/options_depth_
+   history.jsonl now persists across runs, first time ever). FOUND A
+   SECOND, DIFFERENT bug in the same log: every depth-fetch attempt
+   was crashing with `'str' object has no attribute 'get'` -
+   strategy/fyers_depth_collector.py's _parse_depth_response() called
+   data.get(...) before checking data was even a dict, so Fyers' real
+   (apparently non-dict, likely a plain string) /depth response was
+   never actually visible in any log - exactly the "response shape
+   never verified against a real example" risk the module's own
+   17-Aug docstring had flagged as a caveat. Fixed with an
+   isinstance(data, dict) guard so the NEXT run's log will finally
+   show Fyers' actual response text, needed to diagnose the real root
+   cause. 1 new test (7/7 in that file), 462/462 overall.
+
+✅ SEPARATE, MORE SERIOUS BUG FOUND while checking on trailing2pct's
+   real trade history at the user's request: st2_threshold and
+   simple_st1_threshold's slcap2pctlock and trailing2pct variants (4
+   books total, added 17-Aug) had NO !reports/... exception in
+   .gitignore, even though .github/workflows/fyers_multi_strategy_
+   options.yml already had correct `git add` lines for all 4 since
+   that day. Every `git add` for these 4 files has been a silent
+   no-op (blocked by the reports/*.json default-ignore, swallowed by
+   `|| true`) - meaning all 4 books have been resetting to fresh
+   initial_capital on EVERY scheduled run for 2+ days (17-Aug through
+   today), never actually accumulating any persistent trade history,
+   regardless of what happened within any single run. Practical
+   effect: any performance numbers for these 4 books that anyone
+   might have looked at were meaningless (freshly-reset state each
+   time) - not a data-quality issue, a total absence of real data.
+   Fixed by adding the 4 missing !reports/... lines; verified with
+   `git check-ignore` that all 4 paths are no longer ignored.
+   Config-only change, 462/462 tests still passing.
+
+   THIRD instance today of the same underlying bug CLASS (an
+   allow-list/tracking-list not updated when a new file was added) -
+   worth noting as a pattern: 18-Aug's fyers_scheduled_check.yml
+   missing a git-add line, today's fyers_depth_collector.py response-
+   shape assumption, and now .gitignore missing exceptions. All three
+   are "silently swallowed, no error surfaces" failure modes by
+   design (defensive `|| true` / graceful-skip patterns this project
+   deliberately uses elsewhere for good reasons) - the tradeoff is
+   real: these SAME patterns hide truly missing setup from view until
+   someone goes looking. Worth a proactive audit of every OTHER new-
+   strategy addition's .gitignore/git-add pairing at some point, not
+   just reactively when asked about one specific book.
+
 --------------------------------------------------
 
 Next Session
@@ -142,6 +191,13 @@ Next Session
    "High Performance" plan, turion_vps SSH key already
    generated) - see 18-Aug's session log for the full sequence,
    already in the Go-Live Runbook artifact.
+
+4. Proactive audit, not yet done: cross-check EVERY strategy book
+   across all workflows against .gitignore's !reports/... exception
+   list, not just the 4 found broken today by accident (asked about
+   one, found four). Same class of bug could exist for any other
+   strategy added without its matching .gitignore line ever being
+   verified. Offered to the user same-day, not yet actioned.
 
 ==================================================
 
