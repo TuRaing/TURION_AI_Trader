@@ -1,4 +1,17 @@
-from strategy.fyers_depth_collector import _parse_depth_response, INDEX_STRIKE_STEP
+from strategy import fyers_depth_collector
+from strategy.fyers_depth_collector import _atm_ce_pe_symbols, _parse_depth_response, INDEX_STRIKE_STEP
+
+
+def test_atm_ce_pe_symbols_none_when_option_chain_response_is_not_a_dict(monkeypatch):
+    # Added 19-Aug-2026 - the actual bug hit on the first live run:
+    # _parse_depth_response()'s isinstance guard (fixed first) did NOT
+    # stop the crash, because this earlier call site had the identical
+    # unguarded data.get(...) bug.
+    monkeypatch.setattr(fyers_depth_collector, "fetch_option_chain", lambda *a, **k: "some error text")
+
+    result = _atm_ce_pe_symbols("NSE:NIFTY50-INDEX")
+
+    assert result == (None, None, None, None)
 
 
 def test_parse_depth_response_extracts_matching_symbol_fields():

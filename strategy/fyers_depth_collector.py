@@ -84,9 +84,23 @@ def _atm_ce_pe_symbols(underlying_symbol, strike_count=5):
     fetch_option_chain(), never duplicated) - returns (spot, atm_strike,
     ce_symbol, pe_symbol), any of which may be None if the chain
     response didn't have what was needed.
+
+    FIXED 19-Aug-2026 - this had the SAME bug the 19-Aug fix to
+    _parse_depth_response() below already fixed in that other function:
+    `data.get(...)` ran without first checking `data` was a dict. The
+    first live run's actual error ('str' object has no attribute
+    'get') persisted even AFTER that first fix, proving the crash was
+    happening HERE, not (only) in _parse_depth_response() - this
+    function's own option-chain call is the one that's failing, not
+    the /depth call downstream of it, since the loop never even
+    reaches fetch_depth() if this raises first.
     """
 
     data = fetch_option_chain(underlying_symbol, strike_count)
+
+    if not isinstance(data, dict):
+        print(f"[skip] {underlying_symbol} option chain: non-dict response - {data!r}")
+        return None, None, None, None
 
     if data.get("s") != "ok":
         print(f"[skip] {underlying_symbol} option chain: {data.get('message', data)}")
