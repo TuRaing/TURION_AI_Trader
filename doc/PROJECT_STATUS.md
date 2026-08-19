@@ -6889,6 +6889,44 @@ passing overall (up from 467).
 
 ==================================================
 
+UTC-VS-IST TIMESTAMP FIX - BACKEND + APP + HISTORICAL DATA (19-Aug) -
+the user asked to properly fix the UTC-vs-IST stored-timestamp gap
+flagged earlier the same day (deferred at the time to "after VPS").
+Every stored Entry Time/Exit Time/Last Checked was written via naive
+datetime.now() (UTC on the GitHub Actions runner) while gating logic
+elsewhere correctly used IST - a confirmed 5:30 discrepancy.
+
+FIRST ATTEMPT CAUGHT AND REVERTED before committing: fixing only the
+backend would have broken the mobile app - formatBackendTimestamp()
+(mobile_app/lib/widgets/common.dart) already compensates by parsing
+as UTC and adding +5:30 for display, and its own comment documented
+that storing IST directly had already been tried once before and
+reverted for exactly this reason (double-shifts every displayed
+timestamp by 11 hours). Read that comment before committing, not
+after - caught the regression before it shipped.
+
+FULL FIX, all three parts together: (1) 14 backend modules now use
+datetime.now(IST) instead of bare datetime.now() - the 12 strategy/
+fyers_options_*.py modules plus strategy/paper_trading.py and
+strategy/best_trade_paper_trading.py (neither had an IST constant
+before); "Last Trade Date" and candle "Timestamp" fields correctly
+left untouched. (2) formatBackendTimestamp() now parses as-is, no
++5:30 shift. (3) Every existing Entry Time/Exit Time/Last Checked
+across all 61 affected reports/*.json files migrated in place (+5:30
+applied once) - verified against the exact known incident from
+earlier today ("2026-08-18 09:26:05" -> "2026-08-18 14:56:05").
+
+Hit a real merge conflict pushing this (concurrent scheduled-workflow
+commits touched the same report files mid-edit) - resolved by
+discarding the stale local migration and re-deriving it fresh against
+the latest pulled data, rather than hand-merging stale-vs-fresh values
+field by field. 5,494 fields across 61 files in the final version, all
+valid JSON, 474/474 tests passing, flutter analyze clean. Verified
+live after push: 0 stale open positions, 330 real trades closed that
+day, last exit correctly 15:16:49 IST.
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
@@ -6914,11 +6952,11 @@ Status
 
 Current Version
 
-v0.0.45
+v0.0.46
 
 Next Version
 
-v0.0.46
+v0.0.47
 
 ==================================================
 

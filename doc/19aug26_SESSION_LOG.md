@@ -300,6 +300,45 @@ Today's Achievements
    tests for the shared function (including the exact live incident's
    numbers as a regression test), 474/474 overall (up from 467).
 
+✅ UTC-VS-IST TIMESTAMP FIX - COMPLETED, same session (the user asked
+   to do it now rather than wait for "after VPS" as originally
+   deferred). Fixed all three layers together, not just the backend:
+   - Backend: 14 modules (12 strategy/fyers_options_*.py + strategy/
+     paper_trading.py + strategy/best_trade_paper_trading.py, the
+     latter two needed a new IST constant added) now write
+     datetime.now(IST) instead of bare datetime.now() for Entry Time/
+     Exit Time/Last Checked.
+   - CAUGHT A REAL REGRESSION BEFORE COMMITTING: the first attempt
+     only fixed the backend - about to commit when a stale comment in
+     the code revealed mobile_app/lib/widgets/common.dart's
+     formatBackendTimestamp() already compensates for UTC storage by
+     adding +5:30 on display, and that storing IST directly had
+     ALREADY been tried once before and reverted for exactly this
+     reason (double-shifts every displayed time by 11 hours). Reverted
+     the backend-only change immediately, asked the user how to handle
+     the 61 files' worth of existing UTC historical data, then
+     rebuilt the fix as all three parts together: backend + app +
+     a one-time historical-data migration (+5:30 applied once to every
+     existing Entry Time/Exit Time/Last Checked, "Last Trade Date" and
+     candle "Timestamp" fields correctly left alone).
+   - HIT A REAL MERGE CONFLICT pushing this - concurrent scheduled-
+     workflow commits touched the same report files mid-edit. Resolved
+     by discarding the stale local migration (git merge --abort +
+     reset --soft to keep the code fix + git checkout to drop only the
+     stale data changes) and re-deriving the migration fresh against
+     the newly-pulled live data, rather than hand-merging stale-vs-
+     fresh field values - safer and simpler than a manual 3-way merge
+     across 12 conflicted JSON files.
+   - Verified thoroughly before AND after push: the exact known
+     incident's trade migrated correctly both times ("09:26:05" ->
+     "14:56:05"), all 73 reports/*.json files stayed valid JSON,
+     474/474 tests passing, flutter analyze clean, and live post-push
+     - 0 stale open positions, 330 real trades closed that day, last
+     exit correctly showing 15:16:49 IST (just past the 15:15
+     squareoff cutoff).
+   - Pushed clean (commit 4ac75c4bd) once the market had closed and
+     the bot-commit frequency had dropped, avoiding a repeat conflict.
+
 --------------------------------------------------
 
 Next Session
@@ -333,10 +372,9 @@ Next Session
    exceptions; local reports/ files vs git-tracked files) both came
    back clean - the 4 books found earlier today were the complete set.
 
-5. UTC-vs-IST stored-timestamp issue (Entry Time/Exit Time/Last
-   Checked across every portfolio JSON in the project) - deliberately
-   deferred by the user to "after VPS is fully done, look at
-   everything together." Not forgotten, just intentionally not now.
+5. DONE, same session - see "UTC-VS-IST TIMESTAMP FIX - COMPLETED"
+   above. Backend + app + all 61 files' historical data fixed
+   together and pushed (commit 4ac75c4bd) - no longer deferred.
 
 ==================================================
 
