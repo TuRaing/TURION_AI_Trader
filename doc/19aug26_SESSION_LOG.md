@@ -164,6 +164,29 @@ Today's Achievements
    strategy addition's .gitignore/git-add pairing at some point, not
    just reactively when asked about one specific book.
 
+✅ VERIFIED THE .gitignore FIX LIVE, same session: within one scheduled
+   run after the fix, reports/fyers_options_simple_st1_threshold_
+   trailing2pct_nifty_portfolio.json was created and committed for the
+   first time ever - a real PE position, entered "04:05:56" (stored
+   time), Rs 93,258.75 deployed, RSI 6.88 at entry. Confirmed this is
+   persisting now, not resetting.
+
+✅ NOTED (not fixed, deferred at the user's request - "sadhya lakshat
+   theva, purna VPS zalyawar sagla ekat baghu"): every portfolio JSON
+   across this ENTIRE project stores Entry Time/Exit Time/Last Checked
+   using naive datetime.datetime.now() (strategy/fyers_options_engine.
+   py line ~372 and equivalents elsewhere) - unlabeled UTC (the
+   GitHub Actions runner's local time), NOT IST, even though the
+   actual trading-hours GATING logic elsewhere in the same files
+   correctly uses IST-aware datetime.datetime.now(IST). Confirmed via
+   the trade above: stored "04:05:56" = actual 09:35:56 IST (20 min
+   after market open) - the underlying trading decisions are NOT
+   affected (gating logic was always correct), only every DISPLAYED
+   timestamp across the whole project's trade history is 5:30 behind
+   real IST with no label saying so. User explicitly deferred deciding
+   whether/how to fix this until after the VPS work is done, to look
+   at "all together" then - not lost, just not now.
+
 --------------------------------------------------
 
 Next Session
@@ -198,6 +221,11 @@ Next Session
    one, found four). Same class of bug could exist for any other
    strategy added without its matching .gitignore line ever being
    verified. Offered to the user same-day, not yet actioned.
+
+5. UTC-vs-IST stored-timestamp issue (Entry Time/Exit Time/Last
+   Checked across every portfolio JSON in the project) - deliberately
+   deferred by the user to "after VPS is fully done, look at
+   everything together." Not forgotten, just intentionally not now.
 
 ==================================================
 
