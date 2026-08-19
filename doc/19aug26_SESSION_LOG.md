@@ -187,6 +187,29 @@ Today's Achievements
    whether/how to fix this until after the VPS work is done, to look
    at "all together" then - not lost, just not now.
 
+✅ DEPTH COLLECTOR CRASH FULLY RESOLVED, after 4 rounds of user-provided
+   live GitHub Actions logs (the only way to see the real error - each
+   fix was verified or disproven against an actual fresh run, not
+   assumed): (1) _parse_depth_response()'s top-level data.get() -
+   fixed, didn't stop the crash; (2) _atm_ce_pe_symbols()'s identical
+   top-level data.get() - fixed, didn't stop the crash; (3) added a
+   broad per-symbol try/except as a safety net (so at least the real
+   exception type+message would surface instead of a silent abort) +
+   filtered non-dict entries out of optionsChain's leg list - the
+   try/except worked (log showed "[skip] NSE:NIFTY50-INDEX:
+   AttributeError: ...", both indices, run continued cleanly), but the
+   crash itself persisted; (4) found data.get("data", {})'s {} default
+   only applies when the "data" key is MISSING, not when present with
+   a non-dict value - fixed, crash STILL persisted per the next fresh
+   log; (5) ACTUAL final cause: _parse_depth_response()'s `for entry in
+   data["d"]: entry.get("n")` had zero isinstance guard on each entry -
+   the exact same "list can hold a non-dict item" class as fix #3's
+   optionsChain fix, just never mirrored to this second list. Fixed.
+   5 new tests total across this investigation (12/12 in the file,
+   467/467 overall). Real depth data collection should now genuinely
+   work from the next scheduled run - not yet re-verified against a
+   live log as of this entry.
+
 --------------------------------------------------
 
 Next Session
