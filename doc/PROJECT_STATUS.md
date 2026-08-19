@@ -6851,6 +6851,44 @@ estimate for a usable market-depth-slippage sample now counts from
 
 ==================================================
 
+DATE-BLIND SQUAREOFF BUG FOUND + FIXED ACROSS ALL 15 CALL SITES
+(19-Aug) - user asked for a real-data backtest: "if today's loss-
+making strategies had had proper Stop-Loss, what would the result
+have been." That backtest found ~Rs 1,52,794 would have been saved
+across 11 books on ordinary check-interval overshoot - but also
+surfaced something the backtest itself couldn't explain: simple_st1_
+slcap/NIFTY's worst single trade lost Rs 1,23,027 despite ALREADY
+having hybrid_sl_cap_pct=2.0 set (intended cap Rs 2,000 - 61x
+overshoot). Traced, not assumed: opened 18-Aug 14:56 IST, never
+checked again before that day's own 15:15 IST squareoff cutoff, sat
+completely unmonitored overnight (no scheduled workflow runs outside
+market hours), picked up again only 19-Aug 08:33 IST - by which point
+the option premium had collapsed from Rs 37.3 to Rs 0.05. The
+squareoff path itself never fired at that checkpoint, because
+`past_squareoff = (now_ist.hour, now_ist.minute) >= squareoff_time`
+compares ONLY time-of-day - (8,33) is not >= (15,15), regardless of
+calendar date. 10 other books hit the identical overnight-carry
+pattern the same night.
+
+Grepped the whole codebase for the exact pattern - found it duplicated
+identically in 15 places: all 12 modules of the older polling engine
+(strategy/fyers_options_*.py) plus both runner classes in the event-
+driven engine (strategy/live_tick_harness.py) - directly relevant to
+the VPS too, since a position still open when the process restarts
+(deploy.sh's daily 08:00 IST cron restart) hits the identical gap.
+
+FIXED with one new shared module, strategy/squareoff.py's
+is_past_squareoff() - true if the position's entry date (in IST) is
+before today regardless of current time, OR today's own squareoff_time
+has been reached. Explicitly handles this project's two different
+"Entry Time" storage conventions (polling engine's naive-UTC vs event-
+driven engine's already-IST - entry_stored_as_utc parameter) rather
+than assuming one. All 15 call sites updated. 7 new tests (including
+the live incident's own numbers as a regression case), 474/474 tests
+passing overall (up from 467).
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
@@ -6876,11 +6914,11 @@ Status
 
 Current Version
 
-v0.0.44
+v0.0.45
 
 Next Version
 
-v0.0.45
+v0.0.46
 
 ==================================================
 

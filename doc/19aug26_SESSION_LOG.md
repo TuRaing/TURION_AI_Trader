@@ -259,6 +259,47 @@ Today's Achievements
    set: no other strategy book is silently losing state. This closes
    Next-Session item #4 from earlier in this same log.
 
+✅ MAJOR BUG FOUND AND FIXED - DATE-BLIND SQUAREOFF, same session,
+   found while investigating the user's own request: "if the loss-
+   making strategies today had proper Stop-Loss, what would the
+   result have been - backtest it on today's real data." Ran that
+   backtest (11 loss-making books, ~Rs 1,52,794 would have been saved
+   on the "ordinary overshoot" trades) but ALSO found something the
+   backtest itself couldn't explain: simple_st1_slcap/NIFTY's single
+   worst trade lost Rs 1,23,027 despite ALREADY having
+   hybrid_sl_cap_pct=2.0 set (intended cap: Rs 2,000 - a 61x
+   overshoot). Traced it, not assumed: the position was opened
+   18-Aug 14:56 IST, never checked again before that day's own 15:15
+   IST squareoff cutoff, sat completely unmonitored overnight (no
+   scheduled workflow runs outside market hours), and was only picked
+   up the next morning (19-Aug 08:33 IST) - by which point the option
+   premium had collapsed from Rs 37.3 to Rs 0.05. The squareoff check
+   itself never fired at that 08:33 checkpoint, because `past_
+   squareoff = (now_ist.hour, now_ist.minute) >= squareoff_time`
+   compares ONLY time-of-day - (8,33) is not >= (15,15), regardless of
+   which calendar day it actually is. 10 other books hit the identical
+   overnight-carry pattern the same night (full list in the earlier
+   backtest entry above).
+
+   Grepped the WHOLE codebase for this exact pattern - found it
+   duplicated identically in 15 separate places: all 12 modules of the
+   older polling engine (strategy/fyers_options_*.py) plus BOTH runner
+   classes in the event-driven engine (strategy/live_tick_harness.py) -
+   confirmed relevant to the VPS too, since a position still open when
+   the process restarts (deploy.sh's daily 08:00 IST cron restart)
+   would hit the identical gap.
+
+   FIXED with one new shared module, strategy/squareoff.py's
+   is_past_squareoff() - true if the position's entry date (in IST) is
+   before today regardless of current time, OR if today's own
+   squareoff_time has been reached. Handles this project's two
+   different "Entry Time" storage conventions explicitly (the polling
+   engine's naive-UTC vs the event-driven engine's already-IST -
+   entry_stored_as_utc parameter, rather than assuming one and risking
+   a second, opposite bug). All 15 call sites updated to use it. 7 new
+   tests for the shared function (including the exact live incident's
+   numbers as a regression test), 474/474 overall (up from 467).
+
 --------------------------------------------------
 
 Next Session
