@@ -12,6 +12,7 @@ from strategy.fyers_options_engine import (
     _net_pnl,
 )
 from strategy.fyers_data import parse_option_expiry
+from strategy.squareoff import is_past_squareoff
 
 # Added 13-Aug-2026 - the 4th and last of the novel-indicator ideas
 # discussed 09-Aug alongside PCR Momentum + Volume-Weighted OI (see
@@ -280,7 +281,8 @@ def _check_position(cfg, portfolio):
     net_pnl = _net_pnl(cfg, position["Entry Premium"], current_premium, position["Lots"])
 
     now_ist = datetime.datetime.now(IST)
-    past_squareoff = (now_ist.hour, now_ist.minute) >= SQUAREOFF_TIME
+    # FIXED 19-Aug-2026 - see strategy/squareoff.py's module docstring.
+    past_squareoff = is_past_squareoff(position["Entry Time"], now_ist, SQUAREOFF_TIME)
 
     if net_pnl >= TARGET_RUPEES:
         return _close_position(cfg, portfolio, current_premium, "Target")

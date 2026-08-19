@@ -6,6 +6,7 @@ from indicators.rsi import calculate_rsi
 from strategy.backtest_live_engine import run_live_check
 from strategy.execution_backend import PaperExecutionBackend
 from strategy.fyers_options_oi_footprint import _classify_buildup
+from strategy.squareoff import is_past_squareoff
 
 # Added 17-Aug-2026 - task #17 of the WebSocket code-prep (see strategy/
 # event_driven_engine.py's module docstring for the full plan/context).
@@ -157,8 +158,26 @@ class LiveTickRunner:
         self.last_action = None
 
     def _past_squareoff(self, timestamp):
+        """
+        FIXED 19-Aug-2026 - was date-blind (only compared hour:minute),
+        the exact same gap already found and fixed in the older polling
+        engine (see strategy/squareoff.py's module docstring for the
+        real incident) - a position still open when this process
+        restarts the next morning (e.g. deploy.sh's daily 08:00 IST
+        cron restart) would otherwise sit unprotected until the
+        ordinary Stop-Loss math eventually caught up, same as the
+        Rs 1,23,027 live loss that prompted this fix. No open position
+        yet -> nothing to have carried over, same-day time check only.
+        """
 
-        return (timestamp.hour, timestamp.minute) >= self.squareoff_time
+        position = self.portfolio.get("Position")
+
+        if position is None:
+            return (timestamp.hour, timestamp.minute) >= self.squareoff_time
+
+        return is_past_squareoff(
+            position["Entry Time"], timestamp, self.squareoff_time, entry_stored_as_utc=False
+        )
 
     def on_tick(self, symbol, timestamp, ltp, bid=None, ask=None):
         """
@@ -265,8 +284,18 @@ class OIFootprintTickRunner:
         self.last_action = None
 
     def _past_squareoff(self, timestamp):
+        """FIXED 19-Aug-2026 - see LiveTickRunner's matching fix above
+        and strategy/squareoff.py's module docstring for the real
+        incident behind it."""
 
-        return (timestamp.hour, timestamp.minute) >= self.squareoff_time
+        position = self.portfolio.get("Position")
+
+        if position is None:
+            return (timestamp.hour, timestamp.minute) >= self.squareoff_time
+
+        return is_past_squareoff(
+            position["Entry Time"], timestamp, self.squareoff_time, entry_stored_as_utc=False
+        )
 
     def on_oi_snapshot(self, timestamp, spot, strike, ce_oi, pe_oi):
         """

@@ -17,6 +17,7 @@ from strategy.fyers_options_engine import (
 )
 from strategy.fyers_data import fyers_download
 from strategy.fyers_multi_timeframe_engine import get_multi_timeframe_signal
+from strategy.squareoff import is_past_squareoff
 from indicators.adx import calculate_adx
 
 # Added 06-Aug-2026 - st4, the fourth of the user's requested options
@@ -205,7 +206,8 @@ def _check_position(cfg, portfolio):
     net_pnl = _net_pnl(cfg, position["Entry Premium"], current_premium, position["Lots"])
 
     now_ist = datetime.datetime.now(IST)
-    past_squareoff = (now_ist.hour, now_ist.minute) >= SQUAREOFF_TIME
+    # FIXED 19-Aug-2026 - see strategy/squareoff.py's module docstring.
+    past_squareoff = is_past_squareoff(position["Entry Time"], now_ist, SQUAREOFF_TIME)
 
     if option_type == "CE":
         position["Peak Spot"] = max(position.get("Peak Spot", position["Entry Spot"]), current_spot)

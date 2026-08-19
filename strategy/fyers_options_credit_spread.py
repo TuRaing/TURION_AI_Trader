@@ -11,6 +11,7 @@ from strategy.fyers_options_engine import (
     _fetch_quote,
 )
 from strategy.fyers_data import fyers_download
+from strategy.squareoff import is_past_squareoff
 from indicators.rsi import calculate_rsi
 
 # Added 09-Aug-2026 - the premium-selling (theta) engine discussed at
@@ -330,7 +331,8 @@ def _check_position(cfg, portfolio):
     entry_credit = position["Entry Credit"]
 
     now_ist = datetime.datetime.now(IST)
-    past_squareoff = (now_ist.hour, now_ist.minute) >= SQUAREOFF_TIME
+    # FIXED 19-Aug-2026 - see strategy/squareoff.py's module docstring.
+    past_squareoff = is_past_squareoff(position["Entry Time"], now_ist, SQUAREOFF_TIME)
 
     if _target_hit(entry_credit, cost_to_close_now):
         return _close_position(cfg, portfolio, short_now, long_now, "Target (50% of credit)", current_spot)

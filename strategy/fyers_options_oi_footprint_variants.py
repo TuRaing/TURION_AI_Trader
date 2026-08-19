@@ -18,6 +18,7 @@ from strategy.fyers_options_oi_footprint import (
     save_portfolio,
 )
 from strategy.fyers_data import fyers_download
+from strategy.squareoff import is_past_squareoff
 from indicators.rsi import calculate_rsi
 
 # Added 14-Aug-2026 - 6 oi_footprint variants requested after the
@@ -219,7 +220,8 @@ def _check_position(cfg, portfolio):
     position["Peak PnL"] = peak_pnl
 
     now_ist = datetime.datetime.now(IST)
-    past_squareoff = (now_ist.hour, now_ist.minute) >= SQUAREOFF_TIME
+    # FIXED 19-Aug-2026 - see strategy/squareoff.py's module docstring.
+    past_squareoff = is_past_squareoff(position["Entry Time"], now_ist, SQUAREOFF_TIME)
 
     extra_exit = cfg.get("extra_exit")
 

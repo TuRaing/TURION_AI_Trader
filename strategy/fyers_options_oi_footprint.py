@@ -11,6 +11,7 @@ from strategy.fyers_options_engine import (
     _pick_atm_leg,
     _net_pnl,
 )
+from strategy.squareoff import is_past_squareoff
 
 # Added 08-Aug-2026 - user's own idea, reframed against this project's
 # "why do things fail" review: retail can never see WHICH institution
@@ -203,7 +204,8 @@ def _check_position(cfg, portfolio):
     net_pnl = _net_pnl(cfg, position["Entry Premium"], current_premium, position["Lots"])
 
     now_ist = datetime.datetime.now(IST)
-    past_squareoff = (now_ist.hour, now_ist.minute) >= SQUAREOFF_TIME
+    # FIXED 19-Aug-2026 - see strategy/squareoff.py's module docstring.
+    past_squareoff = is_past_squareoff(position["Entry Time"], now_ist, SQUAREOFF_TIME)
 
     if net_pnl >= TARGET_RUPEES:
         return _close_position(cfg, portfolio, current_premium, "Target", current_spot)

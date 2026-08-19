@@ -7,6 +7,7 @@ import requests
 from strategy.fyers_auth import _app_id, get_access_token
 from strategy.fyers_data import fyers_download
 from strategy.options_transaction_costs import calculate_options_round_trip_cost
+from strategy.squareoff import is_past_squareoff
 from indicators.rsi import calculate_rsi
 
 # Added 04-Aug-2026 - options paper trading using REAL Fyers premium
@@ -245,7 +246,8 @@ def _check_position(portfolio):
     net_pnl_pct = net_pnl / INITIAL_CAPITAL * 100
 
     now_ist = datetime.datetime.now(IST)
-    past_squareoff = (now_ist.hour, now_ist.minute) >= SQUAREOFF_TIME
+    # FIXED 19-Aug-2026 - see strategy/squareoff.py's module docstring.
+    past_squareoff = is_past_squareoff(position["Entry Time"], now_ist, SQUAREOFF_TIME)
 
     if net_pnl_pct >= TARGET_NET_PCT:
         return _close_position(portfolio, current_premium, "Target")

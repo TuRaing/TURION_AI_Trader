@@ -7,6 +7,7 @@ import requests
 from strategy.fyers_auth import _app_id, get_access_token
 from strategy.fyers_data import fyers_download
 from strategy.options_transaction_costs import calculate_options_round_trip_cost
+from strategy.squareoff import is_past_squareoff
 from indicators.rsi import calculate_rsi
 
 # Added 06-Aug-2026 - generalized, parameterized core that multiple
@@ -457,7 +458,11 @@ def _check_position(cfg, portfolio):
     net_pnl_pct = net_pnl / cfg["initial_capital"] * 100
 
     now_ist = datetime.datetime.now(IST)
-    past_squareoff = (now_ist.hour, now_ist.minute) >= cfg["squareoff_time"]
+    # FIXED 19-Aug-2026 - was date-blind (only compared hour:minute),
+    # letting a position carried over from a PREVIOUS day sit unchecked
+    # by the squareoff path - see strategy/squareoff.py's module
+    # docstring for the real Rs 1,23,027 incident this caused.
+    past_squareoff = is_past_squareoff(position["Entry Time"], now_ist, cfg["squareoff_time"])
 
     if cfg.get("trailing_min_pct") is not None:
         # Replaces the plain target_net_pct check entirely when set -

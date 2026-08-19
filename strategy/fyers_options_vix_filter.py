@@ -11,6 +11,7 @@ from strategy.fyers_options_engine import (
     _net_pnl,
 )
 from strategy.fyers_data import fyers_download
+from strategy.squareoff import is_past_squareoff
 from indicators.rsi import calculate_rsi
 from indicators.atr import calculate_atr
 
@@ -220,7 +221,8 @@ def _check_position(cfg, portfolio):
     current_spot = spot_quote.get("lp") or (spot_quote.get("bid", 0) + spot_quote.get("ask", 0)) / 2
 
     now_ist = datetime.datetime.now(IST)
-    past_squareoff = (now_ist.hour, now_ist.minute) >= SQUAREOFF_TIME
+    # FIXED 19-Aug-2026 - see strategy/squareoff.py's module docstring.
+    past_squareoff = is_past_squareoff(position["Entry Time"], now_ist, SQUAREOFF_TIME)
 
     if _target_hit(option_type, current_spot, position["Target Spot"]):
         return _close_position(cfg, portfolio, current_premium, "Target", current_spot)
