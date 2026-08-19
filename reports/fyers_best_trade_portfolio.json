@@ -1,15 +1,6 @@
 {
-  "Cash": 99993.58729364481,
-  "Position": {
-    "Name": "BAJAJ-AUTO",
-    "Symbol": "BAJAJ-AUTO.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-08-19 06:58:24",
-    "Entry Price": 11690.0,
-    "Quantity": 1,
-    "Stop Loss": 11662.685,
-    "Target": 11744.63
-  },
+  "Cash": 99953.893097538,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -296,6 +287,20 @@
       "PnL": -0.85,
       "Cost": 0.25,
       "Net PnL": -1.11
+    },
+    {
+      "Name": "BAJAJ-AUTO",
+      "Symbol": "BAJAJ-AUTO.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-08-19 06:58:24",
+      "Entry Price": 11690.0,
+      "Exit Time": "2026-08-19 07:12:03",
+      "Exit Price": 11662.685,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -27.32,
+      "Cost": 12.38,
+      "Net PnL": -39.69
     }
   ],
   "Data Source": "Fyers"
