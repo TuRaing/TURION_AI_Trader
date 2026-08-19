@@ -233,6 +233,15 @@ Today's Achievements
    session - 6 rounds, each verified or disproven against an actual
    live Actions log the user fetched and pasted in, never guessed.
 
+✅ CONFIRMED WORKING END-TO-END: the very next scheduled run (06:06 UTC)
+   logged "Wrote 4 depth records" - pulled and inspected reports/
+   options_depth_history.jsonl directly: 4 clean, complete records
+   (NIFTY + BANKNIFTY, CE + PE each), real 5-level bid/ask depth, spot,
+   LTP, buy/sell quantities all present and correctly shaped. Real
+   market-depth data collection is genuinely live from this point
+   forward - the ~7-10 trading day estimate for a usable sample (17-Aug
+   entry, PROJECT_STATUS.md) now counts from today, 19-Aug, for real.
+
 --------------------------------------------------
 
 Next Session
