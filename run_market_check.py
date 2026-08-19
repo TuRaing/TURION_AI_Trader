@@ -1,0 +1,141 @@
+import datetime
+import glob
+import json
+import os
+
+import requests
+
+from strategy.fyers_auth import _app_id, get_access_token
+from report.market_checks import (
+    detect_crash,
+    detect_unusual_trade,
+    summarize_daily_pnl,
+    detect_stale_workflow,
+    format_running_market_checklist,
+    market_check_log_filename,
+)
+
+# Added 19-Aug-2026 - the live wiring for report/market_checks.py's pure
+# functions, run every ~30 min DURING THIS SESSION (user's own explicit
+# choice, 19-Aug: not a VPS/cron script - the VPS doesn't exist yet,
+# target 10-Sep-2026 per doc/PROJECT_STATUS.md - and not GitHub Actions
+# either, just this session while it stays open). One command does the
+# whole check end-to-end so a scheduled prompt only has to run this file,
+# not re-derive the steps each time.
+
+IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
+DATA_BASE_URL = "https://api-t1.fyers.in/data"
+LOG_DIR = os.path.join("logs", "market_checks")
+
+
+def _headers():
+    return {"Authorization": f"{_app_id()}:{get_access_token()}"}
+
+
+def _fetch_index_change_pct(fyers_symbol):
+    response = requests.get(
+        f"{DATA_BASE_URL}/quotes",
+        headers=_headers(),
+        params={"symbols": fyers_symbol},
+        timeout=15,
+    )
+    data = response.json()
+
+    if data.get("s") != "ok" or not data.get("d"):
+        raise RuntimeError(f"quote fetch failed for {fyers_symbol}: {data}")
+
+    v = data["d"][0]["v"]
+
+    if "chp" in v and v["chp"] is not None:
+        return v["chp"]
+
+    return (v["lp"] - v["cp"]) / v["cp"] * 100
+
+
+def _lot_size_for_book(name):
+    # This project's own INDEX_CONFIG (strategy/fyers_options_engine.py)
+    # - NIFTY 75, BANKNIFTY 30 - inferred from the filename since this
+    # script scans every reports/*_portfolio.json rather than importing
+    # each of the 60+ strategy modules just for their lot size.
+    return 30 if "banknifty" in name.lower() else 75
+
+
+def _today_trades(portfolio, today_str):
+    # Exit Time is stored IST-naive (this session's own earlier UTC-vs-
+    # IST timestamp fix) - a plain string-prefix match against today's
+    # IST date, no timezone conversion needed.
+    trades = []
+    for trade in portfolio.get("Closed Trades", []):
+        exit_time = trade.get("Exit Time", "")
+        if exit_time.startswith(today_str):
+            trades.append(trade)
+    return trades
+
+
+def run_check():
+    now = datetime.datetime.now(IST)
+    today_str = now.strftime("%Y-%m-%d")
+
+    try:
+        nifty_chp = _fetch_index_change_pct("NSE:NIFTY50-INDEX")
+        banknifty_chp = _fetch_index_change_pct("NSE:NIFTYBANK-INDEX")
+        crash_result = detect_crash(nifty_chp, banknifty_chp)
+        data_warning = None
+    except Exception as exc:
+        crash_result = (False, None)
+        data_warning = f"Live index data unavailable ({exc}) - crash check skipped this run."
+
+    books_today_trades = {}
+    unusual_trades = []
+    strategy_workflows = []
+
+    for path in sorted(glob.glob(os.path.join("reports", "*_portfolio.json"))):
+        name = os.path.splitext(os.path.basename(path))[0]
+
+        try:
+            with open(path, encoding="utf-8") as fh:
+                portfolio = json.load(fh)
+        except (OSError, json.JSONDecodeError):
+            continue
+
+        today_trades = _today_trades(portfolio, today_str)
+        books_today_trades[name] = today_trades
+
+        lot_size = _lot_size_for_book(name)
+        for trade in today_trades:
+            is_unusual, reason = detect_unusual_trade(trade, lot_size)
+            if is_unusual:
+                unusual_trades.append((name, reason))
+
+        mtime = datetime.datetime.fromtimestamp(os.path.getmtime(path), tz=IST)
+        is_stale, gap = detect_stale_workflow(mtime, now)
+        strategy_workflows.append((name, is_stale, gap))
+
+    pnl_summary = summarize_daily_pnl(books_today_trades)
+
+    report = format_running_market_checklist(
+        now_ist=now,
+        crash_result=crash_result,
+        unusual_trades=unusual_trades,
+        pnl_summary=pnl_summary,
+        strategy_workflows=strategy_workflows,
+    )
+
+    if data_warning:
+        lines = report.split("\n")
+        lines.insert(2, f"> NOTE: {data_warning}")
+        report = "\n".join(lines)
+
+    os.makedirs(LOG_DIR, exist_ok=True)
+    log_path = os.path.join(LOG_DIR, market_check_log_filename(now))
+    with open(log_path, "w", encoding="utf-8") as fh:
+        fh.write(report)
+
+    print(report)
+    print(f"\nWritten to {log_path}")
+
+    return log_path
+
+
+if __name__ == "__main__":
+    run_check()
