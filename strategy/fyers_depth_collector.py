@@ -106,7 +106,13 @@ def _atm_ce_pe_symbols(underlying_symbol, strike_count=5):
         print(f"[skip] {underlying_symbol} option chain: {data.get('message', data)}")
         return None, None, None, None
 
-    legs = data.get("data", {}).get("optionsChain", [])
+    # isinstance filter added 19-Aug-2026, same investigation as above -
+    # a leading theory for the still-unexplained crash: optionsChain
+    # containing a non-dict entry would make leg.get(...) below raise
+    # the identical 'str' object has no attribute 'get' error, and
+    # neither of today's earlier fixes (both about `data` itself, not
+    # individual legs) would catch that.
+    legs = [leg for leg in data.get("data", {}).get("optionsChain", []) if isinstance(leg, dict)]
     spot = next((leg.get("ltp") for leg in legs if leg.get("strike_price") == -1), None)
 
     if spot is None:
@@ -183,39 +189,56 @@ def snapshot(underlying_symbols=("NSE:NIFTY50-INDEX", "NSE:NIFTYBANK-INDEX")):
 
         for underlying_symbol in underlying_symbols:
 
-            spot, atm_strike, ce_symbol, pe_symbol = _atm_ce_pe_symbols(underlying_symbol)
+            # Added 19-Aug-2026 - wraps EVERYTHING per underlying_symbol,
+            # not just the two known .get()-on-non-dict spots already
+            # fixed today. Both of those fixes shipped and the live
+            # crash (`'str' object has no attribute 'get'`) persisted
+            # unchanged - meaning a THIRD, still-unidentified spot is
+            # raising the same error (most likely a non-dict entry
+            # inside optionsChain's leg list, which neither fix
+            # touches). Rather than keep guessing one call site at a
+            # time, this catches ANY exception per symbol, prints its
+            # real type+message so the NEXT run finally reveals where
+            # it actually is, and moves on to the other index instead
+            # of losing the whole snapshot() call to one bad symbol.
+            try:
+                spot, atm_strike, ce_symbol, pe_symbol = _atm_ce_pe_symbols(underlying_symbol)
 
-            if spot is None:
+                if spot is None:
+                    continue
+
+                for option_type, leg_symbol in (("CE", ce_symbol), ("PE", pe_symbol)):
+
+                    if leg_symbol is None:
+                        print(f"[skip] {underlying_symbol} ATM {option_type}: not found in option chain response")
+                        continue
+
+                    raw = fetch_depth(leg_symbol)
+                    fields = _parse_depth_response(raw, leg_symbol)
+
+                    if fields is None:
+                        continue
+
+                    record = {
+                        "Snapshot Time (UTC)": timestamp,
+                        "Underlying": underlying_symbol,
+                        "Spot": spot,
+                        "Symbol": leg_symbol,
+                        "Strike": atm_strike,
+                        "Option Type": option_type,
+                        "Total Buy Qty": fields.get("totalbuyqty"),
+                        "Total Sell Qty": fields.get("totalsellqty"),
+                        "Bids": fields.get("bids"),
+                        "Asks": fields.get("ask"),
+                        "LTP": fields.get("ltp"),
+                    }
+
+                    archive_file.write(json.dumps(record) + "\n")
+                    written += 1
+
+            except Exception as error:
+                print(f"[skip] {underlying_symbol}: {type(error).__name__}: {error}")
                 continue
-
-            for option_type, leg_symbol in (("CE", ce_symbol), ("PE", pe_symbol)):
-
-                if leg_symbol is None:
-                    print(f"[skip] {underlying_symbol} ATM {option_type}: not found in option chain response")
-                    continue
-
-                raw = fetch_depth(leg_symbol)
-                fields = _parse_depth_response(raw, leg_symbol)
-
-                if fields is None:
-                    continue
-
-                record = {
-                    "Snapshot Time (UTC)": timestamp,
-                    "Underlying": underlying_symbol,
-                    "Spot": spot,
-                    "Symbol": leg_symbol,
-                    "Strike": atm_strike,
-                    "Option Type": option_type,
-                    "Total Buy Qty": fields.get("totalbuyqty"),
-                    "Total Sell Qty": fields.get("totalsellqty"),
-                    "Bids": fields.get("bids"),
-                    "Asks": fields.get("ask"),
-                    "LTP": fields.get("ltp"),
-                }
-
-                archive_file.write(json.dumps(record) + "\n")
-                written += 1
 
     return written
 

@@ -1,5 +1,5 @@
 from strategy import fyers_depth_collector
-from strategy.fyers_depth_collector import _atm_ce_pe_symbols, _parse_depth_response, INDEX_STRIKE_STEP
+from strategy.fyers_depth_collector import _atm_ce_pe_symbols, _parse_depth_response, INDEX_STRIKE_STEP, snapshot
 
 
 def test_atm_ce_pe_symbols_none_when_option_chain_response_is_not_a_dict(monkeypatch):
@@ -12,6 +12,54 @@ def test_atm_ce_pe_symbols_none_when_option_chain_response_is_not_a_dict(monkeyp
     result = _atm_ce_pe_symbols("NSE:NIFTY50-INDEX")
 
     assert result == (None, None, None, None)
+
+
+def test_atm_ce_pe_symbols_skips_non_dict_legs_in_the_options_chain(monkeypatch):
+    # Added 19-Aug-2026 - even AFTER both isinstance fixes above shipped,
+    # the live crash persisted unchanged - this is the next leading
+    # theory: a stray non-dict entry inside optionsChain itself (not
+    # `data` as a whole) would make leg.get(...) raise the identical
+    # error, and neither earlier fix touches individual leg entries.
+    data = {
+        "s": "ok",
+        "data": {"optionsChain": [
+            "unexpected string entry",
+            {"strike_price": -1, "ltp": 24500.0},
+            {"strike_price": 24500, "option_type": "CE", "symbol": "NSE:NIFTY2681724500CE"},
+            {"strike_price": 24500, "option_type": "PE", "symbol": "NSE:NIFTY2681724500PE"},
+        ]},
+    }
+    monkeypatch.setattr(fyers_depth_collector, "fetch_option_chain", lambda *a, **k: data)
+
+    spot, atm_strike, ce_symbol, pe_symbol = _atm_ce_pe_symbols("NSE:NIFTY50-INDEX")
+
+    assert spot == 24500.0
+    assert ce_symbol == "NSE:NIFTY2681724500CE"
+    assert pe_symbol == "NSE:NIFTY2681724500PE"
+
+
+def test_snapshot_continues_to_the_next_index_when_one_symbol_raises(monkeypatch, tmp_path):
+    # Added 19-Aug-2026 - the broad per-symbol try/except: whatever the
+    # real, still-not-fully-identified crash cause turns out to be, one
+    # bad index must not lose the OTHER index's real data for the same
+    # run - this is the safety net independent of any specific fix.
+    archive_path = tmp_path / "options_depth_history.jsonl"
+    monkeypatch.setattr(fyers_depth_collector, "ARCHIVE_PATH", str(archive_path))
+
+    def fake_atm(underlying_symbol, strike_count=5):
+        if underlying_symbol == "NSE:NIFTY50-INDEX":
+            raise AttributeError("'str' object has no attribute 'get'")
+        return 51000.0, 51000, "NSE:NIFTYBANK2681751000CE", "NSE:NIFTYBANK2681751000PE"
+
+    monkeypatch.setattr(fyers_depth_collector, "_atm_ce_pe_symbols", fake_atm)
+    monkeypatch.setattr(fyers_depth_collector, "fetch_depth", lambda symbol: {
+        "s": "ok", "d": [{"n": symbol, "v": {"totalbuyqty": 1, "totalsellqty": 1, "bids": [], "ask": [], "ltp": 1.0}}],
+    })
+
+    written = snapshot(("NSE:NIFTY50-INDEX", "NSE:NIFTYBANK-INDEX"))
+
+    assert written == 2  # both BANKNIFTY legs written despite NIFTY raising
+    assert archive_path.exists()
 
 
 def test_parse_depth_response_extracts_matching_symbol_fields():
