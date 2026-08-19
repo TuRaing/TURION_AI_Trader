@@ -24,6 +24,14 @@ def test_parse_depth_response_extracts_matching_symbol_fields():
     assert fields["ask"][0]["volume"] == 150
 
 
+def test_parse_depth_response_none_when_response_is_not_a_dict():
+    # Added 19-Aug-2026 - the real bug hit on the first live run: Fyers'
+    # actual /depth response was a plain string, not a dict, and the
+    # old code called data.get(...) before checking that, crashing with
+    # 'str' object has no attribute 'get' instead of skipping cleanly.
+    assert _parse_depth_response("some error text", "NSE:NIFTY2681724550CE") is None
+
+
 def test_parse_depth_response_none_when_status_not_ok():
     data = {"s": "error", "message": "Could not authenticate the user"}
 

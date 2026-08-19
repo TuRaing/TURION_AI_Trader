@@ -118,7 +118,24 @@ def _parse_depth_response(data, fyers_symbol):
     raises) on any unexpected shape, so snapshot() can skip that one
     symbol instead of crashing the whole run - see module docstring's
     verification caveat.
+
+    FIXED 19-Aug-2026 - the very first real run (18/19-Aug, once the
+    18-Aug git-add fix let this actually get committed) hit exactly the
+    "response shape wasn't verified" risk the module docstring already
+    flagged: every call failed with `'str' object has no attribute
+    'get'`, meaning Fyers' real /depth response for this project's
+    params is NOT the assumed dict at all - most likely a plain string
+    error message. The bug: `data.get(...)` below ran before checking
+    `data` was even a dict, so the exception fired before the intended
+    "print raw response and skip cleanly" behavior could ever execute -
+    the real Fyers response text was never actually visible in any log.
+    Added the isinstance check so the NEXT real run's log finally shows
+    Fyers' actual response content instead of just a type-error message.
     """
+
+    if not isinstance(data, dict):
+        print(f"[skip] {fyers_symbol} depth: non-dict response - {data!r}")
+        return None
 
     if data.get("s") != "ok" or not data.get("d"):
         print(f"[skip] {fyers_symbol} depth: {data.get('message', data)}")
