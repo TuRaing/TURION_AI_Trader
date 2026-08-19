@@ -1,15 +1,6 @@
 {
-  "Cash": 99998.15593162063,
-  "Position": {
-    "Name": "WIPRO",
-    "Symbol": "WIPRO.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-08-19 06:38:00",
-    "Entry Price": 179.59,
-    "Quantity": 1,
-    "Stop Loss": 179.215,
-    "Target": 180.34
-  },
+  "Cash": 99997.59072513069,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -742,6 +733,20 @@
       "PnL": -3.27,
       "Cost": 2.14,
       "Net PnL": -5.41
+    },
+    {
+      "Name": "WIPRO",
+      "Symbol": "WIPRO.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-08-19 06:38:00",
+      "Entry Price": 179.59,
+      "Exit Time": "2026-08-19 08:11:02",
+      "Exit Price": 179.215,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -0.38,
+      "Cost": 0.19,
+      "Net PnL": -0.57
     }
   ]
 }
