@@ -1,15 +1,6 @@
 {
-  "Cash": 99997.59072513069,
-  "Position": {
-    "Name": "EICHERMOT",
-    "Symbol": "EICHERMOT.NS",
-    "Direction": "SELL",
-    "Entry Time": "2026-08-19 08:32:39",
-    "Entry Price": 8000.0,
-    "Quantity": 1,
-    "Stop Loss": 8011.835,
-    "Target": 7976.33
-  },
+  "Cash": 100012.7922632801,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -756,6 +747,20 @@
       "PnL": -0.38,
       "Cost": 0.19,
       "Net PnL": -0.57
+    },
+    {
+      "Name": "EICHERMOT",
+      "Symbol": "EICHERMOT.NS",
+      "Direction": "SELL",
+      "Entry Time": "2026-08-19 08:32:39",
+      "Entry Price": 8000.0,
+      "Exit Time": "2026-08-19 08:54:01",
+      "Exit Price": 7976.33,
+      "Quantity": 1,
+      "Exit Reason": "Target",
+      "PnL": 23.67,
+      "Cost": 8.47,
+      "Net PnL": 15.2
     }
   ]
 }
