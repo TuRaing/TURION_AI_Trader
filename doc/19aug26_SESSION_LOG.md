@@ -242,6 +242,23 @@ Today's Achievements
    forward - the ~7-10 trading day estimate for a usable sample (17-Aug
    entry, PROJECT_STATUS.md) now counts from today, 19-Aug, for real.
 
+✅ PROACTIVE .gitignore AUDIT COMPLETED, at the user's request - the
+   open item flagged earlier today ("could the same missing-exception
+   bug exist for any other book"). Two independent checks, both clean:
+   (1) extracted every `git add reports/....json(l)` line across all
+   9 workflow files (72 unique paths) and every `!reports/....json(l)`
+   exception in .gitignore (73 unique paths), diffed them - zero real
+   gaps (2 apparent misses were false positives: reports/options_
+   depth_history.jsonl and options_premium_history.jsonl don't need an
+   exception at all, since .gitignore's reports/*.json rule only
+   matches the literal .json extension, never .jsonl - confirmed via
+   `git check-ignore`, not assumed). (2) Compared the actual local
+   reports/ directory listing (76 .json/.jsonl files) against `git
+   ls-files reports/` (also exactly 76) - zero untracked files. Both
+   methods agree: the 4 books found earlier today were the complete
+   set: no other strategy book is silently losing state. This closes
+   Next-Session item #4 from earlier in this same log.
+
 --------------------------------------------------
 
 Next Session
@@ -270,12 +287,10 @@ Next Session
    generated) - see 18-Aug's session log for the full sequence,
    already in the Go-Live Runbook artifact.
 
-4. Proactive audit, not yet done: cross-check EVERY strategy book
-   across all workflows against .gitignore's !reports/... exception
-   list, not just the 4 found broken today by accident (asked about
-   one, found four). Same class of bug could exist for any other
-   strategy added without its matching .gitignore line ever being
-   verified. Offered to the user same-day, not yet actioned.
+4. DONE, same session - see "PROACTIVE .gitignore AUDIT COMPLETED"
+   above. Two independent checks (workflow git-add vs .gitignore
+   exceptions; local reports/ files vs git-tracked files) both came
+   back clean - the 4 books found earlier today were the complete set.
 
 5. UTC-vs-IST stored-timestamp issue (Entry Time/Exit Time/Last
    Checked across every portfolio JSON in the project) - deliberately
