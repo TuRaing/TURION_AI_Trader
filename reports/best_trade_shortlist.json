@@ -1,20 +1,20 @@
 {
-  "Generated At": "2026-08-19 05:58:06",
+  "Generated At": "2026-08-19 06:47:03",
   "Stocks": [
     {
       "Name": "EICHERMOT",
       "Symbol": "EICHERMOT.NS",
-      "Price": 8043.5,
+      "Price": 8058.0,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 80.0,
-      "ATR": 123.68,
+      "ATR": 124.43,
       "Candle Pattern": "Bullish Engulfing"
     },
     {
       "Name": "HINDUNILVR",
       "Symbol": "HINDUNILVR.NS",
-      "Price": 2018.9,
+      "Price": 2022.1,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
@@ -24,7 +24,7 @@
     {
       "Name": "LT",
       "Symbol": "LT.NS",
-      "Price": 4038.9,
+      "Price": 4036.0,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 60.0,
@@ -34,7 +34,7 @@
     {
       "Name": "TITAN",
       "Symbol": "TITAN.NS",
-      "Price": 5060.4,
+      "Price": 5060.0,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 60.0,
@@ -44,31 +44,31 @@
     {
       "Name": "WIPRO",
       "Symbol": "WIPRO.NS",
-      "Price": 179.09,
+      "Price": 179.69,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
       "ATR": 3.34,
-      "Candle Pattern": "Doji"
+      "Candle Pattern": "No Pattern"
     },
     {
-      "Name": "NTPC",
-      "Symbol": "NTPC.NS",
-      "Price": 335.0,
+      "Name": "POWERGRID",
+      "Symbol": "POWERGRID.NS",
+      "Price": 263.2,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
-      "ATR": 5.89,
+      "ATR": 4.84,
       "Candle Pattern": "No Pattern"
     }
   ],
   "Options": [
     {
       "Name": "NIFTY 50",
-      "Bias": "Neutral",
+      "Bias": "Bullish",
       "Decision": "NO TRADE",
-      "Confidence": 0.0,
-      "Reason": "Index price action is Neutral - no directional bias to trade."
+      "Confidence": 14.0,
+      "Reason": "Price action Bullish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 14.0% is below the 60% threshold."
     },
     {
       "Name": "BANK NIFTY",
@@ -130,7 +130,7 @@
       "Score": -1.0,
       "Confidence": 100.0
     },
-    "NTPC": {
+    "POWERGRID": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -148,7 +148,18 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "SBILIFE": {
+    "BRITANNIA": {
+      "Headlines": [
+        "Britannia Share Price Live Updates: Current Trading Status of Britannia"
+      ],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 1,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "BAJAJ-AUTO": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -184,6 +195,17 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "ITC": {
+      "Headlines": [
+        "ITC Share Price Live Updates: ITC's Price Movement Today"
+      ],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 1,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "KOTAKBANK": {
       "Headlines": [],
       "Positive": 0,
@@ -202,7 +224,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "POWERGRID": {
+    "NTPC": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -229,7 +251,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "DIVISLAB": {
+    "SBILIFE": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -238,7 +260,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "BRITANNIA": {
+    "DIVISLAB": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -256,25 +278,16 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "BAJAJ-AUTO": {
-      "Headlines": [],
+    "HINDALCO": {
+      "Headlines": [
+        "Hindalco Share Price Live Updates: Hindalco's New Target Price Set by Systematix"
+      ],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 0,
+      "Neutral": 1,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
-    },
-    "HINDALCO": {
-      "Headlines": [
-        "Hindalco Share Price Live Updates: Hindalco's Stock Sees a Minor Weekly Drop"
-      ],
-      "Positive": 0,
-      "Negative": 1,
-      "Neutral": 0,
-      "Sentiment": "Bearish",
-      "Score": -1.0,
-      "Confidence": 100.0
     },
     "RELIANCE": {
       "Headlines": [],
@@ -305,13 +318,11 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "ITC": {
-      "Headlines": [
-        "ITC Share Price Live Updates: ITC's Price Movement Today"
-      ],
+    "ASIANPAINT": {
+      "Headlines": [],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 1,
+      "Neutral": 0,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -325,25 +336,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "HCLTECH": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "SUNPHARMA": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "ULTRACEMCO": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -373,6 +366,15 @@
       "Confidence": 100.0
     },
     "M&M": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "ADANIENT": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -462,7 +464,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "ASIANPAINT": {
+    "HCLTECH": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -471,7 +473,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "ADANIENT": {
+    "ULTRACEMCO": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -490,12 +492,10 @@
       "Confidence": 0.0
     },
     "GRASIM": {
-      "Headlines": [
-        "Grasim Inds Share Price Live Updates: Grasim Inds. Stock Details"
-      ],
+      "Headlines": [],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 1,
+      "Neutral": 0,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -564,6 +564,22 @@
       "Sentiment": "Bullish"
     },
     {
+      "Headline": "IGL, MGL, Adani Total Gas shares rally up to 6% as govt boosts domestic PNG push",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Global Market: Chinese stocks slide as semiconductor and robotics shares tumble",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "HG Infra Engineering shares jump over 8% after receiving LoI from REC",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Cerebras stock tumbles: Will CS-4 revive the AI chipmaker?",
+      "Sentiment": "Neutral"
+    },
+    {
       "Headline": "L&amp;T Technology Services shares jump 3% after bagging $75 million deal",
       "Sentiment": "Bullish"
     },
@@ -600,6 +616,10 @@
       "Sentiment": "Bullish"
     },
     {
+      "Headline": "Bajaj Auto Share Price Live Updates: Bajaj Auto's Stock Update: Gains and Returns",
+      "Sentiment": "Bullish"
+    },
+    {
       "Headline": "Sensex falls 300 points, Nifty below 23,100 as market bleeds for 7th session. What lies ahead?",
       "Sentiment": "Bearish"
     },
@@ -612,11 +632,19 @@
       "Sentiment": "Neutral"
     },
     {
+      "Headline": "Britannia Share Price Live Updates: Current Trading Status of Britannia",
+      "Sentiment": "Neutral"
+    },
+    {
       "Headline": "Sunshine Pictures IPO Day 2: GMP signals 21% listing gain, issue subscribed 4.33x. Should you apply",
       "Sentiment": "Bullish"
     },
     {
       "Headline": "Oil Price Today (August 19): Crude oil nears $92/barrel as Trump claims US in no talks with Iran. What lies ahead?",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "JSW Steel Share Price Live Updates: Systematix Shares &amp; Stock Issues New Recommendation for JSW Steel",
       "Sentiment": "Neutral"
     },
     {
@@ -664,6 +692,10 @@
       "Sentiment": "Bullish"
     },
     {
+      "Headline": "Infosys Share Price Live Updates: Latest Infosys Stock Price",
+      "Sentiment": "Neutral"
+    },
+    {
       "Headline": "Tata Motors PV Share Price Live Updates: Tata Motors PV Struggles Below Support Level",
       "Sentiment": "Neutral"
     },
@@ -676,8 +708,8 @@
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "HUL Share Price Live Updates: HUL's Price Movement Signals Weakness",
-      "Sentiment": "Bearish"
+      "Headline": "HUL Share Price Live Updates: HUL Experiences New 52-Week Low",
+      "Sentiment": "Neutral"
     },
     {
       "Headline": "Sun Pharma Share Price Live Updates: Sun Pharma Stock Details",
@@ -688,16 +720,16 @@
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Hindalco Share Price Live Updates: Hindalco's Stock Sees a Minor Weekly Drop",
+      "Headline": "Hindalco Share Price Live Updates: Hindalco's New Target Price Set by Systematix",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Axis Bank Share Price Live Updates: Axis Bank's Market Update",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Bajaj Finance Share Price Live Updates: Bajaj Finance Sees Minor Drop in Price",
       "Sentiment": "Bearish"
-    },
-    {
-      "Headline": "Axis Bank Share Price Live Updates: Positive Momentum for Axis Bank as it Exceeds 20-Day SMA",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Bajaj Finance Share Price Live Updates: Bajaj Finance Breaks Above 20-Day SMA, Signaling Positive Momentum",
-      "Sentiment": "Neutral"
     },
     {
       "Headline": "Asian Paints Share Price Live Updates: Asian Paints Experiences Price Decline",
@@ -713,38 +745,6 @@
     },
     {
       "Headline": "Dr Reddys Share Price Live Updates: Dr. Reddys Current Price Update",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Tata Consumer Share Price Live Updates: Tata Consumer Trading Below Key Support Level",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "HCL Tech Share Price Live Updates: HCL Tech Stock Details",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Nestle India Share Price Live Updates: Nestle India Price and Returns",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Grasim Inds Share Price Live Updates: Grasim Inds. Stock Details",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Bharti Airtel Share Price Live Updates: Negative Price Movement for Bharti Airtel",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Eicher Motors Share Price Live Updates: Eicher Motors Current Valuation",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Tech Mahindra Share Price Live Updates: Tech Mahindra Stock Details",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "HDFC Life Share Price Live Updates: HDFC Life's Current Market Price",
       "Sentiment": "Neutral"
     }
   ]
