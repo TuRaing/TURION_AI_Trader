@@ -132,3 +132,20 @@ reports/*.json
 !reports/fyers_options_oi_hybrid_sl_laddered_banknifty_portfolio.json
 !reports/fyers_options_oi_hybrid_sl_indicator_nifty_portfolio.json
 !reports/fyers_options_oi_hybrid_sl_indicator_banknifty_portfolio.json
+
+# Added 19-Aug-2026 - FOUND MISSING while checking trailing2pct's real
+# trade history: st2_threshold/simple_st1_threshold's slcap2pctlock and
+# trailing2pct variants (17-Aug, .github/workflows/fyers_multi_
+# strategy_options.yml already has correct `git add` lines for all 4 -
+# see that file's comment starting "Caught live: st2_threshold_
+# slcap2pctlock opened a real...") never had a matching !reports/...
+# exception here. Every run since 17-Aug has been git-add-ing these 4
+# files into a NOOP (blocked by the reports/*.json default-ignore
+# above, silently swallowed by `|| true`) - meaning all 4 books have
+# been resetting to fresh initial_capital on every single scheduled
+# run for 2+ days, never actually accumulating persistent trade
+# history, regardless of what they did within any one run.
+!reports/fyers_options_st2_threshold_slcap2pctlock_nifty_portfolio.json
+!reports/fyers_options_simple_st1_threshold_slcap2pctlock_nifty_portfolio.json
+!reports/fyers_options_st2_threshold_trailing2pct_nifty_portfolio.json
+!reports/fyers_options_simple_st1_threshold_trailing2pct_nifty_portfolio.json
