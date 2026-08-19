@@ -140,45 +140,46 @@ def _atm_ce_pe_symbols(underlying_symbol, strike_count=5):
 def _parse_depth_response(data, fyers_symbol):
     """
     Pure function - extracts the depth fields dict from a raw /depth
-    response, assuming the same `{"d":[{"n":symbol,"v":{...}}]}` shape
-    _fetch_quote() already relies on for /quotes. Returns None (never
-    raises) on any unexpected shape, so snapshot() can skip that one
-    symbol instead of crashing the whole run - see module docstring's
-    verification caveat.
+    response.
 
-    FIXED 19-Aug-2026 - the very first real run (18/19-Aug, once the
-    18-Aug git-add fix let this actually get committed) hit exactly the
-    "response shape wasn't verified" risk the module docstring already
-    flagged: every call failed with `'str' object has no attribute
-    'get'`, meaning Fyers' real /depth response for this project's
-    params is NOT the assumed dict at all - most likely a plain string
-    error message. The bug: `data.get(...)` below ran before checking
-    `data` was even a dict, so the exception fired before the intended
-    "print raw response and skip cleanly" behavior could ever execute -
-    the real Fyers response text was never actually visible in any log.
-    Added the isinstance check so the NEXT real run's log finally shows
-    Fyers' actual response content instead of just a type-error message.
+    REAL SHAPE CONFIRMED 19-Aug-2026, via an actual live response
+    caught by this function's own earlier defensive logging (see the
+    session log for the 4-round investigation that got here): NOT the
+    `{"d":[{"n":symbol,"v":{...}}]}` list-of-{n,v} shape /quotes uses
+    (the module's original, wrong, unverified assumption) - the real
+    /depth response is `{"s":"ok","message":"Success","d":{symbol:
+    {...fields directly...}}}` - "d" is a DICT keyed by the symbol
+    itself, not a list. The inner field names (totalbuyqty,
+    totalsellqty, bids, ask, ltp, ...) were already correctly guessed;
+    only the outer "d" shape was wrong. Every earlier fix today
+    (isinstance guards on `data`, on `data["data"]`, on individual list
+    entries) was real and still worth keeping as defensive coding, but
+    none of them could have fixed THIS - they were all guarding against
+    non-dict garbage, while the actual response was a well-formed dict
+    the whole time, just shaped differently than assumed.
     """
 
     if not isinstance(data, dict):
         print(f"[skip] {fyers_symbol} depth: non-dict response - {data!r}")
         return None
 
-    if data.get("s") != "ok" or not data.get("d"):
+    if data.get("s") != "ok":
         print(f"[skip] {fyers_symbol} depth: {data.get('message', data)}")
         return None
 
-    # isinstance filter added 19-Aug-2026 - the exact same "list can
-    # contain a non-dict entry" gap already found and fixed in
-    # _atm_ce_pe_symbols()'s optionsChain handling above, mirrored here
-    # for data["d"] - entry.get(...) below would crash identically on
-    # a stray non-dict item.
-    for entry in data["d"]:
-        if isinstance(entry, dict) and entry.get("n") == fyers_symbol and "v" in entry:
-            return entry["v"]
+    d = data.get("d")
 
-    print(f"[skip] {fyers_symbol} depth: unexpected response shape - {data}")
-    return None
+    if not isinstance(d, dict):
+        print(f"[skip] {fyers_symbol} depth: unexpected 'd' shape - {data}")
+        return None
+
+    fields = d.get(fyers_symbol)
+
+    if not isinstance(fields, dict):
+        print(f"[skip] {fyers_symbol} depth: symbol not in response - {data}")
+        return None
+
+    return fields
 
 
 def snapshot(underlying_symbols=("NSE:NIFTY50-INDEX", "NSE:NIFTYBANK-INDEX")):

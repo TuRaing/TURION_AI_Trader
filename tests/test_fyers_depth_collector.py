@@ -67,7 +67,8 @@ def test_snapshot_continues_to_the_next_index_when_one_symbol_raises(monkeypatch
 
     monkeypatch.setattr(fyers_depth_collector, "_atm_ce_pe_symbols", fake_atm)
     monkeypatch.setattr(fyers_depth_collector, "fetch_depth", lambda symbol: {
-        "s": "ok", "d": [{"n": symbol, "v": {"totalbuyqty": 1, "totalsellqty": 1, "bids": [], "ask": [], "ltp": 1.0}}],
+        "s": "ok", "message": "Success",
+        "d": {symbol: {"totalbuyqty": 1, "totalsellqty": 1, "bids": [], "ask": [], "ltp": 1.0}},
     })
 
     written = snapshot(("NSE:NIFTY50-INDEX", "NSE:NIFTYBANK-INDEX"))
@@ -77,17 +78,23 @@ def test_snapshot_continues_to_the_next_index_when_one_symbol_raises(monkeypatch
 
 
 def test_parse_depth_response_extracts_matching_symbol_fields():
+    # Shape confirmed 19-Aug-2026 against a REAL live Fyers /depth
+    # response (caught via this function's own earlier defensive
+    # logging, across a 4-round investigation - see the module's
+    # docstring): "d" is a dict KEYED BY THE SYMBOL ITSELF, not the
+    # originally-assumed list of {"n":symbol,"v":{...}} entries.
     symbol = "NSE:NIFTY2681724550CE"
     data = {
         "s": "ok",
-        "d": [
-            {"n": symbol, "v": {
+        "message": "Success",
+        "d": {
+            symbol: {
                 "totalbuyqty": 12000, "totalsellqty": 9500,
                 "bids": [{"price": 100.0, "volume": 75, "ord": 3}],
                 "ask": [{"price": 100.2, "volume": 150, "ord": 5}],
                 "ltp": 100.1,
-            }},
-        ],
+            },
+        },
     }
 
     fields = _parse_depth_response(data, symbol)
@@ -100,29 +107,20 @@ def test_parse_depth_response_extracts_matching_symbol_fields():
 
 
 def test_parse_depth_response_none_when_response_is_not_a_dict():
-    # Added 19-Aug-2026 - the real bug hit on the first live run: Fyers'
-    # actual /depth response was a plain string, not a dict, and the
-    # old code called data.get(...) before checking that, crashing with
-    # 'str' object has no attribute 'get' instead of skipping cleanly.
+    # The very first live crash: Fyers' response wasn't a dict at the
+    # top level either, and the old code called data.get(...) before
+    # checking that, crashing instead of skipping cleanly.
     assert _parse_depth_response("some error text", "NSE:NIFTY2681724550CE") is None
-
-
-def test_parse_depth_response_skips_non_dict_entries_in_d():
-    # Added 19-Aug-2026 - the same "list can contain a non-dict entry"
-    # gap already found and fixed in _atm_ce_pe_symbols()'s optionsChain
-    # handling, mirrored here for data["d"] - this was the actual
-    # remaining crash: confirmed live via a fresh Actions log showing
-    # the identical AttributeError even after every earlier fix today.
-    symbol = "NSE:NIFTY2681724550CE"
-    data = {"s": "ok", "d": ["unexpected string entry", {"n": symbol, "v": {"ltp": 100.1}}]}
-
-    fields = _parse_depth_response(data, symbol)
-
-    assert fields == {"ltp": 100.1}
 
 
 def test_parse_depth_response_none_when_status_not_ok():
     data = {"s": "error", "message": "Could not authenticate the user"}
+
+    assert _parse_depth_response(data, "NSE:NIFTY2681724550CE") is None
+
+
+def test_parse_depth_response_none_when_d_is_not_a_dict():
+    data = {"s": "ok", "d": "unexpected string value"}
 
     assert _parse_depth_response(data, "NSE:NIFTY2681724550CE") is None
 
@@ -134,16 +132,13 @@ def test_parse_depth_response_none_when_d_missing():
 
 
 def test_parse_depth_response_none_when_symbol_not_in_d():
-    data = {"s": "ok", "d": [{"n": "NSE:NIFTY2681724600CE", "v": {"ltp": 90}}]}
+    data = {"s": "ok", "d": {"NSE:NIFTY2681724600CE": {"ltp": 90}}}
 
     assert _parse_depth_response(data, "NSE:NIFTY2681724550CE") is None
 
 
-def test_parse_depth_response_none_when_entry_has_no_v_key():
-    # Defends against an unexpected shape (e.g. "v" renamed/missing) -
-    # skip cleanly rather than KeyError, per the module's verification
-    # caveat (real response shape unconfirmed at write time).
-    data = {"s": "ok", "d": [{"n": "NSE:NIFTY2681724550CE"}]}
+def test_parse_depth_response_none_when_symbol_value_is_not_a_dict():
+    data = {"s": "ok", "d": {"NSE:NIFTY2681724550CE": "unexpected string value"}}
 
     assert _parse_depth_response(data, "NSE:NIFTY2681724550CE") is None
 
