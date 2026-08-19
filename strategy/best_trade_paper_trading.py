@@ -1,12 +1,17 @@
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 from strategy.transaction_costs import calculate_round_trip_cost
 
 PORTFOLIO_FILE = "reports/best_trade_portfolio.json"
 INITIAL_CAPITAL = 100000
 QUANTITY = 1
+
+# FIXED 19-Aug-2026 - same UTC-vs-IST fix as strategy/fyers_options_
+# engine.py and strategy/paper_trading.py - see PROJECT_STATUS.md's
+# UTC-vs-IST entry.
+IST = timezone(timedelta(hours=5, minutes=30))
 
 
 def load_best_trade_portfolio():
@@ -58,7 +63,7 @@ def open_best_trade(portfolio, name, symbol, direction, price, stop_loss, target
         "Name": name,
         "Symbol": symbol,
         "Direction": direction,
-        "Entry Time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "Entry Time": datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S"),
         "Entry Price": price,
         "Quantity": quantity,
         "Stop Loss": stop_loss,
@@ -121,7 +126,7 @@ def _close_position(portfolio, position, exit_price, reason):
         "Direction": position["Direction"],
         "Entry Time": position["Entry Time"],
         "Entry Price": position["Entry Price"],
-        "Exit Time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "Exit Time": datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S"),
         "Exit Price": exit_price,
         "Quantity": position["Quantity"],
         "Exit Reason": reason,

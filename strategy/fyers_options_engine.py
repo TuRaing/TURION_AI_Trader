@@ -370,7 +370,7 @@ def _open_position(cfg, portfolio):
         # matching every other engine's convention - see the same-day
         # fix note in fyers_options_paper_trading.py. IST is only used
         # for gating decisions, never for what gets persisted.
-        "Entry Time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "Entry Time": datetime.datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S"),
         "Entry Spot": spot,
         "Entry Premium": entry_premium,
         "Entry RSI": round(rsi_value, 2),
@@ -378,7 +378,7 @@ def _open_position(cfg, portfolio):
         "Quantity": lots * cfg["lot_size"],
         "Capital Deployed": round(entry_premium * lots * cfg["lot_size"], 2),
         "Last Premium": entry_premium,
-        "Last Checked": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "Last Checked": datetime.datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S"),
     }
 
     return portfolio, f"OPENED {option_type} {leg['strike_price']} @ {entry_premium}"
@@ -402,7 +402,7 @@ def _close_position(cfg, portfolio, exit_premium, reason, exit_spot=None):
         # just open ones (this was dropped before, only kept on the
         # live Position dict).
         "Entry Spot": position.get("Entry Spot"),
-        "Exit Time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "Exit Time": datetime.datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S"),
         "Exit Premium": exit_premium,
         # Added 13-Aug-2026 - needed (alongside Entry Spot) to later
         # separate a premium move into its direction-driven (Delta) vs
@@ -493,7 +493,7 @@ def _check_position(cfg, portfolio):
         return _close_position(cfg, portfolio, current_premium, "Square-Off", current_spot)
 
     position["Last Premium"] = current_premium
-    position["Last Checked"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    position["Last Checked"] = datetime.datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S")
 
     return portfolio, f"HOLD (net {round(net_pnl, 2)} / {round(net_pnl_pct, 3)}%)"
 

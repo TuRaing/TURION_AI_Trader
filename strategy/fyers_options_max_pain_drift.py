@@ -258,7 +258,7 @@ def _close_position(cfg, portfolio, exit_premium, reason):
         "Entry Premium": position["Entry Premium"],
         "Entry Spot": position.get("Entry Spot"),
         "Entry Max Pain": position.get("Entry Max Pain"),
-        "Exit Time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "Exit Time": datetime.datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S"),
         "Exit Premium": exit_premium,
         "Lots": position["Lots"],
         "Exit Reason": reason,
@@ -337,7 +337,7 @@ def _open_position(cfg, portfolio):
     if lots < 1:
         return portfolio, f"SKIPPED (capital insufficient for 1 lot at premium {entry_premium})"
 
-    now = datetime.datetime.now()
+    now = datetime.datetime.now(IST)
 
     portfolio["Position"] = {
         "Symbol": leg["symbol"],

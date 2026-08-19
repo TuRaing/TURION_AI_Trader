@@ -18,18 +18,22 @@ String formatSignedRupees(num value) {
 /// backend writes - falls back to the raw string if parsing fails so a
 /// format drift never crashes the screen, it just looks a bit uglier.
 ///
-/// These strings are the GitHub Actions runner's plain datetime.now(),
-/// which is UTC (the Python side only uses IST-aware datetimes for its
-/// own internal market-hours gating, never for what it actually persists
-/// to reports/*.json) - parse as UTC and shift to IST (UTC+5:30) before
-/// formatting, or every timestamp in the app reads ~5.5 hours early.
+/// FIXED 19-Aug-2026 - until this date, these strings were the GitHub
+/// Actions runner's plain datetime.now() (UTC), and this function
+/// compensated by parsing as UTC and adding +5:30. The Python backend
+/// now stores datetime.now(IST) directly (see strategy/fyers_options_
+/// engine.py's matching fix note and PROJECT_STATUS.md's UTC-vs-IST
+/// entry) - every row already written before this date was migrated
+/// in place (+5:30 applied once, historical values corrected rather
+/// than left to display wrong forever). So this function now parses
+/// the string AS-IS, no shift - adding +5:30 here again would double-
+/// shift every timestamp forward by 11 hours total.
 String formatBackendTimestamp(String? raw) {
   if (raw == null || raw.isEmpty) return '';
 
   try {
-    final parsedUtc = DateFormat('yyyy-MM-dd HH:mm:ss').parseUtc(raw);
-    final ist = parsedUtc.add(const Duration(hours: 5, minutes: 30));
-    return _dateTimeFormat.format(ist);
+    final parsed = DateFormat('yyyy-MM-dd HH:mm:ss').parse(raw);
+    return _dateTimeFormat.format(parsed);
   } catch (_) {
     return raw;
   }

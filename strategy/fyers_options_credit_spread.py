@@ -300,7 +300,7 @@ def _close_position(cfg, portfolio, short_close_premium, long_close_premium, rea
         "Entry Spot": position.get("Entry Spot"),
         # Added 13-Aug-2026 - see fyers_options_engine.py's matching note.
         "Exit Spot": exit_spot,
-        "Exit Time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "Exit Time": datetime.datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S"),
         "Short Close Premium": short_close_premium,
         "Long Close Premium": long_close_premium,
         "Lots": position["Lots"],
@@ -384,7 +384,7 @@ def _open_position(cfg, portfolio):
     if lots < 1:
         return portfolio, f"SKIPPED (capital insufficient for 1 lot - max loss {max_loss_per_lot} per lot)"
 
-    now = datetime.datetime.now()
+    now = datetime.datetime.now(IST)
 
     portfolio["Position"] = {
         "Option Type": option_type,

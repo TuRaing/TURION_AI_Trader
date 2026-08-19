@@ -175,7 +175,7 @@ def _close_position(cfg, portfolio, exit_premium, reason, exit_spot=None):
         # Stored as naive/local time (UTC on the GitHub Actions runner),
         # matching every other engine's convention - see the same-day
         # fix note in fyers_options_paper_trading.py.
-        "Exit Time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "Exit Time": datetime.datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S"),
         "Exit Premium": exit_premium,
         "Lots": position["Lots"],
         "Exit Reason": reason,
@@ -243,7 +243,7 @@ def _check_position(cfg, portfolio):
 
     position["Last Premium"] = current_premium
     position["Last Spot"] = current_spot
-    position["Last Checked"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    position["Last Checked"] = datetime.datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S")
 
     trailing = position.get("Trailing Active", False)
     return portfolio, f"HOLD (net {round(net_pnl, 2)}, trailing={trailing})"
@@ -272,7 +272,7 @@ def _open_position(cfg, portfolio):
     # Stored as naive/local time (UTC on the GitHub Actions runner),
     # matching every other engine's convention - see the same-day fix
     # note in fyers_options_paper_trading.py.
-    now = datetime.datetime.now()
+    now = datetime.datetime.now(IST)
 
     portfolio["Position"] = {
         "Symbol": leg["symbol"],

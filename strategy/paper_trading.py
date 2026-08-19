@@ -1,7 +1,7 @@
 import math
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 from strategy.watchlist_scanner import download_watchlist, analyze_symbol, MIN_CANDLES
 from strategy.risk_engine import calculate_atr_levels
@@ -10,6 +10,15 @@ from strategy.delivery_transaction_costs import calculate_delivery_round_trip_co
 PORTFOLIO_FILE = "reports/paper_portfolio.json"
 INITIAL_CAPITAL = 100000
 QUANTITY = 1
+
+# FIXED 19-Aug-2026 - this module stored Entry/Exit Time as naive
+# datetime.now() (UTC on the GitHub Actions runner) - see strategy/
+# fyers_options_engine.py's matching fix note and PROJECT_STATUS.md's
+# UTC-vs-IST entry for the full history (including why the mobile
+# app's formatBackendTimestamp() needed a matching update, and why
+# historical rows needed a one-time migration rather than just being
+# left to display wrong).
+IST = timezone(timedelta(hours=5, minutes=30))
 
 # Updated: 2026-07-19 - position sizing / portfolio-risk limits for the
 # Daily-timeframe watchlist strategy (the one with a proven backtest edge -
@@ -122,7 +131,7 @@ def process_signal(portfolio, symbol, signal, price, stop_loss=None, target=None
         if signal == "BUY":
 
             portfolio["Positions"][symbol] = {
-                "Entry Time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "Entry Time": datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S"),
                 "Entry Price": price,
                 "Quantity": quantity,
                 "Stop Loss": stop_loss,
@@ -171,7 +180,7 @@ def process_signal(portfolio, symbol, signal, price, stop_loss=None, target=None
                 "Symbol": symbol,
                 "Entry Time": position["Entry Time"],
                 "Entry Price": position["Entry Price"],
-                "Exit Time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "Exit Time": datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S"),
                 "Exit Price": exit_price,
                 "Quantity": position["Quantity"],
                 "Exit Reason": reason,
@@ -193,7 +202,7 @@ def process_signal(portfolio, symbol, signal, price, stop_loss=None, target=None
             # so the mobile app can show live up/down without a separate
             # live-price feed.
             position["Last Price"] = price
-            position["Last Checked"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            position["Last Checked"] = datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S")
 
     return portfolio, action
 
