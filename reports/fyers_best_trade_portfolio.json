@@ -1,15 +1,6 @@
 {
-  "Cash": 99953.893097538,
-  "Position": {
-    "Name": "SBILIFE",
-    "Symbol": "SBILIFE.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-08-19 07:22:59",
-    "Entry Price": 1771.5,
-    "Quantity": 1,
-    "Stop Loss": 1766.88,
-    "Target": 1780.74
-  },
+  "Cash": 99961.24859113176,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -310,6 +301,20 @@
       "PnL": -27.32,
       "Cost": 12.38,
       "Net PnL": -39.69
+    },
+    {
+      "Name": "SBILIFE",
+      "Symbol": "SBILIFE.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-08-19 07:22:59",
+      "Entry Price": 1771.5,
+      "Exit Time": "2026-08-19 08:32:08",
+      "Exit Price": 1780.74,
+      "Quantity": 1,
+      "Exit Reason": "Target",
+      "PnL": 9.24,
+      "Cost": 1.88,
+      "Net PnL": 7.36
     }
   ],
   "Data Source": "Fyers"
