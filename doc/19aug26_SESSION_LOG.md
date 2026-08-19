@@ -1,0 +1,148 @@
+# TURION AI Trader
+
+SESSION LOG
+
+==================================================
+
+Session ID
+
+S20260819-001
+
+--------------------------------------------------
+
+Date
+
+19-Aug-2026
+
+--------------------------------------------------
+
+Version
+
+v0.0.44 (no version bump yet - verification/planning only
+so far today, no code changed)
+
+==================================================
+
+Today's Achievements
+
+✅ SESSION START: per CLAUDE.md's rule, `git fetch origin` +
+   `git log HEAD..origin/main` - local was up to date with
+   main at session start (last commit from 18-Aug's session,
+   b7a81c1e0).
+
+✅ VERIFIED YESTERDAY'S TWO WORKFLOW FIXES ARE ALIVE: the
+   user tapped "Login to Fyers" this morning - pulled the
+   resulting commit (4494bd3fd, "Update Fyers state (login
+   trigger)") and confirmed reports/fyers_test_portfolio.json
+   + reports/options_premium_history.jsonl both updated,
+   meaning verify_connection() succeeded and the trigger ran
+   end-to-end. Could NOT directly confirm from git alone
+   whether the Firebase token-sync step itself succeeded or
+   gracefully skipped (that only shows in the Actions run log,
+   not in commit history) - flagged honestly rather than
+   guessed, and noted the likely reason: FIREBASE_DATABASE_URL
+   isn't a real GitHub secret yet since Firebase Console Part A
+   (RTDB enable) hasn't been done - so a graceful skip is the
+   expected, not-a-bug outcome right now.
+
+✅ Scheduled a one-shot CronCreate check (job 541cc6f8, fires
+   09:30 IST today) to verify the OTHER 18-Aug fix - whether
+   reports/options_depth_history.jsonl now actually persists
+   real depth-collector records once the market opens and the
+   first scheduled check fires. Session-only, will not survive
+   past this session/its own 7-day cap.
+
+✅ EXPLAINED (no code changed) at the user's request:
+   - Why Firebase and GitHub need to be "connected" at all
+     (GitHub Actions has today's token, VPS needs it, VPS
+     isn't a GitHub Actions runner and can't receive repo
+     secrets directly - Firebase RTDB is the bridge).
+     Clarified the code-level "connection" is already built
+     and pushed, but the actual SERVICES (Firebase RTDB, VPS)
+     don't exist yet - two different things, not a
+     contradiction. Everything gracefully no-ops until both
+     exist, by design.
+   - VPS strategies' exact Target/Stop-Loss numbers (st2_
+     threshold 5%/hybrid-2%-cap, simple_st1_threshold
+     3%/hybrid-2%-cap, oi_footprint fixed Rs 1,500 target /
+     hybrid-2%-cap - all four now share the same SL formula
+     since yesterday's fix).
+   - Confirmed the existing trailing-2% strategies (st2_
+     threshold_trailing2pct, simple_st1_threshold_trailing2pct,
+     oi_hybrid_sl_trailing NIFTY+BANKNIFTY - all on the OLD
+     polling engine, unrelated to the VPS work) are completely
+     untouched by any of 18-Aug's changes - verified via git
+     log that strategy/options_strategies.py's last real change
+     was 17-Aug, nothing since.
+   - What's free vs paid across the whole stack: Claude Code
+     (user's own subscription, not project-specific), Firebase
+     and GitHub Actions (free at this project's scale), Vultr
+     VPS ($6/mo, the only real recurring cost) - and confirmed
+     no mobile app rebuild is needed for any of yesterday's or
+     today's changes (all backend/workflow-only; the one new
+     Dart file added 18-Aug, event_driven_realtime_service.dart,
+     is still unused/dormant, wired into no screen yet).
+
+✅ PLANNED (not built yet) - daily pre-market automated health
+   check, at the user's request: they explicitly rejected the
+   "keep this laptop/session open, Claude checks manually each
+   morning" model (correctly identified as unreliable - laptop
+   sleep/close, no persistent session). Landed on Claude Code's
+   own Scheduled Tasks feature (mcp__scheduled-tasks__*) instead
+   of a GitHub Actions workflow, at the user's explicit request
+   ("mala GitHub war nako, Claude AI kadun sagala check
+   karayacha") - runs while the Claude Code app is open (or on
+   next launch if closed), not tied to this specific session.
+
+   DELIVERY CHANNEL DECIDED: the user chose the TURION app's own
+   push notification (same "trade_alerts" FCM channel real trade
+   alerts already use) over a generic Claude Code notification -
+   consistent with wanting this to feel like part of the app,
+   not a separate tool.
+
+   BLOCKED ON ONE SETUP STEP, not yet done: sending a push
+   notification via report/push_notifier.py's
+   send_push_notification() needs FIREBASE_SERVICE_ACCOUNT
+   available locally on this machine (GitHub secrets are
+   write-only, can't be read back out - this project's existing
+   copy lives only as a GitHub secret). Asked the user to
+   generate a NEW service account key from Firebase Console
+   (Project Settings -> Service Accounts -> Generate new private
+   key) rather than hunt for wherever the original might be
+   saved. User has NOT opened Firebase Console yet - explicitly
+   asked to defer this and do it "all together" later (likely
+   alongside the already-planned Firebase Console Part A / VPS
+   signup), and asked this plan be saved so it isn't lost -
+   hence this entry.
+
+--------------------------------------------------
+
+Next Session
+
+1. Once the user opens Firebase Console (for Part A - RTDB
+   enable/rules/secret, already planned from 18-Aug): also
+   generate a new service account private key at the same time
+   (Project Settings -> Service Accounts -> Generate new private
+   key) and hand the downloaded JSON's path to Claude, so it can
+   be read and set as a local FIREBASE_SERVICE_ACCOUNT
+   environment variable on this machine - unblocks the daily
+   health-check task below.
+
+2. Design and create the actual scheduled task
+   (mcp__scheduled-tasks__create_scheduled_task) once unblocked:
+   a recurring cron job, weekday mornings before 09:15 IST
+   market open, self-contained prompt (each run starts fresh,
+   no memory of any conversation) that at minimum checks
+   today's Fyers login status and - once the VPS exists -
+   whether the event-driven engine is actually running, then
+   sends ONE summary push notification via
+   report/push_notifier.py's send_push_notification().
+
+3. Resume the paused Vultr VPS signup walkthrough (Mumbai,
+   "High Performance" plan, turion_vps SSH key already
+   generated) - see 18-Aug's session log for the full sequence,
+   already in the Go-Live Runbook artifact.
+
+==================================================
+
+END OF SESSION
