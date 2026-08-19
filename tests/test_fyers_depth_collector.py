@@ -107,6 +107,20 @@ def test_parse_depth_response_none_when_response_is_not_a_dict():
     assert _parse_depth_response("some error text", "NSE:NIFTY2681724550CE") is None
 
 
+def test_parse_depth_response_skips_non_dict_entries_in_d():
+    # Added 19-Aug-2026 - the same "list can contain a non-dict entry"
+    # gap already found and fixed in _atm_ce_pe_symbols()'s optionsChain
+    # handling, mirrored here for data["d"] - this was the actual
+    # remaining crash: confirmed live via a fresh Actions log showing
+    # the identical AttributeError even after every earlier fix today.
+    symbol = "NSE:NIFTY2681724550CE"
+    data = {"s": "ok", "d": ["unexpected string entry", {"n": symbol, "v": {"ltp": 100.1}}]}
+
+    fields = _parse_depth_response(data, symbol)
+
+    assert fields == {"ltp": 100.1}
+
+
 def test_parse_depth_response_none_when_status_not_ok():
     data = {"s": "error", "message": "Could not authenticate the user"}
 

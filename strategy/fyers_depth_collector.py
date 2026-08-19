@@ -168,8 +168,13 @@ def _parse_depth_response(data, fyers_symbol):
         print(f"[skip] {fyers_symbol} depth: {data.get('message', data)}")
         return None
 
+    # isinstance filter added 19-Aug-2026 - the exact same "list can
+    # contain a non-dict entry" gap already found and fixed in
+    # _atm_ce_pe_symbols()'s optionsChain handling above, mirrored here
+    # for data["d"] - entry.get(...) below would crash identically on
+    # a stray non-dict item.
     for entry in data["d"]:
-        if entry.get("n") == fyers_symbol and "v" in entry:
+        if isinstance(entry, dict) and entry.get("n") == fyers_symbol and "v" in entry:
             return entry["v"]
 
     print(f"[skip] {fyers_symbol} depth: unexpected response shape - {data}")
