@@ -106,13 +106,20 @@ def _atm_ce_pe_symbols(underlying_symbol, strike_count=5):
         print(f"[skip] {underlying_symbol} option chain: {data.get('message', data)}")
         return None, None, None, None
 
-    # isinstance filter added 19-Aug-2026, same investigation as above -
-    # a leading theory for the still-unexplained crash: optionsChain
-    # containing a non-dict entry would make leg.get(...) below raise
-    # the identical 'str' object has no attribute 'get' error, and
-    # neither of today's earlier fixes (both about `data` itself, not
-    # individual legs) would catch that.
-    legs = [leg for leg in data.get("data", {}).get("optionsChain", []) if isinstance(leg, dict)]
+    # FOUND 19-Aug-2026, after both earlier fixes shipped and the live
+    # crash STILL persisted unchanged (confirmed via a fresh Actions
+    # log showing the same AttributeError, now at least correctly
+    # caught by snapshot()'s try/except instead of aborting the run) -
+    # the actual remaining gap: `data.get("data", {})` returns whatever
+    # value is AT the "data" key if that key exists, even if it isn't
+    # a dict (the {} default only applies when the key is missing
+    # entirely) - chaining `.get("optionsChain", [])` straight onto
+    # that unchecked result crashes the identical way if Fyers' "data"
+    # key ever holds a string. Checked explicitly now, plus the
+    # existing per-leg isinstance filter for the list itself.
+    inner = data.get("data", {})
+    options_chain = inner.get("optionsChain", []) if isinstance(inner, dict) else []
+    legs = [leg for leg in options_chain if isinstance(leg, dict)]
     spot = next((leg.get("ltp") for leg in legs if leg.get("strike_price") == -1), None)
 
     if spot is None:

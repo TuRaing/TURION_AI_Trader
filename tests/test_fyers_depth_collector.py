@@ -14,6 +14,20 @@ def test_atm_ce_pe_symbols_none_when_option_chain_response_is_not_a_dict(monkeyp
     assert result == (None, None, None, None)
 
 
+def test_atm_ce_pe_symbols_none_when_inner_data_key_is_not_a_dict(monkeypatch):
+    # Added 19-Aug-2026 - found after BOTH earlier fixes shipped and the
+    # live crash still persisted unchanged: data.get("data", {}) only
+    # falls back to {} when the "data" key is MISSING, not when it's
+    # present but holds a non-dict value (e.g. a string) - chaining
+    # .get("optionsChain", []) straight onto that crashed identically.
+    data = {"s": "ok", "data": "some unexpected string value"}
+    monkeypatch.setattr(fyers_depth_collector, "fetch_option_chain", lambda *a, **k: data)
+
+    result = _atm_ce_pe_symbols("NSE:NIFTY50-INDEX")
+
+    assert result == (None, None, None, None)
+
+
 def test_atm_ce_pe_symbols_skips_non_dict_legs_in_the_options_chain(monkeypatch):
     # Added 19-Aug-2026 - even AFTER both isinstance fixes above shipped,
     # the live crash persisted unchanged - this is the next leading
