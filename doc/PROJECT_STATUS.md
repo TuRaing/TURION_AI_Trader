@@ -6927,6 +6927,44 @@ day, last exit correctly 15:16:49 IST.
 
 ==================================================
 
+PRE-MARKET / RUNNING-MARKET HEALTH-CHECK - BUILT, INTERIM/SESSION-BOUND
+(19-Aug) - user asked for the 3 daily checks (pre-market, running-
+market, after-market) discussed earlier the same day to actually run,
+rather than wait for the Firebase-key-gated durable Scheduled Task
+already planned (see doc/19aug26_SESSION_LOG.md's "Next Session" item
+2, still the real remaining work).
+
+Pure, tested functions in report/market_checks.py: detect_crash()
+(NIFTY/BankNifty >=2% intraday move), detect_unusual_trade() (a
+closed trade's loss >=3x intended_stop_loss_cap() - same hybrid-cap
+formula as fyers_options_engine.py), summarize_daily_pnl(),
+detect_stale_workflow(), and two markdown tick-checklist formatters
+(format_pre_market_checklist(), format_running_market_checklist() -
+"- [x]"/"- [ ]" syntax, not emoji, per the user's own ask). 17/17
+tests passing.
+
+run_pre_market_check.py (Fyers token readiness + carried-over open
+Position check) and run_market_check.py (live crash check + scans
+every reports/*_portfolio.json book's today's trades for unusual
+losses + per-book stale-workflow check + daily PnL) write timestamped
+logs to logs/market_checks/. Smoke-tested live against real data.
+
+SCHEDULED VIA THIS SESSION'S OWN CronCreate, NOT A DURABLE MECHANISM -
+in-memory jobs only, gone the moment this session/app closes: pre-
+market 08:43 IST weekdays, running-market every 30 min 09:15-14:45 +
+closing checks 15:15/15:30. Worked around CronCreate's 7-day auto-
+expiry with a self-renewing one-shot reminder (fires 25-Aug, recreates
+all three jobs + the next reminder) - still bounded by the session
+staying open, not a real fix. User explicitly declined accelerating
+the VPS purchase (~Rs 400-600/mo new recurring cost) just for this -
+VPS stays on its already-decided 10-Sep track (see LIVE-DATA
+ARCHITECTURE section above). A FUTURE SESSION MUST NOT ASSUME THESE
+CHECKS ARE STILL RUNNING - verify via CronList or ask the user.
+
+Code committed (ca0d9934c).
+
+==================================================
+
 DEVELOPMENT RULES
 
 • Never modify working modules.
@@ -6952,11 +6990,11 @@ Status
 
 Current Version
 
-v0.0.46
+v0.0.47
 
 Next Version
 
-v0.0.47
+v0.0.48
 
 ==================================================
 

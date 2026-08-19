@@ -341,6 +341,65 @@ Today's Achievements
 
 --------------------------------------------------
 
+✅ PRE-MARKET / RUNNING-MARKET HEALTH-CHECK - BUILT AND WIRED, SAME
+   SESSION (interim, session-bound - NOT the Firebase/Scheduled-Task
+   version originally planned as "Next Session" item 2 below, which
+   is still blocked on the Firebase service-account key). The user
+   asked for a live, working check now rather than waiting for that
+   key or the VPS.
+
+   Pure, tested logic in report/market_checks.py: detect_crash()
+   (NIFTY/BankNifty >=2% intraday move, direction-agnostic),
+   detect_unusual_trade() (a closed trade's loss >=3x the
+   intended_stop_loss_cap() - reuses the SAME hybrid-cap formula
+   already used in fyers_options_engine.py, tuned against today's own
+   real incidents: ~2x is routine overshoot noise, the 61.5x
+   date-blind-squareoff trade is the "something is seriously wrong"
+   end), summarize_daily_pnl(), detect_stale_workflow(), and two
+   markdown-checklist formatters (format_pre_market_checklist(),
+   format_running_market_checklist()) using "- [x]"/"- [ ]" tick
+   syntax per the user's own ask, not emoji. 17/17 new tests passing.
+
+   Two live-wiring entry scripts reuse this repo's existing Fyers
+   quote-fetch pattern (fyers_options_engine.py's _fetch_quote):
+   - run_pre_market_check.py - is today's Fyers token ready, and does
+     any book still show a carried-over open Position from yesterday
+     (the exact failure mode of today's earlier date-blind-squareoff
+     bug, so this is a real, specific regression check, not generic).
+   - run_market_check.py - live NIFTY/BankNifty crash check + scans
+     every reports/*_portfolio.json book's TODAY's closed trades for
+     unusual losses + per-book stale-workflow check (file mtime vs
+     now, >15 min during market hours = flagged) + daily PnL summary.
+     Both write a timestamped log to logs/market_checks/.
+
+   Smoke-tested live against real data (market closed, token expired
+   at test time - confirmed the graceful-degradation path: crash
+   check skipped with a clear NOTE line instead of a false "normal",
+   rest of the check (today's 42 real unusual trades, PnL, staleness)
+   still worked from local files).
+
+   SCHEDULING - IMPORTANT, SESSION-BOUND, NOT DURABLE: wired via this
+   session's own CronCreate (NOT a Windows Scheduled Task, NOT VPS
+   cron - both explicitly deferred, see "Next Session" below).
+   Three recurring jobs: pre-market check 08:43 IST weekdays
+   (run_pre_market_check.py), running-market check every 30 min
+   09:15-14:45 IST weekdays + closing checks 15:15/15:30
+   (run_market_check.py). CronCreate jobs are in-memory only and are
+   DELETED THE MOMENT THIS SESSION/APP CLOSES - a future session must
+   not assume these are still running. Worked around CronCreate's
+   hard 7-day auto-expiry with a self-renewing one-shot reminder job
+   (fires 25-Aug, recreates all three jobs plus schedules the next
+   reminder) - still bounded by the session staying open the whole
+   time, not a real fix. User explicitly chose this interim path over
+   accelerating the VPS purchase (~Rs 400-600/mo, a real new recurring
+   cost) just for this - VPS stays on its already-decided 10-Sep track.
+
+   Code committed (ca0d9934c) same session; this doc update is too -
+   PUSH DEFERRED TO END OF SESSION at the user's own request (this
+   session may still add more before pushing).
+
+--------------------------------------------------
+
 Next Session
 
 1. Once the user opens Firebase Console (for Part A - RTDB
@@ -352,7 +411,7 @@ Next Session
    environment variable on this machine - unblocks the daily
    health-check task below.
 
-2. Design and create the actual scheduled task
+2. Design and create the actual durable scheduled task
    (mcp__scheduled-tasks__create_scheduled_task) once unblocked:
    a recurring cron job, weekday mornings before 09:15 IST
    market open, self-contained prompt (each run starts fresh,
@@ -360,7 +419,12 @@ Next Session
    today's Fyers login status and - once the VPS exists -
    whether the event-driven engine is actually running, then
    sends ONE summary push notification via
-   report/push_notifier.py's send_push_notification().
+   report/push_notifier.py's send_push_notification(). NOTE: an
+   interim, session-bound version of the pre-market/running-market
+   half of this already exists (see "PRE-MARKET / RUNNING-MARKET
+   HEALTH-CHECK" above, report/market_checks.py + run_*_check.py) -
+   reuse that logic rather than rebuilding it once this durable
+   version is unblocked; it does NOT survive this session closing.
 
 3. Resume the paused Vultr VPS signup walkthrough (Mumbai,
    "High Performance" plan, turion_vps SSH key already
@@ -375,6 +439,10 @@ Next Session
 5. DONE, same session - see "UTC-VS-IST TIMESTAMP FIX - COMPLETED"
    above. Backend + app + all 61 files' historical data fixed
    together and pushed (commit 4ac75c4bd) - no longer deferred.
+
+6. DONE, same session - see "PRE-MARKET / RUNNING-MARKET HEALTH-CHECK"
+   above. Interim, session-bound version built and running; item 2
+   above (the durable version) is still the real remaining work.
 
 ==================================================
 
