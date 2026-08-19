@@ -1,6 +1,20 @@
 {
   "Cash": 54674.37310981492,
-  "Position": null,
+  "Position": {
+    "Symbol": "NSE:NIFTY26AUG24050PE",
+    "Strike": 24050,
+    "Option Type": "PE",
+    "Entry Time": "2026-08-19 04:51:57",
+    "Entry Spot": 24065.6,
+    "Entry Premium": 93.05,
+    "Entry CE OI": 2390115,
+    "Entry PE OI": 4563780,
+    "Lots": 7,
+    "Quantity": 525,
+    "Capital Deployed": 48851.25,
+    "Last Premium": 93.05,
+    "Last Checked": "2026-08-19 04:51:57"
+  },
   "Closed Trades": [
     {
       "Symbol": "NSE:NIFTY2681124600CE",
@@ -861,10 +875,10 @@
     }
   ],
   "Last OI Snapshot": {
-    "spot": 24073.6,
+    "spot": 24065.9,
     "strike": 24050,
-    "ce_oi": 2041520,
-    "pe_oi": 4558580
+    "ce_oi": 2390115,
+    "pe_oi": 4563780
   },
   "Data Source": "Fyers (real premium)",
   "Strategy": "oi_footprint",
