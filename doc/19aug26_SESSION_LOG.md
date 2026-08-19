@@ -210,6 +210,29 @@ Today's Achievements
    work from the next scheduled run - not yet re-verified against a
    live log as of this entry.
 
+✅ ROUND 6 - ACTUAL ROOT CAUSE FOUND (not just another crash-guard):
+   the NEXT fresh log the user provided showed NO crash at all - and
+   because every earlier round's isinstance guards were now correctly
+   in place, _parse_depth_response()'s own defensive logging finally
+   printed Fyers' REAL raw /depth response for the first time ever.
+   It was never a non-dict/malformed response at any point - the
+   response was always a well-formed dict, just shaped completely
+   differently than the module's original, unverified 17-Aug
+   assumption: real shape is `{"s":"ok","message":"Success",
+   "d":{symbol:{...fields directly...}}}` ("d" keyed BY the symbol
+   itself), not the assumed `{"d":[{"n":symbol,"v":{...}}]}` list-of-
+   {n,v} shape copied from the sibling /quotes endpoint's own
+   confirmed shape - that copy-from-a-similar-endpoint assumption was
+   the true original mistake, 2 days before any of today's isinstance
+   fixes. Inner field names (totalbuyqty, totalsellqty, bids, ask,
+   ltp) were already correct. Rewrote _parse_depth_response() to
+   match the confirmed real shape; updated tests to match reality
+   instead of the old wrong assumption (2 removed, 2 added net).
+   12/12 in the file, 467/467 overall. This closes the depth-collector
+   investigation that ran across the whole second half of today's
+   session - 6 rounds, each verified or disproven against an actual
+   live Actions log the user fetched and pasted in, never guessed.
+
 --------------------------------------------------
 
 Next Session
