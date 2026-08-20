@@ -98,16 +98,13 @@ class _BookPortfolio extends StatelessWidget {
     return StreamBuilder<Map<String, dynamic>?>(
       stream: watchEventDrivenPortfolio(book.key),
       builder: (context, snapshot) {
-        final portfolio = snapshot.data;
-
-        if (portfolio == null) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: Text('No data synced from the VPS yet for this book.', style: TextStyle(color: mutedColor)),
-            ),
-          );
-        }
+        // Same fallback every other strategy screen in this app already
+        // uses (fetchJson(...) ?? {...}) - show the FULL structure with
+        // starting-capital defaults rather than hiding it behind a
+        // "no data yet" message. The VPS hasn't traded yet today (or
+        // ever, until B18's first real live run), which is a real,
+        // expected, temporary state - not a reason to hide the layout.
+        final portfolio = snapshot.data ?? {'Cash': 100000, 'Position': null, 'Closed Trades': []};
 
         final cash = (portfolio['Cash'] as num).toDouble();
         final position = portfolio['Position'] as Map<String, dynamic>?;
