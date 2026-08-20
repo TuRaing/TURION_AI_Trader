@@ -1,5 +1,12 @@
 name: Fyers Options Watch
 
+# DEPRECATED as of 20-Aug-2026 - confirmed via the GitHub API that this
+# workflow's last actual run was 2026-08-06T09:59:14Z; no external
+# cron-job.org trigger since, superseded by fyers_multi_strategy_
+# options.yml's 15-strategy engine. Left in place rather than deleted
+# (no harm sitting idle - workflow_dispatch only, nothing calls it),
+# see strategy/fyers_options_paper_trading.py's own deprecation note.
+#
 # Added 05-Aug-2026 - the FAST half of Fyers continuous automation:
 # checks the options paper-trading position every ~1 min (real option
 # premium can move several % within a single minute - see 04-Aug's

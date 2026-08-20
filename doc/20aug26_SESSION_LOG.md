@@ -105,6 +105,17 @@ closed to begin with. Flagged as a background task, not fixed inline
 (this old engine may be deprecated/superseded by fyers_multi_strategy_
 options.yml - worth confirming that before spending fix effort on it).
 
+CONFIRMED DEPRECATED, SAME SESSION: queried the GitHub API for
+fyers_options_watch.yml's run history - last actual run was
+2026-08-06T09:59:14Z, nothing since (14 days dead as of today).
+cron-job.org's external trigger for it was evidently removed around
+06-Aug when fyers_multi_strategy_options.yml took over. No fix needed
+on dead code - added deprecation comments to both strategy/fyers_
+options_paper_trading.py and .github/workflows/fyers_options_watch.yml
+instead, left in place (not deleted) since reports/fyers_options_
+portfolio.json is still real historical data. Background task
+dismissed.
+
 --------------------------------------------------
 
 Next Session
@@ -131,13 +142,11 @@ Next Session
    the user has one) - the local D:\ backup made today does not
    protect against this laptop itself failing/being lost.
 
-6. NEW, flagged not fixed: strategy/fyers_options_paper_trading.py
-   (reports/fyers_options_portfolio.json) has no day-of-week/market-
-   hours gating - see "OVERNIGHT-CARRY PATTERN" above. First confirm
-   whether this old single-strategy prototype is still actively
-   scheduled (fyers_options_watch.yml, cron-job.org-triggered - can't
-   check from here) or superseded/dead, before deciding whether it's
-   worth fixing at all.
+6. DONE, same session - see "CONFIRMED DEPRECATED" above.
+   fyers_options_watch.yml confirmed dead (last run 06-Aug) via the
+   GitHub API - documented as deprecated in both the workflow YAML
+   and strategy/fyers_options_paper_trading.py rather than fixed;
+   not worth gating a workflow nothing triggers anymore.
 
 ==================================================
 

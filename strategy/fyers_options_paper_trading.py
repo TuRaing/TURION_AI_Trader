@@ -10,6 +10,18 @@ from strategy.options_transaction_costs import calculate_options_round_trip_cost
 from strategy.squareoff import is_past_squareoff
 from indicators.rsi import calculate_rsi
 
+# DEPRECATED as of 20-Aug-2026 - confirmed via GitHub API that the
+# workflow driving this (.github/workflows/fyers_options_watch.yml,
+# externally triggered by cron-job.org) last actually ran 06-Aug-2026;
+# no trigger since, superseded by fyers_multi_strategy_options.yml's
+# 15-strategy engine. Left in place (reports/fyers_options_portfolio.
+# json is historical data, not deleted) but not actively maintained -
+# it also has NO day-of-week/market-hours gating anywhere in this
+# module (unlike every newer strategy module), which produced a real
+# Saturday-evening entry and a 30.3x-cap loss while it was still
+# running. Not worth fixing on dead code; noted here in case this
+# workflow is ever re-enabled.
+#
 # Added 04-Aug-2026 - options paper trading using REAL Fyers premium
 # data (bid/ask/LTP from live quotes), not the Black-Scholes ESTIMATE
 # strategy/nifty_options_backtest.py used (03-Aug research - no real
