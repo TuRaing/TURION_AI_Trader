@@ -7,8 +7,8 @@ import 'widgets/mesh_background.dart';
 import 'screens/portfolio_screen.dart';
 import 'screens/best_trade_screen.dart';
 import 'screens/watchlist_screen.dart';
-import 'screens/news_screen.dart';
-import 'screens/history_screen.dart';
+import 'screens/vps_screen.dart';
+import 'screens/checks_screen.dart';
 import 'screens/fyers_portfolio_screen.dart';
 import 'screens/fyers_multi_strategy_options_screen.dart';
 import 'screens/fyers_threshold_options_screen.dart';
@@ -72,8 +72,8 @@ class _HomeShellState extends State<HomeShell> {
     PortfolioScreen(),
     BestTradeScreen(),
     WatchlistScreen(),
-    NewsScreen(),
-    HistoryScreen(),
+    VpsScreen(),
+    ChecksScreen(),
     FyersPortfolioScreen(),
     FyersMultiStrategyOptionsScreen(),
     FyersThresholdOptionsScreen(),
@@ -85,8 +85,8 @@ class _HomeShellState extends State<HomeShell> {
     'Turion AI trader',
     'Best Trade (Intraday)',
     'Watchlist (Swing)',
-    'News',
-    'History',
+    'VPS',
+    'Checks',
     'Fyers (Test)',
     'Options (Test)',
     'Threshold Options (Test)',
@@ -107,8 +107,8 @@ class _HomeShellState extends State<HomeShell> {
           BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_outlined), label: 'yfinance'),
           BottomNavigationBarItem(icon: Icon(Icons.track_changes_outlined), label: 'Intraday'),
           BottomNavigationBarItem(icon: Icon(Icons.list_alt_outlined), label: 'Swing'),
-          BottomNavigationBarItem(icon: Icon(Icons.newspaper_outlined), label: 'News'),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
+          BottomNavigationBarItem(icon: Icon(Icons.dns_outlined), label: 'VPS'),
+          BottomNavigationBarItem(icon: Icon(Icons.fact_check_outlined), label: 'Checks'),
           BottomNavigationBarItem(icon: Icon(Icons.bolt_outlined), label: 'Fyers'),
           BottomNavigationBarItem(icon: Icon(Icons.candlestick_chart_outlined), label: 'Options'),
           BottomNavigationBarItem(icon: Icon(Icons.lock_clock_outlined), label: 'Threshold'),

@@ -367,6 +367,74 @@ Next Session
    are ALL live and cron-scheduled on the VPS now - fully independent
    of any desktop session. Only B17/B18 (needs a live token) remain.
 
+--------------------------------------------------
+
+MOBILE APP REBUILT - VPS + CHECKS TABS, NEWS/HISTORY REMOVED, GENUINE
+TICK-BY-TICK LIVE CHART - user's own explicit ask, same session, once
+the VPS's live Firebase data existed to actually build these against.
+Scoped the "live like TradingView/Fyers" ask FIRST (genuinely ambiguous
+- "refresh every 15-30s" vs "true tick-by-tick" are very different
+builds) - user chose true tick-by-tick.
+
+BACKEND (Python): report/firebase_realtime_sync.py gained sync_live_
+tick() (one SET per tick, overwrites - the app only needs "right now",
+the VPS's own local JSONL is the history) and sync_health_check() (one
+PUSH per run - a real feed with its own timestamp per entry, not just
+"latest"). Wired into run_tick_collector.py's on_message and both
+health-check scripts (run_market_check.py splits "market" vs "after_
+market" by MARKET_CLOSE=(15,30) since one script now covers both).
+firebase/database.rules.json updated (live_ticks, health_checks both
+readable) - NOT YET RE-PUBLISHED in the actual Firebase Console (a
+manual step, same as Part A originally) - next session/user must do
+this before the app's new streams return real data instead of hanging.
+
+FRONTEND (Flutter): event_driven_realtime_service.dart gained
+watchLiveTick() and watchHealthChecks() (same file as the existing
+watchEventDrivenPortfolio() - all three read the same Realtime
+Database connection, kept together rather than split across files for
+a sample of three). Three new screens:
+- vps_screen.dart - the 4 event-driven books (strategy/event_driven_
+  runner.py's STRATEGY_NAMES) as live summary cards (reused this
+  session's newly-live watchEventDrivenPortfolio() stream, previously
+  built 18-Aug but never actually rendered anywhere in the app until
+  now), each opening a full "passbook" detail (VpsPassbookScreen -
+  Cash/open Position/every Closed Trade, reusing OptionPositionCard/
+  OptionClosedTradeCard from widgets/common.dart, same pattern as
+  fyers_options_screen.dart). Also hosts two "Live Chart" buttons
+  (NIFTY/BANKNIFTY).
+- live_chart_screen.dart - genuine tick-by-tick chart. Client-side 1-
+  min OHLC aggregation in Dart (the backend only ever sends the single
+  latest raw tick per leg, never a history) from watchLiveTick(index,
+  "SPOT"), capped to the most recent 120 candles, rendered through the
+  EXISTING hand-rolled CandlestickChart widget (widgets/candlestick_
+  chart.dart, untouched) - reused, not rebuilt.
+- checks_screen.dart - three live feeds (Pre-Market/Market/After-
+  Market) via watchHealthChecks(), newest-first, each card showing its
+  own timestamp + an "OK"/"N flagged" badge (counts "- [x]" lines in
+  the synced report text) and expands to the full checklist text.
+
+main.dart: removed the News and History tabs entirely (user's own
+explicit ask - rarely used) and their now-dead screens (news_screen.
+dart, history_screen.dart deleted, confirmed zero remaining references
+first) - replaced with VPS and Checks in the same bottom-nav slots.
+
+VERIFICATION: `flutter analyze` clean (one real error caught and fixed
+first - a non-const _CheckFeed inside a `const [...]` list literal,
+fixed by dropping the outer const rather than making every child
+const). Release APK build (--dart-define=GITHUB_PAT, same flag this
+project's builds already need) kicked off in the background - CHECK
+ITS RESULT before considering this done; if still building or if it
+failed, that is real unfinished work, not a formality. NOT YET
+INSTALLED on a real phone - unlike 18-Aug's Grouped-screen change,
+this session did not get to adb-install and visually verify the new
+screens against live data (no live token/ticks existed yet to verify
+against anyway - today's Fyers daily rate limit already blocked the
+VPS's own token for the whole rest of today, see the FYERS DAILY LOGIN
+entry above). Real on-device verification against real live ticks and
+real health-check syncs needs to happen once tomorrow's first login
+unblocks the VPS end-to-end - do not report this feature as fully
+proven working before that happens.
+
 ==================================================
 
 END OF SESSION

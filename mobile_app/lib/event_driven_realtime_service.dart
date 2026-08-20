@@ -55,6 +55,56 @@ Stream<Map<String, dynamic>?> watchEventDrivenPortfolio(String strategyName) {
   });
 }
 
+// Added 20-Aug-2026 - two more live streams, same path structure the
+// Python side writes (report/firebase_realtime_sync.py's sync_live_
+// tick()/sync_health_check()) - for the new VPS tab's live chart and
+// the new Checks tab.
+
+const _liveTicksPath = 'live_ticks';
+const _healthChecksPath = 'health_checks';
+
+/// One live-updating stream of the latest tick for one leg (SPOT/CE/PE)
+/// of one index (NIFTY/BANKNIFTY) - overwritten on every real tick by
+/// run_tick_collector.py, so this is always "right now", not a history
+/// (the VPS's own local JSONL archive is the history). Emits null if
+/// the collector hasn't produced a tick for this leg yet today.
+Stream<Map<String, dynamic>?> watchLiveTick(String index, String leg) {
+  final ref = FirebaseDatabase.instance.ref('$_liveTicksPath/$index/$leg');
+
+  return ref.onValue.map((DatabaseEvent event) {
+    final raw = event.snapshot.value;
+    return raw == null ? null : _deepCastToStringKeyedMap(raw);
+  });
+}
+
+/// The most recent [limit] health-check runs of one type ("pre_market",
+/// "market", or "after_market" - see run_pre_market_check.py/run_
+/// market_check.py) newest-first, each with its own "report" text and
+/// "timestamp" - a real feed of past runs, not just the latest one.
+/// Emits [] if nothing has synced yet (not an error).
+Stream<List<Map<String, dynamic>>> watchHealthChecks(String checkType, {int limit = 20}) {
+  final ref = FirebaseDatabase.instance
+      .ref('$_healthChecksPath/$checkType')
+      .orderByKey()
+      .limitToLast(limit);
+
+  return ref.onValue.map((DatabaseEvent event) {
+    final raw = event.snapshot.value;
+
+    if (raw is! Map) {
+      return <Map<String, dynamic>>[];
+    }
+
+    final entries = raw.entries.map((e) => _deepCastToStringKeyedMap(e.value)).toList();
+    // Firebase push() keys sort chronologically as plain strings, and
+    // Map iteration order from firebase_database already matches
+    // insertion/key order in practice - sort explicitly anyway rather
+    // than relying on that, then reverse for newest-first.
+    entries.sort((a, b) => (a['timestamp'] as String? ?? '').compareTo(b['timestamp'] as String? ?? ''));
+    return entries.reversed.toList();
+  });
+}
+
 Map<String, dynamic> _deepCastToStringKeyedMap(dynamic value) {
   if (value is Map) {
     return value.map((key, v) => MapEntry(key.toString(), _deepCastValue(v)));

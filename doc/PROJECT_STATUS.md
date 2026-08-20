@@ -7052,9 +7052,35 @@ Current Version
 
 v0.0.49
 
-Next Version
+MOBILE APP REBUILT - VPS + CHECKS TABS, TRUE TICK-BY-TICK LIVE CHART
+(20-Aug) - News and History tabs removed (rarely used), replaced with
+VPS (the 4 event-driven books' live PnL + a full "passbook" detail per
+book, plus a live NIFTY/BANKNIFTY chart) and Checks (live pre-market/
+market/after-market feed). Backend gained sync_live_tick()/sync_
+health_check() in report/firebase_realtime_sync.py. The live chart
+aggregates raw per-tick Firebase data into 1-min candles CLIENT-SIDE
+in Dart, reusing the existing hand-rolled CandlestickChart widget.
+firebase/database.rules.json updated in the repo but NOT yet
+re-published in the actual Firebase Console - do that before expecting
+the new streams to return data. Release APK build was still running
+in the background when this was written and had not yet been verified
+on a real device - see doc/20aug26_SESSION_LOG.md's matching entry for
+the honest "not yet proven" caveats; do not treat this as finished
+until that entry (or a newer one) says otherwise.
+
+==================================================
+
+Status
+
+🟢 Stable
+
+Current Version
 
 v0.0.50
+
+Next Version
+
+v0.0.51
 
 ==================================================
 
