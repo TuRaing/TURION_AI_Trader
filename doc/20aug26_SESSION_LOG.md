@@ -67,6 +67,46 @@ have a spare pendrive on hand right now.
 
 --------------------------------------------------
 
+OVERNIGHT-CARRY PATTERN - CONFIRMED ACROSS ALL BOOKS, ONE SEPARATE
+NEW FINDING - user asked to verify the known simple_st1_slcap_nifty
+-Rs 1,23,027.15 trade (18-Aug entry 14:56:05, 19-Aug exit 08:33:03,
+Stop Loss, 61.5x the intended cap - the date-blind-squareoff bug's
+signature case, fixed 19-Aug) and check every other book for the same
+pattern. Scanned every reports/*_portfolio.json's Closed Trades for
+Entry-date != Exit-date, then ran report/market_checks.py's
+detect_unusual_trade() on each.
+
+CONFIRMED: exactly 10 OTHER books hit the identical 18-Aug-evening ->
+19-Aug-08:31-08:33-exit pattern, matching 19-Aug's session log claim
+of "10 other books" exactly - simple_st1_banknifty (-3,478, 4.1x),
+simple_st1_slcap_banknifty (-10,912, 5.5x), st2_banknifty (-4,270,
+5.0x), st2_nifty (-17,538, 50.1x), st2_slcap_banknifty (-5,284, 3.8x),
+st2_slcap_nifty (-16,960, 50.1x), st3_banknifty (-11,056, 9.8x),
+st3_nifty (-11,096, 50.2x), st3_slcap_banknifty (-6,494, 3.9x),
+st3_slcap_nifty (-45,202, 50.0x). All already covered by the 19-Aug
+squareoff.py fix - no new action needed on these.
+
+NEW, SEPARATE FINDING - reports/fyers_options_portfolio.json (the
+original single-strategy prototype, strategy/fyers_options_paper_
+trading.py, "Strategy"/"Index" fields empty unlike every newer book):
+one closed trade, Entry 2026-08-08 17:38:18 (a SATURDAY) -> Exit
+2026-08-11 09:17:03, Net PnL -Rs 56,097.46 (30.3x the intended cap).
+Checked further: this book's Entry Times on 6-Aug range from 14:41 to
+20:58 IST (NSE closes 15:30) and include a second Saturday entry
+(15-Aug 23:33). strategy/fyers_options_paper_trading.py has NO
+day-of-week or market-hours gating anywhere in the module (confirmed
+by reading it) - unlike every newer strategy module. This is a
+DIFFERENT, NOT-YET-FIXED bug (the engine can apparently open/manage
+positions from stale data outside real trading hours entirely,
+not just fail to detect an already-past squareoff time) - NOT covered
+by the 19-Aug squareoff.py fix, since that fix only addresses
+DETECTING a past squareoff, not preventing entries when the market is
+closed to begin with. Flagged as a background task, not fixed inline
+(this old engine may be deprecated/superseded by fyers_multi_strategy_
+options.yml - worth confirming that before spending fix effort on it).
+
+--------------------------------------------------
+
 Next Session
 
 1. Same as 19-Aug's item 1 (Firebase Console + service account key) -
@@ -90,6 +130,14 @@ Next Session
 5. Off-machine backup copy (OneDrive sign-in, or a USB/pendrive once
    the user has one) - the local D:\ backup made today does not
    protect against this laptop itself failing/being lost.
+
+6. NEW, flagged not fixed: strategy/fyers_options_paper_trading.py
+   (reports/fyers_options_portfolio.json) has no day-of-week/market-
+   hours gating - see "OVERNIGHT-CARRY PATTERN" above. First confirm
+   whether this old single-strategy prototype is still actively
+   scheduled (fyers_options_watch.yml, cron-job.org-triggered - can't
+   check from here) or superseded/dead, before deciding whether it's
+   worth fixing at all.
 
 ==================================================
 
