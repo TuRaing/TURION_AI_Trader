@@ -1,10 +1,10 @@
 {
-  "Generated At": "2026-08-20 05:32:59",
+  "Generated At": "2026-08-20 05:59:37",
   "Stocks": [
     {
       "Name": "HDFCBANK",
       "Symbol": "HDFCBANK.NS",
-      "Price": 727.2,
+      "Price": 726.85,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
@@ -14,42 +14,42 @@
     {
       "Name": "HINDUNILVR",
       "Symbol": "HINDUNILVR.NS",
-      "Price": 2023.5,
+      "Price": 2026.1,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
       "ATR": 28.87,
-      "Candle Pattern": "Doji"
-    },
-    {
-      "Name": "ONGC",
-      "Symbol": "ONGC.NS",
-      "Price": 236.39,
-      "Decision": "SELL",
-      "Bias": "Bearish",
-      "Confidence": 60.0,
-      "ATR": 3.9,
       "Candle Pattern": "No Pattern"
     },
     {
       "Name": "POWERGRID",
       "Symbol": "POWERGRID.NS",
-      "Price": 264.75,
+      "Price": 265.2,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
-      "ATR": 4.73,
+      "ATR": 4.76,
       "Candle Pattern": "No Pattern"
     },
     {
       "Name": "COALINDIA",
       "Symbol": "COALINDIA.NS",
-      "Price": 400.5,
+      "Price": 400.4,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
       "ATR": 4.92,
       "Candle Pattern": "Doji"
+    },
+    {
+      "Name": "SBILIFE",
+      "Symbol": "SBILIFE.NS",
+      "Price": 1785.3,
+      "Decision": "SELL",
+      "Bias": "Bearish",
+      "Confidence": 60.0,
+      "ATR": 32.29,
+      "Candle Pattern": "No Pattern"
     },
     {
       "Name": "DIVISLAB",
@@ -67,8 +67,8 @@
       "Name": "NIFTY 50",
       "Bias": "Bullish",
       "Decision": "NO TRADE",
-      "Confidence": 28.0,
-      "Reason": "Price action Bullish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 28.0% is below the 60% threshold."
+      "Confidence": 14.0,
+      "Reason": "Price action Bullish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 14.0% is below the 60% threshold."
     },
     {
       "Name": "BANK NIFTY",
@@ -97,15 +97,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "ONGC": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "POWERGRID": {
       "Headlines": [],
       "Positive": 0,
@@ -116,6 +107,15 @@
       "Confidence": 0.0
     },
     "COALINDIA": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "SBILIFE": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -212,7 +212,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "HDFCLIFE": {
+    "ONGC": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -221,7 +221,25 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "SBILIFE": {
+    "NTPC": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "TATASTEEL": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "HDFCLIFE": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -240,12 +258,19 @@
       "Confidence": 0.0
     },
     "UPL": {
-      "Headlines": [
-        "UPL Share Price Live Updates: UPL  Stock Details"
-      ],
+      "Headlines": [],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 1,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "JSWSTEEL": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -268,15 +293,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "SBIN": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "BHARTIARTL": {
       "Headlines": [],
       "Positive": 0,
@@ -287,6 +303,15 @@
       "Confidence": 0.0
     },
     "KOTAKBANK": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "BAJFINANCE": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -324,16 +349,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "NTPC": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "TATASTEEL": {
+    "M&M": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -352,15 +368,6 @@
       "Confidence": 0.0
     },
     "ADANIPORTS": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "JSWSTEEL": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -452,7 +459,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "BAJFINANCE": {
+    "SBIN": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -471,15 +478,6 @@
       "Confidence": 0.0
     },
     "SUNPHARMA": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "M&M": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -560,6 +558,18 @@
     },
     {
       "Headline": "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "RBI's surprisingly hawkish tone in policy minutes weighs on Indian bonds",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Strides Pharma Science shares jump 9% after USFDA EIR for Bengaluru facility",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Milky Mist Dairy Food shares slip 4% after sharp post-listing rally",
       "Sentiment": "Bullish"
     },
     {
@@ -651,6 +661,14 @@
       "Sentiment": "Bullish"
     },
     {
+      "Headline": "HUL Share Price Live Updates: HUL Stock Performance Update",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Divis Labs Share Price Live Updates: Divis Labs Market Performance Snapshot",
+      "Sentiment": "Neutral"
+    },
+    {
       "Headline": "LTIMindtree Share Price Live Updates: LTIMindtree  Stock Insights",
       "Sentiment": "Neutral"
     },
@@ -661,6 +679,10 @@
     {
       "Headline": "SBI Share Price Live Updates: SBI's Recent Drop Below Key Indicator",
       "Sentiment": "Bearish"
+    },
+    {
+      "Headline": "HDFC Bank Share Price Live Updates: HDFC Bank's Current Trading Status",
+      "Sentiment": "Neutral"
     },
     {
       "Headline": "Sebi bets on trading reforms to reverse  foreign capital flight",
@@ -721,30 +743,6 @@
     {
       "Headline": "Axis Bank Share Price Live Updates: Axis Bank's Price Movement Analysis",
       "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "ETMarkets Smart Talk | How to invest \u20b91 crore in bonds for 3 years: Vineet Agarwal\u2019s playbook",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Lalithaa Jewellery Mart IPO allotment expected today; GMP at 27% \u2014 Here\u2019s how to check status",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Tata Motors PV Share Price Live Updates: Tata Motors PV Stock Details",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "UPL Share Price Live Updates: UPL  Stock Details",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "HCL Tech Share Price Live Updates: HCL Tech's monthly returns reflect strong growth",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "IndusInd Bank Share Price Live Updates: IndusInd Bank's price action indicates bearish sentiment",
-      "Sentiment": "Bearish"
     }
   ]
 }
