@@ -42,6 +42,19 @@ def atm_has_drifted(current_strike, spot, strike_step):
     return new_strike != current_strike
 
 
+def filter_completed_filenames(filenames, today_filename):
+    """
+    Every filename except today's (still being written by the live
+    collector, must never be moved/deleted mid-write). Pure - takes
+    plain filenames, not paths, so it works the same whether the
+    caller got the listing from a local glob (run_tick_upload.py) or
+    an `ls` over SSH on the VPS (sync_ticks_from_vps.py) - one shared
+    rule instead of two copies that could drift apart.
+    """
+
+    return sorted(name for name in filenames if name != today_filename)
+
+
 def tick_log_filename(now_ist):
     """
     One file per calendar day, e.g. "ticks_20260820.jsonl" - matches

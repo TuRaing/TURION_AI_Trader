@@ -49,14 +49,18 @@ def completed_tick_files(today_filename):
     """
     Every *.jsonl file in TICK_DIR except today's (still being
     written by run_tick_collector.py, must never be touched while
-    live). Pure function of the directory listing + today's filename,
-    for testability - the actual glob call is the caller's job.
+    live). Thin wrapper around strategy/tick_collector.py's shared
+    filter_completed_filenames() - see that function's docstring for
+    why it's shared with sync_ticks_from_vps.py rather than
+    duplicated.
     """
 
-    return sorted(
-        f for f in glob.glob(os.path.join(TICK_DIR, "*.jsonl"))
-        if os.path.basename(f) != today_filename
-    )
+    from strategy.tick_collector import filter_completed_filenames
+
+    all_files = glob.glob(os.path.join(TICK_DIR, "*.jsonl"))
+    by_name = {os.path.basename(f): f for f in all_files}
+
+    return [by_name[name] for name in filter_completed_filenames(by_name.keys(), today_filename)]
 
 
 def main():
