@@ -6,6 +6,7 @@ import '../event_driven_realtime_service.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/disclaimer_banner.dart';
+import 'fyers_login_screen.dart';
 import 'live_chart_screen.dart';
 
 // Added 20-Aug-2026 - the VPS's own event-driven paper-trading books
@@ -175,6 +176,8 @@ class _VpsScreenState extends State<VpsScreen> with SingleTickerProviderStateMix
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        const Align(alignment: Alignment.centerLeft, child: FyersLoginButton()),
+        const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
@@ -229,7 +232,16 @@ class _VpsScreenState extends State<VpsScreen> with SingleTickerProviderStateMix
                   child: Text('No open position', style: TextStyle(color: mutedColor)),
                 )
               else
-                OptionPositionCard(position: position, underlyingLabel: selectedBook.underlying),
+                OptionPositionCard(
+                  position: position,
+                  underlyingLabel: selectedBook.underlying,
+                  // Genuine tick-by-tick live chart (not the ~15-min-
+                  // refresh static one every other screen's onViewChart
+                  // opens) - the VPS books' own underlying is exactly
+                  // what run_tick_collector.py streams live.
+                  onViewChart: () => Navigator.push(
+                      context, MaterialPageRoute(builder: (_) => LiveChartScreen(index: selectedBook.underlying))),
+                ),
             ],
           ),
         ),
@@ -242,7 +254,12 @@ class _VpsScreenState extends State<VpsScreen> with SingleTickerProviderStateMix
         else ...[
           const Text('Closed Trades (Passbook)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: mutedColor)),
           const SizedBox(height: 8),
-          ...closedTrades.reversed.map((t) => OptionClosedTradeCard(trade: t, underlyingLabel: selectedBook.underlying)),
+          ...closedTrades.reversed.map((t) => OptionClosedTradeCard(
+                trade: t,
+                underlyingLabel: selectedBook.underlying,
+                onViewChart: () => Navigator.push(
+                    context, MaterialPageRoute(builder: (_) => LiveChartScreen(index: selectedBook.underlying))),
+              )),
         ],
       ],
     );
