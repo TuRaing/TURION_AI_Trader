@@ -325,32 +325,86 @@ applies once the VPS took over.
 
 --------------------------------------------------
 
+B17 CRASH-ALERT TEST COMPLETED - didn't wait for tomorrow's login.
+Started turion-event-driven, then sent SIGKILL ~150ms later, before
+its own clean exit(0) could happen - systemd correctly recorded this
+as a real crash (code=killed, signal=KILL), NOT a clean exit, so
+Restart=on-failure and OnFailure=turion-engine-alert.service both
+fired for real. Confirmed live: "Active: activating (auto-restart)"
+and the alert unit's own log line "Push notification sent
+successfully." - user confirmed the phone notification actually
+arrived. Both halves of B17 (auto-restart + alert delivery) now proven
+without needing a live Fyers token at all.
+
+GO-LIVE RUNBOOK ARTIFACT UPDATED (28b820c3-da1b-4060-836b-4112991569e7)
+- the two staleness gaps flagged earlier today (provider name, the
+mistaken "Firebase already configured" claim) fixed, plus every real
+step from today's actual build recorded in place of the original
+placeholder walkthrough: real IP, real Vultr plan, the systemd
+EnvironmentFile quoting bug and its single-quote fix, the 4-command
+sudoers scope (grown from 2 once the tick collector got its own
+service), all 6 real cron lines, the SSH hardening + fail2ban steps
+(not in the original plan at all), and B17's real result. Only B19
+(the live run) is still marked pending.
+
+HOUSEKEEPING - found during a full VPS+repo re-audit, both fixed: (1)
+logs/ (report/market_checks.py's own output) was never gitignored -
+showed up as untracked clutter in `git status` on both this desktop
+and the VPS all session; added to .gitignore. (2) The VPS's own git
+checkout kept showing deploy/deploy.sh as "modified" - a file-MODE-
+only diff (100644 -> 100755) left over from B16's `chmod +x`, not a
+real content change; fixed with `git config core.fileMode false`
+(repo-local, since the `turion` service user has no home directory for
+a --global config) plus a `safe.directory` exception for both `root`
+and `turion` (git's dubious-ownership check was blocking even the
+config command itself) - future `git pull`s on the VPS should report
+clean from now on.
+
+--------------------------------------------------
+
 Next Session
+
+REVISED, later same evening - a full re-audit (SSH into the VPS,
+re-read every log, re-check git status on both machines) found items
+2-3 below were already done, and two small new items worth fixing were
+found and fixed (logs/ was cluttering `git status` on both machines
+all day - never gitignored; the VPS repo's deploy.sh kept showing a
+false "modified" due to a file-mode-only diff from an earlier `chmod
++x` - fixed with core.fileMode=false + a safe.directory exception, so
+future `git pull`s on the VPS report clean). Re-numbered list below is
+current as of this re-audit, not the original end-of-work list.
 
 1. FIRST THING once the user has done today's/tomorrow's morning Fyers
    login: check GitHub Actions' "Fyers Login Trigger" run for "Shared
    today's token via Firebase Realtime Database." (not the generic
    skip message), then SSH to 65.20.78.253 and check `systemctl status
    turion-event-driven` / `journalctl -u turion-event-driven -f` -
-   this is B17 (crash-alert test, `systemctl kill --signal=SIGKILL`)
-   and B18 (real live run) from the Go-Live Runbook, still the only
-   unverified pieces of the whole VPS build. Same first-login moment
-   also unblocks and should be checked for: `systemctl status turion-
-   tick-collector` (should start producing real ticks in data/ticks/)
-   and the health-check crons' /var/log/turion-health-check.log
-   (should start showing "token ready" instead of "NOT ready").
+   this is B19 (real live run) from the Go-Live Runbook, now the ONLY
+   unverified piece of the whole VPS build (B17's crash-alert test was
+   completed same evening via a SIGKILL-during-startup trick that
+   doesn't need a live token - see "B17 CRASH-ALERT TEST COMPLETED"
+   below). Same first-login moment also unblocks and should be checked
+   for: `systemctl status turion-tick-collector` (should start
+   producing real files under data/ticks/) and the health-check crons'
+   /var/log/turion-health-check.log (should start showing "token
+   ready" instead of "NOT ready" - confirmed via a full re-audit that
+   NONE of the 3 daily health-check cron times have actually fired yet
+   as of this write-up, since they were installed AFTER today's own
+   occurrences had already passed - expected, not a bug, first real
+   firing is tomorrow's pre-market check).
 
 2. Once a few real days of tick data exist: run sync_ticks_from_vps.py
    from this laptop to pull them down, confirm the size-check/delete
    logic actually works end-to-end (not yet exercised - no real files
-   existed on the VPS when it was written). Revisit whether/when to
-   set up Backblaze B2 (run_tick_upload.py already exists, unused).
+   existed on the VPS when it was written - confirmed again in this
+   re-audit, data/ticks/ doesn't exist on the VPS yet at all). Revisit
+   whether/when to set up Backblaze B2 (run_tick_upload.py already
+   exists, unused).
 
-3. The Go-Live Runbook artifact (28b820c3-da1b-4060-836b-4112991569e7)
-   is now confirmed stale in the two places noted above (provider
-   name, Firebase-already-configured claim) - worth a proper update
-   pass once the VPS is fully live-verified, rather than patching it
-   piecemeal mid-walkthrough again next time.
+3. DONE, same session (later) - see "GO-LIVE RUNBOOK ARTIFACT UPDATED"
+   below. Provider corrected to Vultr, every step brought in line with
+   what was actually run, B17's real result recorded, B19 marked as
+   the one remaining pending step.
 
 4. Off-machine backup copy (OneDrive sign-in, or a USB/pendrive once
    the user has one) - still open, unchanged from earlier today.
@@ -360,12 +414,20 @@ Next Session
    `--rebase --autostash`) - a background task was spawned for this
    earlier same session, check if it was picked up.
 
-6. DONE, same session - see "VPS ACTUALLY PROVISIONED", "VPS SECURITY
-   HARDENING", "ATM TICK-BY-TICK COLLECTOR", and "HEALTH-CHECK SCRIPTS
-   ALSO DEPLOYED" above. The VPS itself (Runbook Part B, B6-B16),
-   Firebase Part A, the tick collector, and all 3 daily health checks
-   are ALL live and cron-scheduled on the VPS now - fully independent
-   of any desktop session. Only B17/B18 (needs a live token) remain.
+6. Mobile app (VPS/VPS Summary/Checks tabs, live chart) is built,
+   flutter-analyze-clean, and installed on the user's phone - but has
+   ONLY been verified structurally (empty-state defaults render
+   correctly), never against real live Firebase data, since none
+   existed all day. Verify for real once B19 unblocks real data.
+
+7. DONE, same session - see "VPS ACTUALLY PROVISIONED", "VPS SECURITY
+   HARDENING", "ATM TICK-BY-TICK COLLECTOR", "HEALTH-CHECK SCRIPTS
+   ALSO DEPLOYED", "TICK LATENCY MEASUREMENT", and "CIRCUIT-BAND GATE
+   WIRED IN" below/above. The VPS itself (Runbook Part B), Firebase
+   Part A, the tick collector, all 3 daily health checks, real tick-
+   latency reporting, and a live circuit-breaker-proximity safety gate
+   are ALL deployed and cron-scheduled on the VPS - fully independent
+   of any desktop session. Only B19 (needs a live token) remains.
 
 --------------------------------------------------
 
