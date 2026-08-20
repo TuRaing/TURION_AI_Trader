@@ -82,6 +82,15 @@ def run_check():
     print(report)
     print(f"\nWritten to {log_path}")
 
+    # Added 20-Aug-2026 - the mobile app's new Checks tab. Best-effort,
+    # same "never let a sync failure break the actual check" rule as
+    # every other Firebase call in this project.
+    try:
+        from report.firebase_realtime_sync import sync_health_check
+        sync_health_check("pre_market", report, now.strftime("%Y-%m-%d %H:%M:%S"))
+    except Exception as error:
+        print(f"Health-check Firebase sync failed (continuing): {error}")
+
     return log_path
 
 

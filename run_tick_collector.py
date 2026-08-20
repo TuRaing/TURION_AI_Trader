@@ -7,7 +7,7 @@ import time
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-from report.firebase_realtime_sync import fetch_access_token
+from report.firebase_realtime_sync import fetch_access_token, sync_live_tick
 from strategy.event_driven_runner import pick_atm_symbols
 from strategy.fyers_options_engine import INDEX_CONFIG
 from strategy.tick_collector import atm_has_drifted, tick_log_filename, format_tick_record
@@ -131,7 +131,16 @@ def main():
         if index is None:
             return  # a tick for a symbol we just unsubscribed from mid-flight
 
-        writer.write(format_tick_record(index, leg, symbol, message))
+        record = format_tick_record(index, leg, symbol, message)
+        writer.write(record)
+
+        # Added 20-Aug-2026 - the mobile app's live tick-by-tick chart
+        # (VPS tab). Best-effort - a Firebase hiccup must never stop the
+        # local archive, which is the durable record.
+        try:
+            sync_live_tick(index, leg, record)
+        except Exception as error:
+            print(f"Live tick Firebase sync failed for {symbol} (continuing): {error}")
 
     def on_error(message):
         print(f"[tick collector websocket error] {message}")

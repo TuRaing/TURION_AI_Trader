@@ -34,6 +34,7 @@ from report.market_checks import (
 IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
 DATA_BASE_URL = "https://api-t1.fyers.in/data"
 LOG_DIR = os.path.join("logs", "market_checks")
+MARKET_CLOSE = (15, 30)
 
 
 def _resolve_access_token():
@@ -149,6 +150,20 @@ def run_check():
 
     print(report)
     print(f"\nWritten to {log_path}")
+
+    # Added 20-Aug-2026 - the mobile app's new Checks tab. This one
+    # script covers both the running-market checks (09:15-15:15 IST)
+    # and the two closing checks (15:30/15:45) - split into "market" vs
+    # "after_market" by time of day here, MARKET_CLOSE, since the
+    # script itself has no other signal for which cron entry fired it.
+    # Best-effort, same "never let a sync failure break the actual
+    # check" rule as every other Firebase call in this project.
+    try:
+        from report.firebase_realtime_sync import sync_health_check
+        check_type = "after_market" if (now.hour, now.minute) >= MARKET_CLOSE else "market"
+        sync_health_check(check_type, report, now.strftime("%Y-%m-%d %H:%M:%S"))
+    except Exception as error:
+        print(f"Health-check Firebase sync failed (continuing): {error}")
 
     return log_path
 

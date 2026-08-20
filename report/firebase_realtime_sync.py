@@ -132,6 +132,62 @@ def sync_access_token(access_token):
     return sync_state(_TOKEN_PATH, access_token)
 
 
+# Added 20-Aug-2026 - two more consumers of the same Realtime Database
+# channel, for the mobile app's new "VPS" and "Checks" tabs: live ATM
+# ticks (run_tick_collector.py, one SET per tick - overwrites the
+# previous value, the app only ever needs "right now", not a live
+# history - that's what the local JSONL archive is for) and health-
+# check results (run_pre_market_check.py / run_market_check.py, one
+# PUSH per run - an append-only feed so the app can show recent runs
+# with their own timestamp, not just the latest one).
+_LIVE_TICKS_PATH = "/live_ticks"
+_HEALTH_CHECKS_PATH = "/health_checks"
+
+
+def sync_live_tick(index, leg, record):
+    """Call once per tick from run_tick_collector.py, in addition to
+    (not instead of) the local JSONL archive - this is the live "what's
+    happening right now" path the app subscribes to; the archive is the
+    durable record."""
+
+    return sync_state(f"{_LIVE_TICKS_PATH}/{index}/{leg}", record)
+
+
+def sync_health_check(check_type, report_text, timestamp):
+    """
+    Call once per health-check run (check_type: "pre_market", "market",
+    or "after_market" - run_market_check.py decides between the latter
+    two by time of day, since both currently share one script). Pushes
+    a new entry (Firebase auto-generated, chronologically ordered key)
+    rather than overwriting, so the app's Checks tab can show a real
+    feed of past runs with their own name + timestamp, not just the
+    latest.
+    """
+
+    if not _init_firebase():
+        print("Firebase not configured (FIREBASE_SERVICE_ACCOUNT missing) - skipping health-check sync.")
+        return False
+
+    url = _database_url()
+
+    if not url:
+        print(f"Firebase Realtime Database not configured ({DATABASE_URL_ENV_VAR} missing) - "
+              "skipping health-check sync.")
+        return False
+
+    from firebase_admin import db
+
+    try:
+        db.reference(f"{_HEALTH_CHECKS_PATH}/{check_type}", url=url).push({
+            "report": report_text,
+            "timestamp": timestamp,
+        })
+        return True
+    except Exception as e:
+        print(f"Firebase health-check sync failed for {check_type}: {e}")
+        return False
+
+
 def fetch_access_token():
     """Call at VPS startup (strategy/event_driven_runner.py's main())
     to get today's real access_token. Returns None if Firebase isn't
