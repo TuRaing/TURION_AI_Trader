@@ -68,7 +68,7 @@ jobs:
               exit 0
             fi
             echo "Push rejected - rebasing this run's commit onto latest ($i/3)..."
-            git pull --rebase origin ${{ github.ref_name }}
+            git pull --rebase --autostash origin ${{ github.ref_name }}
           done
 
           echo "Could not push after 3 attempts - commit still exists locally for the next run (~1 min later)."

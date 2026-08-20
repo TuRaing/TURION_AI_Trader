@@ -106,7 +106,18 @@ jobs:
               exit 0
             fi
             echo "Push rejected - rebasing this run's commit onto latest ($i/3)..."
-            git pull --rebase origin ${{ github.ref_name }}
+            # FIXED 20-Aug-2026 - hit for real (run 32327556490, 20-Aug
+            # 03:15 UTC): a plain `git pull --rebase` here failed with
+            # "cannot pull with rebase: You have unstaged changes" when
+            # the working tree still had other generated files touched
+            # this run but not part of THIS step's commit - the actual
+            # Fyers login itself had already succeeded, only this retry
+            # failed. --autostash shelves those leftover changes before
+            # rebasing and restores them after, same POSIX-git idiom
+            # this repo already uses elsewhere for exactly this class of
+            # problem. Same fix applied to the other 7 workflow files
+            # with the identical retry pattern (grepped, not guessed).
+            git pull --rebase --autostash origin ${{ github.ref_name }}
           done
 
           echo "Could not push after 3 attempts - commit still exists locally for the next run."

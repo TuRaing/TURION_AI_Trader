@@ -206,7 +206,7 @@ jobs:
 
             echo "Push rejected - rebasing this run's commit onto latest ($i/3)..."
 
-            if git pull --rebase origin ${{ github.ref_name }}; then
+            if git pull --rebase --autostash origin ${{ github.ref_name }}; then
               continue
             fi
 

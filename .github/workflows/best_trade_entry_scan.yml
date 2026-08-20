@@ -52,7 +52,7 @@ jobs:
             git push
           }
 
-          git pull --rebase origin ${{ github.ref_name }} || true
+          git pull --rebase --autostash origin ${{ github.ref_name }} || true
 
           for i in 1 2 3; do
             if commit_and_push; then
