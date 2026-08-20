@@ -6949,19 +6949,37 @@ every reports/*_portfolio.json book's today's trades for unusual
 losses + per-book stale-workflow check + daily PnL) write timestamped
 logs to logs/market_checks/. Smoke-tested live against real data.
 
-SCHEDULED VIA THIS SESSION'S OWN CronCreate, NOT A DURABLE MECHANISM -
-in-memory jobs only, gone the moment this session/app closes: pre-
-market 08:43 IST weekdays, running-market every 30 min 09:15-14:45 +
-closing checks 15:15/15:30. Worked around CronCreate's 7-day auto-
-expiry with a self-renewing one-shot reminder (fires 25-Aug, recreates
-all three jobs + the next reminder) - still bounded by the session
-staying open, not a real fix. User explicitly declined accelerating
-the VPS purchase (~Rs 400-600/mo new recurring cost) just for this -
-VPS stays on its already-decided 10-Sep track (see LIVE-DATA
-ARCHITECTURE section above). A FUTURE SESSION MUST NOT ASSUME THESE
-CHECKS ARE STILL RUNNING - verify via CronList or ask the user.
+UPDATE, SAME DAY (20-Aug) - SCHEDULING REVERTED, NOW FULLY PAUSED:
+first tried scheduling via this session's own CronCreate (in-memory,
+session-bound - pre-market 08:43 IST weekdays, running-market every 30
+min 09:15-14:45 + closing 15:15/15:30, plus a self-renewing reminder
+to dodge CronCreate's 7-day auto-expiry). Live-tested that path and
+hit a real gap doing so: run_pre_market_check.py's Fyers token check
+needs a LOCAL desktop login (`python -m strategy.fyers_auth`, writes
+to this machine's own .env) - completely separate from the mobile
+app's login, which updates the FYERS_ACCESS_TOKEN GitHub Actions
+secret instead (via strategy/github_secrets.py) and never touches
+local .env. Neither token store had ever been read from locally
+before today, since every one of this project's existing 60+ modules
+runs on GitHub Actions, never on this desktop - this was the first
+thing that needed live data run locally, which is why the gap had
+never surfaced before.
 
-Code committed (ca0d9934c).
+Considered moving the check to run AS a GitHub Actions workflow
+instead (reuses the existing FYERS_ACCESS_TOKEN secret, no separate
+local login, survives this session closing) - user initially agreed,
+then reconsidered mid-build and asked to just wait for VPS instead
+rather than build either the session-cron or the GitHub-Actions
+version. ALL FOUR CronCreate jobs deleted same session. Net result:
+the health-check module and both entry scripts exist, are committed,
+and are fully tested (17/17), but NOTHING IS SCHEDULED anywhere right
+now - a future session must not assume any of this is running, and
+should not rebuild the GitHub-Actions-workflow idea without checking
+with the user first (already explicitly declined once, 20-Aug). Real
+scheduling stays parked until the VPS (10-Sep track, see LIVE-DATA
+ARCHITECTURE section above) exists.
+
+Code committed (ca0d9934c, 56ef6c20d).
 
 ==================================================
 
