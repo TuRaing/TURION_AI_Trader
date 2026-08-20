@@ -7112,13 +7112,51 @@ Status
 
 🟢 Stable
 
+STATISTICAL TOOLS DECISION - DEFERRED TO END-SEPTEMBER-2026 (20-Aug) -
+user asked directly whether the ~15 statistical formulas/tests computed
+across 13-14 Aug's 4 analysis passes (Expectancy, Sharpe/Sortino/
+Calmar, Wilson Confidence Interval, one-sample t-test, Monte Carlo,
+Walk-Forward, Autocorrelation, Kelly Criterion, VaR/CVaR, Correlation
+matrix) are actually used anywhere. Checked directly (no dedicated
+indicators/ or strategy/ module exists for any of them - grepped, not
+assumed) rather than assumed: NONE are wired into any live strategy or
+the VPS - all were one-off ad-hoc calculations, results recorded in
+this doc, formulas never saved as reusable/re-runnable code.
+
+Specifically flagged: the 14-Aug plan's own item #2 ("STATISTICAL
+CONFIDENCE GATING... e.g. before Stage 2 VPS migration") was explicitly
+meant to be the formal go/no-go check for exactly today's VPS
+decision - and was NOT re-consulted when the VPS timeline got
+accelerated same-day (see the earlier 20-Aug "TIMELINE ACCELERATED"
+entry above, which already noted this honestly: "not because the
+trade-count data gate was reconsidered... just a timeline choice").
+
+DECIDED: leave it as-is. Run the VPS/current setup unchanged through
+END OF SEPTEMBER 2026, THEN decide whether any of these 5 use-cases
+(screening/ranking, confidence gating, position sizing, robustness
+monitoring, portfolio-level risk - see the 14-Aug "HOW ALL THESE
+STATISTICAL TOOLS GET USED GOING FORWARD" entry for the full 5-point
+breakdown) are worth building as real, wired-in, re-runnable code.
+Matches [[feedback_data_driven_patience]] - deliberately not building
+speculative gating logic before deciding it's actually needed. A
+future session should NOT build any of these into the live engines
+without first checking back with the user, and should treat
+end-September-2026 as the natural next checkpoint to raise this again
+if the user hasn't already.
+
+==================================================
+
+Status
+
+🟢 Stable
+
 Current Version
 
-v0.0.51
+v0.0.52
 
 Next Version
 
-v0.0.52
+v0.0.53
 
 ==================================================
 
