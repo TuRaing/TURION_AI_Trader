@@ -138,7 +138,7 @@ class LiveTickRunner:
     """
 
     def __init__(self, decide_fn, cfg, portfolio, underlying_symbol, ce_symbol, pe_symbol,
-                 squareoff_time, initial_candles=None, execution_backend=None):
+                 squareoff_time, initial_candles=None, execution_backend=None, previous_close=None):
 
         self.decide_fn = decide_fn
         self.cfg = cfg
@@ -147,6 +147,12 @@ class LiveTickRunner:
         self.ce_symbol = ce_symbol
         self.pe_symbol = pe_symbol
         self.squareoff_time = squareoff_time
+        # Added 20-Aug-2026 - indicators/circuit_band.py's proactive
+        # square-off gate (event_driven_engine.py's _near_circuit()) -
+        # None (default) means the gate is simply skipped, same as
+        # every other optional signal in this class - see
+        # build_runners()'s own fetch-can-fail comment.
+        self.previous_close = previous_close
         self.aggregator = CandleAggregator(initial_candles)
         # Added 18-Aug-2026 - see strategy/execution_backend.py's module
         # docstring. Defaults to a no-op paper backend so every existing
@@ -216,6 +222,7 @@ class LiveTickRunner:
             "pe_symbol": self.pe_symbol, "pe_ltp": self._latest["pe_ltp"],
             "pe_bid": self._latest["pe_bid"], "pe_ask": self._latest["pe_ask"],
             "past_squareoff": self._past_squareoff(timestamp),
+            "previous_close": self.previous_close,
         }
 
         action, self.portfolio = run_live_check(self.decide_fn, self.cfg, self.portfolio, data_point)
@@ -267,7 +274,7 @@ class OIFootprintTickRunner:
     """
 
     def __init__(self, decide_fn, cfg, portfolio, ce_symbol, pe_symbol, squareoff_time,
-                 execution_backend=None):
+                 execution_backend=None, previous_close=None):
 
         self.decide_fn = decide_fn
         self.cfg = cfg
@@ -275,6 +282,8 @@ class OIFootprintTickRunner:
         self.ce_symbol = ce_symbol
         self.pe_symbol = pe_symbol
         self.squareoff_time = squareoff_time
+        # See LiveTickRunner's matching comment above.
+        self.previous_close = previous_close
         self.oi_tracker = OIBuildupTracker()
         # See LiveTickRunner's matching comment - strategy/execution_backend.py.
         self.execution_backend = execution_backend or PaperExecutionBackend()
@@ -340,6 +349,7 @@ class OIFootprintTickRunner:
             "pe_symbol": self.pe_symbol, "pe_ltp": self._latest["pe_ltp"],
             "pe_bid": self._latest["pe_bid"], "pe_ask": self._latest["pe_ask"],
             "past_squareoff": self._past_squareoff(timestamp),
+            "previous_close": self.previous_close,
         }
 
         action, self.portfolio = run_live_check(self.decide_fn, self.cfg, self.portfolio, data_point)

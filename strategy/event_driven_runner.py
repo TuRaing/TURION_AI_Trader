@@ -124,6 +124,36 @@ def _seed_candles(index):
     return frame[["Open", "High", "Low", "Close"]] if frame is not None else None
 
 
+def _previous_close(index):
+    """
+    Added 20-Aug-2026 - the previous trading day's real daily close, for
+    indicators/circuit_band.py's proactive circuit-proximity gate (see
+    event_driven_engine.py's _near_circuit()). Last COMPLETE daily
+    candle from a short recent window - this only ever runs before/at
+    market open (build_runners() is called once at startup), so the
+    most recent daily candle Fyers returns is always yesterday's real
+    close, never today's still-forming one.
+
+    Returns None (not raises) on any fetch problem - the circuit gate
+    treats None as "can't check", same graceful-degradation rule as
+    every other network-sourced signal in this module (RSI seed
+    candles, ATM symbols) - a startup network hiccup on this one
+    feature must never block the whole engine from starting.
+    """
+
+    try:
+        index_cfg = INDEX_CONFIG[index]
+        frame = fyers_download(index_cfg["index_symbol_for_rsi"], period="5d", interval="1d")
+
+        if frame is None or frame.empty:
+            return None
+
+        return float(frame["Close"].iloc[-1])
+    except Exception as error:
+        print(f"Could not fetch previous close for {index} (circuit gate will be skipped): {error}")
+        return None
+
+
 class MultiStrategyRouter:
     """
     Routes one incoming WebSocket tick to every runner subscribed to
@@ -213,6 +243,7 @@ def build_runners(execution_backend=None):
             squareoff_time=SQUAREOFF_TIME,
             initial_candles=_seed_candles(index),
             execution_backend=execution_backend,
+            previous_close=_previous_close(index),
         )
 
         router.register(index_cfg["underlying_symbol"], runner)
@@ -251,6 +282,7 @@ def build_runners(execution_backend=None):
             pe_symbol=pe_symbol,
             squareoff_time=SQUAREOFF_TIME,
             execution_backend=execution_backend,
+            previous_close=_previous_close(index),
         )
 
         router.register(ce_symbol, runner)

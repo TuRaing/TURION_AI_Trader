@@ -2,6 +2,7 @@ import datetime
 
 from strategy.backtest_live_engine import run_backtest, run_live_check
 from strategy.options_transaction_costs import calculate_options_round_trip_cost
+from indicators.circuit_band import is_near_circuit_band
 
 # Added 17-Aug-2026 - CODE-PREP for Stage 2 (VPS + Fyers WebSocket),
 # per the plan already on record (PROJECT_STATUS.md's "LIVE-DATA
@@ -62,6 +63,23 @@ from strategy.options_transaction_costs import calculate_options_round_trip_cost
 #                                   # one place.
 #       "past_squareoff": bool,    # now_ist >= squareoff_time, computed
 #                                   # upstream (decide_fn has no clock)
+#       "previous_close": float or None,
+#                                   # Added 20-Aug-2026 - the underlying
+#                                   # index's previous trading day close,
+#                                   # for indicators/circuit_band.py's
+#                                   # proactive circuit-proximity gate
+#                                   # (see doc/PROJECT_STATUS.md's 14-Aug
+#                                   # "CIRCUIT-BREAKER PROTECTION IDEAS"
+#                                   # entry, candidate #3 - built and
+#                                   # backtest-checked that day, wired
+#                                   # into a live decide_fn for the first
+#                                   # time here). None (not fetched, or
+#                                   # a caller/test that doesn't supply
+#                                   # it) SKIPS the gate entirely rather
+#                                   # than raising - same "missing means
+#                                   # can't check, not an error" rule
+#                                   # this whole module already uses for
+#                                   # rsi/oi_signal being None.
 #   }
 #
 # POSITION SHAPE (what this decide_fn stores as portfolio["Position"]):
@@ -73,6 +91,27 @@ from strategy.options_transaction_costs import calculate_options_round_trip_cost
 # picked upstream - kept for interface parity), initial_capital,
 # target_net_pct, hybrid_sl_cap_pct, spread_pct (opt-in, None = same
 # behavior as every live book today - see options_transaction_costs.py).
+
+
+def _near_circuit(data_point):
+    """
+    True only when previous_close is actually available AND spot is
+    within the default 2% proximity threshold of NSE's 10% circuit
+    tier (indicators/circuit_band.py's own defaults - the same
+    threshold and tier already backtest-checked against real
+    oi_footprint trades on 14-Aug, zero false positives). Missing
+    previous_close (upstream fetch failed, or a test data_point that
+    doesn't set it) returns False - "can't check" must never be
+    treated as "must exit", which would make a data gap MORE
+    dangerous, not less.
+    """
+
+    previous_close = data_point.get("previous_close")
+
+    if previous_close is None:
+        return False
+
+    return is_near_circuit_band(data_point["spot"], previous_close)
 
 
 def _hybrid_stop_loss_cap(cfg, capital_deployed):
@@ -125,6 +164,9 @@ def rsi_momentum_decide_fn(cfg, position, data_point):
         if data_point.get("past_squareoff"):
             return "SKIPPED (past square-off time)", None, None
 
+        if _near_circuit(data_point):
+            return "SKIPPED (near circuit band)", None, None
+
         option_type = "CE" if data_point["rsi"] >= 50 else "PE"
         symbol = data_point[f"{option_type.lower()}_symbol"]
         entry_premium = data_point[f"{option_type.lower()}_ltp"]
@@ -168,6 +210,8 @@ def rsi_momentum_decide_fn(cfg, position, data_point):
     elif net_pnl_pct <= -cfg["stop_loss_pct"]:
         reason = "Stop Loss"
 
+    if reason is None and _near_circuit(data_point):
+        reason = "Circuit Risk"
     if reason is None and data_point.get("past_squareoff"):
         reason = "Square-Off"
 
@@ -288,6 +332,9 @@ def oi_footprint_decide_fn(cfg, position, data_point):
         if data_point.get("past_squareoff"):
             return "SKIPPED (past square-off time)", None, None
 
+        if _near_circuit(data_point):
+            return "SKIPPED (near circuit band)", None, None
+
         option_type = oi_signal
         symbol = data_point[f"{option_type.lower()}_symbol"]
         entry_premium = data_point[f"{option_type.lower()}_ltp"]
@@ -330,6 +377,8 @@ def oi_footprint_decide_fn(cfg, position, data_point):
     elif net_pnl <= -cfg["stop_loss_rupees"]:
         reason = "Stop Loss"
 
+    if reason is None and _near_circuit(data_point):
+        reason = "Circuit Risk"
     if reason is None and data_point.get("past_squareoff"):
         reason = "Square-Off"
 

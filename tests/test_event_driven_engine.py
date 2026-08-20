@@ -123,6 +123,61 @@ def test_closes_at_squareoff_when_neither_target_nor_sl_hit():
     assert trade["Exit Reason"] == "Square-Off"
 
 
+def test_skips_open_when_near_circuit_band():
+    # previous_close 22270 -> 10% upper band = 24497 - spot 24500 is
+    # only ~0.013% away, well inside the default 2% proximity gate.
+    action, position, trade = rsi_momentum_decide_fn(
+        _cfg(), None, _data_point(rsi=55.0, previous_close=22270.0)
+    )
+
+    assert "SKIPPED" in action
+    assert "circuit" in action.lower()
+    assert position is None
+
+
+def test_opens_normally_when_far_from_circuit_band():
+    # previous_close == spot -> 10% away from either band, nowhere near.
+    action, position, trade = rsi_momentum_decide_fn(
+        _cfg(), None, _data_point(rsi=55.0, previous_close=24500.0)
+    )
+
+    assert "OPENED" in action
+    assert position is not None
+
+
+def test_missing_previous_close_never_blocks_entry():
+    # No "previous_close" key at all (older caller/test data) - the
+    # gate must be skipped, not treated as "always near".
+    action, position, trade = rsi_momentum_decide_fn(_cfg(), None, _data_point(rsi=55.0))
+
+    assert "OPENED" in action
+
+
+def test_closes_at_circuit_risk_when_near_band_and_no_target_or_sl_hit():
+    cfg = _cfg()
+    _, position, _ = rsi_momentum_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ltp=100.0))
+
+    action, new_position, trade = rsi_momentum_decide_fn(
+        cfg, position, _data_point(ce_ltp=100.5, previous_close=22270.0)
+    )
+
+    assert "CLOSED (Circuit Risk)" in action
+    assert trade["Exit Reason"] == "Circuit Risk"
+
+
+def test_circuit_risk_does_not_override_an_already_hit_target():
+    cfg = _cfg()
+    _, position, _ = rsi_momentum_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ltp=100.0))
+
+    # Target is 5% net - a big enough premium jump hits Target first,
+    # even though this same data_point is also near the circuit band.
+    action, new_position, trade = rsi_momentum_decide_fn(
+        cfg, position, _data_point(ce_ltp=115.0, previous_close=22270.0)
+    )
+
+    assert "CLOSED (Target)" in action
+
+
 def test_spread_pct_makes_the_same_trade_slightly_worse():
     cfg_no_spread = _cfg(spread_pct=None)
     cfg_with_spread = _cfg(spread_pct=0.26)
@@ -276,6 +331,28 @@ def test_oi_footprint_closes_at_fixed_rupee_stop_loss():
 
     assert "CLOSED (Stop Loss)" in action
     assert trade["Net PnL"] <= -1500
+
+
+def test_oi_footprint_skips_open_when_near_circuit_band():
+    action, position, trade = oi_footprint_decide_fn(
+        _oi_cfg(), None, _oi_data_point(oi_signal="CE", previous_close=22270.0)
+    )
+
+    assert "SKIPPED" in action
+    assert position is None
+
+
+def test_oi_footprint_closes_at_circuit_risk():
+    cfg = _oi_cfg()
+    _, position, _ = oi_footprint_decide_fn(cfg, None, _oi_data_point(oi_signal="CE", ce_ltp=60.0))
+
+    # ce_ltp=60.5 is nowhere near the fixed Rs 1,500 Target/Stop-Loss.
+    action, new_position, trade = oi_footprint_decide_fn(
+        cfg, position, _oi_data_point(ce_ltp=60.5, previous_close=22270.0)
+    )
+
+    assert "CLOSED (Circuit Risk)" in action
+    assert trade["Exit Reason"] == "Circuit Risk"
 
 
 def test_oi_footprint_hybrid_sl_cap_overrides_fixed_rupee_sl():

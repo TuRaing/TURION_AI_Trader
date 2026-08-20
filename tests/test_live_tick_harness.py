@@ -100,7 +100,7 @@ class _SpyBackend:
         self.closes.append((cfg, trade_record))
 
 
-def _runner(hybrid_sl_cap_pct=2.0, spread_pct=None, execution_backend=None):
+def _runner(hybrid_sl_cap_pct=2.0, spread_pct=None, execution_backend=None, previous_close=None):
     cfg = make_st2_threshold_event_cfg(index="NIFTY", lot_size=75, initial_capital=100000,
                                         hybrid_sl_cap_pct=hybrid_sl_cap_pct, spread_pct=spread_pct)
     portfolio = {"Cash": 100000, "Position": None, "Closed Trades": []}
@@ -116,6 +116,7 @@ def _runner(hybrid_sl_cap_pct=2.0, spread_pct=None, execution_backend=None):
         squareoff_time=(15, 15),
         initial_candles=seeded,
         execution_backend=execution_backend,
+        previous_close=previous_close,
     )
 
 
@@ -201,6 +202,25 @@ def test_held_tick_does_not_notify_execution_backend():
     assert len(backend.closes) == 0
 
 
+def test_previous_close_flows_through_to_a_circuit_risk_close():
+    # previous_close 24500 -> spot 24500 (the entry tick) sits centered
+    # between both 10% bands (22050/26950), ~10% from either - nowhere
+    # near, so entry proceeds normally. A LATER underlying tick moving
+    # spot to 26900 lands ~0.2% from the upper band - inside the
+    # default 2% gate - forcing the close. Confirms LiveTickRunner's
+    # own constructor param actually reaches decide_fn's data_point on
+    # a real tick sequence, not just that event_driven_engine.py's gate
+    # works in isolation (already covered by tests/test_event_driven_
+    # engine.py).
+    runner = _runner(previous_close=24500.0)
+
+    runner.on_tick(runner.underlying_symbol, _ts(20), 24500.0)
+    runner.on_tick(runner.ce_symbol, _ts(20, 1), 100.0)  # opens CE, spot far from any band
+    action = runner.on_tick(runner.underlying_symbol, _ts(20, 30), 26900.0)  # spot now near upper band
+
+    assert "CLOSED (Circuit Risk)" in action
+
+
 def test_runner_without_a_backend_defaults_to_a_working_no_op():
     # No execution_backend passed - must not raise (PaperExecutionBackend default).
     runner = _runner()
@@ -252,7 +272,7 @@ def test_oi_tracker_no_signal_on_strike_change():
     assert signal is None
 
 
-def _oi_runner(execution_backend=None):
+def _oi_runner(execution_backend=None, previous_close=None):
     cfg = make_oi_footprint_event_cfg(index="NIFTY", lot_size=75, initial_capital=100000)
     portfolio = {"Cash": 100000, "Position": None, "Closed Trades": []}
 
@@ -264,6 +284,7 @@ def _oi_runner(execution_backend=None):
         pe_symbol="NSE:NIFTY2681824500PE",
         squareoff_time=(15, 15),
         execution_backend=execution_backend,
+        previous_close=previous_close,
     )
 
 
@@ -292,6 +313,21 @@ def test_oi_runner_full_signal_to_open_to_target_sequence():
     action = runner.on_tick(runner.ce_symbol, _ts(26), 62.0)
     assert "CLOSED (Target)" in action
     assert runner.portfolio["Cash"] > 100000
+
+
+def test_oi_runner_previous_close_flows_through_to_a_circuit_risk_close():
+    # See test_previous_close_flows_through_to_a_circuit_risk_close's
+    # comment above for the same previous_close=24500 (spot centered,
+    # far from either band) / spot=26900 (near the upper band) reasoning.
+    runner = _oi_runner(previous_close=24500.0)
+
+    runner.on_oi_snapshot(_ts(20), spot=24500, strike=24500, ce_oi=100000, pe_oi=90000)
+    runner.on_oi_snapshot(_ts(25), spot=24520, strike=24500, ce_oi=115000, pe_oi=100000)
+    runner.on_tick(runner.ce_symbol, _ts(25, 30), 60.0)  # opens CE
+
+    action = runner.on_oi_snapshot(_ts(26), spot=26900, strike=24500, ce_oi=115000, pe_oi=100000)
+
+    assert "CLOSED (Circuit Risk)" in action
 
 
 def test_oi_runner_notifies_execution_backend_on_open_and_close():
