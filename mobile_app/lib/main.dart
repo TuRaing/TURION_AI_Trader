@@ -8,6 +8,7 @@ import 'screens/portfolio_screen.dart';
 import 'screens/best_trade_screen.dart';
 import 'screens/watchlist_screen.dart';
 import 'screens/vps_screen.dart';
+import 'screens/vps_summary_screen.dart';
 import 'screens/checks_screen.dart';
 import 'screens/fyers_portfolio_screen.dart';
 import 'screens/fyers_multi_strategy_options_screen.dart';
@@ -73,6 +74,7 @@ class _HomeShellState extends State<HomeShell> {
     BestTradeScreen(),
     WatchlistScreen(),
     VpsScreen(),
+    VpsSummaryScreen(),
     ChecksScreen(),
     FyersPortfolioScreen(),
     FyersMultiStrategyOptionsScreen(),
@@ -86,6 +88,7 @@ class _HomeShellState extends State<HomeShell> {
     'Best Trade (Intraday)',
     'Watchlist (Swing)',
     'VPS',
+    'VPS Summary',
     'Checks',
     'Fyers (Test)',
     'Options (Test)',
@@ -108,6 +111,7 @@ class _HomeShellState extends State<HomeShell> {
           BottomNavigationBarItem(icon: Icon(Icons.track_changes_outlined), label: 'Intraday'),
           BottomNavigationBarItem(icon: Icon(Icons.list_alt_outlined), label: 'Swing'),
           BottomNavigationBarItem(icon: Icon(Icons.dns_outlined), label: 'VPS'),
+          BottomNavigationBarItem(icon: Icon(Icons.table_chart_outlined), label: 'VPS Sum.'),
           BottomNavigationBarItem(icon: Icon(Icons.fact_check_outlined), label: 'Checks'),
           BottomNavigationBarItem(icon: Icon(Icons.bolt_outlined), label: 'Fyers'),
           BottomNavigationBarItem(icon: Icon(Icons.candlestick_chart_outlined), label: 'Options'),
