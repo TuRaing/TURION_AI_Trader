@@ -7068,6 +7068,44 @@ on a real device - see doc/20aug26_SESSION_LOG.md's matching entry for
 the honest "not yet proven" caveats; do not treat this as finished
 until that entry (or a newer one) says otherwise.
 
+UPDATE, LATER SAME SESSION (20-Aug): Firebase Console rules WERE
+re-published (fixed a real permission-denied-vs-empty ambiguity found
+live), the APK build succeeded and was installed + iterated on
+directly on the user's phone (Summary/Passbook layout tried and
+explicitly rejected in favor of matching the existing Options-tab
+layout instead, then a VPS Summary tab added alongside as its own
+separate addition) - see doc/20aug26_SESSION_LOG.md for the full
+back-and-forth. Structurally verified (renders correctly with empty-
+state defaults); NOT yet verified against real live data, since none
+existed anywhere in the system by end of day.
+
+CIRCUIT-BAND GATE WIRED IN + TICK LATENCY MEASUREMENT ADDED (20-Aug,
+later) - the 14-Aug circuit_band.py filter (built + backtest-checked
+that day, never connected to a live strategy) is now live in both
+event-driven decide_fns - skips new entries and force-closes an open
+position ("Circuit Risk") within 2% of NSE's 10% circuit tier, fed by
+a real previous-day close fetched once at startup. Separately, the
+tick collector now records real exchange-to-VPS latency per tick
+(received_at vs the exchange's own exch_feed_time) and the 30-min
+health check reports a live avg/max summary. 22 new tests across both
+features, 516/516 passing. See doc/20aug26_SESSION_LOG.md for the
+full detail.
+
+GO-LIVE RUNBOOK UPDATED, GIT HOUSEKEEPING, 8-WORKFLOW REBASE-RETRY BUG
+FIXED (20-Aug, later still) - the Go-Live Runbook artifact's stale
+provider name and Firebase-already-configured claim corrected in
+place; B17's crash-alert test completed same day WITHOUT needing a
+live token (SIGKILL sent ~150ms into startup, before the process's own
+clean exit - a real crash from systemd's point of view, confirmed both
+auto-restart and the push-notification alert fired for real). A full
+VPS+repo re-audit found and fixed two small git-hygiene issues (logs/
+never gitignored; a file-mode-only diff falsely showing deploy.sh as
+modified on the VPS). Separately, the git-rebase-retry bug originally
+found in fyers_trigger.yml (a plain `git pull --rebase` failing on
+leftover unstaged changes) turned out to be duplicated in 7 OTHER
+workflow files with the identical pattern - all 8 fixed with
+--autostash, not just the one that happened to fail visibly first.
+
 ==================================================
 
 Status
@@ -7076,11 +7114,11 @@ Status
 
 Current Version
 
-v0.0.50
+v0.0.51
 
 Next Version
 
-v0.0.51
+v0.0.52
 
 ==================================================
 

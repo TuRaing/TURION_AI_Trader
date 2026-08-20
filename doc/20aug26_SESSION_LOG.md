@@ -325,6 +325,62 @@ applies once the VPS took over.
 
 --------------------------------------------------
 
+CIRCUIT-BAND PROXIMITY GATE WIRED INTO THE EVENT-DRIVEN ENGINE - user
+asked directly what protects an open position if NSE's circuit
+breakers halt trading. Found the real answer wasn't "nothing" but
+"built, tested, never connected": indicators/circuit_band.py (14-Aug,
+compute_circuit_levels/distance_to_circuit_pct/is_near_circuit_band)
+had already been retrospectively checked against all 40 real
+oi_footprint trades that day with zero false positives, then left
+unwired to any live strategy.
+
+Wired it into both event-driven decide_fns (rsi_momentum_decide_fn,
+oi_footprint_decide_fn, strategy/event_driven_engine.py): a new
+_near_circuit(data_point) helper now SKIPS new entries and force-
+CLOSES an open position ("Circuit Risk", checked before Square-Off,
+after Target/Stop-Loss) once spot is within the default 2% of NSE's
+10% circuit tier. Threaded a new `previous_close` field through the
+whole live pipeline - LiveTickRunner/OIFootprintTickRunner constructors
+(strategy/live_tick_harness.py) each gained a previous_close param
+included in every data_point they build; event_driven_runner.py's
+build_runners() fetches it once at startup via a real daily candle
+(_previous_close(index), graceful None on any fetch failure - a
+missing previous_close must never be treated as "always near",
+which would make a data gap MORE dangerous, not less). 15 new tests
+(7 decide_fn-level circuit-gate behavior, 2 full-runner tick-sequence
+wiring tests confirming previous_close actually reaches a real close
+decision, not just the isolated gate function), 516/516 passing.
+Deployed and pulled onto the VPS same session.
+
+--------------------------------------------------
+
+TICK LATENCY MEASUREMENT - "trading मध्ये latency कशी मोजतात" question
+first explained (signal-to-decision / decision-to-fill / end-to-end,
+using a VLSI propagation-delay analogy), then scoped to what's
+actually measurable today: real exchange-to-VPS network+processing
+latency, using the tick collector's own data - not holding-period
+(trivial, already in every Closed Trade) and not order-fill latency
+(no real orders exist yet, paper trading only).
+
+strategy/tick_collector.py's format_tick_record() gained an optional
+`received_at` param (this process's own wall clock at the moment a
+tick arrived) alongside the existing "timestamp" field (the
+EXCHANGE's own clock, from exch_feed_time) - two new pure functions,
+tick_latency_ms() (the real gap between them) and
+summarize_tick_latency() (avg/max/count over a list of records,
+skipping any without a measurable received_at rather than raising).
+run_tick_collector.py now passes received_at=datetime.now(IST) on
+every real tick. run_market_check.py reads TODAY's own local tick
+archive (data/ticks/ticks_YYYYMMDD.jsonl - only ever has real data
+when run ON the VPS) and appends a real avg/max latency line to every
+30-min check report - "no tick data yet today" until the collector has
+actually run with a live connection. 7 new tests, 507 passing at that
+point (516 after the circuit-band gate's tests landed on top). Local
+smoke-test confirmed the graceful "no tick data yet" path; real
+numbers won't exist until tomorrow's live connection.
+
+--------------------------------------------------
+
 B17 CRASH-ALERT TEST COMPLETED - didn't wait for tomorrow's login.
 Started turion-event-driven, then sent SIGKILL ~150ms later, before
 its own clean exit(0) could happen - systemd correctly recorded this
