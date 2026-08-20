@@ -131,7 +131,11 @@ def main():
         if index is None:
             return  # a tick for a symbol we just unsubscribed from mid-flight
 
-        record = format_tick_record(index, leg, symbol, message)
+        # received_at is THIS process's own wall clock at the moment the
+        # tick arrived - the "received" side of tick_latency_ms()'s
+        # exchange-vs-received comparison (user's own 20-Aug ask: real
+        # signal-to-decision latency, not an estimate).
+        record = format_tick_record(index, leg, symbol, message, received_at=datetime.datetime.now(IST))
         writer.write(record)
 
         # Added 20-Aug-2026 - the mobile app's live tick-by-tick chart

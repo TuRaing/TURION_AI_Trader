@@ -6,6 +6,7 @@ import os
 import requests
 
 from strategy.fyers_auth import _app_id, get_access_token
+from strategy.tick_collector import tick_log_filename, summarize_tick_latency
 from report.market_checks import (
     detect_crash,
     detect_unusual_trade,
@@ -35,6 +36,47 @@ IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
 DATA_BASE_URL = "https://api-t1.fyers.in/data"
 LOG_DIR = os.path.join("logs", "market_checks")
 MARKET_CLOSE = (15, 30)
+TICK_DIR = os.path.join("data", "ticks")
+
+
+def _todays_tick_latency_line(now):
+    """
+    Added 20-Aug-2026 - the user's own explicit ask ("30-min checks
+    मध्ये latency measure करता येईल का"): reads TODAY's own local tick
+    archive (run_tick_collector.py's own file, same VPS - this only
+    finds real data when actually run on the VPS, not this desktop)
+    and summarizes signal-to-decision latency (real exchange-tick-time
+    vs when this process received it, see strategy/tick_collector.py's
+    tick_latency_ms()). Never raises - a missing/unreadable tick file
+    (collector not running yet, or run locally where it never exists)
+    just means "nothing to report", not a check failure.
+    """
+
+    path = os.path.join(TICK_DIR, tick_log_filename(now))
+
+    if not os.path.exists(path):
+        return "- [ ] Tick latency: no tick data yet today"
+
+    records = []
+    with open(path, encoding="utf-8") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                records.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+
+    summary = summarize_tick_latency(records)
+
+    if summary["count"] == 0:
+        return "- [ ] Tick latency: no measurable ticks yet today"
+
+    return (
+        f"- [ ] Tick latency (exchange -> VPS): avg {summary['avg_ms']}ms, "
+        f"max {summary['max_ms']}ms ({summary['count']} ticks measured)"
+    )
 
 
 def _resolve_access_token():
@@ -142,6 +184,8 @@ def run_check():
         lines = report.split("\n")
         lines.insert(2, f"> NOTE: {data_warning}")
         report = "\n".join(lines)
+
+    report = report.rstrip("\n") + "\n" + _todays_tick_latency_line(now) + "\n"
 
     os.makedirs(LOG_DIR, exist_ok=True)
     log_path = os.path.join(LOG_DIR, market_check_log_filename(now))

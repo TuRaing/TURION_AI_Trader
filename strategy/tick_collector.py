@@ -68,7 +68,7 @@ def tick_log_filename(now_ist):
     return f"ticks_{now_ist.strftime('%Y%m%d')}.jsonl"
 
 
-def format_tick_record(index, leg, symbol, message):
+def format_tick_record(index, leg, symbol, message, received_at=None):
     """
     Turns one raw Fyers SymbolUpdate message (see strategy/
     live_tick_harness.py's handle_symbol_update_message() for the same
@@ -82,6 +82,18 @@ def format_tick_record(index, leg, symbol, message):
         index this tick is for.
     symbol : the actual Fyers symbol string (e.g. "NSE:NIFTY2681824200CE").
     message : the raw tick dict from the WebSocket.
+    received_at : datetime.datetime, IST, tz-aware - the moment THIS
+        process actually received the tick (the caller's wall clock,
+        not derived from the message) - None skips the "received_at"
+        field entirely (kept optional/pure rather than defaulting to
+        datetime.now() internally, matching this project's established
+        "caller passes now_ist, functions here don't call the clock
+        themselves" convention - see report/market_checks.py). Added
+        20-Aug-2026 specifically so tick_latency_ms() below has
+        something real to measure against "timestamp" (the EXCHANGE's
+        own clock, from exch_feed_time) - the gap between the two is
+        the real network+processing latency from Fyers to this VPS,
+        the user's own explicit ask ("signal-to-decision latency").
 
     Returns
     -------
@@ -91,7 +103,7 @@ def format_tick_record(index, leg, symbol, message):
     epoch = message.get("exch_feed_time", message.get("last_traded_time"))
     timestamp = datetime.datetime.fromtimestamp(epoch, tz=IST).strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
 
-    return {
+    record = {
         "timestamp": timestamp,
         "index": index,
         "leg": leg,
@@ -100,4 +112,55 @@ def format_tick_record(index, leg, symbol, message):
         "bid": message.get("bid_price"),
         "ask": message.get("ask_price"),
         "volume": message.get("vol_traded_today"),
+    }
+
+    if received_at is not None:
+        record["received_at"] = received_at.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+
+    return record
+
+
+def tick_latency_ms(record):
+    """
+    Milliseconds between the exchange's own tick timestamp ("timestamp",
+    from Fyers' exch_feed_time) and when this process actually received
+    it ("received_at") - real network+processing latency, the "signal-
+    to-decision latency" the user asked to measure (20-Aug). Returns
+    None if the record has no "received_at" (older archives, or a
+    record built without one) rather than raising - a missing field is
+    a normal "can't measure this one" case, not an error.
+    """
+
+    if "received_at" not in record:
+        return None
+
+    exchange_time = datetime.datetime.strptime(record["timestamp"], "%Y-%m-%d %H:%M:%S.%f")
+    received_time = datetime.datetime.strptime(record["received_at"], "%Y-%m-%d %H:%M:%S.%f")
+
+    return (received_time - exchange_time).total_seconds() * 1000
+
+
+def summarize_tick_latency(records):
+    """
+    avg/max/count latency (ms) across a list of tick records (e.g. one
+    day's worth, read back from a JSONL archive) - records with no
+    measurable latency (no "received_at") are silently skipped, not
+    counted as zero.
+
+    Returns
+    -------
+    dict with avg_ms, max_ms, count (count = how many records had a
+    measurable latency, not the total records passed in) - avg_ms/
+    max_ms are None if count is 0 (nothing measurable, not "0ms").
+    """
+
+    latencies = [ms for ms in (tick_latency_ms(r) for r in records) if ms is not None]
+
+    if not latencies:
+        return {"avg_ms": None, "max_ms": None, "count": 0}
+
+    return {
+        "avg_ms": round(sum(latencies) / len(latencies), 1),
+        "max_ms": round(max(latencies), 1),
+        "count": len(latencies),
     }

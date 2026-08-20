@@ -1,6 +1,12 @@
 import datetime
 
-from strategy.tick_collector import atm_has_drifted, tick_log_filename, format_tick_record
+from strategy.tick_collector import (
+    atm_has_drifted,
+    tick_log_filename,
+    format_tick_record,
+    tick_latency_ms,
+    summarize_tick_latency,
+)
 
 IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
 
@@ -62,3 +68,64 @@ def test_format_tick_record_falls_back_to_last_traded_time_if_no_exch_feed_time(
     record = format_tick_record("BANKNIFTY", "PE", "NSE:BANKNIFTY26AUG57600PE", message)
 
     assert record["timestamp"].startswith("2026-08-20 ")
+
+
+def test_format_tick_record_omits_received_at_when_not_given():
+    message = {"exch_feed_time": 1787209200, "ltp": 24213.05}
+
+    record = format_tick_record("NIFTY", "SPOT", "NSE:NIFTY50-INDEX", message)
+
+    assert "received_at" not in record
+
+
+def test_format_tick_record_includes_received_at_when_given():
+    message = {"exch_feed_time": 1787209200, "ltp": 24213.05}
+    received = datetime.datetime(2026, 8, 20, 12, 30, 0, 250000, tzinfo=IST)
+
+    record = format_tick_record("NIFTY", "SPOT", "NSE:NIFTY50-INDEX", message, received_at=received)
+
+    assert record["received_at"] == "2026-08-20 12:30:00.250"
+
+
+def test_tick_latency_ms_computes_real_gap():
+    record = {"timestamp": "2026-08-20 12:30:00.000", "received_at": "2026-08-20 12:30:00.180"}
+
+    assert tick_latency_ms(record) == 180.0
+
+
+def test_tick_latency_ms_none_when_received_at_missing():
+    record = {"timestamp": "2026-08-20 12:30:00.000"}
+
+    assert tick_latency_ms(record) is None
+
+
+def test_summarize_tick_latency_computes_avg_and_max():
+    records = [
+        {"timestamp": "2026-08-20 12:30:00.000", "received_at": "2026-08-20 12:30:00.100"},
+        {"timestamp": "2026-08-20 12:30:01.000", "received_at": "2026-08-20 12:30:01.300"},
+        {"timestamp": "2026-08-20 12:30:02.000", "received_at": "2026-08-20 12:30:02.200"},
+    ]
+
+    summary = summarize_tick_latency(records)
+
+    assert summary["count"] == 3
+    assert summary["avg_ms"] == 200.0
+    assert summary["max_ms"] == 300.0
+
+
+def test_summarize_tick_latency_skips_unmeasurable_records():
+    records = [
+        {"timestamp": "2026-08-20 12:30:00.000", "received_at": "2026-08-20 12:30:00.100"},
+        {"timestamp": "2026-08-20 12:30:01.000"},  # no received_at - e.g. an older archive
+    ]
+
+    summary = summarize_tick_latency(records)
+
+    assert summary["count"] == 1
+    assert summary["avg_ms"] == 100.0
+
+
+def test_summarize_tick_latency_empty_list():
+    summary = summarize_tick_latency([])
+
+    assert summary == {"avg_ms": None, "max_ms": None, "count": 0}
