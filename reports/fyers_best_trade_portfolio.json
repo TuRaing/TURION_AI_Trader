@@ -1,15 +1,6 @@
 {
-  "Cash": 99948.62195234638,
-  "Position": {
-    "Name": "GRASIM",
-    "Symbol": "GRASIM.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-08-20 11:37:49",
-    "Entry Price": 3276.6,
-    "Quantity": 1,
-    "Stop Loss": 3266.31,
-    "Target": 3297.18
-  },
+  "Cash": 99949.04477844178,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -338,6 +329,20 @@
       "PnL": -10.18,
       "Cost": 2.44,
       "Net PnL": -12.63
+    },
+    {
+      "Name": "GRASIM",
+      "Symbol": "GRASIM.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-08-20 11:37:49",
+      "Entry Price": 3276.6,
+      "Exit Time": "2026-08-20 14:46:50",
+      "Exit Price": 3280.5,
+      "Quantity": 1,
+      "Exit Reason": "Intraday Square-Off",
+      "PnL": 3.9,
+      "Cost": 3.48,
+      "Net PnL": 0.42
     }
   ],
   "Data Source": "Fyers"
