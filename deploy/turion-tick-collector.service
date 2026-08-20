@@ -1,0 +1,51 @@
+# Added 20-Aug-2026 - systemd unit for run_tick_collector.py (ATM
+# tick-by-tick archival, strategy/tick_collector.py), same pattern as
+# deploy/turion-event-driven.service. Separate unit, separate process -
+# this is pure data archival, no trading decisions, per this repo's
+# "each engine one responsibility" rule; a crash or restart here must
+# never affect the actual trading engine's own service.
+#
+# Install (once the VPS/repo checkout exists):
+#   sudo cp deploy/turion-tick-collector.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable turion-tick-collector
+#   sudo systemctl start turion-tick-collector
+#
+# Same access_token source as the trading engine (Firebase Realtime
+# Database, via report/firebase_realtime_sync.py's fetch_access_token())
+# - no separate login needed, no restart needed for a new token (it
+# re-fetches at its own startup only, same as turion-event-driven).
+#
+# No OnFailure alert wired up (unlike turion-event-driven.service) -
+# lost archival data for a few minutes during a crash/restart is a
+# minor gap, not worth a push notification the way a real trading
+# engine outage is. Revisit if this turns out to matter in practice.
+
+[Unit]
+Description=TURION ATM Tick Collector (WebSocket, archival only)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+
+WorkingDirectory=/opt/turion/TURION_AI_Trader
+ExecStart=/opt/turion/TURION_AI_Trader/venv/bin/python run_tick_collector.py
+
+# Same reasoning as turion-event-driven.service: a clean exit 0 (no
+# token yet) is NOT a crash and is intentionally not restarted by this
+# policy - only a real crash (bad tick data, WebSocket drop) restarts.
+Restart=on-failure
+RestartSec=10
+
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+User=turion
+EnvironmentFile=/opt/turion/TURION_AI_Trader/.env
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

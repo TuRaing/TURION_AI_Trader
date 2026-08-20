@@ -46,7 +46,12 @@ set -euo pipefail
 
 REPO_DIR="/opt/turion/TURION_AI_Trader"
 VENV_DIR="$REPO_DIR/venv"
-SERVICE_NAME="turion-event-driven"
+# Added 20-Aug-2026 - turion-tick-collector alongside the original
+# trading engine, once the ATM tick archival service existed too -
+# both restart on every deploy, same sudoers scope covers both (see
+# this repo's own visudo setup note for the exact NOPASSWD line, kept
+# in sync with SERVICE_NAMES here).
+SERVICE_NAMES="turion-event-driven turion-tick-collector"
 BRANCH="main"
 
 cd "$REPO_DIR"
@@ -84,11 +89,15 @@ echo "==> Installing/updating dependencies..."
 # this command only) - not set up yet, another VPS-side one-time step
 # once the box exists, same category as deploy/turion-event-driven.
 # service's own User=/WorkingDirectory placeholders.
-echo "==> Restarting $SERVICE_NAME..."
-sudo systemctl restart "$SERVICE_NAME"
+for SERVICE_NAME in $SERVICE_NAMES; do
+    echo "==> Restarting $SERVICE_NAME..."
+    sudo systemctl restart "$SERVICE_NAME"
+done
 
 sleep 2
-echo "==> Service status:"
-sudo systemctl status "$SERVICE_NAME" --no-pager -l | head -n 15
+for SERVICE_NAME in $SERVICE_NAMES; do
+    echo "==> Service status ($SERVICE_NAME):"
+    sudo systemctl status "$SERVICE_NAME" --no-pager -l | head -n 15
+done
 
 echo "==> Deploy complete ($REMOTE_REV)."
