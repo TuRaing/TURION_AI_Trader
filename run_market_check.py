@@ -16,20 +16,36 @@ from report.market_checks import (
 )
 
 # Added 19-Aug-2026 - the live wiring for report/market_checks.py's pure
-# functions, run every ~30 min DURING THIS SESSION (user's own explicit
-# choice, 19-Aug: not a VPS/cron script - the VPS doesn't exist yet,
-# target 10-Sep-2026 per doc/PROJECT_STATUS.md - and not GitHub Actions
-# either, just this session while it stays open). One command does the
-# whole check end-to-end so a scheduled prompt only has to run this file,
-# not re-derive the steps each time.
+# functions. Originally session-only (19-Aug), now DEPLOYED TO THE VPS
+# (20-Aug) alongside the trading engine and tick collector, once the
+# VPS existed.
+#
+# UPDATED 20-Aug-2026 - _resolve_access_token() below tries Firebase
+# Realtime Database FIRST (the VPS's only credential source - it has no
+# local Fyers login of its own, see report/firebase_realtime_sync.py),
+# falling back to the local .env token (get_access_token()) so this
+# same file still works unchanged when run by hand on a desktop that
+# HAS done its own local `python -m strategy.fyers_auth` login. Only
+# the token source changes; FYERS_APP_ID is still needed either way for
+# the Authorization header (added to the VPS's own .env alongside the
+# Firebase keys - not a secret, it's the same client_id already visible
+# in the plain-text OAuth login URL every login uses).
 
 IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
 DATA_BASE_URL = "https://api-t1.fyers.in/data"
 LOG_DIR = os.path.join("logs", "market_checks")
 
 
+def _resolve_access_token():
+    from report.firebase_realtime_sync import fetch_access_token
+
+    token = fetch_access_token()
+
+    return token if token else get_access_token()
+
+
 def _headers():
-    return {"Authorization": f"{_app_id()}:{get_access_token()}"}
+    return {"Authorization": f"{_app_id()}:{_resolve_access_token()}"}
 
 
 def _fetch_index_change_pct(fyers_symbol):
