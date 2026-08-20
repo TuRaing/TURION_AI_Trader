@@ -3340,6 +3340,22 @@ in this doc):
     gets provisioned at the end, to receive already-tested code, not
     as a prerequisite for writing it.
 
+UPDATE 20-Aug-2026 - TIMELINE ACCELERATED, VPS ACTUALLY LIVE: after
+declining twice earlier the same day to speed this up, the user
+changed their mind and did the real Vultr signup + full VPS setup +
+Firebase Part A same-day, ~3 weeks ahead of the 10-Sep target above -
+not because the trade-count data gate was reconsidered (oi_footprint's
+sample size wasn't re-checked as part of this decision), just a
+timeline choice. See doc/20aug26_SESSION_LOG.md's "VPS ACTUALLY
+PROVISIONED + FIREBASE PART A COMPLETED" entry for the full walkthrough
+(Vultr Mumbai, vhp-1c-1gb-amd $6/mo, systemd services B6-B16 all done,
+SSH hardened + fail2ban). Server: 65.20.78.253. STILL NOT LIVE-TESTED
+end-to-end (B17/B18) - blocked on a real access_token reaching the VPS
+via Firebase, which needs tomorrow's first Fyers login of the day
+(today's logins hit Fyers' own daily auth-attempt rate limit before
+Firebase was fully wired). The CODE PREP START date above (1-Sep) is
+now moot - all of it already exists and is already deployed.
+
 ==================================================
 
 REAL-CAPITAL ROADMAP - 4 STAGES, 13-Aug - user's own staged plan,
@@ -7008,11 +7024,11 @@ Status
 
 Current Version
 
-v0.0.47
+v0.0.48
 
 Next Version
 
-v0.0.48
+v0.0.49
 
 ==================================================
 

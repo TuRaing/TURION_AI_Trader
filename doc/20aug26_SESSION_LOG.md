@@ -118,35 +118,178 @@ dismissed.
 
 --------------------------------------------------
 
+VPS ACTUALLY PROVISIONED + FIREBASE PART A COMPLETED - SAME DAY,
+TIMELINE ACCELERATED FROM 10-Sep TO 20-Aug: user changed their mind
+mid-session (after initially declining, twice, to accelerate VPS/
+GitHub-Actions work earlier today) and decided to just do the real
+Vultr signup + VPS setup + Firebase Part A right now, walked through
+live, screenshot by screenshot.
+
+VULTR SIGNUP (real money, user's own clicks throughout - Claude never
+touched payment fields, per this project's own safety rules):
+- Card linking hit two real errors: "$0 deposit" linking denied (many
+  Indian cards reject zero-value auth), then a genuine $5 charge also
+  denied ("denied by the credit card issuer") even with international
+  transactions enabled on a debit card - root cause never fully
+  confirmed (likely bank-side 3D-Secure/OTP handling gap with Vultr's
+  gateway), worked around by using PayPal instead - succeeded.
+- Plan: Shared CPU -> High Performance -> AMD, vhp-1c-1gb-amd, $6/mo,
+  Mumbai. Automatic Backups disabled (server is fully disposable - all
+  real state lives in GitHub/Firebase, not on the VPS disk - saves
+  $1.20/mo for zero real risk).
+- SSH key UI moved since the Go-Live Runbook artifact was written -
+  not under Account or the instance-creation dropdown, actually under
+  Orchestration -> SSH Keys (console.vultr.com/sshkeys/). Runbook is
+  now further out of date than previously known (see below).
+- OS: Ubuntu 26.04 LTS (newer than the runbook's 22.04 - fine, deploy/
+  files are generic systemd/apt, no version-specific assumptions).
+- Server created (65.20.78.253, Mumbai), came up "Stopped" initially
+  in the dashboard (which was also generally slow/laggy) - verified
+  directly via SSH instead of trusting the dashboard, which already
+  showed it fully booted and reachable.
+
+RUNBOOK ARTIFACT CONFIRMED STALE IN TWO PLACES, same session (28b820c3
+-da1b-4060-836b-4112991569e7, "Engine Go-Live Runbook"): (1) Part B
+still named DigitalOcean/AWS Lightsail as the provider, when Vultr
+Mumbai was already decided 18-Aug - corrected live rather than
+followed. (2) Part A's "you already have a Firebase project... 
+FIREBASE_SERVICE_ACCOUNT is already a GitHub secret" line was
+MISLEADING - a project did already exist (turion-ai-trader), reused
+correctly, but the user had never actually touched Firebase Console
+before and said so - real GitHub Actions log evidence (see below)
+showed only FIREBASE_DATABASE_URL was actually missing at the time,
+not both, contradicting an earlier same-session guess that both were
+missing. The artifact itself was NOT edited this session - flagging
+here so a future session double-checks it before trusting it again
+rather than re-discovering the same two staleness gaps.
+
+FIREBASE PART A - DONE: reused the existing "TURION AI Trader" project
+(turion-ai-trader) rather than creating a new one. Realtime Database
+created - Mumbai (asia-south1) is not an available RTDB region,
+Singapore (asia-southeast1) is the closest real option and was used
+(matches the runbook's own hedge about this). Locked-mode security
+rules published from firebase/database.rules.json unchanged. Database
+URL: https://turion-ai-trader-default-rtdb.asia-southeast1.
+firebasedatabase.app - added as the FIREBASE_DATABASE_URL GitHub
+Actions secret (user's own manual step, Claude has no secrets-write
+PAT locally). Generated a NEW service account private key (Project
+Settings -> Service Accounts) specifically for the VPS's local .env,
+rather than trying to recover the existing GitHub-secret one (which
+can never be read back - write-only by design).
+
+REAL BUG FOUND AND FIXED - systemd EnvironmentFile mangles embedded
+`\n` escapes in unquoted values: the service-account JSON's private_
+key field contains ~28 literal `\n` escape sequences (PEM line
+breaks). Writing `KEY=<raw minified JSON>` into a systemd
+EnvironmentFile= target caused systemd's own parser to silently
+convert each into a real newline byte, corrupting the value by
+exactly 28 characters (confirmed via a live diagnostic: `systemd-run`
+with the same EnvironmentFile, printing os.environ length/content
+directly - 2318 chars delivered vs 2346 in the source file) - this
+surfaced as a cryptography/PEM parse error ("InvalidData, offset
+1652"), not a JSON parse error, which was the confusing part.
+FIX: wrap the whole value in single quotes in the .env file
+(`KEY='<json>'`) - systemd's parser does not interpret escapes inside
+single-quoted values (matches POSIX shell single-quote semantics).
+Re-verified via the same systemd-run diagnostic: exact length
+preserved (2346), valid JSON, project_id readable. Not a bug in any
+of this repo's own Python code - purely a systemd EnvironmentFile
+quoting gotcha, worth remembering for any future secret with embedded
+newlines delivered this way.
+
+FYERS DAILY LOGIN/AUTH RATE LIMIT DISCOVERED (real, not code): Fyers'
+own generate-authcode/access-token exchange has a per-day cap. Today's
+morning mobile-app login (before Firebase was configured, so it never
+synced to Firebase) plus a same-day re-login attempt (after Firebase
+was configured, meant to complete the sync) together hit "API Limit
+exceeded per day" (Fyers error -353) - the re-login's own auth
+exchange failed outright. A third attempt (this session's own local
+desktop login via `python -m strategy.fyers_auth`, needed separately
+since the local .env token store is completely independent from both
+the GitHub-secret and Firebase-synced tokens) DID succeed for the
+auth-code exchange itself, but the subsequent verify_connection()
+profile-endpoint call hit the SAME daily limit on a different Fyers
+endpoint - confirms local desktop and mobile-app logins are genuinely
+separate credential paths that can independently succeed/fail.
+NET RESULT: local desktop Fyers checks now work (today's date). The
+VPS still has NO live token today - Firebase-side sync needs
+TOMORROW's first mobile login of the day to actually go through
+cleanly (Firebase is now properly configured, so it should sync on
+the very first attempt rather than needing a second one).
+
+VPS SETUP COMPLETED (Runbook Part B, B6-B16) - all done live via SSH,
+verified after each step:
+- B6-B9: prerequisites, `turion` service user (nologin), repo clone,
+  venv + all dependencies (92 packages, clean imports).
+- B10-B11: .env (fixed per the systemd bug above), ownership, 600
+  permissions.
+- B12: scoped passwordless sudo - exactly 2 systemctl commands,
+  syntax-verified with visudo -c.
+- B13: both systemd units installed + enabled. Manually started once
+  to confirm the "no token yet -> clean exit 0" path works exactly as
+  designed (not a crash) - this is expected/correct given no VPS
+  token exists yet, not a failure.
+- B14: verified via systemctl status + journalctl output directly.
+- B15: both cron entries added for the `turion` user (08:00 IST daily
+  deploy, 08:00-09:59 IST 5-min retry-start window).
+- B16: deploy.sh dry-run succeeded as the `turion` user (deploy.sh
+  itself needed `chmod +x` first - wasn't executable after git clone,
+  fixed inline).
+- B17 (crash-alert live test) and B18 (real live run) explicitly NOT
+  done yet - both need a real access_token, which needs tomorrow's
+  first login. Do not skip these once a token is available - they're
+  the only remaining unverified pieces of the whole event-driven/VPS
+  build.
+
+VPS SECURITY HARDENING - user's own follow-up ask, same session, done
+proactively rather than left as a known gap:
+- Found via direct inspection (not assumed): password SSH auth was
+  ENABLED (Vultr's own cloud-init default, sshd_config.d/50-cloud-
+  init.conf) and root permitted full password login
+  (sshd_config's PermitRootLogin yes) - a real, meaningful gap since
+  Vultr also displays a root password in its own dashboard.
+  ufw (port 22 only) and unattended-upgrades were ALREADY on by
+  Vultr's own defaults - not this session's doing, just verified.
+- FIXED: PermitRootLogin -> prohibit-password (key-only root login,
+  not password), PasswordAuthentication -> no (key-only for every
+  user). Verified live key-based access still worked immediately
+  after `systemctl reload ssh` - before considering it safe, not
+  after, to avoid a real lockout risk.
+- Installed and enabled fail2ban with a basic sshd jail (5 attempts /
+  10 min window -> 1 hour ban) - confirmed active and monitoring via
+  fail2ban-client status.
+
+--------------------------------------------------
+
 Next Session
 
-1. Same as 19-Aug's item 1 (Firebase Console + service account key) -
-   still open, still the real unblock for durable scheduling.
+1. FIRST THING once the user has done today's/tomorrow's morning Fyers
+   login: check GitHub Actions' "Fyers Login Trigger" run for "Shared
+   today's token via Firebase Realtime Database." (not the generic
+   skip message), then SSH to 65.20.78.253 and check `systemctl status
+   turion-event-driven` / `journalctl -u turion-event-driven -f` -
+   this is B17 (crash-alert test, `systemctl kill --signal=SIGKILL`)
+   and B18 (real live run) from the Go-Live Runbook, still the only
+   unverified pieces of the whole VPS build.
 
-2. Same as 19-Aug's item 2 (durable Scheduled Task) - still open.
-   Do NOT default to a GitHub-Actions-workflow version of the health
-   check without asking the user first - already explicitly declined
-   once today (20-Aug) in favor of waiting for the VPS.
+2. The Go-Live Runbook artifact (28b820c3-da1b-4060-836b-4112991569e7)
+   is now confirmed stale in the two places noted above (provider
+   name, Firebase-already-configured claim) - worth a proper update
+   pass once the VPS is fully live-verified, rather than patching it
+   piecemeal mid-walkthrough again next time.
 
-3. Resume the paused Vultr VPS signup walkthrough - unchanged from
-   19-Aug's item 3.
+3. Off-machine backup copy (OneDrive sign-in, or a USB/pendrive once
+   the user has one) - still open, unchanged from earlier today.
 
-4. Low-priority, flagged not fixed: the git-rebase-retry bug in
-   .github/workflows/fyers_trigger.yml's "Commit updated Fyers state"
-   step (`git pull --rebase` -> `git pull --rebase --autostash`,
-   check other workflow YAML files for the same duplicated pattern).
-   A background task was spawned for this same session - check if it
-   was picked up before redoing the investigation.
+4. Low-priority, still flagged not fixed: the git-rebase-retry bug in
+   .github/workflows/fyers_trigger.yml (`git pull --rebase` ->
+   `--rebase --autostash`) - a background task was spawned for this
+   earlier same session, check if it was picked up.
 
-5. Off-machine backup copy (OneDrive sign-in, or a USB/pendrive once
-   the user has one) - the local D:\ backup made today does not
-   protect against this laptop itself failing/being lost.
-
-6. DONE, same session - see "CONFIRMED DEPRECATED" above.
-   fyers_options_watch.yml confirmed dead (last run 06-Aug) via the
-   GitHub API - documented as deprecated in both the workflow YAML
-   and strategy/fyers_options_paper_trading.py rather than fixed;
-   not worth gating a workflow nothing triggers anymore.
+5. DONE, same session - see "VPS ACTUALLY PROVISIONED" and "VPS
+   SECURITY HARDENING" above. The VPS itself (Runbook Part B, B6-B16)
+   and Firebase Part A are both complete; SSH hardened (key-only,
+   fail2ban). Only B17/B18 (needs a live token) remain.
 
 ==================================================
 
