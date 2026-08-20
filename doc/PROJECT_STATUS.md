@@ -6986,14 +6986,23 @@ instead (reuses the existing FYERS_ACCESS_TOKEN secret, no separate
 local login, survives this session closing) - user initially agreed,
 then reconsidered mid-build and asked to just wait for VPS instead
 rather than build either the session-cron or the GitHub-Actions
-version. ALL FOUR CronCreate jobs deleted same session. Net result:
-the health-check module and both entry scripts exist, are committed,
-and are fully tested (17/17), but NOTHING IS SCHEDULED anywhere right
-now - a future session must not assume any of this is running, and
-should not rebuild the GitHub-Actions-workflow idea without checking
-with the user first (already explicitly declined once, 20-Aug). Real
-scheduling stays parked until the VPS (10-Sep track, see LIVE-DATA
-ARCHITECTURE section above) exists.
+version. ALL FOUR CronCreate jobs deleted same session.
+
+FINAL UPDATE, SAME DAY (20-Aug, later): moot - the VPS got provisioned
+same-day after all (see LIVE-DATA ARCHITECTURE section's own 20-Aug
+update). Fixed a real gap first: _resolve_access_token() added to both
+entry scripts (tries Firebase Realtime Database first, falls back to
+the local .env token) since the VPS has no local Fyers login of its
+own, only a Firebase-sourced one. Deployed and cron-scheduled on the
+VPS itself as the `turion` user - pre-market 08:43 IST, running-market
+every 30 min 08:45-15:15, closing checks 15:30 AND 15:45 (all weekdays).
+Manually verified correct behavior on the VPS before trusting the cron.
+THIS IS NOW LIVE AND FULLY VPS-RESIDENT, independent of any desktop
+session - see doc/20aug26_SESSION_LOG.md's "HEALTH-CHECK SCRIPTS ALSO
+DEPLOYED" entry for the full detail. A future session should assume
+these ARE running (verify via `crontab -u turion -l` and /var/log/
+turion-health-check.log on the VPS if in doubt) - the "nothing is
+scheduled" caveat above is now stale.
 
 Code committed (ca0d9934c, 56ef6c20d).
 
@@ -7018,17 +7027,34 @@ DEVELOPMENT RULES
 
 ==================================================
 
+ATM TICK-BY-TICK COLLECTOR BUILT AND DEPLOYED (20-Aug) - follow-up to
+the 15-Aug "TICK-BY-TICK DATA STORAGE" research above, now buildable
+since the VPS exists. ATM-only (not OTM, not the full chain) - user's
+own choice, matches every live strategy's actual traded instruments.
+strategy/tick_collector.py (pure, tested) + run_tick_collector.py
+(VPS WebSocket entry point, re-picks ATM every 15 min, reuses event_
+driven_runner.py's pick_atm_symbols()) - deployed as turion-tick-
+collector.service, deploy.sh now restarts it alongside the trading
+engine on every daily deploy. Estimated ~1-2.4 GB/month at real
+narrow-scope tick rates - comfortably fits the VPS's 25GB disk for
+months even unattended. STORAGE: Backblaze B2 deliberately deferred
+(run_tick_upload.py exists, unused) - user chose a free interim
+instead, sync_ticks_from_vps.py pulls completed days down to the
+desktop over SCP. See doc/20aug26_SESSION_LOG.md for full detail.
+
+==================================================
+
 Status
 
 🟢 Stable
 
 Current Version
 
-v0.0.48
+v0.0.49
 
 Next Version
 
-v0.0.49
+v0.0.50
 
 ==================================================
 

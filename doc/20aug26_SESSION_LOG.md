@@ -261,6 +261,70 @@ proactively rather than left as a known gap:
 
 --------------------------------------------------
 
+ATM TICK-BY-TICK COLLECTOR BUILT AND DEPLOYED - follow-up to 15-Aug's
+"TICK-BY-TICK DATA STORAGE" research (discussion only, no code at the
+time) - now buildable since a real VPS exists to hold the persistent
+WebSocket. User's own explicit scope choice: ATM only (not OTM, not
+the full chain) - confirmed this matches every live strategy in the
+project (all trade ATM), and walked through the ATM-vs-ITM-vs-OTM
+reasoning (Gamma/% sensitivity, capital efficiency) as part of that
+discussion.
+
+strategy/tick_collector.py (pure, tested - atm_has_drifted(),
+tick_log_filename(), format_tick_record(), filter_completed_
+filenames()) + run_tick_collector.py (VPS WebSocket entry point,
+subscribes to spot/ATM-CE/ATM-PE for both indices via event_driven_
+runner.py's existing pick_atm_symbols(), re-picks ATM every 15 min and
+re-subscribes on drift - improves on the trading engine's own known
+"ATM picked once at startup" limitation, just for this collector).
+Estimated size worked through with the user: ~40-100 MB/day, ~1-2.4
+GB/month at real narrow-scope tick rates - comfortably fits the VPS's
+own 25GB disk for many months even with no upload at all.
+
+STORAGE DESTINATION - user's own choice, deliberately deferred cloud
+spend: skip Backblaze B2 for now (run_tick_upload.py exists, gracefully
+no-ops until B2 credentials exist), instead sync_ticks_from_vps.py
+pulls each completed day down to THIS laptop over SCP (verifies file
+size before deleting the VPS copy) - free for as long as it's needed,
+matches [[feedback_data_driven_patience]]. Both destinations share one
+rule (filter_completed_filenames()) for "what counts as a completed
+day" so they can never drift apart if B2 is added later.
+
+Deployed: deploy/turion-tick-collector.service added (mirrors turion-
+event-driven.service), deploy.sh updated to restart BOTH services on
+every daily deploy (SERVICE_NAMES, was a single SERVICE_NAME). Pulled
+onto the VPS, installed, enabled, started - confirmed the exact same
+clean "no token yet, exiting" behavior as the trading engine (correct,
+not a failure).
+
+HEALTH-CHECK SCRIPTS ALSO DEPLOYED TO THE VPS - completing what was
+explicitly paused 19-Aug pending the VPS. Real gap found and fixed
+first: run_pre_market_check.py/run_market_check.py's _headers() only
+knew how to read a LOCAL .env token (get_access_token()) - the VPS has
+no local Fyers login of its own, only a Firebase-sourced one. Added
+_resolve_access_token() to both files (tries report/firebase_realtime_
+sync.py's fetch_access_token() first, falls back to the local .env
+token) so the exact same files work unchanged on both the VPS and this
+desktop. Also added FYERS_APP_ID to the VPS's .env (needed for the
+Authorization header regardless of token source - not sensitive, the
+same client_id already visible in the plain-text OAuth login URL).
+
+Verified manually on the VPS before trusting the cron: run_pre_market_
+check.py correctly showed "token NOT ready" (accurate - no login yet),
+run_market_check.py correctly fell back to scanning real reports/*.json
+data (already present via the VPS's own git checkout) and found the
+same real unusual-trade pattern this session found earlier by hand.
+
+Cron installed for the `turion` user (all times IST, converted to the
+VPS's UTC clock, Mon-Fri): pre-market 08:43, running-market every 30
+min 08:45-15:15, closing checks at 15:30 AND 15:45 (user's own explicit
+ask for the second one, added after the rest was already running).
+This is now FULLY independent of any desktop session - the exact
+limitation flagged in yesterday's (19-Aug) health-check entry no longer
+applies once the VPS took over.
+
+--------------------------------------------------
+
 Next Session
 
 1. FIRST THING once the user has done today's/tomorrow's morning Fyers
@@ -270,26 +334,38 @@ Next Session
    turion-event-driven` / `journalctl -u turion-event-driven -f` -
    this is B17 (crash-alert test, `systemctl kill --signal=SIGKILL`)
    and B18 (real live run) from the Go-Live Runbook, still the only
-   unverified pieces of the whole VPS build.
+   unverified pieces of the whole VPS build. Same first-login moment
+   also unblocks and should be checked for: `systemctl status turion-
+   tick-collector` (should start producing real ticks in data/ticks/)
+   and the health-check crons' /var/log/turion-health-check.log
+   (should start showing "token ready" instead of "NOT ready").
 
-2. The Go-Live Runbook artifact (28b820c3-da1b-4060-836b-4112991569e7)
+2. Once a few real days of tick data exist: run sync_ticks_from_vps.py
+   from this laptop to pull them down, confirm the size-check/delete
+   logic actually works end-to-end (not yet exercised - no real files
+   existed on the VPS when it was written). Revisit whether/when to
+   set up Backblaze B2 (run_tick_upload.py already exists, unused).
+
+3. The Go-Live Runbook artifact (28b820c3-da1b-4060-836b-4112991569e7)
    is now confirmed stale in the two places noted above (provider
    name, Firebase-already-configured claim) - worth a proper update
    pass once the VPS is fully live-verified, rather than patching it
    piecemeal mid-walkthrough again next time.
 
-3. Off-machine backup copy (OneDrive sign-in, or a USB/pendrive once
+4. Off-machine backup copy (OneDrive sign-in, or a USB/pendrive once
    the user has one) - still open, unchanged from earlier today.
 
-4. Low-priority, still flagged not fixed: the git-rebase-retry bug in
+5. Low-priority, still flagged not fixed: the git-rebase-retry bug in
    .github/workflows/fyers_trigger.yml (`git pull --rebase` ->
    `--rebase --autostash`) - a background task was spawned for this
    earlier same session, check if it was picked up.
 
-5. DONE, same session - see "VPS ACTUALLY PROVISIONED" and "VPS
-   SECURITY HARDENING" above. The VPS itself (Runbook Part B, B6-B16)
-   and Firebase Part A are both complete; SSH hardened (key-only,
-   fail2ban). Only B17/B18 (needs a live token) remain.
+6. DONE, same session - see "VPS ACTUALLY PROVISIONED", "VPS SECURITY
+   HARDENING", "ATM TICK-BY-TICK COLLECTOR", and "HEALTH-CHECK SCRIPTS
+   ALSO DEPLOYED" above. The VPS itself (Runbook Part B, B6-B16),
+   Firebase Part A, the tick collector, and all 3 daily health checks
+   are ALL live and cron-scheduled on the VPS now - fully independent
+   of any desktop session. Only B17/B18 (needs a live token) remain.
 
 ==================================================
 
