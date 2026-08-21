@@ -27,6 +27,12 @@ const _books = [
   (key: 'simple_st1_threshold_eventdriven', label: 'Simple ST1 Threshold', underlying: 'NIFTY'),
   (key: 'oi_footprint_eventdriven_nifty', label: 'OI Footprint', underlying: 'NIFTY'),
   (key: 'oi_footprint_eventdriven_banknifty', label: 'OI Footprint', underlying: 'BANKNIFTY'),
+  // Added 21-Aug-2026 - the two new daily-profit-lock variant books
+  // (strategy/event_driven_runner.py's STRATEGY_NAMES, same day) -
+  // separate books running alongside the plain ones above, not a
+  // replacement of them.
+  (key: 'st2_threshold_lock_eventdriven', label: 'ST2 Threshold (2% Lock)', underlying: 'NIFTY'),
+  (key: 'simple_st1_threshold_lock_eventdriven', label: 'Simple ST1 Threshold (2% Lock)', underlying: 'NIFTY'),
 ];
 
 class VpsScreen extends StatefulWidget {
