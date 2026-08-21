@@ -159,13 +159,7 @@ Stream<Map<String, dynamic>?> watchStrategyTick(String strategyName, String leg)
 /// same seed-on-open pattern as fetchLiveCandles() below.
 Future<List<Map<String, dynamic>>> fetchStrategyCandles(String strategyName, String leg) async {
   final snapshot = await _database.ref('$_strategyCandlesPath/$strategyName/$leg').get();
-  final raw = snapshot.value;
-
-  if (raw is! List) {
-    return <Map<String, dynamic>>[];
-  }
-
-  return raw.whereType<Object>().map(_deepCastToStringKeyedMap).toList();
+  return _castCandleList(snapshot.value);
 }
 
 const _liveCandlesPath = 'live_candles';
@@ -184,13 +178,35 @@ const _liveCandlesPath = 'live_candles';
 /// other "nothing yet" path in this file).
 Future<List<Map<String, dynamic>>> fetchLiveCandles(String index) async {
   final snapshot = await _database.ref('$_liveCandlesPath/$index').get();
-  final raw = snapshot.value;
+  return _castCandleList(snapshot.value);
+}
 
-  if (raw is! List) {
-    return <Map<String, dynamic>>[];
+// FIXED 21-Aug-2026 - real bug caught live on a real device: both
+// fetchLiveCandles() and fetchStrategyCandles() only ever handled
+// `raw is List`, so a real backend-synced candle array (confirmed via
+// a direct REST check - the data was genuinely there) still rendered
+// as a completely empty chart. Root cause: the Realtime Database
+// client SDK does not always deserialize a JSON array back into a
+// Dart List - depending on how it was written, it can come back as a
+// Map with numeric STRING keys ("0","1","2",...) instead (a known
+// firebase_database quirk, distinct from the REST API's own behavior,
+// which always shows a plain JSON array - exactly why testing this
+// via curl looked fine while the app showed nothing). Handles both
+// shapes now; the Map case sorts by the numeric key to restore
+// oldest-first order.
+List<Map<String, dynamic>> _castCandleList(dynamic raw) {
+  if (raw is List) {
+    return raw.whereType<Object>().map(_deepCastToStringKeyedMap).toList();
   }
 
-  return raw.whereType<Object>().map(_deepCastToStringKeyedMap).toList();
+  if (raw is Map) {
+    final entries = raw.entries.toList()
+      ..sort((a, b) =>
+          (int.tryParse(a.key.toString()) ?? 0).compareTo(int.tryParse(b.key.toString()) ?? 0));
+    return entries.map((e) => _deepCastToStringKeyedMap(e.value)).toList();
+  }
+
+  return <Map<String, dynamic>>[];
 }
 
 Map<String, dynamic> _deepCastToStringKeyedMap(dynamic value) {
