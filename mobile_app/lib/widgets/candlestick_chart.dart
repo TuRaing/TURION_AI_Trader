@@ -95,7 +95,21 @@ class _CandlestickChartState extends State<CandlestickChart> {
 
     // A little headroom so a reference line sitting exactly at the
     // extreme doesn't get drawn flush against the chart edge.
-    final pad = (maxPrice - minPrice) * 0.04;
+    // FIXED 21-Aug-2026 - real bug caught live on a real device:
+    // post-market-close, every candle in the window can be perfectly
+    // flat (Open=High=Low=Close identical across the whole history,
+    // confirmed live at 24,252 all the way down) - maxPrice==minPrice
+    // made this 4% padding exactly 0, so every candle collapsed to a
+    // single pixel row (the painter's own range==0 fallback keeps it
+    // from dividing by zero, but the visible result was an invisible
+    // sliver at the very bottom edge, not a flat line anyone could
+    // actually see). A minimum floor (0.5% of the price itself, or a
+    // flat 1.0 unit if price is exactly 0) keeps a real vertical band
+    // on screen even when every candle is identical.
+    var pad = (maxPrice - minPrice) * 0.04;
+    if (pad <= 0) {
+      pad = maxPrice == 0 ? 1.0 : maxPrice.abs() * 0.005;
+    }
     maxPrice += pad;
     minPrice -= pad;
 
