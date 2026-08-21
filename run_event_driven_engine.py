@@ -1,7 +1,21 @@
 import os
 import sys
 
-sys.stdout.reconfigure(encoding="utf-8")
+sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)
+# FIXED 21-Aug-2026 - real bug caught live: under systemd, stdout isn't
+# a TTY, so Python defaults to full block buffering (~8KB) instead of
+# line buffering - every print() in this whole process (including
+# every strategy/*.py module it imports) could sit unflushed for a
+# long time rather than reaching `journalctl` promptly. Confirmed live
+# with strategy/event_driven_runner.py's new OI-refresh confirmation
+# log: the code was running correctly (verified independently via
+# portfolio file mtimes ticking every second), but its print() never
+# showed up after 6+ minutes - only stderr tracebacks (Python's
+# default unhandled-exception handler, which isn't subject to this
+# buffering) were ever visible, creating a false impression that real,
+# working code had silently stopped running. line_buffering=True
+# flushes on every newline, matching what anyone tailing `journalctl
+# -u turion-event-driven -f` actually expects.
 
 from report.firebase_realtime_sync import fetch_access_token
 from strategy.event_driven_runner import main as run_event_driven_engine

@@ -5,7 +5,11 @@ import sys
 import threading
 import time
 
-sys.stdout.reconfigure(encoding="utf-8")
+sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)
+# FIXED 21-Aug-2026 - same buffering fix as run_event_driven_engine.py's
+# matching line (see that file's comment for the full real-incident
+# detail) - applied here too for consistency, this process runs under
+# the identical systemd/non-TTY conditions.
 
 from report.firebase_realtime_sync import fetch_access_token, sync_live_tick
 from strategy.event_driven_runner import pick_atm_symbols
