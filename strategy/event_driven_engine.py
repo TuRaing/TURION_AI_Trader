@@ -204,9 +204,18 @@ def rsi_momentum_decide_fn(cfg, position, data_point):
         if data_point.get("past_squareoff"):
             return "SKIPPED (past square-off time)", None, None
 
-        if cfg.get("daily_profit_lock") and \
-                data_point.get("today_realized_pnl", 0) >= cfg.get("daily_profit_lock_rs", 2000):
-            return "SKIPPED (today's profit lock reached)", None, None
+        if cfg.get("daily_profit_lock"):
+            # CHANGED 21-Aug-2026, user's own follow-up ask - percentage
+            # of initial_capital (scales with capital), not a flat
+            # rupee figure - matches fyers_options_engine.py's own
+            # daily_profit_lock_pct convention. ">=", not "==" or a hard
+            # cap on the triggering trade itself - a single trade is
+            # free to close above the threshold (its own Target/Stop-
+            # Loss decides that), this only blocks the NEXT new entry
+            # once today's cumulative realized PnL has reached it.
+            threshold = cfg["initial_capital"] * (cfg.get("daily_profit_lock_pct", 2.0) / 100)
+            if data_point.get("today_realized_pnl", 0) >= threshold:
+                return "SKIPPED (today's profit lock reached)", None, None
 
         if _near_circuit(data_point):
             return "SKIPPED (near circuit band)", None, None
@@ -282,22 +291,29 @@ def rsi_momentum_decide_fn(cfg, position, data_point):
 
 def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
                                   hybrid_sl_cap_pct=2.0, spread_pct=None,
-                                  daily_profit_lock=False, daily_profit_lock_rs=2000):
+                                  daily_profit_lock=False, daily_profit_lock_pct=2.0):
     """
     cfg builder for rsi_momentum_decide_fn - mirrors fyers_options_
     engine.py's make_strategy() field names where they overlap, so a
     real Fyers response can be mapped into a data_point without a
     second translation layer to keep in sync later.
 
-    daily_profit_lock/daily_profit_lock_rs - added 21-Aug-2026, at the
+    daily_profit_lock/daily_profit_lock_pct - added 21-Aug-2026, at the
     user's own request after today's real -Rs 22,949.63 stale-data
     incident (see event_driven_runner.py's own STRATEGY_NAMES comment
     for the "separate locked variant, not a change to the existing
     live books" reasoning). Defaults to False/no behavior change for
-    every existing call site - mirrors fyers_options_engine.py's own
-    daily_profit_lock/DAILY_PROFIT_LOCK_RS=2000 flat-rupee convention,
-    NOT its daily_profit_lock_pct variant (user asked for the flat
-    Rs 2000 form specifically).
+    every existing call site. CHANGED same day to percentage-of-
+    capital (matches fyers_options_engine.py's own daily_profit_lock_
+    pct convention) rather than the original flat Rs 2000 - user's own
+    explicit follow-up ask, so the lock scales if initial_capital ever
+    changes rather than staying pinned to a number that only happened
+    to equal 2% at Rs 100,000. Does NOT cap the triggering trade itself
+    - that trade's own Target/Stop-Loss decides its exit; this only
+    blocks the NEXT new entry once today's cumulative realized PnL has
+    reached the threshold (user's own explicit "जर तो trade 2% च्या
+    वरती... close झाला तरी चालेल" - a single trade closing above 2% is
+    fine, the daily minimum just has to be reached before the lock).
     """
 
     return {
@@ -309,20 +325,20 @@ def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
         "hybrid_sl_cap_pct": hybrid_sl_cap_pct,
         "spread_pct": spread_pct,
         "daily_profit_lock": daily_profit_lock,
-        "daily_profit_lock_rs": daily_profit_lock_rs,
+        "daily_profit_lock_pct": daily_profit_lock_pct,
     }
 
 
 def make_simple_st1_threshold_event_cfg(index, lot_size, initial_capital=100000,
                                          hybrid_sl_cap_pct=2.0, spread_pct=None,
-                                         daily_profit_lock=False, daily_profit_lock_rs=2000):
+                                         daily_profit_lock=False, daily_profit_lock_pct=2.0):
     """
     cfg builder for rsi_momentum_decide_fn, simple_st1_threshold's real
     ratios (Target 3%, Stop-Loss 3% - symmetric, vs st2_threshold's
     5%/2%) - same decide_fn, only cfg differs, per this module's 18-Aug
     generalization note above.
 
-    daily_profit_lock/daily_profit_lock_rs - see make_st2_threshold_
+    daily_profit_lock/daily_profit_lock_pct - see make_st2_threshold_
     event_cfg()'s matching 21-Aug-2026 note above.
     """
 
@@ -335,7 +351,7 @@ def make_simple_st1_threshold_event_cfg(index, lot_size, initial_capital=100000,
         "hybrid_sl_cap_pct": hybrid_sl_cap_pct,
         "spread_pct": spread_pct,
         "daily_profit_lock": daily_profit_lock,
-        "daily_profit_lock_rs": daily_profit_lock_rs,
+        "daily_profit_lock_pct": daily_profit_lock_pct,
     }
 
 
@@ -398,9 +414,18 @@ def oi_footprint_decide_fn(cfg, position, data_point):
         if data_point.get("past_squareoff"):
             return "SKIPPED (past square-off time)", None, None
 
-        if cfg.get("daily_profit_lock") and \
-                data_point.get("today_realized_pnl", 0) >= cfg.get("daily_profit_lock_rs", 2000):
-            return "SKIPPED (today's profit lock reached)", None, None
+        if cfg.get("daily_profit_lock"):
+            # CHANGED 21-Aug-2026, user's own follow-up ask - percentage
+            # of initial_capital (scales with capital), not a flat
+            # rupee figure - matches fyers_options_engine.py's own
+            # daily_profit_lock_pct convention. ">=", not "==" or a hard
+            # cap on the triggering trade itself - a single trade is
+            # free to close above the threshold (its own Target/Stop-
+            # Loss decides that), this only blocks the NEXT new entry
+            # once today's cumulative realized PnL has reached it.
+            threshold = cfg["initial_capital"] * (cfg.get("daily_profit_lock_pct", 2.0) / 100)
+            if data_point.get("today_realized_pnl", 0) >= threshold:
+                return "SKIPPED (today's profit lock reached)", None, None
 
         if _near_circuit(data_point):
             return "SKIPPED (near circuit band)", None, None

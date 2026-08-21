@@ -68,7 +68,7 @@ def test_skips_open_when_before_market_open():
 
 
 def test_skips_open_when_daily_profit_lock_reached():
-    cfg = _cfg(daily_profit_lock=True, daily_profit_lock_rs=2000)
+    cfg = _cfg(daily_profit_lock=True, daily_profit_lock_pct=2.0)
 
     action, position, trade = rsi_momentum_decide_fn(cfg, None, _data_point(today_realized_pnl=2500))
 
@@ -77,11 +77,23 @@ def test_skips_open_when_daily_profit_lock_reached():
 
 
 def test_daily_profit_lock_does_not_skip_below_threshold():
-    cfg = _cfg(daily_profit_lock=True, daily_profit_lock_rs=2000)
+    cfg = _cfg(daily_profit_lock=True, daily_profit_lock_pct=2.0)
 
     action, position, trade = rsi_momentum_decide_fn(cfg, None, _data_point(today_realized_pnl=1500))
 
     assert "OPENED" in action
+
+
+def test_daily_profit_lock_threshold_scales_with_initial_capital():
+    # Rs 2,000 was only ever 2% of Rs 100,000 by coincidence - confirm
+    # the lock is a real percentage, not a number that happens to match.
+    cfg = _cfg(initial_capital=200000, daily_profit_lock=True, daily_profit_lock_pct=2.0)
+
+    below = rsi_momentum_decide_fn(cfg, None, _data_point(today_realized_pnl=3000))[0]
+    at_threshold = rsi_momentum_decide_fn(cfg, None, _data_point(today_realized_pnl=4000))[0]
+
+    assert "OPENED" in below
+    assert "SKIPPED (today's profit lock reached)" in at_threshold
 
 
 def test_daily_profit_lock_ignored_when_flag_is_off():
@@ -93,7 +105,7 @@ def test_daily_profit_lock_ignored_when_flag_is_off():
 
 
 def test_daily_profit_lock_does_not_block_managing_an_existing_position():
-    cfg = _cfg(daily_profit_lock=True, daily_profit_lock_rs=2000)
+    cfg = _cfg(daily_profit_lock=True, daily_profit_lock_pct=2.0)
     _, position, _ = rsi_momentum_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ltp=100.0))
 
     action, new_position, trade = rsi_momentum_decide_fn(

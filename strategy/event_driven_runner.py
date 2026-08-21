@@ -69,7 +69,7 @@ STRATEGY_NAMES = {
     "oi_footprint_banknifty": "oi_footprint_eventdriven_banknifty",
     # Added 21-Aug-2026, user's own explicit ask after today's real
     # -Rs 22,949.63 stale-data incident (see event_driven_engine.py's
-    # daily_profit_lock cfg note): a Rs 2,000 daily-profit-lock variant
+    # daily_profit_lock cfg note): a 2% daily-profit-lock variant
     # of each RSI-momentum book, running ALONGSIDE (not replacing) the
     # existing two - user explicitly asked to leave st2_threshold/
     # simple_st1_threshold themselves unchanged, matching this repo's
@@ -279,7 +279,7 @@ def build_runners(execution_backend=None):
     for index, cfg_builder, decide_fn, key, cfg_overrides in (
         ("NIFTY", make_st2_threshold_event_cfg, rsi_momentum_decide_fn, "st2_threshold", {}),
         ("NIFTY", make_simple_st1_threshold_event_cfg, rsi_momentum_decide_fn, "simple_st1_threshold", {}),
-        # Rs 2,000 daily-profit-lock variants - see STRATEGY_NAMES'
+        # 2% daily-profit-lock variants - see STRATEGY_NAMES'
         # own 21-Aug-2026 note. Same cfg_builder/decide_fn/symbols as
         # the plain book above it - only daily_profit_lock differs -
         # registered on the SAME NIFTY CE/PE/spot symbols below
