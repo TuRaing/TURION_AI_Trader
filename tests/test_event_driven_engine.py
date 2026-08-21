@@ -165,6 +165,52 @@ def test_closes_at_target():
     assert trade["Net PnL"] > 0
 
 
+def test_records_quote_premiums_and_quote_pnl_on_full_round_trip():
+    # Added 21-Aug-2026, alongside "Entry/Exit Premium (Quote)" - see
+    # event_driven_engine.py's own 21-Aug-2026 notes. Confirms the new
+    # fields are populated correctly AND that decision logic (which
+    # reason fires, "Net PnL") is completely untouched - it must still
+    # read exactly like test_closes_at_target above.
+    cfg = _cfg()
+    _, position, _ = rsi_momentum_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ltp=100.0, ce_ask=100.5))
+
+    assert position["Entry Premium (Quote)"] == 100.5
+
+    action, new_position, trade = rsi_momentum_decide_fn(
+        cfg, position, _data_point(ce_ltp=115.0, ce_bid=114.0)
+    )
+
+    assert "CLOSED (Target)" in action
+    assert trade["Entry Premium (Quote)"] == 100.5
+    assert trade["Exit Premium (Quote)"] == 114.0
+    # Buying at the ask and selling at the bid is always worse than the
+    # LTP-based figure - the whole point of this field (see today's real
+    # depth-slippage finding: LTP overstates realized PnL).
+    assert trade["Net PnL (Quote)"] is not None
+    assert trade["Net PnL (Quote)"] < trade["Net PnL"]
+
+
+def test_quote_pnl_is_none_when_data_point_has_no_bid_ask():
+    # Backtest replay data_points carry no bid/ask columns at all (no
+    # historical depth data exists) - must not crash, and a genuinely-
+    # unknown quote PnL must never be silently reported as a real 0.
+    cfg = _cfg()
+    entry_point = _data_point(rsi=55.0, ce_ltp=100.0)
+    del entry_point["ce_bid"], entry_point["ce_ask"]
+
+    _, position, _ = rsi_momentum_decide_fn(cfg, None, entry_point)
+    assert position["Entry Premium (Quote)"] is None
+
+    exit_point = _data_point(ce_ltp=115.0)
+    del exit_point["ce_bid"], exit_point["ce_ask"]
+
+    action, new_position, trade = rsi_momentum_decide_fn(cfg, position, exit_point)
+
+    assert "CLOSED" in action
+    assert trade["Exit Premium (Quote)"] is None
+    assert trade["Net PnL (Quote)"] is None
+
+
 def test_closes_at_hybrid_stop_loss_when_set():
     cfg = _cfg(hybrid_sl_cap_pct=2.0)
     _, position, _ = rsi_momentum_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ltp=100.0))
@@ -397,6 +443,22 @@ def test_oi_footprint_closes_at_fixed_rupee_target():
 
     assert "CLOSED (Target)" in action
     assert trade["Net PnL"] >= 1500
+
+
+def test_oi_footprint_records_quote_premiums_and_quote_pnl():
+    # Same 21-Aug-2026 addition as rsi_momentum_decide_fn's matching
+    # test above - oi_footprint_decide_fn shares the identical pattern.
+    cfg = _oi_cfg()
+    _, position, _ = oi_footprint_decide_fn(cfg, None, _oi_data_point(oi_signal="CE", ce_ltp=60.0, ce_ask=60.3))
+
+    assert position["Entry Premium (Quote)"] == 60.3
+
+    action, new_position, trade = oi_footprint_decide_fn(cfg, position, _oi_data_point(ce_ltp=62.0, ce_bid=61.7))
+
+    assert "CLOSED (Target)" in action
+    assert trade["Exit Premium (Quote)"] == 61.7
+    assert trade["Net PnL (Quote)"] is not None
+    assert trade["Net PnL (Quote)"] < trade["Net PnL"]
 
 
 def test_oi_footprint_closes_at_fixed_rupee_stop_loss():

@@ -121,6 +121,14 @@ from indicators.circuit_band import is_near_circuit_band
 #
 # POSITION SHAPE (what this decide_fn stores as portfolio["Position"]):
 #   {"Option Type": "CE"/"PE", "Symbol": str, "Entry Premium": float,
+#    "Entry Premium (Quote)": float or None,   # ADDED 21-Aug-2026 - the
+#                                   # ask side of the book at entry,
+#                                   # reporting-only (see new_position's
+#                                   # own note in rsi_momentum_decide_fn/
+#                                   # oi_footprint_decide_fn below) - NOT
+#                                   # read by any decision above, only
+#                                   # carried through to the eventual
+#                                   # trade_record's "Net PnL (Quote)".
 #    "Entry Spot": float, "Entry Time": str, "Lots": int,
 #    "Capital Deployed": float}
 #
@@ -176,6 +184,24 @@ def _net_pnl(cfg, entry_premium, exit_premium, lots):
     )
 
     return gross_pnl - cost
+
+
+def _quote_net_pnl(cfg, entry_quote, exit_quote, lots):
+    """
+    Added 21-Aug-2026 - same reporting-only quote fields as new_
+    position/trade_record's own 21-Aug-2026 notes above, reused so
+    "Net PnL (Quote)" is right there on the trade record instead of
+    needing a separate offline script every time. None (not 0) when
+    either side's quote is missing - live ticks arriving before a bid/
+    ask has ever been seen for that leg, or backtest replay (no bid/ask
+    columns at all) - so a genuinely-unknown quote PnL never gets
+    silently reported as a real zero.
+    """
+
+    if entry_quote is None or exit_quote is None:
+        return None
+
+    return _net_pnl(cfg, entry_quote, exit_quote, lots)
 
 
 def rsi_momentum_decide_fn(cfg, position, data_point):
@@ -236,6 +262,18 @@ def rsi_momentum_decide_fn(cfg, position, data_point):
             "Option Type": option_type,
             "Symbol": symbol,
             "Entry Premium": entry_premium,
+            # Added 21-Aug-2026, at the user's own request after today's
+            # depth-based slippage analysis found "Entry/Exit Premium"
+            # (LTP) overstates real PnL by ~87-91% on a thin ATM book -
+            # ce_bid/ce_ask/pe_bid/pe_ask were already plumbed all the
+            # way from the raw Fyers tick (see handle_symbol_update_
+            # message() in live_tick_harness.py) into data_point, just
+            # never read here. REPORTING ONLY - entry_premium (LTP,
+            # above) still drives lots sizing and Capital Deployed
+            # unchanged; this is purely an extra field for a more
+            # realistic PnL view. .get(), not [] - absent on backtest
+            # replay data_points, which carry no bid/ask columns.
+            "Entry Premium (Quote)": data_point.get(f"{option_type.lower()}_ask"),
             "Entry Spot": data_point["spot"],
             "Entry Time": data_point["timestamp"],
             "Lots": lots,
@@ -271,19 +309,27 @@ def rsi_momentum_decide_fn(cfg, position, data_point):
     if reason is None:
         return f"HELD (net {round(net_pnl, 2)} / {round(net_pnl_pct, 3)}%)", position, None
 
+    exit_quote = data_point.get(f"{option_type.lower()}_bid")
+    net_pnl_quote = _quote_net_pnl(cfg, position.get("Entry Premium (Quote)"), exit_quote, position["Lots"])
+
     trade_record = {
         "Symbol": position["Symbol"],
         "Option Type": option_type,
         "Entry Time": position["Entry Time"],
         "Entry Premium": position["Entry Premium"],
+        # See new_position's own 21-Aug-2026 note above - carried
+        # through unchanged from open, reporting only.
+        "Entry Premium (Quote)": position.get("Entry Premium (Quote)"),
         "Entry Spot": position["Entry Spot"],
         "Exit Time": data_point["timestamp"],
         "Exit Premium": current_premium,
+        "Exit Premium (Quote)": exit_quote,
         "Exit Spot": data_point["spot"],
         "Lots": position["Lots"],
         "Exit Reason": reason,
         "Net PnL": round(net_pnl, 2),
         "Net PnL %": round(net_pnl_pct, 3),
+        "Net PnL (Quote)": round(net_pnl_quote, 2) if net_pnl_quote is not None else None,
     }
 
     return f"CLOSED ({reason}) net {round(net_pnl, 2)}", None, trade_record
@@ -446,6 +492,9 @@ def oi_footprint_decide_fn(cfg, position, data_point):
             "Option Type": option_type,
             "Symbol": symbol,
             "Entry Premium": entry_premium,
+            # See rsi_momentum_decide_fn's matching 21-Aug-2026 note
+            # above - same reporting-only quote field, same reasoning.
+            "Entry Premium (Quote)": data_point.get(f"{option_type.lower()}_ask"),
             "Entry Spot": data_point["spot"],
             "Entry Time": data_point["timestamp"],
             "Lots": lots,
@@ -480,19 +529,25 @@ def oi_footprint_decide_fn(cfg, position, data_point):
     if reason is None:
         return f"HELD (net {round(net_pnl, 2)})", position, None
 
+    exit_quote = data_point.get(f"{option_type.lower()}_bid")
+    net_pnl_quote = _quote_net_pnl(cfg, position.get("Entry Premium (Quote)"), exit_quote, position["Lots"])
+
     trade_record = {
         "Symbol": position["Symbol"],
         "Option Type": option_type,
         "Entry Time": position["Entry Time"],
         "Entry Premium": position["Entry Premium"],
+        "Entry Premium (Quote)": position.get("Entry Premium (Quote)"),
         "Entry Spot": position["Entry Spot"],
         "Exit Time": data_point["timestamp"],
         "Exit Premium": current_premium,
+        "Exit Premium (Quote)": exit_quote,
         "Exit Spot": data_point["spot"],
         "Lots": position["Lots"],
         "Exit Reason": reason,
         "Net PnL": round(net_pnl, 2),
         "Net PnL %": round(net_pnl / cfg["initial_capital"] * 100, 3),
+        "Net PnL (Quote)": round(net_pnl_quote, 2) if net_pnl_quote is not None else None,
     }
 
     return f"CLOSED ({reason}) net {round(net_pnl, 2)}", None, trade_record
