@@ -7294,6 +7294,33 @@ APK rebuilt with this on top of everything else built today - install
 still pending (adb lost the phone connection mid-session; user chose
 to install later). See doc/21aug26_SESSION_LOG.md for full detail.
 
+VPS-vs-GITHUB SAME-DAY COMPARISON + A SEPARATE REAL GITHUB ACTIONS
+BACKLOG FINDING (21-Aug, final same-day update) - same-day numbers:
+VPS event-driven st2_threshold/simple_st1_threshold WITHOUT the daily
+lock took 77/99 trades and lost Rs 38,408.76/Rs 50,034.47 net (a
+genuinely choppy day, each individual loss landing almost exactly at
+the ~Rs 2,000 hybrid cap - no overshoot, just far more re-entries than
+the old engine ever got a chance to attempt); WITH the 2% lock, both
+took exactly 1 winning trade then correctly stopped for the day
+(+Rs 5,012.90 / +Rs 3,282.85) - real, same-day proof the lock feature
+built earlier today works as intended. The GitHub-Actions-based
+namesakes sat flat for ~4h15m between two entries; investigating why
+(the user's own sharp follow-up question) found a real, separate
+issue: the workflow (15+ strategy groups, each own ~1-min cron-job.org
+trigger) had 36 runs queued + 17 in-progress at check time (83,581
+total runs all-time) - GitHub's free-tier concurrency limit likely
+can't keep up, so real Target/Stop-Loss monitoring for any given
+strategy can get delayed far past the intended ~1 min. Confirmed this
+is the SAME root-cause class as the 14-Aug/18-Aug oi_footprint
+overshoot incidents that originally motivated the VPS migration -
+today's own GitHub-side st2 loss (-Rs 5,740.46 against a ~Rs 2,000
+cap, ~2.9x overshoot) is a live instance of it. NOT investigated
+further or fixed this session (user asked to just document it) -
+would likely need cron-job.org dashboard changes, not code, and is
+out of scope for the ~60 already-live GitHub-Actions books per this
+repo's "never modify a working module" rule. See doc/21aug26_
+SESSION_LOG.md for full detail and exact numbers.
+
 ==================================================
 
 Status
@@ -7302,11 +7329,11 @@ Status
 
 Current Version
 
-v0.0.55
+v0.0.56
 
 Next Version
 
-v0.0.56
+v0.0.57
 
 ==================================================
 

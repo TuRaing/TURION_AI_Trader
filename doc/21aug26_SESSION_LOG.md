@@ -585,6 +585,100 @@ in this file)
    not already superseded (sync_ticks_from_vps.py end-to-end exercise,
    off-machine backup, end-Sep-2026 statistical-tools checkpoint).
 
+--------------------------------------------------
+
+VPS-vs-GITHUB SAME-DAY COMPARISON - REAL EVIDENCE FOR THE DAILY LOCK,
+AND A SEPARATE REAL FINDING ON THE OLD ENGINE'S OWN INFRASTRUCTURE -
+user asked to compare today's VPS event-driven st2_threshold/simple_
+st1_threshold against their GitHub-Actions-based namesakes (same RSI-
+momentum logic, same target/SL cfg). Numbers, same trading day:
+
+  VPS (tick-by-tick, no lock):   st2 77 trades net -Rs 38,408.76
+                                  simple_st1 99 trades net -Rs 50,034.47
+  VPS (tick-by-tick, 2% lock):   st2 1 trade net +Rs 5,012.90 (locked)
+                                  simple_st1 1 trade net +Rs 3,282.85 (locked)
+  GitHub (old, ~1-min polling):  st2 1 CLOSED trade -Rs 5,740.46,
+                                  1 more OPENED 14:17:25 IST (still open)
+                                  simple_st1 1 CLOSED trade -Rs 6,152.07
+
+Today was a genuinely choppy/range-bound day - real per-tick data
+confirmed the whipsaw wasn't a data bug (checked earlier the same
+session). The VPS's fast, tick-by-tick reaction correctly fixed its
+own designed problem (near-zero overshoot per stop - each VPS loss
+landed almost exactly at the ~Rs 2,000 hybrid cap) but, with no entry-
+frequency cap, that same speed let it re-enter far more often than the
+old engine ever got the chance to, and the CUMULATIVE loss from many
+small stops ended up far worse than the old engine's one bigger loss.
+The 2% daily-profit-lock books (built earlier this session) are direct
+proof of the fix: one early winning trade, then correctly no further
+entries all day - avoided the entire rest of the whipsaw.
+
+SEPARATE REAL FINDING, following the user's own sharp follow-up
+("जर queue मध्ये trades असतील... तर चुकीची entry होणार, मग ती
+strategy fail ना?"): investigated why the OLD (GitHub Actions) engine
+sat flat for ~4h15m (10:02-14:17 IST) between its two entries today.
+Queried the GitHub REST API directly (using the local GITHUB_PAT):
+.github/workflows/fyers_multi_strategy_options.yml has 83,581 total
+completed runs all-time, and AT THE MOMENT OF THIS CHECK had 36 runs
+queued and 17 in progress simultaneously - a real, live backlog. This
+workflow covers 15+ different strategy groups (simple_st1/st2/st3/st4/
+gapfill/vix_filter/oi_footprint/credit_spread/pcr_momentum/max_pain_
+drift/pcr_vix_combo/oi_iv_combo/slcap variants/oi_hybrid_sl variants),
+each with its own ~1-min cron-job.org trigger (per that workflow's own
+07-Aug concurrency-group comment) - GitHub's free-tier concurrent-job
+limit almost certainly can't keep up with that combined trigger rate
+during active market hours, so real checks for any GIVEN strategy can
+end up spaced out far beyond the intended ~1 minute.
+
+CONFIRMED THIS MATTERS, NOT JUST COSMETIC: when a delayed run finally
+executes it DOES fetch a genuinely live quote (not stale data), so a
+NEW entry's price is real - but an OPEN position's Target/Stop-Loss
+monitoring gets exactly as delayed as the queue backlog, which is
+THE SAME root-cause class as the documented oi_footprint overshoot
+incidents that originally motivated this whole VPS project (14-Aug/
+18-Aug PROJECT_STATUS.md entries) - today's own GitHub-side st2 loss
+(-Rs 5,740.46 against a ~Rs 2,000 intended hybrid cap, ~2.9x overshoot)
+is itself a live instance of it. NOT YET INVESTIGATED FURTHER OR FIXED
+- user asked to just document this for now (out of scope for today,
+and per this repo's own "never modify a working module" rule for the
+~60 already-live polling books - any fix here would likely mean
+cron-job.org dashboard changes, not code, e.g. spacing out per-
+strategy trigger schedules rather than firing everything near-
+simultaneously every minute).
+
+==================================================
+
+Next Session (SUPERSEDES all earlier numbered lists in this file -
+this is the final one for 21-Aug)
+
+1. Install the latest release APK (strategy premium chart + everything
+   else built today) once the phone's USB/adb connection is back.
+
+2. Verify on-device: index-level live chart backfill, and a book's new
+   CE/PE premium chart with Entry/Target/SL lines - both only checked
+   via direct Firebase REST so far, never visually on a real device.
+
+3. Confirm NIFTY oi_footprint eventually takes a real trade (BANKNIFTY
+   already has).
+
+4. Compare the two new daily-profit-lock books against their unlocked
+   siblings after a few more real trading days - today's single-day
+   numbers (see "VPS-vs-GITHUB SAME-DAY COMPARISON" above) already
+   look strongly favorable, but one day is not a real backtest.
+
+5. NEW - investigate the GitHub Actions queue-backlog finding above
+   (36 queued/17 in-progress at check time, 83,581 runs all-time) if
+   the user wants to revisit it - likely needs cron-job.org dashboard
+   changes (trigger spacing/frequency), not a code fix, and is
+   out-of-scope for the VPS work this session focused on. Real,
+   confirmed overshoot risk for the ~60 still-GitHub-Actions-based
+   live books, same root-cause class as the 14-Aug/18-Aug oi_footprint
+   incidents that originally motivated the VPS migration.
+
+6. All items from doc/20aug26_SESSION_LOG.md's own "Next Session" list
+   not already superseded (sync_ticks_from_vps.py end-to-end exercise,
+   off-machine backup, end-Sep-2026 statistical-tools checkpoint).
+
 ==================================================
 
 END OF SESSION
