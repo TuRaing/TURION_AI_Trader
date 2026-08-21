@@ -242,6 +242,18 @@ def test_past_squareoff_is_computed_from_tick_timestamp():
     assert "CLOSED (Square-Off)" in action
 
 
+def test_before_market_open_is_computed_from_tick_timestamp():
+    # Real bug caught live (21-Aug-2026): a WebSocket connection can
+    # deliver a real tick before 09:15 IST (Fyers replaying its last
+    # pre-market snapshot on connect) - must not open a position on it.
+    runner = _runner()
+
+    runner.on_tick(runner.underlying_symbol, _ts(0, hour=9), 24500.0)
+    action = runner.on_tick(runner.ce_symbol, _ts(0, second=1, hour=9), 100.0)
+
+    assert "SKIPPED (before market open)" in action
+
+
 # --- OIBuildupTracker / OIFootprintTickRunner ---
 
 def test_oi_tracker_no_signal_on_first_snapshot():

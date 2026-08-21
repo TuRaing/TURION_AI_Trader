@@ -56,6 +56,33 @@ def test_skips_open_when_past_squareoff():
     assert position is None
 
 
+def test_skips_open_when_before_market_open():
+    # Real bug caught live (21-Aug-2026): a WebSocket connection
+    # replays Fyers' last pre-market snapshot (often yesterday's
+    # closing quote) before 09:15 IST - must not open a real-tracked
+    # position on that stale data.
+    action, position, trade = rsi_momentum_decide_fn(_cfg(), None, _data_point(before_market_open=True))
+
+    assert "SKIPPED (before market open)" in action
+    assert position is None
+
+
+def test_before_market_open_does_not_block_managing_an_existing_position():
+    # Only NEW entries are gated - an already-open position (e.g. one
+    # legitimately opened yesterday and carried overnight) must still
+    # be checked for Target/Stop-Loss/Square-Off regardless of time,
+    # matching fyers_options_engine.py's check_or_open() convention.
+    cfg = _cfg()
+    _, position, _ = rsi_momentum_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ltp=100.0))
+
+    action, new_position, trade = rsi_momentum_decide_fn(
+        cfg, position, _data_point(ce_ltp=101.0, before_market_open=True)
+    )
+
+    assert "HELD" in action
+    assert new_position is not None
+
+
 def test_skips_open_when_capital_insufficient_for_one_lot():
     # 75 lot_size x 100 premium = Rs 7,500/lot - Rs 5,000 capital can't buy even 1
     action, position, trade = rsi_momentum_decide_fn(_cfg(initial_capital=5000), None, _data_point(rsi=55.0))
@@ -331,6 +358,15 @@ def test_oi_footprint_closes_at_fixed_rupee_stop_loss():
 
     assert "CLOSED (Stop Loss)" in action
     assert trade["Net PnL"] <= -1500
+
+
+def test_oi_footprint_skips_open_when_before_market_open():
+    action, position, trade = oi_footprint_decide_fn(
+        _oi_cfg(), None, _oi_data_point(oi_signal="CE", before_market_open=True)
+    )
+
+    assert "SKIPPED (before market open)" in action
+    assert position is None
 
 
 def test_oi_footprint_skips_open_when_near_circuit_band():

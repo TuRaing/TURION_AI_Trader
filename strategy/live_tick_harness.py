@@ -5,6 +5,7 @@ import pandas as pd
 from indicators.rsi import calculate_rsi
 from strategy.backtest_live_engine import run_live_check
 from strategy.execution_backend import PaperExecutionBackend
+from strategy.fyers_options_engine import MARKET_OPEN_TIME
 from strategy.fyers_options_oi_footprint import _classify_buildup
 from strategy.squareoff import is_past_squareoff
 
@@ -222,6 +223,7 @@ class LiveTickRunner:
             "pe_symbol": self.pe_symbol, "pe_ltp": self._latest["pe_ltp"],
             "pe_bid": self._latest["pe_bid"], "pe_ask": self._latest["pe_ask"],
             "past_squareoff": self._past_squareoff(timestamp),
+            "before_market_open": (timestamp.hour, timestamp.minute) < MARKET_OPEN_TIME,
             "previous_close": self.previous_close,
         }
 
@@ -349,6 +351,7 @@ class OIFootprintTickRunner:
             "pe_symbol": self.pe_symbol, "pe_ltp": self._latest["pe_ltp"],
             "pe_bid": self._latest["pe_bid"], "pe_ask": self._latest["pe_ask"],
             "past_squareoff": self._past_squareoff(timestamp),
+            "before_market_open": (timestamp.hour, timestamp.minute) < MARKET_OPEN_TIME,
             "previous_close": self.previous_close,
         }
 

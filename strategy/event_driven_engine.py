@@ -63,6 +63,27 @@ from indicators.circuit_band import is_near_circuit_band
 #                                   # one place.
 #       "past_squareoff": bool,    # now_ist >= squareoff_time, computed
 #                                   # upstream (decide_fn has no clock)
+#       "before_market_open": bool,
+#                                   # now_ist < MARKET_OPEN_TIME (9:15
+#                                   # IST), computed upstream. Added
+#                                   # 21-Aug-2026 - real bug caught live:
+#                                   # a WebSocket connection replays
+#                                   # Fyers' last-known pre-market
+#                                   # snapshot (often yesterday's closing
+#                                   # quote) on connect, and this engine
+#                                   # had NO market-hours gate anywhere,
+#                                   # so it opened a real-tracked
+#                                   # position off that stale data before
+#                                   # 09:15 IST (confirmed live: entered
+#                                   # 07:59:55 IST at yesterday's closing
+#                                   # spot price). Only gates NEW entries
+#                                   # (matches fyers_options_engine.py's
+#                                   # check_or_open()'s own established
+#                                   # MARKET_OPEN_TIME pattern) - an
+#                                   # already-open position still gets
+#                                   # checked for Target/Stop-Loss/
+#                                   # Square-Off regardless of time, same
+#                                   # as the older polling engine.
 #       "previous_close": float or None,
 #                                   # Added 20-Aug-2026 - the underlying
 #                                   # index's previous trading day close,
@@ -160,6 +181,9 @@ def rsi_momentum_decide_fn(cfg, position, data_point):
 
         if data_point.get("rsi") is None:
             return "SKIPPED (RSI not ready yet)", None, None
+
+        if data_point.get("before_market_open"):
+            return "SKIPPED (before market open)", None, None
 
         if data_point.get("past_squareoff"):
             return "SKIPPED (past square-off time)", None, None
@@ -328,6 +352,9 @@ def oi_footprint_decide_fn(cfg, position, data_point):
 
         if oi_signal is None:
             return "SKIPPED (no meaningful OI buildup)", None, None
+
+        if data_point.get("before_market_open"):
+            return "SKIPPED (before market open)", None, None
 
         if data_point.get("past_squareoff"):
             return "SKIPPED (past square-off time)", None, None

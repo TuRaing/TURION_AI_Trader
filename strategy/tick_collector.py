@@ -137,7 +137,24 @@ def tick_latency_ms(record):
     exchange_time = datetime.datetime.strptime(record["timestamp"], "%Y-%m-%d %H:%M:%S.%f")
     received_time = datetime.datetime.strptime(record["received_at"], "%Y-%m-%d %H:%M:%S.%f")
 
-    return (received_time - exchange_time).total_seconds() * 1000
+    latency_ms = (received_time - exchange_time).total_seconds() * 1000
+
+    # FIXED 21-Aug-2026 - real bug caught live on the VPS: Fyers
+    # occasionally sends exch_feed_time as a sentinel/placeholder value
+    # (-2147483648, a 32-bit signed int's minimum - confirmed against a
+    # real archived record) for a tick with no genuine exchange
+    # timestamp yet. format_tick_record() has no way to detect this at
+    # write time, so it archives as "1901-12-14" - and without this
+    # guard, that poisons every avg/max in summarize_tick_latency() with
+    # a many-decades-long "latency" (confirmed live: avg ~84 days, max
+    # ~125 years, in a real health-check report). Real exchange-to-VPS
+    # latency is always sub-second to low-single-digit-seconds; treat
+    # anything implausible (negative, or beyond a generous 5-minute
+    # margin) as unmeasurable, same as a missing received_at.
+    if latency_ms < 0 or latency_ms > 5 * 60 * 1000:
+        return None
+
+    return latency_ms
 
 
 def summarize_tick_latency(records):

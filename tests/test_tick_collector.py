@@ -99,6 +99,23 @@ def test_tick_latency_ms_none_when_received_at_missing():
     assert tick_latency_ms(record) is None
 
 
+def test_tick_latency_ms_none_when_exch_feed_time_is_int32_min_sentinel():
+    # Real bug caught live on the VPS (21-Aug-2026): Fyers sent
+    # exch_feed_time=-2147483648 for a tick with no genuine exchange
+    # timestamp yet, which format_tick_record() archived as this exact
+    # "1901" string - without the guard this poisoned avg/max latency
+    # with a many-decades-long value.
+    record = {"timestamp": "1901-12-14 02:15:52.000", "received_at": "2026-08-21 06:45:22.616"}
+
+    assert tick_latency_ms(record) is None
+
+
+def test_tick_latency_ms_none_when_negative():
+    record = {"timestamp": "2026-08-20 12:30:00.500", "received_at": "2026-08-20 12:30:00.100"}
+
+    assert tick_latency_ms(record) is None
+
+
 def test_summarize_tick_latency_computes_avg_and_max():
     records = [
         {"timestamp": "2026-08-20 12:30:00.000", "received_at": "2026-08-20 12:30:00.100"},
