@@ -504,6 +504,87 @@ Next Session (REVISED, supersedes the numbered list above)
    not superseded above (sync_ticks_from_vps.py end-to-end exercise,
    off-machine backup, end-Sep-2026 statistical-tools checkpoint).
 
+--------------------------------------------------
+
+LIVE OPTION-PREMIUM CHART WITH REAL Entry/Target/Stop-Loss OVERLAY -
+user's own follow-up ask, wanting SL/Target/Trailing-SL visible on a
+chart for a book's current position. Scoped this properly before
+building: checked how this app ALREADY handles the identical question
+for the older polling engine's own options books, and found it had
+already been decided once - fyers_multi_strategy_options_screen.dart's
+ChartScreen only ever plots Entry Spot for an option position, never
+Target/SL, specifically because premium and the underlying's spot
+move on different scales (a spot-equivalent SL/Target line would need
+an estimated delta, not a real one). Asked the user directly how real
+broker apps solve this instead: they chart the option's OWN premium,
+not the underlying - so that's what got built, not the earlier-
+discussed spot-based approximation.
+
+Backend: strategy/event_driven_runner.py's on_message() now also syncs
+BOTH CE and PE legs' live ticks (every tick, via the existing bounded
+firebase_executor - same anti-latency-regression discipline as
+earlier today) and 1-min candle history (via strategy/tick_collector.
+py's LiveCandleAggregator, synced only on candle close) PER STRATEGY,
+not per index - a strategy's own ATM strike can differ from run_tick_
+collector.py's independent ATM pick for the same index, so the two
+data sources are deliberately kept separate (report/firebase_
+realtime_sync.py's new sync_strategy_tick()/sync_strategy_candles(),
+paths /strategy_ticks/{name}/{leg} and /strategy_candles/{name}/
+{leg}). firebase/database.rules.json opened read access on both -
+manually re-published in the Console same session (confirmed via
+direct REST checks: real live premium data flowing for all 6 books).
+
+App: new strategy_premium_chart_screen.dart computes Target/Stop-Loss
+premium from the EXACT SAME formula event_driven_engine.py's decide_
+fns use (net PnL from (exit-entry)*lots*lot_size, hybrid stop-loss cap
+= min(initial_capital, capital_deployed) * hybrid_sl_cap_pct/100) -
+only the round-trip transaction-cost term is omitted (small, known,
+honestly labelled in the info banner: "Target/SL are estimates... the
+actual close reason always comes from the Closed Trade record" -
+rather than silently presenting an approximation as exact, or
+duplicating that cost formula a second time in Dart). vps_screen.
+dart's `_books` list gained the static cfg constants (lot_size,
+initial_capital, hybrid_sl_cap_pct, target_net_pct/stop_loss_pct for
+the RSI-momentum books, target_rupees/stop_loss_rupees for oi_
+footprint) needed to compute this - mirrors event_driven_engine.py's
+own cfg builders exactly, same "hardcoded per book, changes need a
+redeploy+rebuild anyway" reasoning already used for label/underlying.
+Open positions' "View Chart" now opens this instead of the spot
+chart; closed trades keep the existing spot chart (a closed trade
+isn't a "current position" to show live SL/Target for). flutter
+analyze clean, 542/542 Python tests passing.
+
+Release APK rebuilt with this feature - NOT YET installed as this
+entry is written (adb lost the phone connection mid-session; user
+chose to install later rather than troubleshoot the USB link right
+then).
+
+==================================================
+
+Next Session (FINAL for today - supersedes all earlier numbered lists
+in this file)
+
+1. Install the latest release APK (has the strategy premium chart on
+   top of everything else built today) once the phone's USB/adb
+   connection is available again.
+
+2. Verify on-device: the live chart (index-level) shows real backfilled
+   candles on open, and a book's "View Chart" (when it has an open
+   position) shows the new CE/PE premium chart with Entry/Target/SL
+   lines - both need a REAL open position and a device to check
+   against, neither confirmed visually yet, only via direct Firebase
+   REST checks proving the data itself is correct.
+
+3. Confirm NIFTY oi_footprint eventually takes a real trade (BANKNIFTY
+   already has, proving the mechanism).
+
+4. Compare the two new daily-profit-lock books against their un-locked
+   siblings after a few real trading days.
+
+5. All items from doc/20aug26_SESSION_LOG.md's own "Next Session" list
+   not already superseded (sync_ticks_from_vps.py end-to-end exercise,
+   off-machine backup, end-Sep-2026 statistical-tools checkpoint).
+
 ==================================================
 
 END OF SESSION

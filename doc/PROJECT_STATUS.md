@@ -7273,6 +7273,27 @@ rules.json updated but NOT yet re-published in the Console; release
 APK rebuilt, NOT yet installed (user's own explicit "build now, install
 later"). See doc/21aug26_SESSION_LOG.md for full detail on all four.
 
+LIVE OPTION-PREMIUM CHART, REAL Entry/Target/Stop-Loss OVERLAY (21-Aug,
+final same-day update) - user asked for SL/Target/Trailing-SL on a
+book's live chart. Checked this app's own precedent first: the older
+polling engine's own options screens already deliberately never
+overlay Target/SL on a spot chart (different scale from premium, would
+need an estimated delta) - so built what real broker apps do instead:
+chart the option's own PREMIUM. strategy/event_driven_runner.py now
+syncs both CE/PE legs' live ticks + 1-min candle history PER STRATEGY
+(not per index - a strategy's own ATM can differ from run_tick_
+collector.py's independent pick), via 2 new report/firebase_realtime_
+sync.py functions; firebase/database.rules.json opened + manually
+re-published for both new paths AND the earlier live_candles path
+(confirmed via direct REST checks - real data flowing for all 6
+books). New strategy_premium_chart_screen.dart computes Target/SL
+premium from the exact same formula the decide_fns use (only the
+transaction-cost term omitted, honestly labelled, not silently
+approximated). 542/542 tests passing, flutter analyze clean. Release
+APK rebuilt with this on top of everything else built today - install
+still pending (adb lost the phone connection mid-session; user chose
+to install later). See doc/21aug26_SESSION_LOG.md for full detail.
+
 ==================================================
 
 Status
@@ -7281,11 +7302,11 @@ Status
 
 Current Version
 
-v0.0.54
+v0.0.55
 
 Next Version
 
-v0.0.55
+v0.0.56
 
 ==================================================
 
