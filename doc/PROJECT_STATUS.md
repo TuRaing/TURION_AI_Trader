@@ -7174,6 +7174,23 @@ it actually ran with a real token. Fixed identically, same one-line
 os.environ set, no changes to any shared strategy/ module. 516/516
 tests passing. Committed (8e29be57f) and pushed to main.
 
+DEPLOYED SAME SESSION, B19 (GO-LIVE RUNBOOK) NOW COMPLETE - manually
+deployed via SSH rather than waiting for the 08:00 IST cron. Journal
+logs showed both turion-event-driven and turion-tick-collector were
+ACTIVELY CRASH-LOOPING in production on the old code seconds before
+this deploy landed (today's real login had already reached the VPS)
+- confirms the bug was live-impacting, not just theoretical. Both
+services came up clean on the very next restart cycle: real token
+accepted, real ATM strikes picked (NIFTY 24250, BANKNIFTY 57500), real
+ticks writing to data/ticks/ticks_20260821.jsonl. 0 restarts in the
+35+ seconds after, confirming stable (not just a lucky single cycle).
+This is the first real live run of either VPS service - B19 (Go-Live
+Runbook's last unverified piece) is DONE, pending only a post-09:15-
+IST-open check that a real decide_fn cycle also runs clean. See
+doc/21aug26_SESSION_LOG.md for full detail, including a small found-
+but-not-urgent gap (deploy.sh's own status-check sudo-fails - restart
+itself is unaffected).
+
 ==================================================
 
 Status

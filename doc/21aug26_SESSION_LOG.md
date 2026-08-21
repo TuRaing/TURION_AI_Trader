@@ -72,18 +72,59 @@ changed anything about the actual work done.
 
 --------------------------------------------------
 
+B19 COMPLETED FOR REAL, SAME SESSION - deployed manually rather than
+waiting for the 08:00 IST cron (user's own choice, asked directly
+rather than assumed): SSH'd to the VPS as root (the `turion` service
+user has no direct SSH login - nologin, per 20-Aug's hardening), ran
+`sudo -u turion deploy/deploy.sh`. Pull fast-forwarded 1c3148135 ->
+d2b6db1f6 cleanly, dependencies reinstalled, both services restarted.
+
+Journalctl showed something worth recording exactly as found: in the
+seconds just before this deploy's own restart landed, BOTH services
+were live crash-looping in production on the OLD pre-fix code -
+`journalctl -n 20` still had a fresh "RuntimeError: No FYERS_ACCESS_
+TOKEN found" trace timestamped seconds earlier (01:15:16 UTC), i.e.
+today's real morning login had already reached the VPS and started
+triggering exactly the crash this session's fix targets, before the
+fix was deployed. deploy.sh's restart (01:15:18 UTC) landed on the
+very next cycle and both came up clean: turion-event-driven logged
+"Got today's access_token via Firebase - starting the event-driven
+engine..." with no further crash, turion-tick-collector logged real
+ATM strikes (NIFTY 24250, BANKNIFTY 57500) and "Connecting to Fyers
+WebSocket for tick archival...". Re-checked ~35s later:
+`systemctl show -p NRestarts` = 0 for both since the fix landed (no
+further crash-loop), and data/ticks/ticks_20260821.jsonl had real tick
+rows with live LTPs. This is the first real live run of either
+service with a genuine token - B19 (Go-Live Runbook) is DONE, not
+just deployed. (One caveat: this check ran pre-market, ~06:45 IST, so
+only confirms startup/connection stability, not a full trading-hours
+decide_fn cycle - that still gets its first real exercise at today's
+09:15 IST open.)
+
+Deploy status-check step itself (the tail end of deploy.sh, `sudo
+systemctl status ...`) failed with "sudo: I'm sorry turion. I'm afraid
+I can't do that" - the scoped sudoers only grants `turion` the 4
+`systemctl restart`/`start` commands (see 20-Aug's B12), not `status`.
+Not a real problem (restart itself succeeded, confirmed independently
+via `systemctl show` run as root instead) but worth fixing later so
+deploy.sh's own status output doesn't sudo-fail on every daily 08:00
+run - either add `status` to both units' sudoers scope, or drop
+deploy.sh's own status-check line and rely on systemd's OnFailure
+alert (already proven working, B17) instead.
+
+--------------------------------------------------
+
 Next Session
 
-1. FIRST THING once today's/tomorrow's morning Fyers login has run:
-   confirm on the VPS (SSH 65.20.78.253) that BOTH turion-event-driven
-   AND turion-tick-collector actually pick up a real access_token this
-   time and start running past the ATM-pick step (`journalctl -u
-   turion-event-driven -f` / `journalctl -u turion-tick-collector -f`)
-   - this fix is committed and pushed but NOT yet deploy-pulled or
-   live-verified on the VPS itself (deploy.sh's daily 08:00 IST cron
-   should pick it up automatically; confirm rather than assume). This
-   is still effectively B19 from the Go-Live Runbook (the one
-   remaining unverified piece) plus its tick-collector equivalent.
+1. DONE, same session - see "B19 COMPLETED FOR REAL" above. Both VPS
+   services confirmed live with a real token, no crash-loop, real
+   ticks flowing. Still worth a follow-up check after today's 09:15
+   IST market open to confirm a full decide_fn cycle (open/hold/close)
+   runs clean during real trading hours, not just at startup.
+
+2. Small cleanup, not urgent: deploy.sh's own `systemctl status` step
+   sudo-fails every run (see above) - either widen the turion sudoers
+   scope to include `status`, or remove that line from deploy.sh.
 
 2. All other open items unchanged from doc/20aug26_SESSION_LOG.md's
    own "Next Session" list (sync_ticks_from_vps.py end-to-end
