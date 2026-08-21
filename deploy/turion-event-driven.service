@@ -41,11 +41,29 @@
 # add a second cron entry that retries `systemctl start` (NOT restart
 # - a no-op if already running, so this is always safe to fire) every
 # few minutes across the pre-market window only:
-#   */5 8-9 * * 1-5 sudo systemctl start turion-event-driven
-# (every 5 min, 08:00-09:59 IST window as a safety margin past 09:15
-# open, Mon-Fri). Deliberately narrow window, not all-day polling -
-# once the engine is running it stays running, this only covers the
-# "hasn't started yet today" gap right around market open.
+#   30-55/5 2 * * 1-5 sudo systemctl start turion-event-driven
+#   */5 3 * * 1-5 sudo systemctl start turion-event-driven
+#   0-25/5 4 * * 1-5 sudo systemctl start turion-event-driven
+# (every 5 min, 08:00-09:55 IST window as a safety margin past 09:15
+# open, Mon-Fri - three lines because cron runs in the VPS's own UTC
+# clock, not IST, and 08:00-09:55 IST straddles a UTC hour boundary at
+# the :30 mark; see the FIXED 21-Aug-2026 note below). Deliberately
+# narrow window, not all-day polling - once the engine is running it
+# stays running, this only covers the "hasn't started yet today" gap
+# right around market open.
+#
+# FIXED 21-Aug-2026 - real bug caught live: the single-line example
+# originally here, "*/5 8-9 * * 1-5", is only correct if crontab runs
+# in IST - it doesn't; the VPS's system clock is UTC (`timedatectl`
+# confirmed Etc/UTC). In a UTC crontab, "8-9" means 08:00-09:59 UTC =
+# 13:30-15:59 IST - mid-afternoon, well into trading hours, not the
+# intended pre-market window at all. Found by re-auditing the live
+# installed crontab (`crontab -u turion -l`) against this file's own
+# comment and noticing this line used raw IST-looking digits while the
+# 4 health-check cron lines nearby were correctly UTC-converted at
+# install time. Fixed on the live VPS crontab directly first, then
+# here (this comment being correct now only prevents the same mistake
+# on a future re-install).
 #
 # CORRECTED 18-Aug-2026 - the `sudo` above was missing when first
 # written (found during a full VPS-file re-check): this cron entry

@@ -7191,6 +7191,21 @@ doc/21aug26_SESSION_LOG.md for full detail, including a small found-
 but-not-urgent gap (deploy.sh's own status-check sudo-fails - restart
 itself is unaffected).
 
+CRON UTC-VS-IST BUG FOUND AND FIXED, SAME SESSION - while checking
+whether post-login health checks had run, found the VPS's `crontab -u
+turion` had 2 of its 6 lines (deploy.sh's daily restart, the
+market-open retry-start window) installed using raw IST hour digits
+with no UTC conversion, even though the VPS's own system clock is UTC
+(`timedatectl` confirmed). Real consequence if left unfixed: deploy.sh
+would have first fired at 13:30 IST - a live restart in the MIDDLE of
+trading hours, the exact risk this cron design was chosen to avoid.
+The other 4 health-check cron lines were already correctly
+UTC-converted. Fixed on the live VPS crontab (deploy now 30 2 UTC =
+08:00 IST; retry window split into 3 UTC-aligned lines covering
+08:00-09:55 IST) after confirming with the user, plus both source
+comments (deploy/deploy.sh, deploy/turion-event-driven.service) so a
+future re-install doesn't repeat it. See doc/21aug26_SESSION_LOG.md.
+
 ==================================================
 
 Status

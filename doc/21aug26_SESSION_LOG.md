@@ -114,6 +114,51 @@ alert (already proven working, B17) instead.
 
 --------------------------------------------------
 
+CRON UTC-VS-IST BUG FOUND AND FIXED, SAME SESSION - user asked "login
+नंतर checks झाले का" (did the post-login checks run). Honest answer
+investigated properly rather than assumed: `crontab -u turion`'s
+health-check log (/var/log/turion-health-check.log) was genuinely
+empty, and `journalctl -t CRON` showed ZERO turion-user cron
+executions since the VPS booted (20-Aug 13:26 UTC) - at first glance
+alarming, but turned out to be expected: the crontab was installed
+20-Aug ~15:04 UTC (B15), and every one of its entries' first-ever
+occurrence hadn't been reached yet as of this check (~01:20 UTC,
+21-Aug) - not a bug, just too early in the day.
+
+While confirming that, found a REAL bug via `timedatectl` (VPS system
+clock: Etc/UTC, not IST) cross-checked against the installed crontab:
+2 of the 6 turion cron lines (deploy.sh's daily restart, the market-
+open retry-start window) were installed using raw IST hour digits
+without UTC conversion - "0 8" and "*/5 8-9" - while the OTHER 4
+(pre-market/running-market/closing health checks) WERE correctly
+converted. Traced to the source: deploy.sh's own 18-Aug design comment
+and turion-event-driven.service's own 18-Aug retry-window comment
+BOTH gave their example crontab line in raw IST digits (written before
+any real VPS/timezone existed to get this wrong against) - whoever
+installed the crontab on 20-Aug (B15) copied those two lines verbatim
+instead of converting, while computing the other 4 correctly from
+scratch. Real consequence if left unfixed: deploy.sh would have first
+fired at 08:00 UTC = 13:30 IST - a live service restart in the MIDDLE
+of trading hours, precisely the risk deploy.sh's own design doc says
+this whole cron approach exists to avoid (see its "DECIDED 18-Aug"
+comment).
+
+Confirmed with the user before touching live infrastructure (asked
+directly, got "yes fix it now"). FIXED: backed up the live crontab to
+/tmp/turion_crontab_before.txt equivalent (captured here in the
+session transcript) first, then installed a corrected `crontab -u
+turion` with deploy at 30 2 * * 1-5 (=08:00 IST) and the retry window
+split into three UTC-aligned lines (30-55/5 2, */5 3, 0-25/5 4 - all
+`* 1-5`, together covering 08:00-09:55 IST in 5-min steps, since the
+window straddles a UTC hour boundary at IST's :30 offset). Verified
+via `crontab -u turion -l` after. Also fixed both source comments
+(deploy/deploy.sh, deploy/turion-event-driven.service) so a future
+re-install from this repo doesn't repeat the same mistake - the VPS
+crontab was fixed directly first; the comment fix is belt-and-braces,
+not the actual fix.
+
+--------------------------------------------------
+
 Next Session
 
 1. DONE, same session - see "B19 COMPLETED FOR REAL" above. Both VPS
@@ -125,6 +170,13 @@ Next Session
 2. Small cleanup, not urgent: deploy.sh's own `systemctl status` step
    sudo-fails every run (see above) - either widen the turion sudoers
    scope to include `status`, or remove that line from deploy.sh.
+
+3. DONE, same session - see "CRON UTC-VS-IST BUG FOUND AND FIXED"
+   above. Watch tomorrow's (or later today's) actual cron firings
+   (/var/log/turion-deploy.log, /var/log/turion-health-check.log)
+   to confirm the corrected times actually produce output at the
+   right IST wall-clock moments, not just that the crontab syntax
+   looks right.
 
 2. All other open items unchanged from doc/20aug26_SESSION_LOG.md's
    own "Next Session" list (sync_ticks_from_vps.py end-to-end

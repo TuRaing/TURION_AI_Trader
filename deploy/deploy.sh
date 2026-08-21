@@ -29,11 +29,28 @@ set -euo pipefail
 # CHOSEN: a VPS-side cron job, once per day, well BEFORE market open
 # (09:15 IST) so the restart + fresh WebSocket connection has time to
 # settle before it matters - e.g. (once the VPS exists):
-#   0 8 * * 1-5 /opt/turion/TURION_AI_Trader/deploy/deploy.sh >> /var/log/turion-deploy.log 2>&1
+#   30 2 * * 1-5 /opt/turion/TURION_AI_Trader/deploy/deploy.sh >> /var/log/turion-deploy.log 2>&1
 # (08:00 IST, Mon-Fri only - no reason to deploy on a non-trading day).
 # Manual `ssh` + running this script directly is STILL always available
 # on top of the cron schedule, for a same-day urgent fix - the cron
 # entry is the routine default, not the only path.
+#
+# FIXED 21-Aug-2026 - real bug caught live on the actual VPS: the line
+# above originally read "0 8 * * 1-5" - correct AS A CRONTAB LINE only
+# if crontab runs in IST, but `crontab -u <user>` always runs in the
+# system's own timezone, and this VPS's system clock is UTC (confirmed
+# via `timedatectl`: Etc/UTC), NOT IST. "0 8" in a UTC crontab means
+# 08:00 UTC = 13:30 IST - the middle of the trading day, not pre-market
+# - exactly the mid-market-hours restart risk this whole cron design
+# was chosen to AVOID (see above). Caught because the installed
+# crontab's other 4 health-check lines (pre-market/running-market/
+# closing) WERE correctly converted to UTC at install time, but this
+# line and turion-event-driven.service's own retry-start example (see
+# that file's matching fix) were carried over from this comment
+# unconverted. 08:00 IST = 02:30 UTC -> "30 2 * * 1-5". Fixed on the
+# live VPS crontab directly (`crontab -u turion`), not just here -
+# this comment being correct now prevents the same mistake on a future
+# re-install, but was NOT itself the fix.
 #
 # A SECOND, separate cron entry belongs alongside this one - see
 # deploy/turion-event-driven.service's own "DECIDED" comment for why
