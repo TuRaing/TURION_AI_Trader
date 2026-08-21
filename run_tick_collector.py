@@ -1,3 +1,4 @@
+import concurrent.futures
 import datetime
 import json
 import os
@@ -46,6 +47,17 @@ ATM_RECHECK_SECONDS = 15 * 60  # re-pick ATM every 15 min - frequent
 # enough to track real intraday drift, infrequent enough not to hammer
 # the option-chain REST endpoint (pick_atm_symbols() is one real
 # network call, not free).
+FIREBASE_SYNC_WORKERS = 4  # FIXED 21-Aug-2026 - real bug caught live:
+# sync_live_tick() was called synchronously inside on_message(), a
+# cross-region REST call (VPS in Mumbai, Realtime Database in
+# asia-southeast1/Singapore) blocking the WebSocket's own receive
+# thread on EVERY tick - confirmed live via the archived tick data
+# itself: median exchange-to-received latency 1.5s, 82% of ticks over
+# 1s, max 46.5s, across 92,124 real ticks. A bounded thread pool
+# (not one raw thread per tick, which could pile up unboundedly faster
+# than Firebase can drain them under a tick burst) moves the network
+# call off the hot path - the local JSONL archive (this process's own
+# durable record) stays synchronous and immediate.
 
 INDICES = ("NIFTY", "BANKNIFTY")
 
@@ -109,6 +121,17 @@ def main():
 
     writer = TickWriter()
 
+    # See FIREBASE_SYNC_WORKERS' own 21-Aug-2026 comment above.
+    firebase_executor = concurrent.futures.ThreadPoolExecutor(
+        max_workers=FIREBASE_SYNC_WORKERS, thread_name_prefix="firebase-sync"
+    )
+
+    def sync_live_tick_async(index, leg, record):
+        try:
+            sync_live_tick(index, leg, record)
+        except Exception as error:
+            print(f"Live tick Firebase sync failed for {record['symbol']} (continuing): {error}")
+
     # state[index] = {"strike": int, "symbols": {fyers_symbol: leg}}
     state = {}
 
@@ -151,11 +174,11 @@ def main():
 
         # Added 20-Aug-2026 - the mobile app's live tick-by-tick chart
         # (VPS tab). Best-effort - a Firebase hiccup must never stop the
-        # local archive, which is the durable record.
-        try:
-            sync_live_tick(index, leg, record)
-        except Exception as error:
-            print(f"Live tick Firebase sync failed for {symbol} (continuing): {error}")
+        # local archive, which is the durable record. FIXED 21-Aug-2026 -
+        # moved off this hot path entirely (see FIREBASE_SYNC_WORKERS'
+        # own comment) - was blocking every tick on a real cross-region
+        # network call.
+        firebase_executor.submit(sync_live_tick_async, index, leg, record)
 
     def on_error(message):
         print(f"[tick collector websocket error] {message}")

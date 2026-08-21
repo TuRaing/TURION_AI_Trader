@@ -1,3 +1,4 @@
+import concurrent.futures
 import datetime
 import json
 import os
@@ -200,6 +201,18 @@ class MultiStrategyRouter:
 
     def all_symbols(self):
         return list(self._symbol_runners.keys())
+
+    def runners_for(self, symbol):
+        """
+        Added 21-Aug-2026, alongside the on_message() latency fix in
+        main() below - which runners were actually touched by a given
+        symbol's tick, so the caller can save/sync only those instead
+        of blindly re-touching every registered runner on every single
+        tick (see save_all()'s own 21-Aug-2026 note for the real
+        incident this fixes).
+        """
+
+        return list(self._symbol_runners.get(symbol, []))
 
     def route(self, message):
         """
@@ -442,7 +455,7 @@ def _should_send_connection_alert(last_alert_at, now):
     return (now - last_alert_at).total_seconds() >= _CONNECTION_ALERT_COOLDOWN_SECONDS
 
 
-def save_all(runners):
+def save_all(runners, keys=None, firebase_executor=None):
     """
     Local JSON stays the source of truth (same file this project's own
     verification/replay tooling reads) - the Firebase Realtime Database
@@ -450,14 +463,44 @@ def save_all(runners):
     firebase_realtime_sync.py's module docstring), never a replacement.
     sync_portfolio() degrades gracefully (never raises, returns False)
     if Firebase isn't configured yet, so this is safe to always call.
+
+    keys - added 21-Aug-2026: iterable of runner keys to save/sync,
+    default None = every runner (the original behavior). Real bug
+    found live: main()'s on_message() called this for ALL runners on
+    EVERY single tick regardless of which runner (if any) that tick
+    actually touched - see MultiStrategyRouter.runners_for()'s own
+    note for the fix on the caller side.
+
+    firebase_executor - added 21-Aug-2026: submit sync_portfolio() (a
+    real cross-region REST call, VPS-to-Firebase) to this executor
+    instead of calling it synchronously and blocking the caller on a
+    network round-trip. None (default) keeps the old synchronous call
+    - confirmed live as the dominant cause of a real tick-latency
+    incident (median 1.5s, up to 46.5s, across 92,124 measured ticks
+    in run_tick_collector.py's own archive, same architecture) - see
+    run_tick_collector.py's FIREBASE_SYNC_WORKERS comment for the full
+    detail. A snapshot dict is built before submitting (not the live
+    runner.portfolio reference) so a later tick mutating Position/
+    Closed Trades can't race the background write.
     """
 
     from report.firebase_realtime_sync import sync_portfolio
 
-    for key, runner in runners.items():
+    for key in (keys if keys is not None else runners.keys()):
+        runner = runners[key]
         name = STRATEGY_NAMES[key]
         save_portfolio(name, runner.portfolio)
-        sync_portfolio(name, runner.portfolio)
+
+        if firebase_executor is None:
+            sync_portfolio(name, runner.portfolio)
+            continue
+
+        snapshot = {
+            "Cash": runner.portfolio["Cash"],
+            "Position": dict(runner.portfolio["Position"]) if runner.portfolio["Position"] else None,
+            "Closed Trades": list(runner.portfolio.get("Closed Trades", [])),
+        }
+        firebase_executor.submit(sync_portfolio, name, snapshot)
 
 
 def main(access_token, execution_backend=None):
@@ -482,6 +525,18 @@ def main(access_token, execution_backend=None):
 
     router, runners = build_runners(execution_backend)
 
+    # See save_all()'s own 21-Aug-2026 note (firebase_executor param) -
+    # bounded, not a raw thread per tick, so a tick burst can't spawn
+    # unboundedly more outstanding Firebase writes than can actually
+    # drain. runner_keys is the reverse of `runners` (id(runner) ->
+    # key), built once here rather than per tick, so on_message() can
+    # turn router.runners_for(symbol)'s runner OBJECTS back into the
+    # STRATEGY_NAMES keys save_all() needs.
+    firebase_executor = concurrent.futures.ThreadPoolExecutor(
+        max_workers=4, thread_name_prefix="firebase-sync"
+    )
+    runner_keys = {id(runner): key for key, runner in runners.items()}
+
     _last_connection_alert = {"time": None}
 
     def _alert_connection_issue(kind, message):
@@ -495,8 +550,20 @@ def main(access_token, execution_backend=None):
             )
 
     def on_message(message):
+        # FIXED 21-Aug-2026 - real bug caught live: this used to call
+        # save_all(runners) with no `keys` filter and no executor - re-
+        # saving/re-syncing ALL 6 runners, including a blocking Firebase
+        # write per runner, on EVERY tick regardless of whether that
+        # tick touched them at all. touched_keys narrows this to only
+        # the runner(s) actually registered for this tick's symbol
+        # (almost always 1, occasionally more per MultiStrategyRouter's
+        # own multi-runner-per-symbol support); firebase_executor moves
+        # the network part off this hot path entirely. See save_all()'s
+        # own docstring for the full real-incident detail.
+        touched = router.runners_for(message.get("symbol"))
+        touched_keys = [runner_keys[id(runner)] for runner in touched]
         router.route(message)
-        save_all(runners)  # persist after every real state change
+        save_all(runners, keys=touched_keys, firebase_executor=firebase_executor)
 
     def on_error(message):
         print(f"[fyers websocket error] {message}")

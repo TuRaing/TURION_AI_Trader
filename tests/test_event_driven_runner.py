@@ -1,7 +1,8 @@
+import concurrent.futures
 import datetime
 
 from strategy.event_driven_runner import (
-    MultiStrategyRouter, load_portfolio, save_portfolio, _should_send_connection_alert,
+    MultiStrategyRouter, load_portfolio, save_all, save_portfolio, _should_send_connection_alert,
 )
 from strategy import event_driven_runner
 
@@ -70,6 +71,73 @@ def test_all_symbols_lists_every_registered_symbol_once():
     router.register("A", _SpyRunner("y"))  # same symbol, second runner
 
     assert sorted(router.all_symbols()) == ["A", "B"]
+
+
+def test_runners_for_returns_the_registered_runners_for_a_symbol():
+    router = MultiStrategyRouter()
+    runner_a = _SpyRunner("a")
+    runner_b = _SpyRunner("b")
+    router.register("NSE:NIFTY50-INDEX", runner_a)
+    router.register("NSE:NIFTY50-INDEX", runner_b)
+    router.register("NSE:NIFTYBANK-INDEX", runner_b)
+
+    assert router.runners_for("NSE:NIFTY50-INDEX") == [runner_a, runner_b]
+    assert router.runners_for("NSE:NIFTYBANK-INDEX") == [runner_b]
+
+
+def test_runners_for_empty_for_an_unregistered_symbol():
+    router = MultiStrategyRouter()
+
+    assert router.runners_for("NSE:SOMEOTHER-EQ") == []
+
+
+class _FakePortfolioRunner:
+    def __init__(self, portfolio):
+        self.portfolio = portfolio
+
+
+def test_save_all_only_touches_the_given_keys(tmp_path, monkeypatch):
+    # Real bug fixed 21-Aug-2026: save_all() used to re-save/re-sync
+    # EVERY runner on every tick regardless of which one the tick
+    # actually touched - this is the regression test for the `keys`
+    # filter that fixes it.
+    monkeypatch.setattr(event_driven_runner, "PORTFOLIO_DIR", str(tmp_path))
+    monkeypatch.setitem(event_driven_runner.STRATEGY_NAMES, "book_a", "book_a_name")
+    monkeypatch.setitem(event_driven_runner.STRATEGY_NAMES, "book_b", "book_b_name")
+
+    runners = {
+        "book_a": _FakePortfolioRunner({"Cash": 111, "Position": None, "Closed Trades": []}),
+        "book_b": _FakePortfolioRunner({"Cash": 222, "Position": None, "Closed Trades": []}),
+    }
+
+    save_all(runners, keys=["book_a"])
+
+    assert load_portfolio("book_a_name")["Cash"] == 111
+    assert not (tmp_path / "fyers_options_book_b_name_portfolio.json").exists()
+
+
+def test_save_all_submits_firebase_sync_to_the_given_executor(tmp_path, monkeypatch):
+    # Real bug fixed 21-Aug-2026: sync_portfolio() (a real cross-region
+    # network call) used to run synchronously in the hot WebSocket-
+    # message path - confirmed live as the dominant cause of a real
+    # tick-latency incident. This confirms it's submitted to the
+    # executor (background) rather than called directly.
+    monkeypatch.setattr(event_driven_runner, "PORTFOLIO_DIR", str(tmp_path))
+    monkeypatch.setitem(event_driven_runner.STRATEGY_NAMES, "book_a", "book_a_name")
+
+    calls = []
+    monkeypatch.setattr(
+        "report.firebase_realtime_sync.sync_portfolio",
+        lambda name, portfolio: calls.append((name, portfolio)),
+    )
+
+    runners = {"book_a": _FakePortfolioRunner({"Cash": 111, "Position": None, "Closed Trades": []})}
+
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    save_all(runners, keys=["book_a"], firebase_executor=executor)
+    executor.shutdown(wait=True)  # block until the submitted sync has actually run
+
+    assert calls == [("book_a_name", {"Cash": 111, "Position": None, "Closed Trades": []})]
 
 
 def test_load_portfolio_returns_fresh_state_when_no_file_exists(tmp_path, monkeypatch):
