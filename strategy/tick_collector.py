@@ -214,9 +214,27 @@ class LiveCandleAggregator:
     this repo's "each engine one responsibility" rule the same way
     strategy/tick_collector.py's own module docstring already argues
     for keeping this file separate from live_tick_harness.py.
+
+    max_candles default CHANGED 21-Aug-2026, at the user's own request
+    live: the original 120 (2 hours) meant a position's own chart lost
+    the candles from its actual entry once the trade had been open
+    longer than that - "मला जुने candles सुद्धा पाहिजेत जिथून trade
+    चालू झाला होता" (want the old candles too, from where the trade
+    started). 400 comfortably covers a full NSE trading day (09:15-
+    15:30 IST = 375 minutes) in one uninterrupted run - the app's own
+    chart screens must cap at the same number when seeding from
+    fetchLiveCandles()/fetchStrategyCandles(), or a bigger backend
+    history gets silently truncated straight back down to 120 on
+    arrival (see live_chart_screen.dart/strategy_premium_chart_screen.
+    dart's own matching _maxCandles). Does NOT survive a mid-day VPS
+    restart (the aggregator is in-memory only) - a restart after
+    market open still truncates history back to whatever's
+    accumulated since; the daily 08:00 IST deploy already runs before
+    market open, so this is a real gap only on an unplanned mid-day
+    restart, not routine operation.
     """
 
-    def __init__(self, max_candles=120):
+    def __init__(self, max_candles=400):
         self.max_candles = max_candles
         self._candles = []  # oldest first, each a dict with an internal _minute_key
 

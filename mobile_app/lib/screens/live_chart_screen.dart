@@ -20,8 +20,13 @@ import '../widgets/timeframe_selector.dart';
 // side in Dart, not on the backend - the backend only ever sends the
 // single latest raw tick per leg (see report/firebase_realtime_sync.
 // py's sync_live_tick(), one SET per tick, no history kept there).
-// Capped to the most recent 120 candles (2 hours) to keep the chart
-// widget's paint cost bounded during a long session.
+// Capped to the most recent 400 candles - CHANGED 21-Aug-2026, at the
+// user's own request (wanted a position's chart to still show candles
+// from where a trade actually started, not just the last 2 hours) -
+// 400 comfortably covers a full NSE trading day (375 min, 09:15-15:30
+// IST). Must match strategy/tick_collector.py's own LiveCandleAggregator
+// max_candles - see that class's own docstring for why (a bigger
+// backend history gets silently truncated back down here otherwise).
 
 class LiveChartScreen extends StatefulWidget {
   final String index; // 'NIFTY' or 'BANKNIFTY'
@@ -33,7 +38,7 @@ class LiveChartScreen extends StatefulWidget {
 }
 
 class _LiveChartScreenState extends State<LiveChartScreen> {
-  static const _maxCandles = 120;
+  static const _maxCandles = 400;
 
   final List<Map<String, dynamic>> _candles = [];
   Map<String, dynamic>? _selected;

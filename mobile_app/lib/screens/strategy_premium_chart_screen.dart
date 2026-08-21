@@ -66,7 +66,10 @@ class StrategyPremiumChartScreen extends StatefulWidget {
 }
 
 class _StrategyPremiumChartScreenState extends State<StrategyPremiumChartScreen> {
-  static const _maxCandles = 120;
+  // CHANGED 21-Aug-2026 - see live_chart_screen.dart's matching note;
+  // must stay equal to strategy/tick_collector.py's own
+  // LiveCandleAggregator max_candles.
+  static const _maxCandles = 400;
 
   final List<Map<String, dynamic>> _candles = [];
   Map<String, dynamic>? _selected;
