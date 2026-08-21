@@ -130,6 +130,44 @@ Stream<List<Map<String, dynamic>>> watchHealthChecks(String checkType, {int limi
   });
 }
 
+const _strategyTicksPath = 'strategy_ticks';
+const _strategyCandlesPath = 'strategy_candles';
+
+/// One live-updating stream of the latest CE/PE premium tick for one
+/// event-driven book's own ATM strike (`strategyName` matches strategy/
+/// event_driven_runner.py's STRATEGY_NAMES; `leg` is "CE" or "PE").
+/// Added 21-Aug-2026, at the user's own request: a real option-premium
+/// chart (Entry/Target/Stop-Loss overlaid, exact - matches how a real
+/// broker app charts an option position, not a spot-price
+/// approximation) for a specific book's CURRENT position. Deliberately
+/// SEPARATE from watchLiveTick() above - a strategy's own ATM strike
+/// can differ from run_tick_collector.py's independent ATM pick for
+/// the same index, so the two are not interchangeable data. Emits null
+/// if this leg hasn't ticked yet.
+Stream<Map<String, dynamic>?> watchStrategyTick(String strategyName, String leg) {
+  final ref = _database.ref('$_strategyTicksPath/$strategyName/$leg');
+
+  return ref.onValue.map((DatabaseEvent event) {
+    final raw = event.snapshot.value;
+    return raw == null ? null : _deepCastToStringKeyedMap(raw);
+  });
+}
+
+/// One-time fetch of the rolling 1-min premium-candle history for one
+/// event-driven book's CE or PE leg - see watchStrategyTick()'s own
+/// note above for the full context. A one-time get() (not a stream),
+/// same seed-on-open pattern as fetchLiveCandles() below.
+Future<List<Map<String, dynamic>>> fetchStrategyCandles(String strategyName, String leg) async {
+  final snapshot = await _database.ref('$_strategyCandlesPath/$strategyName/$leg').get();
+  final raw = snapshot.value;
+
+  if (raw is! List) {
+    return <Map<String, dynamic>>[];
+  }
+
+  return raw.whereType<Object>().map(_deepCastToStringKeyedMap).toList();
+}
+
 const _liveCandlesPath = 'live_candles';
 
 /// One-time fetch of the rolling 1-min candle history for [index]

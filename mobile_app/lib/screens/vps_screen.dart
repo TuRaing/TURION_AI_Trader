@@ -6,6 +6,7 @@ import '../widgets/common.dart';
 import '../widgets/disclaimer_banner.dart';
 import 'fyers_login_screen.dart';
 import 'live_chart_screen.dart';
+import 'strategy_premium_chart_screen.dart';
 
 // Added 20-Aug-2026 - the VPS's own event-driven paper-trading books
 // (strategy/event_driven_runner.py's STRATEGY_NAMES), separated into
@@ -22,17 +23,39 @@ import 'live_chart_screen.dart';
 // looks like, per the user's own screenshots of the Threshold Options
 // tab.
 
+// Book cfg constants below mirror strategy/event_driven_engine.py's own
+// cfg builders EXACTLY (make_st2_threshold_event_cfg/make_simple_st1_
+// threshold_event_cfg/make_oi_footprint_event_cfg) - added 21-Aug-2026
+// alongside StrategyPremiumChartScreen, which needs them to compute
+// Target/Stop-Loss premium lines. Static, not fetched - these values
+// only ever change via a backend redeploy, which needs an app rebuild
+// anyway to add/relabel a book at all (same as label/underlying below,
+// already hardcoded per book before this).
 const _books = [
-  (key: 'st2_threshold_eventdriven', label: 'ST2 Threshold', underlying: 'NIFTY'),
-  (key: 'simple_st1_threshold_eventdriven', label: 'Simple ST1 Threshold', underlying: 'NIFTY'),
-  (key: 'oi_footprint_eventdriven_nifty', label: 'OI Footprint', underlying: 'NIFTY'),
-  (key: 'oi_footprint_eventdriven_banknifty', label: 'OI Footprint', underlying: 'BANKNIFTY'),
+  (key: 'st2_threshold_eventdriven', label: 'ST2 Threshold', underlying: 'NIFTY',
+    lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
+    targetNetPct: 5.0, stopLossPct: 2.0, targetRupees: null, stopLossRupees: null),
+  (key: 'simple_st1_threshold_eventdriven', label: 'Simple ST1 Threshold', underlying: 'NIFTY',
+    lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
+    targetNetPct: 3.0, stopLossPct: 3.0, targetRupees: null, stopLossRupees: null),
+  (key: 'oi_footprint_eventdriven_nifty', label: 'OI Footprint', underlying: 'NIFTY',
+    lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
+    targetNetPct: null, stopLossPct: null, targetRupees: 1500.0, stopLossRupees: 1500.0),
+  (key: 'oi_footprint_eventdriven_banknifty', label: 'OI Footprint', underlying: 'BANKNIFTY',
+    lotSize: 30, initialCapital: 100000.0, hybridSlCapPct: 2.0,
+    targetNetPct: null, stopLossPct: null, targetRupees: 1500.0, stopLossRupees: 1500.0),
   // Added 21-Aug-2026 - the two new daily-profit-lock variant books
   // (strategy/event_driven_runner.py's STRATEGY_NAMES, same day) -
   // separate books running alongside the plain ones above, not a
-  // replacement of them.
-  (key: 'st2_threshold_lock_eventdriven', label: 'ST2 Threshold (2% Lock)', underlying: 'NIFTY'),
-  (key: 'simple_st1_threshold_lock_eventdriven', label: 'Simple ST1 Threshold (2% Lock)', underlying: 'NIFTY'),
+  // replacement of them. Same target/SL cfg as their un-locked
+  // siblings - only daily_profit_lock differs, which doesn't affect
+  // a single trade's own Target/SL premium.
+  (key: 'st2_threshold_lock_eventdriven', label: 'ST2 Threshold (2% Lock)', underlying: 'NIFTY',
+    lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
+    targetNetPct: 5.0, stopLossPct: 2.0, targetRupees: null, stopLossRupees: null),
+  (key: 'simple_st1_threshold_lock_eventdriven', label: 'Simple ST1 Threshold (2% Lock)', underlying: 'NIFTY',
+    lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
+    targetNetPct: 3.0, stopLossPct: 3.0, targetRupees: null, stopLossRupees: null),
 ];
 
 class VpsScreen extends StatefulWidget {
@@ -95,7 +118,11 @@ class _VpsScreenState extends State<VpsScreen> with SingleTickerProviderStateMix
 }
 
 class _BookPortfolio extends StatelessWidget {
-  final ({String key, String label, String underlying}) book;
+  final ({
+    String key, String label, String underlying,
+    int lotSize, double initialCapital, double hybridSlCapPct,
+    double? targetNetPct, double? stopLossPct, double? targetRupees, double? stopLossRupees,
+  }) book;
 
   const _BookPortfolio({required this.book});
 
@@ -156,12 +183,26 @@ class _BookPortfolio extends StatelessWidget {
                     OptionPositionCard(
                       position: position,
                       underlyingLabel: book.underlying,
-                      // Genuine tick-by-tick live chart (not the ~15-
-                      // min-refresh static one every other tab's
-                      // onViewChart opens) - the VPS's own underlying is
-                      // exactly what run_tick_collector.py streams live.
+                      // Added 21-Aug-2026 - the option's own live
+                      // PREMIUM chart with Entry/Target/Stop-Loss
+                      // overlaid (see strategy_premium_chart_screen.
+                      // dart's own module comment for why this is
+                      // premium, not spot).
                       onViewChart: () => Navigator.push(
-                          context, MaterialPageRoute(builder: (_) => LiveChartScreen(index: book.underlying))),
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => StrategyPremiumChartScreen(
+                                    strategyKey: book.key,
+                                    strategyLabel: book.label,
+                                    position: position,
+                                    lotSize: book.lotSize,
+                                    initialCapital: book.initialCapital,
+                                    hybridSlCapPct: book.hybridSlCapPct,
+                                    targetNetPct: book.targetNetPct,
+                                    stopLossPct: book.stopLossPct,
+                                    targetRupees: book.targetRupees,
+                                    stopLossRupees: book.stopLossRupees,
+                                  ))),
                     ),
                 ],
               ),

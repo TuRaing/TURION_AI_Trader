@@ -143,6 +143,8 @@ def sync_access_token(access_token):
 _LIVE_TICKS_PATH = "/live_ticks"
 _HEALTH_CHECKS_PATH = "/health_checks"
 _LIVE_CANDLES_PATH = "/live_candles"
+_STRATEGY_TICKS_PATH = "/strategy_ticks"
+_STRATEGY_CANDLES_PATH = "/strategy_candles"
 
 
 def sync_live_tick(index, leg, record):
@@ -171,6 +173,35 @@ def sync_live_candles(index, candles):
     """
 
     return sync_state(f"{_LIVE_CANDLES_PATH}/{index}", candles)
+
+
+def sync_strategy_tick(strategy_name, leg, record):
+    """
+    Added 21-Aug-2026, at the user's own request: a live option-premium
+    chart (Entry/Target/Stop-Loss overlaid, exact - not a spot-price
+    approximation, same as how a real broker app charts an option
+    position against its own premium, not the underlying) for a
+    specific event-driven book's CURRENT position. `leg` is "CE" or
+    "PE" - strategy/event_driven_runner.py's on_message() syncs BOTH
+    legs for every runner regardless of which one is currently open, so
+    switching sides (a new position, possibly the other leg) never hits
+    a cold path. Same "latest tick" shape as sync_live_tick() above -
+    kept as a SEPARATE path (not reused) because a strategy's own ATM
+    strike can differ from run_tick_collector.py's independent ATM pick
+    for the same index (each picks its own at its own startup - see
+    event_driven_runner.py's own module docstring), so the two are not
+    interchangeable data.
+    """
+
+    return sync_state(f"{_STRATEGY_TICKS_PATH}/{strategy_name}/{leg}", record)
+
+
+def sync_strategy_candles(strategy_name, leg, candles):
+    """See sync_strategy_tick()'s own note - the candle-history
+    equivalent, same "sync once per closed candle, not per tick"
+    contract as sync_live_candles()."""
+
+    return sync_state(f"{_STRATEGY_CANDLES_PATH}/{strategy_name}/{leg}", candles)
 
 
 def sync_health_check(check_type, report_text, timestamp):

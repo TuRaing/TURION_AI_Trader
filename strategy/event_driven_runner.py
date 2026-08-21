@@ -14,6 +14,7 @@ from strategy.event_driven_engine import (
 )
 from strategy.execution_backend import PaperExecutionBackend
 from strategy.live_tick_harness import LiveTickRunner, OIFootprintTickRunner, handle_symbol_update_message
+from strategy.tick_collector import LiveCandleAggregator
 
 IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
 
@@ -522,6 +523,7 @@ def main(access_token, execution_backend=None):
 
     from fyers_apiv3.FyersWebsocket import data_ws
     from report.push_notifier import send_push_notification
+    from report.firebase_realtime_sync import sync_strategy_tick, sync_strategy_candles
 
     router, runners = build_runners(execution_backend)
 
@@ -536,6 +538,21 @@ def main(access_token, execution_backend=None):
         max_workers=4, thread_name_prefix="firebase-sync"
     )
     runner_keys = {id(runner): key for key, runner in runners.items()}
+
+    # Added 21-Aug-2026, user's own request: a live option-PREMIUM chart
+    # (Entry/Target/Stop-Loss overlaid, exact - not the earlier-discussed
+    # spot-price approximation, matching how a real broker app charts an
+    # option position against its own premium) for a specific book's
+    # CURRENT position. One CE and one PE aggregator per runner - synced
+    # regardless of which leg is actually open, so a fresh position
+    # (possibly the OTHER leg) never hits a cold chart. Separate from
+    # run_tick_collector.py's own index-level/SPOT candle_aggregators -
+    # this is per-strategy, per-leg (a strategy's own ATM strike can
+    # differ from that process's independent ATM pick for the same
+    # index).
+    strategy_candle_aggregators = {
+        key: {"CE": LiveCandleAggregator(), "PE": LiveCandleAggregator()} for key in runners
+    }
 
     _last_connection_alert = {"time": None}
 
@@ -560,10 +577,36 @@ def main(access_token, execution_backend=None):
         # own multi-runner-per-symbol support); firebase_executor moves
         # the network part off this hot path entirely. See save_all()'s
         # own docstring for the full real-incident detail.
-        touched = router.runners_for(message.get("symbol"))
+        symbol = message.get("symbol")
+        touched = router.runners_for(symbol)
         touched_keys = [runner_keys[id(runner)] for runner in touched]
         router.route(message)
         save_all(runners, keys=touched_keys, firebase_executor=firebase_executor)
+
+        # Added 21-Aug-2026 - see strategy_candle_aggregators' own note
+        # above. Only a real CE/PE tick (not the underlying spot) feeds
+        # a strategy's own premium chart; only sync a candle on an
+        # actual close (once/min/leg/strategy, not per tick - a per-tick
+        # sync here would reintroduce the blocking-Firebase-call latency
+        # bug fixed earlier the same day).
+        ltp = message.get("ltp")
+        if ltp is not None:
+            timestamp = datetime.datetime.fromtimestamp(
+                message.get("exch_feed_time", message.get("last_traded_time")), tz=IST
+            )
+            timestamp_str = timestamp.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+
+            for runner, key in zip(touched, touched_keys):
+                leg = "CE" if symbol == runner.ce_symbol else "PE" if symbol == runner.pe_symbol else None
+                if leg is None:
+                    continue
+
+                name = STRATEGY_NAMES[key]
+                firebase_executor.submit(sync_strategy_tick, name, leg, {"ltp": ltp, "timestamp": timestamp_str})
+
+                agg = strategy_candle_aggregators[key][leg]
+                if agg.on_tick(timestamp_str, ltp):
+                    firebase_executor.submit(sync_strategy_candles, name, leg, agg.as_list())
 
     def on_error(message):
         print(f"[fyers websocket error] {message}")
