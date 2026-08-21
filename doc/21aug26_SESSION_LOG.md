@@ -178,6 +178,120 @@ Next Session
    right IST wall-clock moments, not just that the crontab syntax
    looks right.
 
+--------------------------------------------------
+
+TWO MORE REAL BUGS FOUND AND FIXED, SAME SESSION, POST-MARKET-OPEN
+CHECK - user asked to check the VPS again after market open. Found:
+
+(1) TICK-LATENCY SENTINEL BUG - today's real health-check report
+showed an impossible "avg 7,273,783,216.3ms, max 3,934,760,813,769.0ms"
+tick latency. Root cause traced to a real archived record:
+{"timestamp": "1901-12-14 02:15:52.000", ...} - reverse-computed the
+epoch for that exact IST string and got precisely -2147483648 (32-bit
+signed int's minimum). Fyers occasionally sends exch_feed_time as this
+sentinel for a tick with no real exchange timestamp yet;
+format_tick_record() has no way to detect it at write time, so it
+archives as a real-looking 1901 date, and tick_latency_ms() blindly
+diffed it against a real 2026 received_at - decades of "latency"
+poisoning every avg/max. FIXED: tick_latency_ms() (strategy/tick_
+collector.py) now treats a negative or >5-minute latency as
+unmeasurable (returns None), same as its existing missing-received_at
+case.
+
+(2) NO MARKET-HOURS GATE IN THE EVENT-DRIVEN ENGINE - grepped the
+whole event-driven pipeline for any market-open check and found none
+at all. Real consequence, confirmed from actual portfolio data: a
+WebSocket connection replays Fyers' last pre-market snapshot on
+connect (often yesterday's closing quote), and with no gate, BOTH
+event-driven books (simple_st1_threshold, st2_threshold) opened a
+real-tracked NIFTY PE position on that stale data at 07:59:55 IST
+today (Entry Spot 24231.85 - exactly yesterday's 20-Aug 17:25 IST
+archived spot). When real market data arrived, the (fake) entry
+premium vs the real premium triggered a genuine-looking Stop Loss for
+-Rs 22,949.63 (-22.95%) in EACH book (~Rs 45,900 combined) - a real,
+quantified, bug-caused paper loss, not a real trading signal. Also
+found a SECOND instance of the same class from an earlier run: one
+Closed Trade in each book has "Entry Time": "1901-12-14 02:15:52" -
+the exact same INT32_MIN sentinel, this time corrupting a real
+decide_fn's data_point["timestamp"] (not just the tick archive),
+which then triggered an immediate Square-Off once past_squareoff()
+compared "1901" against a real 2026 clock.
+
+FIXED: added a `before_market_open` field to both decide_fns' data_
+point contract (strategy/event_driven_engine.py), computed upstream in
+strategy/live_tick_harness.py from the ALREADY-EXISTING MARKET_OPEN_
+TIME=(9,15) constant (reused from strategy/fyers_options_engine.py,
+not duplicated). Matches that module's own check_or_open() convention
+exactly: only gates NEW entries - an already-open position (e.g. one
+legitimately carried overnight) still gets checked for Target/Stop-
+Loss/Square-Off regardless of time. 4 new tests (2 decide_fn-level, 1
+runner-level, 1 confirming an existing position is still managed even
+when before_market_open=True) - 522/522 passing.
+
+Both fixes committed (85e1aa0ed after a rebase onto concurrent
+automated portfolio commits - 6596bc706) and deployed live via SSH
+(deploy.sh's exec bit had been silently reset by the git pull despite
+core.fileMode=false, same class of gap as B16's original chmod fix -
+re-chmod'd before retrying). Both services confirmed stable (0
+restarts) since the 03:32:54 UTC redeploy. The pre-existing bad
+position closed for real (Stop Loss, the real loss recorded above)
+within seconds of the new code landing - expected: the new gate only
+blocks NEW entries, an existing bad position still gets managed to
+closure, not silently held forever.
+
+STILL OPEN, user deferred: what to do with the two bug-caused Closed
+Trade records (-Rs 22,949.63 each) in reports/fyers_options_simple_
+st1_threshold_eventdriven_portfolio.json and reports/fyers_options_
+st2_threshold_eventdriven_portfolio.json - reverse them (restore Cash,
+delete the entries) or leave them with a note that they're bug-
+generated, not real signals. User asked to finish the rest of the VPS
+work first; revisit this explicitly next session if not already
+resolved.
+
+--------------------------------------------------
+
+MOBILE APP - VPS TAB, LIVE CHART, AND CHECKS TAB ALL STUCK LOADING
+FOREVER - REAL BUG FOUND AND FIXED - user reported the Checks tab's
+pre-market section never left its loading spinner; asked to check the
+VPS tab too, which turned out to have the identical symptom, ruling
+out anything Checks-screen-specific.
+
+Confirmed the backend side was NOT the problem first (before touching
+any app code) - queried the Realtime Database directly via its own
+REST API (`curl .../health_checks.json?shallow=true`) and got back
+real data for both "market" and "pre_market", with the exact expected
+shape. So sync_health_check()/sync_state() on the Python/VPS side were
+never in question - this was 100% an app-side bug.
+
+ROOT CAUSE: mobile_app/android/app/google-services.json has no
+"firebase_url" key (it predates the Realtime Database being enabled
+on this project - added 20-Aug, see doc/PROJECT_STATUS.md's "FIREBASE
+PART A" entry - the google-services.json file itself was never
+regenerated after). This project's RTDB instance also lives in a
+NON-default region (asia-southeast1/Singapore, chosen 20-Aug since
+Mumbai/asia-south1 isn't an available RTDB region) rather than the
+us-central1 every bare `FirebaseDatabase.instance` call implicitly
+assumes without an explicit databaseURL. Every one of the app's 3 live
+Firebase streams (watchEventDrivenPortfolio, watchLiveTick,
+watchHealthChecks, all in mobile_app/lib/event_driven_realtime_
+service.dart) used the bare `.instance` getter, so `ref.onValue` never
+fired even once on a real device - not an error the app could catch
+and show, just permanently pending, which is exactly why every screen
+sat on its CircularProgressIndicator forever with no error message.
+
+FIXED: one shared `_database` instance built via `FirebaseDatabase.
+instanceFor(app: Firebase.app(), databaseURL: 'https://turion-ai-
+trader-default-rtdb.asia-southeast1.firebasedatabase.app')`, used by
+all 3 functions instead of the bare `.instance` getter - the real URL
+now lives in code, robust to google-services.json never being
+regenerated with a "firebase_url" key (rather than relying on that
+file, which this repo doesn't control the regeneration of). `flutter
+analyze` clean. Release APK rebuild kicked off in the background
+(--dart-define=GITHUB_PAT, same flag every release build needs) - NOT
+YET installed/verified on the real device as this entry is written;
+check its result and install before considering this actually fixed,
+not just code-complete.
+
 2. All other open items unchanged from doc/20aug26_SESSION_LOG.md's
    own "Next Session" list (sync_ticks_from_vps.py end-to-end
    exercise, off-machine backup, mobile app real-data verification,

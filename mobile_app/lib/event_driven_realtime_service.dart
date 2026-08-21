@@ -1,4 +1,29 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
+
+// FIXED 21-Aug-2026 - real bug caught live: the app's VPS tab, live
+// chart, AND Checks tab were all stuck on their loading spinner
+// forever, on a real device, with real data already confirmed present
+// in Firebase (verified directly via the REST API). Root cause:
+// mobile_app/android/app/google-services.json has no "firebase_url"
+// key (it predates the Realtime Database being enabled on this
+// project, 20-Aug), and this project's RTDB instance lives in a
+// NON-default region (asia-southeast1/Singapore, not the us-central1
+// every `FirebaseDatabase.instance` call implicitly assumes without an
+// explicit URL) - see doc/PROJECT_STATUS.md's 20-Aug "FIREBASE PART A"
+// entry. Every `FirebaseDatabase.instance` call below silently
+// resolved to a database that doesn't exist, so `ref.onValue` never
+// fired even once - not an error, just permanently pending, which is
+// exactly why the UI never left its CircularProgressIndicator. FIX:
+// one shared instance built with the real databaseURL explicitly, used
+// everywhere below instead of the bare `.instance` getter - robust to
+// google-services.json never being regenerated with a "firebase_url"
+// key, since the URL now lives in code, not a config file this repo
+// doesn't control the regeneration of.
+final _database = FirebaseDatabase.instanceFor(
+  app: Firebase.app(),
+  databaseURL: 'https://turion-ai-trader-default-rtdb.asia-southeast1.firebasedatabase.app',
+);
 
 // Added 18-Aug-2026 - the app-side half of the Firebase Realtime
 // Database live-data path (see doc/PROJECT_STATUS.md's LIVE-DATA
@@ -38,7 +63,7 @@ const _eventDrivenPortfolioPath = 'event_driven_portfolios';
 /// should treat null the same way api.dart's fetchJson() already
 /// treats a 404 (a legitimate "nothing yet" state, not an error).
 Stream<Map<String, dynamic>?> watchEventDrivenPortfolio(String strategyName) {
-  final ref = FirebaseDatabase.instance.ref('$_eventDrivenPortfolioPath/$strategyName');
+  final ref = _database.ref('$_eventDrivenPortfolioPath/$strategyName');
 
   return ref.onValue.map((DatabaseEvent event) {
     final raw = event.snapshot.value;
@@ -69,7 +94,7 @@ const _healthChecksPath = 'health_checks';
 /// (the VPS's own local JSONL archive is the history). Emits null if
 /// the collector hasn't produced a tick for this leg yet today.
 Stream<Map<String, dynamic>?> watchLiveTick(String index, String leg) {
-  final ref = FirebaseDatabase.instance.ref('$_liveTicksPath/$index/$leg');
+  final ref = _database.ref('$_liveTicksPath/$index/$leg');
 
   return ref.onValue.map((DatabaseEvent event) {
     final raw = event.snapshot.value;
@@ -83,7 +108,7 @@ Stream<Map<String, dynamic>?> watchLiveTick(String index, String leg) {
 /// "timestamp" - a real feed of past runs, not just the latest one.
 /// Emits [] if nothing has synced yet (not an error).
 Stream<List<Map<String, dynamic>>> watchHealthChecks(String checkType, {int limit = 20}) {
-  final ref = FirebaseDatabase.instance
+  final ref = _database
       .ref('$_healthChecksPath/$checkType')
       .orderByKey()
       .limitToLast(limit);

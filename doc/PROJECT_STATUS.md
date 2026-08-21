@@ -7206,6 +7206,42 @@ UTC-converted. Fixed on the live VPS crontab (deploy now 30 2 UTC =
 comments (deploy/deploy.sh, deploy/turion-event-driven.service) so a
 future re-install doesn't repeat it. See doc/21aug26_SESSION_LOG.md.
 
+TWO MORE REAL BUGS FOUND AND FIXED, POST-MARKET-OPEN CHECK (21-Aug) -
+(1) tick_latency_ms() (strategy/tick_collector.py) was reporting
+decades-long "latency" (confirmed live: avg ~84 days, max ~125 years)
+because Fyers occasionally sends exch_feed_time as -2147483648 (32-bit
+int underflow), archived as a real-looking "1901" timestamp - now
+treats a negative or >5-min latency as unmeasurable. (2) The event-
+driven engine had NO market-hours gate anywhere - a WebSocket
+reconnect replays Fyers' last pre-market snapshot, and this opened a
+real-tracked position on yesterday's stale closing price before 09:15
+IST, which a real Stop-Loss then closed for a genuine -Rs 22,949.63
+loss in EACH of the 2 affected books (~Rs 45,900 combined, confirmed
+in the actual portfolio JSON) - a bug-caused paper loss, not a real
+signal. Added `before_market_open` to the decide_fn data_point
+contract, gating only new entries (matches fyers_options_engine.py's
+own MARKET_OPEN_TIME convention) - an already-open position still gets
+managed regardless of time. 522/522 tests passing, deployed live.
+What to do with the two bad Closed Trade records is still an open
+question for the user. See doc/21aug26_SESSION_LOG.md.
+
+MOBILE APP - ALL THREE LIVE FIREBASE SCREENS STUCK LOADING FOREVER,
+FIXED (21-Aug) - VPS tab, live chart, and Checks tab all sat on their
+loading spinner permanently on a real device, even with real data
+confirmed present in Firebase (verified directly via its REST API,
+ruling out the backend). Root cause: google-services.json has no
+"firebase_url" key (predates the RTDB being enabled), and this
+project's RTDB lives in a non-default region (asia-southeast1) that
+`FirebaseDatabase.instance` can't resolve without an explicit
+databaseURL - so `ref.onValue` never fired even once, with no error
+surfaced to the UI. Fixed with one shared `FirebaseDatabase.
+instanceFor(..., databaseURL: ...)` instance used by all 3 live
+streams in mobile_app/lib/event_driven_realtime_service.dart, instead
+of the bare `.instance` getter - the real URL now lives in code, not a
+config file this repo doesn't control the regeneration of. `flutter
+analyze` clean; release APK rebuild + on-device install still pending
+as of this write-up.
+
 ==================================================
 
 Status
