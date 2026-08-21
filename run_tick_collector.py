@@ -234,6 +234,26 @@ def main():
     print("Connecting to Fyers WebSocket for tick archival...")
     socket.connect()
 
+    # FIXED 21-Aug-2026 - real bug caught live, exposed by (not caused
+    # by) today's Firebase-executor fix above: FyersDataSocket.connect()
+    # does NOT block - it starts its own background threads (message/
+    # ping/ws_thread inside the SDK, plus keep_running()'s own
+    # infy_loop) and returns immediately. Without this, main()'s own
+    # top-level script genuinely FINISHES right after connect() returns
+    # - Python then starts real interpreter shutdown (atexit handlers
+    # fire) even though those background threads keep the OS process
+    # alive (systemd still shows it as running, since Python's own
+    # threading._shutdown() blocks on infy_loop, a non-daemon thread,
+    # never actually exiting). concurrent.futures.thread's own atexit
+    # hook sets its process-wide shutdown flag as part of that sequence
+    # - confirmed live: every firebase_executor.submit() call afterward
+    # failed with "cannot schedule new futures after interpreter
+    # shutdown", string-for-string. This block keeps the main thread
+    # genuinely alive so that shutdown sequence never starts prematurely
+    # - matches what a persistent background service should do anyway.
+    while True:
+        time.sleep(3600)
+
 
 if __name__ == "__main__":
     main()

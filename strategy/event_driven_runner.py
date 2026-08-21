@@ -620,3 +620,16 @@ def main(access_token, execution_backend=None):
     threading.Thread(target=oi_refresh_loop, daemon=True).start()
 
     socket.connect()
+
+    # FIXED 21-Aug-2026 - see run_tick_collector.py's matching fix for
+    # the full real-incident detail (identical root cause, identical
+    # symptom: "cannot schedule new futures after interpreter shutdown"
+    # on every firebase_executor.submit() call). FyersDataSocket.
+    # connect() doesn't block, so without this, main()'s script finished
+    # right after connect() returned and Python started real interpreter
+    # shutdown seconds into every run - the OS process stayed alive only
+    # because a non-daemon SDK thread blocked threading._shutdown()
+    # forever, but concurrent.futures' own atexit hook had already fired
+    # by then, permanently breaking new executor submissions.
+    while True:
+        time.sleep(3600)
