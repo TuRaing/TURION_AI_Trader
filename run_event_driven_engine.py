@@ -54,6 +54,26 @@ def main():
         sys.exit(0)
 
     print("Got today's access_token via Firebase - starting the event-driven engine...")
+
+    # FIXED 21-Aug-2026 - real bug hit live: build_runners() calls
+    # pick_atm_symbols() -> fyers_options_engine.py's _fetch_option_
+    # chain()/_headers(), which ALWAYS calls strategy/fyers_auth.py's
+    # get_access_token() (reads the LOCAL .env's FYERS_ACCESS_TOKEN) -
+    # never wired to accept the Firebase-sourced token above. The VPS's
+    # .env has no FYERS_ACCESS_TOKEN key at all (only FYERS_APP_ID +
+    # the Firebase keys), so this crashed every time with "No FYERS_
+    # ACCESS_TOKEN found". Same underlying issue would also hit
+    # _seed_candles()/_previous_close() (strategy/fyers_data.py's own
+    # _headers(), identical pattern). FIX: set the env var directly
+    # rather than touching fyers_options_engine.py/fyers_data.py (both
+    # "never modify a working module" - used by 60+ live polling
+    # books) - get_access_token()'s own load_dotenv(..., override=True)
+    # only overrides keys THAT EXIST in .env, and the VPS's .env has no
+    # FYERS_ACCESS_TOKEN key to conflict with this, so every downstream
+    # caller picks up the correct token with zero changes to any of
+    # those shared modules.
+    os.environ["FYERS_ACCESS_TOKEN"] = access_token
+
     run_event_driven_engine(access_token, execution_backend)
 
 

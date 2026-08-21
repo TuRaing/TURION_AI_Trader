@@ -91,6 +91,13 @@ def main():
               "Firebase isn't configured) - skipping this start attempt.")
         sys.exit(0)
 
+    # See run_event_driven_engine.py's matching comment (21-Aug-2026) -
+    # pick_atm_symbols() below ultimately calls strategy/fyers_auth.py's
+    # get_access_token() (local .env only) several layers down; setting
+    # the env var directly here makes every one of those calls pick up
+    # the real Firebase-sourced token without touching any shared module.
+    os.environ["FYERS_ACCESS_TOKEN"] = access_token
+
     from fyers_apiv3.FyersWebsocket import data_ws  # see module docstring -
     # imported here, not at module level, matching live_tick_harness.py's
     # own reasoning (this module stays importable without fyers_apiv3
