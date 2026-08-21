@@ -318,9 +318,23 @@ class _CandlestickPainter extends CustomPainter {
           ..strokeWidth = 1,
       );
 
-      final bodyTop = yFor(isUp ? close : open);
-      final bodyBottomRaw = yFor(isUp ? open : close);
-      final bodyBottom = (bodyBottomRaw - bodyTop).abs() < 1 ? bodyTop + 1 : bodyBottomRaw;
+      var bodyTop = yFor(isUp ? close : open);
+      var bodyBottom = yFor(isUp ? open : close);
+      // FIXED 21-Aug-2026 - real bug caught live on a real device: a
+      // flat/near-flat candle (Open≈Close, e.g. every candle during a
+      // quiet post-market-close stretch) collapsed to a 1-DEVICE-pixel
+      // rectangle, which on a real screen (as opposed to a desktop
+      // preview) rendered as good as invisible - confirmed live, the
+      // candle simply didn't show even though the price axis and
+      // crosshair around it were both correctly on-screen. A 2.5px
+      // floor, centered on the true price rather than only extended
+      // downward, keeps a flat candle genuinely visible without
+      // shifting where it visually sits.
+      if ((bodyBottom - bodyTop).abs() < 2.5) {
+        final mid = (bodyTop + bodyBottom) / 2;
+        bodyTop = mid - 1.25;
+        bodyBottom = mid + 1.25;
+      }
 
       canvas.drawRect(
         Rect.fromLTRB(x - bodyWidth / 2, bodyTop, x + bodyWidth / 2, bodyBottom),
