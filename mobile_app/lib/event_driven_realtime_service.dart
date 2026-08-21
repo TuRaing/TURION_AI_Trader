@@ -130,6 +130,31 @@ Stream<List<Map<String, dynamic>>> watchHealthChecks(String checkType, {int limi
   });
 }
 
+const _liveCandlesPath = 'live_candles';
+
+/// One-time fetch of the rolling 1-min candle history for [index]
+/// (NIFTY/BANKNIFTY), maintained server-side by run_tick_collector.py's
+/// LiveCandleAggregator and synced once per closed candle (see report/
+/// firebase_realtime_sync.py's sync_live_candles()). Added 21-Aug-2026
+/// to seed LiveChartScreen on open - real gap found live: the screen's
+/// own client-side aggregation had no history to seed from, so opening
+/// it showed just one lone building candle instead of a real chart.
+/// A one-time get() (not a stream) - the screen keeps updating the
+/// CURRENT candle live from its own existing watchLiveTick()
+/// subscription afterward; this only needs to run once, at startup.
+/// Returns [] if nothing has synced yet (not an error - matches every
+/// other "nothing yet" path in this file).
+Future<List<Map<String, dynamic>>> fetchLiveCandles(String index) async {
+  final snapshot = await _database.ref('$_liveCandlesPath/$index').get();
+  final raw = snapshot.value;
+
+  if (raw is! List) {
+    return <Map<String, dynamic>>[];
+  }
+
+  return raw.whereType<Object>().map(_deepCastToStringKeyedMap).toList();
+}
+
 Map<String, dynamic> _deepCastToStringKeyedMap(dynamic value) {
   if (value is Map) {
     return value.map((key, v) => MapEntry(key.toString(), _deepCastValue(v)));

@@ -6,6 +6,8 @@ from strategy.tick_collector import (
     format_tick_record,
     tick_latency_ms,
     summarize_tick_latency,
+    candle_minute_key,
+    LiveCandleAggregator,
 )
 
 IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
@@ -146,3 +148,67 @@ def test_summarize_tick_latency_empty_list():
     summary = summarize_tick_latency([])
 
     assert summary == {"avg_ms": None, "max_ms": None, "count": 0}
+
+
+def test_candle_minute_key_truncates_to_the_minute():
+    assert candle_minute_key("2026-08-21 09:17:42.500") == "2026-08-21 09:17"
+
+
+def test_live_candle_aggregator_first_tick_opens_a_candle_and_signals_close():
+    agg = LiveCandleAggregator()
+
+    started_new = agg.on_tick("2026-08-21 09:17:05.000", 24200.0)
+
+    assert started_new is True
+    assert agg.as_list() == [
+        {"Timestamp": "2026-08-21 09:17:00", "Open": 24200.0, "High": 24200.0, "Low": 24200.0, "Close": 24200.0}
+    ]
+
+
+def test_live_candle_aggregator_ticks_within_the_same_minute_update_high_low_close():
+    agg = LiveCandleAggregator()
+    agg.on_tick("2026-08-21 09:17:05.000", 24200.0)
+
+    started_new = agg.on_tick("2026-08-21 09:17:42.000", 24250.0)
+
+    assert started_new is False
+    candle = agg.as_list()[0]
+    assert candle["High"] == 24250.0
+    assert candle["Low"] == 24200.0
+    assert candle["Close"] == 24250.0
+    assert candle["Open"] == 24200.0
+
+
+def test_live_candle_aggregator_new_minute_closes_the_previous_candle():
+    agg = LiveCandleAggregator()
+    agg.on_tick("2026-08-21 09:17:05.000", 24200.0)
+    agg.on_tick("2026-08-21 09:17:42.000", 24250.0)
+
+    started_new = agg.on_tick("2026-08-21 09:18:01.000", 24230.0)
+
+    assert started_new is True
+    candles = agg.as_list()
+    assert len(candles) == 2
+    assert candles[0]["Timestamp"] == "2026-08-21 09:17:00"
+    assert candles[0]["Close"] == 24250.0  # previous candle unchanged
+    assert candles[1]["Timestamp"] == "2026-08-21 09:18:00"
+    assert candles[1]["Open"] == 24230.0
+
+
+def test_live_candle_aggregator_caps_at_max_candles():
+    agg = LiveCandleAggregator(max_candles=3)
+
+    for minute in range(5):
+        agg.on_tick(f"2026-08-21 09:{17 + minute:02d}:00.000", 24200.0 + minute)
+
+    candles = agg.as_list()
+    assert len(candles) == 3
+    assert candles[0]["Timestamp"] == "2026-08-21 09:19:00"  # oldest 2 dropped
+    assert candles[-1]["Timestamp"] == "2026-08-21 09:21:00"
+
+
+def test_live_candle_aggregator_as_list_has_no_internal_minute_key():
+    agg = LiveCandleAggregator()
+    agg.on_tick("2026-08-21 09:17:05.000", 24200.0)
+
+    assert "_minute_key" not in agg.as_list()[0]

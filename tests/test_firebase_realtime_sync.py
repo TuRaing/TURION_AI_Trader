@@ -1,6 +1,6 @@
 from report.firebase_realtime_sync import (
     sync_state, fetch_state, sync_portfolio, sync_access_token, fetch_access_token,
-    _database_url, DATABASE_URL_ENV_VAR,
+    sync_live_candles, _database_url, DATABASE_URL_ENV_VAR,
 )
 
 
@@ -52,6 +52,23 @@ def test_sync_portfolio_uses_the_expected_path(monkeypatch):
 
     assert captured["path"] == "/event_driven_portfolios/st2_threshold_eventdriven_nifty"
     assert captured["value"] == {"Cash": 100000}
+
+
+def test_sync_live_candles_uses_the_expected_path(monkeypatch):
+    captured = {}
+
+    def _fake_sync_state(path, value):
+        captured["path"] = path
+        captured["value"] = value
+        return True
+
+    monkeypatch.setattr("report.firebase_realtime_sync.sync_state", _fake_sync_state)
+
+    candles = [{"Timestamp": "2026-08-21 09:17:00", "Open": 24200.0, "High": 24250.0, "Low": 24200.0, "Close": 24230.0}]
+    sync_live_candles("NIFTY", candles)
+
+    assert captured["path"] == "/live_candles/NIFTY"
+    assert captured["value"] == candles
 
 
 def test_fetch_state_skips_gracefully_when_firebase_not_configured(monkeypatch):

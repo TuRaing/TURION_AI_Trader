@@ -12,10 +12,12 @@ sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)
 # detail) - applied here too for consistency, this process runs under
 # the identical systemd/non-TTY conditions.
 
-from report.firebase_realtime_sync import fetch_access_token, sync_live_tick
+from report.firebase_realtime_sync import fetch_access_token, sync_live_tick, sync_live_candles
 from strategy.event_driven_runner import pick_atm_symbols
 from strategy.fyers_options_engine import INDEX_CONFIG
-from strategy.tick_collector import atm_has_drifted, tick_log_filename, format_tick_record
+from strategy.tick_collector import (
+    atm_has_drifted, tick_log_filename, format_tick_record, LiveCandleAggregator,
+)
 
 # Added 20-Aug-2026 - the VPS entry point for the ATM tick-by-tick
 # archival collector (strategy/tick_collector.py's pure logic). Same
@@ -132,6 +134,19 @@ def main():
         except Exception as error:
             print(f"Live tick Firebase sync failed for {record['symbol']} (continuing): {error}")
 
+    # Added 21-Aug-2026 - see LiveCandleAggregator's own module docstring
+    # (strategy/tick_collector.py) for the real gap this fixes: the
+    # app's live chart had no history to seed from. One aggregator per
+    # index, fed only by SPOT ticks (the chart is index-level, not
+    # per-option-leg).
+    candle_aggregators = {index: LiveCandleAggregator() for index in INDICES}
+
+    def sync_live_candles_async(index, candles):
+        try:
+            sync_live_candles(index, candles)
+        except Exception as error:
+            print(f"Live candle Firebase sync failed for {index} (continuing): {error}")
+
     # state[index] = {"strike": int, "symbols": {fyers_symbol: leg}}
     state = {}
 
@@ -179,6 +194,16 @@ def main():
         # own comment) - was blocking every tick on a real cross-region
         # network call.
         firebase_executor.submit(sync_live_tick_async, index, leg, record)
+
+        # Added 21-Aug-2026 - see candle_aggregators' own comment above.
+        # Only SPOT ticks feed the chart's candles; only sync on an
+        # actual candle CLOSE (once per minute per index), not per tick
+        # - a per-tick sync here would reintroduce the exact latency
+        # bug just fixed.
+        if leg == "SPOT" and candle_aggregators[index].on_tick(record["timestamp"], record["ltp"]):
+            firebase_executor.submit(
+                sync_live_candles_async, index, candle_aggregators[index].as_list()
+            )
 
     def on_error(message):
         print(f"[tick collector websocket error] {message}")

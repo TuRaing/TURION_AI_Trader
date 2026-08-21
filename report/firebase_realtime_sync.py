@@ -142,6 +142,7 @@ def sync_access_token(access_token):
 # with their own timestamp, not just the latest one).
 _LIVE_TICKS_PATH = "/live_ticks"
 _HEALTH_CHECKS_PATH = "/health_checks"
+_LIVE_CANDLES_PATH = "/live_candles"
 
 
 def sync_live_tick(index, leg, record):
@@ -151,6 +152,25 @@ def sync_live_tick(index, leg, record):
     durable record."""
 
     return sync_state(f"{_LIVE_TICKS_PATH}/{index}/{leg}", record)
+
+
+def sync_live_candles(index, candles):
+    """
+    Added 21-Aug-2026 - real gap found live: the app's LiveChartScreen
+    aggregates its own 1-min candles client-side, but had no history to
+    seed from (sync_live_tick() above only ever holds the single latest
+    tick) - opening the chart showed one lone building candle instead of
+    a real chart. run_tick_collector.py's own LiveCandleAggregator
+    (strategy/tick_collector.py) maintains the real rolling history and
+    calls this ONCE PER CLOSED CANDLE (not per tick - a per-tick sync
+    here would reintroduce the exact blocking-Firebase-call latency bug
+    fixed the same day). One overwrite per index, same "latest state,
+    not a growing feed" shape as sync_live_tick() - the app fetches this
+    ONCE at startup to seed itself, then keeps updating the current
+    candle live from its own existing tick stream unchanged.
+    """
+
+    return sync_state(f"{_LIVE_CANDLES_PATH}/{index}", candles)
 
 
 def sync_health_check(check_type, report_text, timestamp):

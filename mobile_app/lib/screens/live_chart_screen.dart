@@ -41,7 +41,63 @@ class _LiveChartScreenState extends State<LiveChartScreen> {
   @override
   void initState() {
     super.initState();
+    _seedFromHistory();
     _sub = watchLiveTick(widget.index, 'SPOT').listen(_onTick);
+  }
+
+  // Added 21-Aug-2026 - real gap found live: this screen used to build
+  // candles ONLY from ticks received after it opened, so opening it
+  // showed a single lone building candle instead of a real chart -
+  // Firebase's live_ticks path only ever holds the latest tick, no
+  // history. run_tick_collector.py now separately maintains and syncs
+  // a rolling candle history (see event_driven_realtime_service.dart's
+  // fetchLiveCandles()) specifically to seed this. One-time fetch, not
+  // a stream - the existing watchLiveTick() subscription above still
+  // handles all live updating of the current (and future) candles
+  // unchanged; this only backfills what came before the screen opened.
+  // A candle from history sharing the CURRENT (still-forming) minute
+  // with a live tick that arrives first is fine either way - _onTick's
+  // own same-minute-key branch merges into whichever entry is already
+  // last in the list.
+  Future<void> _seedFromHistory() async {
+    final history = await fetchLiveCandles(widget.index);
+
+    if (!mounted || history.isEmpty) return;
+
+    setState(() {
+      final seeded = <Map<String, dynamic>>[];
+
+      for (final candle in history) {
+        final timestamp = candle['Timestamp'] as String?;
+        if (timestamp == null || timestamp.length < 16) continue;
+
+        seeded.add({
+          '_minuteKey': timestamp.substring(0, 16),
+          'Timestamp': timestamp,
+          'Open': (candle['Open'] as num).toDouble(),
+          'High': (candle['High'] as num).toDouble(),
+          'Low': (candle['Low'] as num).toDouble(),
+          'Close': (candle['Close'] as num).toDouble(),
+        });
+      }
+
+      // This fetch races the watchLiveTick() subscription started right
+      // after it (both fire in initState()) - a live tick may already
+      // have added the CURRENT, still-forming candle to _candles by the
+      // time this completes. Insert history BEFORE it (position 0, not
+      // appended at the end) to keep oldest-first order, and drop
+      // history's own last entry if it's for that same minute (avoids a
+      // duplicate/stale entry right at the seam).
+      if (seeded.isNotEmpty && _candles.isNotEmpty &&
+          seeded.last['_minuteKey'] == _candles.first['_minuteKey']) {
+        seeded.removeLast();
+      }
+
+      _candles.insertAll(0, seeded);
+      if (_candles.length > _maxCandles) {
+        _candles.removeRange(0, _candles.length - _maxCandles);
+      }
+    });
   }
 
   @override

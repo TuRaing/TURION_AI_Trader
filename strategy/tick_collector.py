@@ -181,3 +181,78 @@ def summarize_tick_latency(records):
         "max_ms": round(max(latencies), 1),
         "count": len(latencies),
     }
+
+
+def candle_minute_key(timestamp_str):
+    """
+    "YYYY-MM-DD HH:MM:SS.mmm" -> "YYYY-MM-DD HH:MM" - the 1-min bucket
+    a tick with this timestamp belongs to. Added 21-Aug-2026 for
+    LiveCandleAggregator below.
+    """
+
+    return timestamp_str[:16]
+
+
+class LiveCandleAggregator:
+    """
+    Builds rolling 1-min OHLC candles from a live SPOT tick stream, for
+    the mobile app's live chart (mobile_app/lib/screens/live_chart_
+    screen.dart). Added 21-Aug-2026 - real gap found live: the app's own
+    client-side aggregation (identical bucketing logic, kept in sync
+    deliberately) has no history to seed from - Firebase only ever held
+    the single latest tick, so opening the chart showed just one
+    building candle instead of a real chart. This lets run_tick_
+    collector.py maintain a real rolling history SERVER-SIDE and sync it
+    periodically (see report/firebase_realtime_sync.py's sync_live_
+    candles()) so the app can seed itself on open, then keep updating
+    the current candle live from its own existing tick stream unchanged.
+
+    Deliberately separate from strategy/live_tick_harness.py's
+    CandleAggregator - that one is 5-min, RSI-focused, and feeds real
+    trading decisions (must not change); this is 1-min, display-only,
+    archival-process-only, no RSI, no trading logic at all - matches
+    this repo's "each engine one responsibility" rule the same way
+    strategy/tick_collector.py's own module docstring already argues
+    for keeping this file separate from live_tick_harness.py.
+    """
+
+    def __init__(self, max_candles=120):
+        self.max_candles = max_candles
+        self._candles = []  # oldest first, each a dict with an internal _minute_key
+
+    def on_tick(self, timestamp_str, ltp):
+        """
+        Returns True if this tick just CLOSED the previous candle
+        (started a new bucket) - the caller's cue to sync as_list() to
+        Firebase, rather than doing so on every single tick (which
+        would reintroduce the exact blocking-Firebase-call latency
+        bug fixed the same day - see run_tick_collector.py's own
+        FIREBASE_SYNC_WORKERS comment).
+        """
+
+        minute_key = candle_minute_key(timestamp_str)
+
+        if self._candles and self._candles[-1]["_minute_key"] == minute_key:
+            candle = self._candles[-1]
+            candle["High"] = max(candle["High"], ltp)
+            candle["Low"] = min(candle["Low"], ltp)
+            candle["Close"] = ltp
+            return False
+
+        self._candles.append({
+            "_minute_key": minute_key,
+            "Timestamp": f"{minute_key}:00",
+            "Open": ltp, "High": ltp, "Low": ltp, "Close": ltp,
+        })
+
+        if len(self._candles) > self.max_candles:
+            self._candles.pop(0)
+
+        return True
+
+    def as_list(self):
+        """Candles ready to sync/serialize - the internal _minute_key
+        bucket field stripped out (same shape the app's own client-side
+        aggregator already produces, so no translation needed there)."""
+
+        return [{k: v for k, v in c.items() if k != "_minute_key"} for c in self._candles]
