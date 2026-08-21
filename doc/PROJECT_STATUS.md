@@ -7160,4 +7160,34 @@ v0.0.53
 
 ==================================================
 
+VPS FYERS_ACCESS_TOKEN ENV VAR FIX - TICK COLLECTOR (21-Aug) - real bug
+caught before it hit the VPS: run_event_driven_engine.py already sets
+os.environ["FYERS_ACCESS_TOKEN"] = access_token right after fetching
+the Firebase-sourced token (21-Aug fix, see that file's own comment) -
+needed because pick_atm_symbols() calls down into strategy/fyers_auth.
+py's get_access_token(), which only ever reads the LOCAL .env, and the
+VPS's .env has no FYERS_ACCESS_TOKEN key at all. run_tick_collector.py
+has the identical pick_atm_symbols() dependency (initial ATM pick +
+the 15-min re-check loop) but was missing the same env-var set - would
+have hit the same "No FYERS_ACCESS_TOKEN found" crash the first time
+it actually ran with a real token. Fixed identically, same one-line
+os.environ set, no changes to any shared strategy/ module. 516/516
+tests passing. Committed (8e29be57f) and pushed to main.
+
+==================================================
+
+Status
+
+🟢 Stable
+
+Current Version
+
+v0.0.53
+
+Next Version
+
+v0.0.54
+
+==================================================
+
 END OF DOCUMENT
