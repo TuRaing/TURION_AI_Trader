@@ -538,6 +538,15 @@ def main(access_token, execution_backend=None):
             time.sleep(OI_REFRESH_SECONDS)
             try:
                 refresh_oi_snapshots(runners)
+                # Added 21-Aug-2026 - a real, on-the-ground debugging gap
+                # found live: refresh_oi_snapshots() succeeding is
+                # completely silent (no print), making it indistinguishable
+                # in the logs from the thread never having run at all -
+                # exactly the ambiguity that made THIS bug take a manual
+                # SSH diagnostic to confirm was actually fixed. One
+                # confirmation line per successful cycle costs nothing at
+                # a 5-min cadence and closes that gap for good.
+                print(f"OI snapshot refresh OK ({datetime.datetime.now(IST).strftime('%H:%M:%S')} IST)")
             except Exception as error:
                 print(f"OI snapshot refresh failed (continuing on the old signal): {error}")
 
