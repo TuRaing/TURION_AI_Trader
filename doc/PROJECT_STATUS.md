@@ -7242,6 +7242,37 @@ config file this repo doesn't control the regeneration of. `flutter
 analyze` clean; release APK rebuild + on-device install still pending
 as of this write-up.
 
+DAILY-PROFIT-LOCK VARIANT BOOKS, OI_FOOTPRINT NEVER-CALLED BUG, REAL
+TICK-LATENCY BOTTLENECK, LIVE CHART BACKFILL (21-Aug, later still) -
+(1) two new books added ALONGSIDE (not replacing) st2_threshold/
+simple_st1_threshold - a 2%-of-capital daily profit lock, user's own
+ask after today's stale-data incident, changed from an initial flat
+Rs 2,000 the same session. (2) Found refresh_oi_snapshots() was fully
+built but never actually called anywhere - both oi_footprint books had
+zero trades since 20-Aug as a direct result; fixed with a 5-min daemon
+thread, proven working end-to-end once BANKNIFTY oi_footprint took 2
+real trades same session. (3) Found and fixed a real, severe tick-
+latency bottleneck: both VPS processes were calling a Firebase network
+write SYNCHRONOUSLY inside the WebSocket's own on_message callback,
+blocking every tick - confirmed live (92,124 ticks: avg ~2s, max
+~46.5s). Fixed with a bounded ThreadPoolExecutor per process; hit and
+fixed a same-session regression this exposed (main() was never
+actually blocking after socket.connect(), so Python's interpreter-
+shutdown sequence started seconds into every run, silently poisoning
+the new executors) - explicit infinite sleep after connect() now keeps
+the main thread genuinely alive. Latency after both fixes: a much
+tighter, consistent ~1.5-2.8s - investigated further and confirmed
+(disk flush ~0.001ms, no SDK-side queueing, suspiciously uniform per-
+symbol gaps) that the remaining floor is very likely Fyers' own
+server-side broadcast batching, not fixable from VPS-side code.
+(4) Mobile app's live chart backfill: server-side 1-min candle history
+(strategy/tick_collector.py's new LiveCandleAggregator, synced once
+per closed candle, never per-tick) so the chart shows real history
+immediately instead of one lone building candle - firebase/database.
+rules.json updated but NOT yet re-published in the Console; release
+APK rebuilt, NOT yet installed (user's own explicit "build now, install
+later"). See doc/21aug26_SESSION_LOG.md for full detail on all four.
+
 ==================================================
 
 Status
@@ -7250,11 +7281,11 @@ Status
 
 Current Version
 
-v0.0.53
+v0.0.54
 
 Next Version
 
-v0.0.54
+v0.0.55
 
 ==================================================
 

@@ -298,6 +298,212 @@ not just code-complete.
    end-Sep-2026 statistical-tools checkpoint) - not re-duplicated here,
    see that file.
 
+--------------------------------------------------
+
+Rs 2,000 (LATER: 2%) DAILY-PROFIT-LOCK VARIANT BOOKS - user's own ask,
+after seeing today's real -Rs 22,949.63 stale-data trade: wanted a
+daily profit lock like the older polling engine's simple_st1_threshold
+_nifty has (daily_profit_lock=True, Rs 2,000 flat), but explicitly
+did NOT want the two existing live books (st2_threshold, simple_st1_
+threshold) touched - wanted it as new, separate books instead, running
+alongside. Matches this repo's "add new functionality as separate
+engines" rule and how the old engine's own _slcap/_trailing2pct/
+_2pctlock variants were already added (never a mutation of the
+original).
+
+Added optional daily_profit_lock/daily_profit_lock_pct fields to
+make_st2_threshold_event_cfg()/make_simple_st1_threshold_event_cfg()
+(strategy/event_driven_engine.py), default False/no behavior change.
+rsi_momentum_decide_fn gates only NEW entries once today's realized
+PnL (computed upstream in live_tick_harness.py from the portfolio's
+own Closed Trades - decide_fn's pure contract never sees them
+directly) reaches the threshold - an already-open position still gets
+managed regardless. Two new books wired in event_driven_runner.py -
+st2_threshold_lock_eventdriven, simple_st1_threshold_lock_eventdriven
+- sharing the existing books' NIFTY ATM strike/candles/previous-close
+via a small per-index cache added the same session (avoids doubling
+real network calls at every startup).
+
+CHANGED SAME SESSION, user's own follow-up: originally built as a flat
+Rs 2,000 cap; user then asked for 2% of capital instead (scales if
+capital changes) - "जर तो trade 2% च्या वरती... close झाला तरी चालेल
+पण daily minimum 2% घेतलेच पाहिजेत" (a single trade closing above the
+threshold is fine, only the NEXT entry gets blocked once the day's
+cumulative realized PnL has reached 2%) - matches fyers_options_
+engine.py's own daily_profit_lock_pct convention. Renamed the cfg
+field accordingly (daily_profit_lock_pct=2.0 default) before this ever
+shipped with the flat-rupee version live.
+
+--------------------------------------------------
+
+OI_FOOTPRINT NEVER TRADING - REAL BUG FOUND, USER'S OWN CATCH - user
+asked directly why oi_footprint (both NIFTY and BANKNIFTY) had zero
+trades since 20-Aug. Grepped the whole codebase for refresh_oi_
+snapshots() (the function that feeds a real OI snapshot into both
+runners): it existed, was fully implemented and wired to accept data -
+but was never actually CALLED anywhere. No thread, no scheduler, dead
+code. OIBuildupTracker.latest_signal had been permanently None the
+entire time, so oi_footprint_decide_fn's own first check ("SKIPPED (no
+meaningful OI buildup)") always fired.
+
+FIXED: a daemon thread in main() (event_driven_runner.py), matching
+run_tick_collector.py's own ATM-recheck pattern, calling refresh_oi_
+snapshots() every 5 minutes (OI_REFRESH_SECONDS - the old polling
+engine's own real cadence, per .github/workflows/fyers_multi_
+strategy_options.yml's "moved here (from the 5-min..." comment). Also
+fixed refresh_oi_snapshots()'s own naive datetime.datetime.now() (this
+VPS's clock is UTC) to datetime.datetime.now(IST) - every downstream
+squareoff comparison assumes an already-IST value.
+
+VERIFICATION HIT ITS OWN REAL BUG: added a confirmation print on every
+successful refresh cycle so success wasn't silently indistinguishable
+from "never ran" - and it never appeared for 6+ minutes despite the
+underlying REST call working fine when tested manually (confirmed via
+a matching-environment SSH diagnostic, sourcing the VPS's real .env).
+Root cause: under systemd, stdout isn't a TTY, so Python defaults to
+full block buffering - print() output could sit unflushed for a long
+time. FIXED both run_event_driven_engine.py and run_tick_collector.py's
+existing sys.stdout.reconfigure(encoding="utf-8") calls to also pass
+line_buffering=True. Confirmed working after: "OI snapshot refresh OK"
+logged reliably every 5 min across multiple restarts, and BANKNIFTY
+oi_footprint took 2 real trades (net -Rs 4,393.45) proving the whole
+signal->entry->exit path now genuinely works end to end. NIFTY
+oi_footprint stayed at 0 trades in the observed window - confirmed
+NOT a bug (identical code path as the now-working BANKNIFTY book) -
+just no real buildup signal yet, a market-condition fact, not a code
+gap.
+
+--------------------------------------------------
+
+REAL TICK-LATENCY BOTTLENECK FOUND AND FIXED - user asked to check
+overall latency; report/market_checks.py's own tick-latency line
+showed avg ~2s, max ~46.5s across 92,124 real ticks (not the earlier
+sentinel-bug garbage - genuinely measured, still far too slow for
+"tick-by-tick"). Root cause traced to BOTH VPS processes: run_tick_
+collector.py's on_message() and event_driven_runner.py's save_all()
+each called a Firebase Realtime Database write (firebase_admin's
+db.reference().set(), a real cross-region REST call - VPS in Mumbai,
+RTDB in Singapore) SYNCHRONOUSLY, blocking the WebSocket's own receive
+thread on every tick. event_driven_runner.py was worse: save_all()
+re-saved AND re-synced ALL 6 runners on every single tick, regardless
+of which runner (if any) that tick actually touched.
+
+FIXED: a bounded ThreadPoolExecutor (4 workers, not one raw thread per
+tick - a burst can't spawn unboundedly more outstanding writes than
+can drain) for the Firebase call only in both processes - the local
+JSON/JSONL archive stays synchronous and immediate (that's still the
+real source of truth). event_driven_runner.py's MultiStrategyRouter
+gained runners_for(symbol) so on_message() only touches the runner(s)
+that tick's symbol actually affects. 4 new tests (MultiStrategyRouter.
+runners_for, save_all's keys/firebase_executor params).
+
+REGRESSION CAUGHT WITHIN MINUTES OF DEPLOYING THIS - every firebase_
+executor.submit() call started failing with "cannot schedule new
+futures after interpreter shutdown" on literally every tick, on BOTH
+processes. Root cause (pre-existing, not introduced by the fix - just
+the first thing sensitive to it): FyersDataSocket.connect() doesn't
+block - it starts its own background threads (message/ping/ws_thread
+inside the SDK, plus keep_running()'s own infy_loop) and returns
+immediately, so main()'s top-level script script actually FINISHES
+right after connect() returns. Python then starts real interpreter
+shutdown (concurrent.futures' own atexit hook fires, setting its
+process-wide shutdown flag) even though the OS process stays "alive"
+per systemd (Python's threading._shutdown() blocks forever on the
+non-daemon infy_loop thread, which never exits) - any executor.submit()
+from that point on is permanently broken. FIXED: an explicit `while
+True: time.sleep(3600)` after socket.connect() in both processes,
+keeping the main thread genuinely alive - what a persistent background
+service should do regardless of this specific bug. Re-verified clean
+after redeploy: zero errors, and the real median/p90/max latency
+dropped to a much tighter, more consistent 1.5s/2.1s/2.8s (from 1.5s
+median/18s p99/46.5s max before).
+
+STILL ~1-2s BASELINE REMAINS, CONFIRMED NOT OUR CODE - user pushed
+back expecting sub-400ms after this fix. Investigated further: local
+disk flush timed at ~0.001ms (not the bottleneck), tick arrival rate
+~8-12/sec (not overwhelming), and the SDK's own incoming-message
+dispatch is direct/synchronous with no internal queue (read the SDK
+source). Checked one single symbol's own tick-by-tick timestamp gaps
+in isolation: consistently 1.4-2.2s, tick after tick - too tight and
+regular to be network jitter or a code-side backlog (those look
+bursty/random, not this uniform). Conclusion, presented honestly to
+the user: the remaining latency is very likely Fyers' own server-side
+batching/broadcast cadence (common for retail broker feeds to conserve
+bandwidth), outside what VPS-side code changes can fix. User accepted
+this, moved on ("ते नंतर पाहू").
+
+--------------------------------------------------
+
+LIVE CHART CANDLE-HISTORY BACKFILL - user's own catch: the mobile
+app's live chart showed only one lone building candle, not a real
+chart - because LiveChartScreen's client-side candle aggregation
+(mobile_app/lib/screens/live_chart_screen.dart) had no history to seed
+from; Firebase's live_ticks path only ever holds the single latest
+tick (report/firebase_realtime_sync.py's sync_live_tick(), a `.set()`,
+by design - the durable history is the VPS's own local JSONL archive,
+never exposed to the app before now).
+
+Backend: strategy/tick_collector.py gains LiveCandleAggregator (pure,
+tested, 7 new tests) - deliberately SEPARATE from strategy/live_tick_
+harness.py's own CandleAggregator (5-min, RSI-focused, feeds real
+trading decisions, must not change) - this is 1-min, display-only,
+archival-process-only, matching this repo's "each engine one
+responsibility" rule. run_tick_collector.py maintains one per index
+from SPOT ticks, syncing via the new report/firebase_realtime_sync.py
+sync_live_candles() ONLY on a closed candle (once/min/index, not per
+tick - a per-tick sync here would have reintroduced the latency bug
+just fixed above). firebase/database.rules.json opens read access on
+the new /live_candles path - NOT yet re-published in the actual
+Firebase Console (same manual step this project has needed before) -
+confirmed still returning "Permission denied" via a direct REST check
+after deploying.
+
+App: event_driven_realtime_service.dart gains fetchLiveCandles() (a
+one-time get(), not a stream). live_chart_screen.dart calls it in
+initState() alongside the existing live-tick subscription - handled
+the real race between the two explicitly (a live tick can add the
+current forming candle before the history fetch resolves): history
+gets inserted at position 0, and its own last entry is dropped if it
+shares the live stream's already-added current minute. flutter
+analyze clean. Deployed to the VPS same session; release APK rebuild
+kicked off in the background per the user's own explicit instruction
+- build now, INSTALL LATER (not yet installed as this entry is
+written).
+
+--------------------------------------------------
+
+Next Session (REVISED, supersedes the numbered list above)
+
+1. Publish the updated firebase/database.rules.json in the actual
+   Firebase Console (adds /live_candles read access) - without this
+   the app's new chart backfill will keep hitting "Permission denied".
+   Verify with: curl https://turion-ai-trader-default-rtdb.
+   asia-southeast1.firebasedatabase.app/live_candles.json (should
+   return real candle data, not an error, once both this is done AND
+   at least one candle has closed since the backend deploy).
+
+2. Install the new release APK (built this session, NOT yet installed
+   per the user's own explicit "install later" instruction) and verify
+   the live chart actually shows real backfilled history on open, not
+   just a lone candle.
+
+3. Confirm NIFTY oi_footprint eventually takes a real trade once a
+   genuine OI buildup signal occurs - BANKNIFTY already proved the
+   mechanism works end to end; NIFTY just hadn't seen a signal in the
+   observed window.
+
+4. The two new daily-profit-lock books (st2_threshold_lock_
+   eventdriven, simple_st1_threshold_lock_eventdriven) are live and
+   trading - worth a real comparison against their un-locked siblings
+   after a few real trading days, to see whether the 2% lock actually
+   helps net P&L or just cuts off legitimate same-day recovery (same
+   open question the older polling engine's own daily_loss_lock
+   backtest already answered differently per book - not assumed here).
+
+5. All items from doc/20aug26_SESSION_LOG.md's own "Next Session" list
+   not superseded above (sync_ticks_from_vps.py end-to-end exercise,
+   off-machine backup, end-Sep-2026 statistical-tools checkpoint).
+
 ==================================================
 
 END OF SESSION
