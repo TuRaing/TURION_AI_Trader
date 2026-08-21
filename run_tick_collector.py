@@ -200,7 +200,9 @@ def main():
         # actual candle CLOSE (once per minute per index), not per tick
         # - a per-tick sync here would reintroduce the exact latency
         # bug just fixed.
-        if leg == "SPOT" and candle_aggregators[index].on_tick(record["timestamp"], record["ltp"]):
+        if leg == "SPOT" and candle_aggregators[index].on_tick(
+            record["timestamp"], record["ltp"], record.get("volume")
+        ):
             firebase_executor.submit(
                 sync_live_candles_async, index, candle_aggregators[index].as_list()
             )

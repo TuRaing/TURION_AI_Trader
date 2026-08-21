@@ -595,6 +595,12 @@ def main(access_token, execution_backend=None):
                 message.get("exch_feed_time", message.get("last_traded_time")), tz=IST
             )
             timestamp_str = timestamp.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+            # vol_traded_today - added 21-Aug-2026 for chart volume bars.
+            # Real traded volume (unlike the underlying index, an option
+            # contract genuinely has one) - see LiveCandleAggregator.
+            # on_tick()'s own note for how a per-candle figure gets
+            # derived from this cumulative reading.
+            volume = message.get("vol_traded_today")
 
             for runner, key in zip(touched, touched_keys):
                 leg = "CE" if symbol == runner.ce_symbol else "PE" if symbol == runner.pe_symbol else None
@@ -602,10 +608,12 @@ def main(access_token, execution_backend=None):
                     continue
 
                 name = STRATEGY_NAMES[key]
-                firebase_executor.submit(sync_strategy_tick, name, leg, {"ltp": ltp, "timestamp": timestamp_str})
+                firebase_executor.submit(
+                    sync_strategy_tick, name, leg, {"ltp": ltp, "timestamp": timestamp_str, "volume": volume}
+                )
 
                 agg = strategy_candle_aggregators[key][leg]
-                if agg.on_tick(timestamp_str, ltp):
+                if agg.on_tick(timestamp_str, ltp, volume):
                     firebase_executor.submit(sync_strategy_candles, name, leg, agg.as_list())
 
     def on_error(message):

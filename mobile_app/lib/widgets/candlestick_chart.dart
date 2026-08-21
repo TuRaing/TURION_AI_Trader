@@ -40,6 +40,16 @@ class _CandlestickChartState extends State<CandlestickChart> {
   static const _candleWidth = 8.0;
   static const _height = 280.0;
   static const _axisWidth = 56.0;
+  // Added 21-Aug-2026, at the user's own request (matching a real
+  // broker app's own chart, which shows volume bars below price) - a
+  // dedicated strip below the price chart, only reserved when at
+  // least one candle actually carries a "Volume" field. NIFTY/
+  // BANKNIFTY's own SPOT candles never do (computed indices, not
+  // traded instruments - see strategy/tick_collector.py's own
+  // LiveCandleAggregator note) so the index chart keeps its exact
+  // current layout; only the option-premium charts (real traded
+  // volume) gain this strip.
+  static const _volumeHeight = 56.0;
 
   int? _selectedIndex;
 
@@ -113,8 +123,14 @@ class _CandlestickChartState extends State<CandlestickChart> {
     maxPrice += pad;
     minPrice -= pad;
 
+    final hasVolume = widget.candles.any((c) => c.containsKey('Volume'));
+    final maxVolume = hasVolume
+        ? widget.candles.map((c) => ((c['Volume'] as num?) ?? 0).toDouble()).reduce((a, b) => a > b ? a : b)
+        : 0.0;
+    final totalHeight = _height + (hasVolume ? _volumeHeight : 0);
+
     return SizedBox(
-      height: _height,
+      height: totalHeight,
       child: Stack(
         children: [
           Positioned.fill(
@@ -126,7 +142,7 @@ class _CandlestickChartState extends State<CandlestickChart> {
                 onTapDown: (d) => _handleTap(d.localPosition),
                 onHorizontalDragUpdate: (d) => _handleTap(d.localPosition),
                 child: CustomPaint(
-                  size: Size(widget.candles.length * _candleWidth, _height),
+                  size: Size(widget.candles.length * _candleWidth, totalHeight),
                   painter: _CandlestickPainter(
                     candles: widget.candles,
                     candleWidth: _candleWidth,
@@ -134,6 +150,8 @@ class _CandlestickChartState extends State<CandlestickChart> {
                     maxPrice: maxPrice,
                     selectedIndex: _selectedIndex,
                     referenceLines: widget.referenceLines,
+                    priceHeight: _height,
+                    maxVolume: hasVolume ? maxVolume : null,
                   ),
                 ),
               ),
@@ -142,10 +160,18 @@ class _CandlestickChartState extends State<CandlestickChart> {
           Positioned(
             right: 0,
             top: 0,
-            bottom: 0,
+            height: _height,
             width: _axisWidth,
             child: _PriceAxis(minPrice: minPrice, maxPrice: maxPrice),
           ),
+          if (hasVolume)
+            Positioned(
+              right: 0,
+              top: _height,
+              height: _volumeHeight,
+              width: _axisWidth,
+              child: _VolumeAxis(maxVolume: maxVolume),
+            ),
         ],
       ),
     );
@@ -184,6 +210,42 @@ class _PriceAxis extends StatelessWidget {
   }
 }
 
+/// Two labels ("0" and the max) for the volume strip - added
+/// 21-Aug-2026 alongside _volumeHeight above. Deliberately terse
+/// compared to _PriceAxis's 5 levels - volume is a secondary reading
+/// here (relative bar heights already tell the real story), not the
+/// primary chart, so it doesn't need the same density of labels.
+class _VolumeAxis extends StatelessWidget {
+  final double maxVolume;
+
+  const _VolumeAxis({required this.maxVolume});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned(
+          top: 2,
+          left: 6,
+          child: Text(_formatVolume(maxVolume), style: const TextStyle(fontSize: 9, color: mutedColor)),
+        ),
+        const Positioned(
+          bottom: 2,
+          left: 6,
+          child: Text('0', style: TextStyle(fontSize: 9, color: mutedColor)),
+        ),
+      ],
+    );
+  }
+
+  static String _formatVolume(double volume) {
+    if (volume >= 10000000) return '${(volume / 10000000).toStringAsFixed(1)}Cr';
+    if (volume >= 100000) return '${(volume / 100000).toStringAsFixed(1)}L';
+    if (volume >= 1000) return '${(volume / 1000).toStringAsFixed(1)}K';
+    return volume.toStringAsFixed(0);
+  }
+}
+
 class _CandlestickPainter extends CustomPainter {
   final List<Map<String, dynamic>> candles;
   final double candleWidth;
@@ -191,14 +253,18 @@ class _CandlestickPainter extends CustomPainter {
   final double maxPrice;
   final int? selectedIndex;
   final List<ChartReferenceLine> referenceLines;
+  final double priceHeight;
+  final double? maxVolume;
 
   _CandlestickPainter({
     required this.candles,
     required this.candleWidth,
     required this.minPrice,
     required this.maxPrice,
+    required this.priceHeight,
     this.selectedIndex,
     this.referenceLines = const [],
+    this.maxVolume,
   });
 
   static const _marginTop = 12.0;
@@ -209,7 +275,15 @@ class _CandlestickPainter extends CustomPainter {
     if (candles.isEmpty) return;
 
     final range = (maxPrice - minPrice) == 0 ? 1.0 : (maxPrice - minPrice);
-    final chartHeight = size.height - _marginTop - _marginBottom;
+    // FIXED 21-Aug-2026, alongside the new volume strip below - this
+    // used to be size.height (the WHOLE canvas), which was correct
+    // before volume bars existed (price was the only thing drawn) but
+    // would squash the price chart into the combined price+volume
+    // height once a volume strip got added below it. priceHeight is
+    // just the price portion (the original, unchanged _height from
+    // CandlestickChart) - the volume strip is drawn separately below,
+    // outside this calculation entirely.
+    final chartHeight = priceHeight - _marginTop - _marginBottom;
 
     double yFor(double price) => _marginTop + chartHeight - ((price - minPrice) / range) * chartHeight;
 
@@ -278,6 +352,34 @@ class _CandlestickPainter extends CustomPainter {
       )..layout();
       textPainter.paint(canvas, Offset(2, y - textPainter.height - 1));
     }
+
+    // Added 21-Aug-2026 - the volume strip below the price chart, only
+    // drawn when the caller actually has volume data (maxVolume !=
+    // null - see CandlestickChart's own _volumeHeight note). Bars grow
+    // UP from the strip's own bottom edge, same green/red-by-direction
+    // coloring as the candle bodies above, at reduced opacity so they
+    // read as a secondary strip, not competing with the price chart.
+    if (maxVolume != null && maxVolume! > 0) {
+      final volumeTop = priceHeight;
+      final volumeBottom = size.height;
+      final volumeRange = volumeBottom - volumeTop;
+
+      for (var i = 0; i < candles.length; i++) {
+        final volume = (candles[i]['Volume'] as num?)?.toDouble();
+        if (volume == null) continue;
+
+        final open = (candles[i]['Open'] as num).toDouble();
+        final close = (candles[i]['Close'] as num).toDouble();
+        final color = close >= open ? successColor : dangerColor;
+        final x = i * candleWidth + candleWidth / 2;
+        final barHeight = (volume / maxVolume!) * volumeRange;
+
+        canvas.drawRect(
+          Rect.fromLTRB(x - bodyWidth / 2, volumeBottom - barHeight, x + bodyWidth / 2, volumeBottom),
+          Paint()..color = color.withValues(alpha: 0.55),
+        );
+      }
+    }
   }
 
   void _drawDashedLine(Canvas canvas, Offset start, Offset end, Color color) {
@@ -304,5 +406,7 @@ class _CandlestickPainter extends CustomPainter {
       oldDelegate.selectedIndex != selectedIndex ||
       oldDelegate.minPrice != minPrice ||
       oldDelegate.maxPrice != maxPrice ||
-      oldDelegate.referenceLines != referenceLines;
+      oldDelegate.referenceLines != referenceLines ||
+      oldDelegate.priceHeight != priceHeight ||
+      oldDelegate.maxVolume != maxVolume;
 }

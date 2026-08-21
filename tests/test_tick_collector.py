@@ -212,3 +212,36 @@ def test_live_candle_aggregator_as_list_has_no_internal_minute_key():
     agg.on_tick("2026-08-21 09:17:05.000", 24200.0)
 
     assert "_minute_key" not in agg.as_list()[0]
+
+
+def test_live_candle_aggregator_omits_volume_when_none_given():
+    # NIFTY/BANKNIFTY themselves have no real traded volume (computed
+    # indices, not traded instruments) - Fyers sends null.
+    agg = LiveCandleAggregator()
+    agg.on_tick("2026-08-21 09:17:05.000", 24200.0)
+
+    assert "Volume" not in agg.as_list()[0]
+
+
+def test_live_candle_aggregator_computes_per_candle_volume_from_cumulative():
+    # Fyers' vol_traded_today is cumulative since market open, not a
+    # per-tick delta - the candle's own "Volume" must be the real
+    # traded volume during just that 1-min window.
+    agg = LiveCandleAggregator()
+    agg.on_tick("2026-08-21 09:17:05.000", 100.0, volume=1_000_000)
+    agg.on_tick("2026-08-21 09:17:42.000", 101.0, volume=1_000_500)
+
+    assert agg.as_list()[0]["Volume"] == 500
+
+    agg.on_tick("2026-08-21 09:18:01.000", 102.0, volume=1_001_200)
+
+    candles = agg.as_list()
+    assert candles[0]["Volume"] == 500  # previous candle's volume unchanged
+    assert candles[1]["Volume"] == 0  # new candle just opened, no delta yet
+
+
+def test_live_candle_aggregator_as_list_has_no_internal_volume_field():
+    agg = LiveCandleAggregator()
+    agg.on_tick("2026-08-21 09:17:05.000", 100.0, volume=1_000_000)
+
+    assert "_volume_at_open" not in agg.as_list()[0]

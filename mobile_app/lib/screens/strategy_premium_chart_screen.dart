@@ -2,10 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../candle_aggregation.dart';
 import '../event_driven_realtime_service.dart';
 import '../theme.dart';
 import '../widgets/candlestick_chart.dart';
 import '../widgets/common.dart';
+import '../widgets/timeframe_selector.dart';
 
 // Added 21-Aug-2026, at the user's own request - a live chart showing
 // EXACTLY where a specific event-driven book's current position sits
@@ -70,6 +72,7 @@ class _StrategyPremiumChartScreenState extends State<StrategyPremiumChartScreen>
   Map<String, dynamic>? _selected;
   StreamSubscription<Map<String, dynamic>?>? _sub;
   DateTime? _lastTickAt;
+  int _timeframeMinutes = 1;
 
   String get _leg => widget.position['Option Type'] == 'PE' ? 'PE' : 'CE';
 
@@ -107,6 +110,7 @@ class _StrategyPremiumChartScreenState extends State<StrategyPremiumChartScreen>
           'High': (candle['High'] as num).toDouble(),
           'Low': (candle['Low'] as num).toDouble(),
           'Close': (candle['Close'] as num).toDouble(),
+          if (candle['Volume'] != null) 'Volume': (candle['Volume'] as num).toDouble(),
         });
       }
 
@@ -122,11 +126,23 @@ class _StrategyPremiumChartScreenState extends State<StrategyPremiumChartScreen>
     });
   }
 
+  // Added 21-Aug-2026, alongside chart volume bars - Fyers' own
+  // vol_traded_today (carried in every live tick as "volume", see
+  // strategy/event_driven_runner.py's on_message()) is CUMULATIVE
+  // since market open, not a per-tick delta - tracks the cumulative
+  // reading at the CURRENT candle's own open and subtracts it back out
+  // on every tick, same logic as strategy/tick_collector.py's own
+  // LiveCandleAggregator.on_tick(), just re-derived here client-side
+  // since this screen builds its own current (still-forming) candle
+  // live rather than waiting for the next backend sync.
+  double? _volumeAtBucketOpen;
+
   void _onTick(Map<String, dynamic>? tick) {
     if (tick == null) return;
 
     final ltp = (tick['ltp'] as num?)?.toDouble();
     final timestamp = tick['timestamp'] as String?;
+    final cumulativeVolume = (tick['volume'] as num?)?.toDouble();
 
     if (ltp == null || timestamp == null || timestamp.length < 16) return;
 
@@ -140,7 +156,11 @@ class _StrategyPremiumChartScreenState extends State<StrategyPremiumChartScreen>
         if (ltp > (current['High'] as num)) current['High'] = ltp;
         if (ltp < (current['Low'] as num)) current['Low'] = ltp;
         current['Close'] = ltp;
+        if (cumulativeVolume != null && _volumeAtBucketOpen != null) {
+          current['Volume'] = cumulativeVolume - _volumeAtBucketOpen!;
+        }
       } else {
+        _volumeAtBucketOpen = cumulativeVolume;
         _candles.add({
           '_minuteKey': minuteKey,
           'Timestamp': '$minuteKey:00',
@@ -148,6 +168,7 @@ class _StrategyPremiumChartScreenState extends State<StrategyPremiumChartScreen>
           'High': ltp,
           'Low': ltp,
           'Close': ltp,
+          if (cumulativeVolume != null) 'Volume': 0.0,
         });
         if (_candles.length > _maxCandles) {
           _candles.removeAt(0);
@@ -178,6 +199,8 @@ class _StrategyPremiumChartScreenState extends State<StrategyPremiumChartScreen>
       ChartReferenceLine(price: slPremium, label: 'SL', color: dangerColor),
     ];
 
+    final displayCandles = aggregateCandles(_candles, _timeframeMinutes);
+
     return Scaffold(
       appBar: AppBar(title: Text('${widget.strategyLabel} · $_leg Premium')),
       body: Column(
@@ -192,6 +215,13 @@ class _StrategyPremiumChartScreenState extends State<StrategyPremiumChartScreen>
                   ? 'Waiting for the first live $_leg premium tick from the VPS...'
                   : 'Target/SL are estimates (real trigger also nets a small transaction cost) - the actual close reason always comes from the Closed Trade record.',
               style: const TextStyle(fontSize: 12, color: accent2Color),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: TimeframeSelector(
+              selected: _timeframeMinutes,
+              onChanged: (minutes) => setState(() => _timeframeMinutes = minutes),
             ),
           ),
           if (_selected != null)
@@ -212,10 +242,10 @@ class _StrategyPremiumChartScreenState extends State<StrategyPremiumChartScreen>
             ),
           const SizedBox(height: 8),
           Expanded(
-            child: _candles.isEmpty
+            child: displayCandles.isEmpty
                 ? const Center(child: CircularProgressIndicator())
                 : CandlestickChart(
-                    candles: _candles,
+                    candles: displayCandles,
                     referenceLines: referenceLines,
                     onSelect: (c) => setState(() => _selected = c),
                   ),

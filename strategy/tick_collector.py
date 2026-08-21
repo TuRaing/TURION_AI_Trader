@@ -220,8 +220,21 @@ class LiveCandleAggregator:
         self.max_candles = max_candles
         self._candles = []  # oldest first, each a dict with an internal _minute_key
 
-    def on_tick(self, timestamp_str, ltp):
+    def on_tick(self, timestamp_str, ltp, volume=None):
         """
+        `volume` - added 21-Aug-2026, at the user's own request for
+        chart volume bars - Fyers' own `vol_traded_today` field, i.e.
+        CUMULATIVE volume since market open, NOT a per-tick delta. This
+        method tracks the cumulative reading at each bucket's own open
+        and subtracts it back out on every subsequent tick, so the
+        candle's own "Volume" ends up as real per-candle traded volume,
+        matching what a normal volume-bar chart shows. Pass None (the
+        default) for a symbol with no real volume - e.g. NIFTY/
+        BANKNIFTY themselves are computed indices, not traded
+        instruments, and Fyers sends null volume for them (confirmed
+        live in the real tick archive) - "Volume" is simply omitted
+        from the candle in that case, same as before this was added.
+
         Returns True if this tick just CLOSED the previous candle
         (started a new bucket) - the caller's cue to sync as_list() to
         Firebase, rather than doing so on every single tick (which
@@ -237,13 +250,21 @@ class LiveCandleAggregator:
             candle["High"] = max(candle["High"], ltp)
             candle["Low"] = min(candle["Low"], ltp)
             candle["Close"] = ltp
+            if volume is not None and candle.get("_volume_at_open") is not None:
+                candle["Volume"] = volume - candle["_volume_at_open"]
             return False
 
-        self._candles.append({
+        new_candle = {
             "_minute_key": minute_key,
             "Timestamp": f"{minute_key}:00",
             "Open": ltp, "High": ltp, "Low": ltp, "Close": ltp,
-        })
+        }
+
+        if volume is not None:
+            new_candle["_volume_at_open"] = volume
+            new_candle["Volume"] = 0
+
+        self._candles.append(new_candle)
 
         if len(self._candles) > self.max_candles:
             self._candles.pop(0)
@@ -251,8 +272,9 @@ class LiveCandleAggregator:
         return True
 
     def as_list(self):
-        """Candles ready to sync/serialize - the internal _minute_key
-        bucket field stripped out (same shape the app's own client-side
+        """Candles ready to sync/serialize - internal bookkeeping
+        fields stripped out (same shape the app's own client-side
         aggregator already produces, so no translation needed there)."""
 
-        return [{k: v for k, v in c.items() if k != "_minute_key"} for c in self._candles]
+        internal_only = ("_minute_key", "_volume_at_open")
+        return [{k: v for k, v in c.items() if k not in internal_only} for c in self._candles]

@@ -2,10 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../candle_aggregation.dart';
 import '../event_driven_realtime_service.dart';
 import '../theme.dart';
 import '../widgets/candlestick_chart.dart';
 import '../widgets/common.dart';
+import '../widgets/timeframe_selector.dart';
 
 // Added 20-Aug-2026 - genuine tick-by-tick live candlestick chart
 // (user's own explicit ask: "same as Fyers/TradingView"), fed directly
@@ -37,6 +39,7 @@ class _LiveChartScreenState extends State<LiveChartScreen> {
   Map<String, dynamic>? _selected;
   StreamSubscription<Map<String, dynamic>?>? _sub;
   DateTime? _lastTickAt;
+  int _timeframeMinutes = 1;
 
   @override
   void initState() {
@@ -144,6 +147,8 @@ class _LiveChartScreenState extends State<LiveChartScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final displayCandles = aggregateCandles(_candles, _timeframeMinutes);
+
     return Scaffold(
       appBar: AppBar(title: Text('${widget.index} · Live')),
       body: Column(
@@ -158,6 +163,13 @@ class _LiveChartScreenState extends State<LiveChartScreen> {
                   ? 'Waiting for the first live tick from the VPS...'
                   : 'Tick-by-tick live from the VPS - 1-min candles building in real time.',
               style: const TextStyle(fontSize: 12, color: accent2Color),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: TimeframeSelector(
+              selected: _timeframeMinutes,
+              onChanged: (minutes) => setState(() => _timeframeMinutes = minutes),
             ),
           ),
           if (_selected != null)
@@ -178,10 +190,10 @@ class _LiveChartScreenState extends State<LiveChartScreen> {
             ),
           const SizedBox(height: 8),
           Expanded(
-            child: _candles.isEmpty
+            child: displayCandles.isEmpty
                 ? const Center(child: CircularProgressIndicator())
                 : CandlestickChart(
-                    candles: _candles,
+                    candles: displayCandles,
                     onSelect: (c) => setState(() => _selected = c),
                   ),
           ),
