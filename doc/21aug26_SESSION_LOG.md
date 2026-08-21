@@ -679,6 +679,75 @@ this is the final one for 21-Aug)
    not already superseded (sync_ticks_from_vps.py end-to-end exercise,
    off-machine backup, end-Sep-2026 statistical-tools checkpoint).
 
+--------------------------------------------------
+
+CHART TIMEFRAME/VOLUME/HISTORY WORK - REAL BUGS FOUND LIVE ON A REAL
+DEVICE, FIXED SAME SESSION - continuation of the strategy premium
+chart work above. User asked for a timeframe selector (1/5/10/15 min)
+and volume bars (a real broker app screenshot shown as the reference).
+
+Built: mobile_app/lib/candle_aggregation.dart (pure, groups the
+existing 1-min history into coarser real-clock-aligned buckets client-
+side - no new backend data needed for timeframe switching itself);
+widgets/timeframe_selector.dart (shared button row); strategy/
+tick_collector.py's LiveCandleAggregator gained optional per-candle
+volume (real delta computed from Fyers' own cumulative vol_traded_
+today - SPOT/index candles never have it, since NIFTY/BANKNIFTY are
+computed indices, not traded instruments; CE/PE premium candles do);
+widgets/candlestick_chart.dart gained a volume-bar strip, only
+reserved when at least one candle actually carries "Volume" (index
+chart layout unchanged).
+
+TWO MORE REAL RENDERING BUGS CAUGHT LIVE VIA REAL SCREENSHOTS (both
+during today's genuinely-flat post-market-close conditions, which
+turned out to be an unusually good stress test for chart edge cases):
+(1) the reference-line/axis padding fix from earlier today worked (5
+distinct price levels appeared, not one repeated value) but the
+candle body itself, being Open=Close exactly, still collapsed to a
+1-DEVICE-pixel rectangle - invisible on a real phone screen even
+though visible in theory. Fixed with a 2.5px minimum body height,
+centered on the true price. (2) User then asked for the FULL trading-
+day history (candles from where a trade actually started), not just
+a 2-hour rolling window - LiveCandleAggregator's max_candles (and
+both screens' own matching _maxCandles) raised from 120 to 400
+(covers the full 375-min NSE session). Tested live and found ONLY 1
+candle showing even after this fix - traced to a real, honest
+limitation rather than a new bug: today's many deploys each reset the
+in-memory candle history, and by ~19:20 IST Fyers had stopped sending
+any live ticks at all (a fresh connection only gets one last-known-
+state replay per symbol, then silence) - nothing left to rebuild a
+real intraday history from this late in the day. The fix itself is
+correct; today just couldn't provide real evidence for it. Confirmed
+with the user to verify for real on Monday (25-Aug, next trading day
+after the weekend) instead, once deploys aren't happening
+continuously through market hours.
+
+545/545 Python tests passing, flutter analyze clean throughout.
+Latest APK (all of today's fixes) installed and running on the user's
+device.
+
+--------------------------------------------------
+
+Next Session (FINAL for 21-Aug - supersedes the numbered list above)
+
+1. Monday 25-Aug (next trading day), during real market hours: verify
+   the chart timeframe selector, volume bars, and full-day candle
+   history (400-candle cap) all work as intended against real live
+   data, without today's repeated-deploy interference. Also re-verify
+   the earlier-listed items (strategy premium chart Entry/Target/SL
+   overlay, index chart backfill) on-device against real (non-flat)
+   price movement for the first time.
+2. Confirm NIFTY oi_footprint eventually takes a real trade (BANKNIFTY
+   already has).
+3. Compare the two new daily-profit-lock books against their unlocked
+   siblings after a few more real trading days.
+4. GitHub Actions queue-backlog finding (documented, not fixed) -
+   revisit only if the user wants to; needs cron-job.org dashboard
+   changes, out of scope for VPS work.
+5. All items from doc/20aug26_SESSION_LOG.md's own "Next Session" list
+   not already superseded (sync_ticks_from_vps.py end-to-end exercise,
+   off-machine backup, end-Sep-2026 statistical-tools checkpoint).
+
 ==================================================
 
 END OF SESSION

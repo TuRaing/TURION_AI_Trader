@@ -7323,17 +7323,39 @@ SESSION_LOG.md for full detail and exact numbers.
 
 ==================================================
 
+CHART TIMEFRAME SELECTOR, VOLUME BARS, FULL-DAY HISTORY (21-Aug, final
+same-day update) - user's own ask (a real broker app screenshot as
+reference): 1/5/10/15-min timeframe switching (candle_aggregation.
+dart, pure client-side grouping of the existing 1-min history, no new
+backend data needed) and real volume bars (strategy/tick_collector.
+py's LiveCandleAggregator now tracks real per-candle volume from
+Fyers' cumulative vol_traded_today - CE/PE premium charts only, since
+NIFTY/BANKNIFTY are computed indices with no real traded volume).
+Two more real rendering bugs caught live via real device screenshots:
+a flat/near-flat candle (Open=Close) collapsed to an invisible
+1-device-pixel body - fixed with a 2.5px minimum; and max_candles
+raised 120 -> 400 (a full 375-min trading day, not just 2 hours) after
+the user asked to see candles from where a trade actually started -
+tested live and found only 1 candle, traced to today's own repeated
+deploys resetting the in-memory history combined with Fyers going
+silent by ~19:20 IST, not a new bug - confirmed correct, real
+verification deferred to Monday 25-Aug (next trading day). 545/545
+tests passing, flutter analyze clean, latest APK installed on-device.
+See doc/21aug26_SESSION_LOG.md for full detail.
+
+==================================================
+
 Status
 
 🟢 Stable
 
 Current Version
 
-v0.0.56
+v0.0.57
 
 Next Version
 
-v0.0.57
+v0.0.58
 
 ==================================================
 
