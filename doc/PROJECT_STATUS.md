@@ -7343,6 +7343,23 @@ verification deferred to Monday 25-Aug (next trading day). 545/545
 tests passing, flutter analyze clean, latest APK installed on-device.
 See doc/21aug26_SESSION_LOG.md for full detail.
 
+DEPTH-BASED SLIPPAGE ANALYSIS - ONE-TIME, REAL FINDING FLAGGED FOR
+FOLLOW-UP (21-Aug) - user's own ask: used the real 5-level order-book
+depth archive (reports/options_depth_history.jsonl, strategy/fyers_
+depth_collector.py) to estimate REAL profit/loss (walking the actual
+bid/ask ladder) vs the simple LTP-based PnL every book currently
+records. One-off analysis script, not committed to the repo. Broad
+result (604 usable trades across all books): avg Rs 159.57/trade extra
+real cost beyond recorded. VPS-specific: today's two 2%-lock books'
+single win each (same NIFTY 24250 CE trade) - recorded +Rs 5,012.90/
++Rs 3,282.85, real depth-walked PnL only +Rs 616.50 for both (~88%
+smaller). That trade's own round-trip spread (~4.9%) is ~19x the
+currently-configured SPREAD_COST_PCT_NIFTY = 0.26% every live decide_
+fn's cost math uses - flagged, NOT changed (one trade isn't enough to
+conclude the constant itself is wrong by that factor). User's own
+call: revisit Monday 25-Aug once the lock books have more real trades.
+See doc/21aug26_SESSION_LOG.md for full detail.
+
 ==================================================
 
 Status

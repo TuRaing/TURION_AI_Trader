@@ -748,6 +748,57 @@ Next Session (FINAL for 21-Aug - supersedes the numbered list above)
    not already superseded (sync_ticks_from_vps.py end-to-end exercise,
    off-machine backup, end-Sep-2026 statistical-tools checkpoint).
 
+--------------------------------------------------
+
+DEPTH-BASED SLIPPAGE ANALYSIS - USER'S OWN ONE-TIME ANALYSIS ASK, REAL
+FINDING FOR NEXT SESSION - user asked whether reports/options_depth_
+history.jsonl (strategy/fyers_depth_collector.py's real 5-level order-
+book snapshots, 846 records today) could estimate REAL profit/loss
+(walking the actual bid/ask ladder for each trade's own Quantity)
+instead of the simple LTP-to-LTP PnL every book currently records.
+Written as a one-off script (NOT committed to the repo - scratchpad
+only, per the user's own "एकदाच" - one-time - framing), matching each
+closed trade's exact Symbol to the nearest-in-time (<=20 min) depth
+snapshot, walking Asks for entry / Bids for exit.
+
+BROAD RESULT (1489 trades matched by symbol across ALL reports/*.json
+books, 604 usable within the 20-min time-match threshold): avg extra
+real slippage cost Rs 159.57/trade beyond what's recorded, Rs 96,383
+total. Win trades (217): consistently worse under real depth (86% of
+wins reduced, avg -Rs 2,849/trade) - matches spread-cost theory
+cleanly. Loss trades (387): inconsistent/noisy (only 25% worse, net
+average actually favorable) - traced to a real methodology limit, not
+a genuine effect: Stop-Loss exits are fast, volatile events that a
+~5-10-min-stale "nearest" depth snapshot doesn't track well, unlike
+the calmer conditions around most wins/Target exits.
+
+VPS-SPECIFIC RESULT (fetched the 6 live event-driven portfolio JSONs
+directly from the VPS via scp, since they're never pushed to GitHub):
+today's actual VPS trades, recorded vs depth-estimated PnL -
+st2_threshold -Rs 44,142 -> -Rs 52,368 (Rs 8,226 worse), simple_st1_
+threshold -Rs 49,782.55 -> -Rs 60,691.25 (Rs 10,908.70 worse). THE
+STRIKING ONE: both 2%-lock books' single winning trade today (SAME
+NIFTY 24250 CE, same entry moment, both books share one ATM cache) -
+recorded +Rs 5,012.90 / +Rs 3,282.85, but the real depth-walked fill
+(825 qty needed 2 ask levels on entry, 2 bid levels on exit) gives
+BOTH books the exact same real PnL: +Rs 616.50 - the paper "win" was
+real, but ~88% smaller than recorded. Confirmed via the full walked-
+ladder detail (real ask ~113.57 vs recorded LTP entry 111.65; real bid
+~114.32 vs recorded LTP exit 118.00/115.90).
+
+REAL FINDING WORTH REVISITING: this one trade's own round-trip spread
+(~1.69% entry + ~3.22% exit ~= 4.9% combined) is roughly 19x the
+currently-configured SPREAD_COST_PCT_NIFTY = 0.26% (strategy/options_
+transaction_costs.py) that every live decide_fn's own cost/PnL math
+already uses. A single trade is not enough to conclude the configured
+constant is wrong by that exact factor, but the direction and scale
+of the gap is large enough to flag rather than ignore. User's own
+call: revisit Monday (25-Aug) once the 2%-lock books have accumulated
+more real trades (today's whole VPS-side estimate rests on exactly 2
+trades total across both lock books) - deliberately deferred, not
+dismissed, matching this project's own established data-driven-
+patience pattern.
+
 ==================================================
 
 END OF SESSION
