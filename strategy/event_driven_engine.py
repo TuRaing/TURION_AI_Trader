@@ -84,6 +84,22 @@ from indicators.circuit_band import is_near_circuit_band
 #                                   # checked for Target/Stop-Loss/
 #                                   # Square-Off regardless of time, same
 #                                   # as the older polling engine.
+#       "today_realized_pnl": float,
+#                                   # Sum of Net PnL of trades already
+#                                   # closed TODAY (IST calendar day),
+#                                   # computed upstream from the
+#                                   # runner's own portfolio (decide_fn
+#                                   # never sees Closed Trades directly -
+#                                   # only "position", per this module's
+#                                   # pure-function contract). Added
+#                                   # 21-Aug-2026 for the optional
+#                                   # daily_profit_lock gate - only
+#                                   # meaningful when cfg["daily_
+#                                   # profit_lock"] is True (see
+#                                   # make_st2_threshold_event_cfg()'s
+#                                   # own note); 0 is a safe default
+#                                   # (data_point.get(..., 0)) when the
+#                                   # caller doesn't compute it.
 #       "previous_close": float or None,
 #                                   # Added 20-Aug-2026 - the underlying
 #                                   # index's previous trading day close,
@@ -188,6 +204,10 @@ def rsi_momentum_decide_fn(cfg, position, data_point):
         if data_point.get("past_squareoff"):
             return "SKIPPED (past square-off time)", None, None
 
+        if cfg.get("daily_profit_lock") and \
+                data_point.get("today_realized_pnl", 0) >= cfg.get("daily_profit_lock_rs", 2000):
+            return "SKIPPED (today's profit lock reached)", None, None
+
         if _near_circuit(data_point):
             return "SKIPPED (near circuit band)", None, None
 
@@ -261,12 +281,23 @@ def rsi_momentum_decide_fn(cfg, position, data_point):
 
 
 def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
-                                  hybrid_sl_cap_pct=2.0, spread_pct=None):
+                                  hybrid_sl_cap_pct=2.0, spread_pct=None,
+                                  daily_profit_lock=False, daily_profit_lock_rs=2000):
     """
     cfg builder for rsi_momentum_decide_fn - mirrors fyers_options_
     engine.py's make_strategy() field names where they overlap, so a
     real Fyers response can be mapped into a data_point without a
     second translation layer to keep in sync later.
+
+    daily_profit_lock/daily_profit_lock_rs - added 21-Aug-2026, at the
+    user's own request after today's real -Rs 22,949.63 stale-data
+    incident (see event_driven_runner.py's own STRATEGY_NAMES comment
+    for the "separate locked variant, not a change to the existing
+    live books" reasoning). Defaults to False/no behavior change for
+    every existing call site - mirrors fyers_options_engine.py's own
+    daily_profit_lock/DAILY_PROFIT_LOCK_RS=2000 flat-rupee convention,
+    NOT its daily_profit_lock_pct variant (user asked for the flat
+    Rs 2000 form specifically).
     """
 
     return {
@@ -277,16 +308,22 @@ def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
         "stop_loss_pct": 2.0,
         "hybrid_sl_cap_pct": hybrid_sl_cap_pct,
         "spread_pct": spread_pct,
+        "daily_profit_lock": daily_profit_lock,
+        "daily_profit_lock_rs": daily_profit_lock_rs,
     }
 
 
 def make_simple_st1_threshold_event_cfg(index, lot_size, initial_capital=100000,
-                                         hybrid_sl_cap_pct=2.0, spread_pct=None):
+                                         hybrid_sl_cap_pct=2.0, spread_pct=None,
+                                         daily_profit_lock=False, daily_profit_lock_rs=2000):
     """
     cfg builder for rsi_momentum_decide_fn, simple_st1_threshold's real
     ratios (Target 3%, Stop-Loss 3% - symmetric, vs st2_threshold's
     5%/2%) - same decide_fn, only cfg differs, per this module's 18-Aug
     generalization note above.
+
+    daily_profit_lock/daily_profit_lock_rs - see make_st2_threshold_
+    event_cfg()'s matching 21-Aug-2026 note above.
     """
 
     return {
@@ -297,6 +334,8 @@ def make_simple_st1_threshold_event_cfg(index, lot_size, initial_capital=100000,
         "stop_loss_pct": 3.0,
         "hybrid_sl_cap_pct": hybrid_sl_cap_pct,
         "spread_pct": spread_pct,
+        "daily_profit_lock": daily_profit_lock,
+        "daily_profit_lock_rs": daily_profit_lock_rs,
     }
 
 
@@ -358,6 +397,10 @@ def oi_footprint_decide_fn(cfg, position, data_point):
 
         if data_point.get("past_squareoff"):
             return "SKIPPED (past square-off time)", None, None
+
+        if cfg.get("daily_profit_lock") and \
+                data_point.get("today_realized_pnl", 0) >= cfg.get("daily_profit_lock_rs", 2000):
+            return "SKIPPED (today's profit lock reached)", None, None
 
         if _near_circuit(data_point):
             return "SKIPPED (near circuit band)", None, None

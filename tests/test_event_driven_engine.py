@@ -67,6 +67,43 @@ def test_skips_open_when_before_market_open():
     assert position is None
 
 
+def test_skips_open_when_daily_profit_lock_reached():
+    cfg = _cfg(daily_profit_lock=True, daily_profit_lock_rs=2000)
+
+    action, position, trade = rsi_momentum_decide_fn(cfg, None, _data_point(today_realized_pnl=2500))
+
+    assert "SKIPPED (today's profit lock reached)" in action
+    assert position is None
+
+
+def test_daily_profit_lock_does_not_skip_below_threshold():
+    cfg = _cfg(daily_profit_lock=True, daily_profit_lock_rs=2000)
+
+    action, position, trade = rsi_momentum_decide_fn(cfg, None, _data_point(today_realized_pnl=1500))
+
+    assert "OPENED" in action
+
+
+def test_daily_profit_lock_ignored_when_flag_is_off():
+    # daily_profit_lock defaults to False (make_st2_threshold_event_cfg)
+    # - today_realized_pnl past the threshold must not matter.
+    action, position, trade = rsi_momentum_decide_fn(_cfg(), None, _data_point(today_realized_pnl=999999))
+
+    assert "OPENED" in action
+
+
+def test_daily_profit_lock_does_not_block_managing_an_existing_position():
+    cfg = _cfg(daily_profit_lock=True, daily_profit_lock_rs=2000)
+    _, position, _ = rsi_momentum_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ltp=100.0))
+
+    action, new_position, trade = rsi_momentum_decide_fn(
+        cfg, position, _data_point(ce_ltp=101.0, today_realized_pnl=2500)
+    )
+
+    assert "HELD" in action
+    assert new_position is not None
+
+
 def test_before_market_open_does_not_block_managing_an_existing_position():
     # Only NEW entries are gated - an already-open position (e.g. one
     # legitimately opened yesterday and carried overnight) must still

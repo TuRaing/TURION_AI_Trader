@@ -1,6 +1,8 @@
 import datetime
 import json
 import os
+import threading
+import time
 
 from strategy.fyers_options_engine import INDEX_CONFIG, _fetch_option_chain
 from strategy.fyers_options_oi_footprint import _read_atm_oi_snapshot
@@ -11,6 +13,8 @@ from strategy.event_driven_engine import (
 )
 from strategy.execution_backend import PaperExecutionBackend
 from strategy.live_tick_harness import LiveTickRunner, OIFootprintTickRunner, handle_symbol_update_message
+
+IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
 
 # Added 18-Aug-2026 - the production entry point that ties together
 # everything built tonight (backtest_live_engine.py's decide_fn
@@ -46,6 +50,16 @@ PORTFOLIO_DIR = "reports"
 SQUAREOFF_TIME = (15, 15)
 RSI_SEED_PERIOD = "10d"
 RSI_SEED_INTERVAL = "5m"
+# Added 21-Aug-2026, alongside the refresh_oi_snapshots() wiring fix
+# below - matches "the original polling engine's own cadence is fine"
+# per that function's own docstring (the old engine's real-world
+# oi_footprint checks ran on a 5-min external cron-job.org trigger -
+# see .github/workflows/fyers_multi_strategy_options.yml's own "moved
+# here (from the 5-min fyers_scheduled_..." comment). Frequent enough
+# for OI buildup (not tick-level data to begin with), infrequent
+# enough not to hammer the option-chain REST endpoint every few
+# seconds for no real benefit.
+OI_REFRESH_SECONDS = 5 * 60
 
 # Distinct names from every existing live book - see module docstring.
 STRATEGY_NAMES = {
@@ -53,6 +67,18 @@ STRATEGY_NAMES = {
     "simple_st1_threshold": "simple_st1_threshold_eventdriven",
     "oi_footprint_nifty": "oi_footprint_eventdriven_nifty",
     "oi_footprint_banknifty": "oi_footprint_eventdriven_banknifty",
+    # Added 21-Aug-2026, user's own explicit ask after today's real
+    # -Rs 22,949.63 stale-data incident (see event_driven_engine.py's
+    # daily_profit_lock cfg note): a Rs 2,000 daily-profit-lock variant
+    # of each RSI-momentum book, running ALONGSIDE (not replacing) the
+    # existing two - user explicitly asked to leave st2_threshold/
+    # simple_st1_threshold themselves unchanged, matching this repo's
+    # "add new functionality as separate engines" rule and the same
+    # pattern the older polling engine already uses for its own
+    # _slcap/_trailing2pct/_2pctlock variants (separate books, never a
+    # mutation of the original).
+    "st2_threshold_lock": "st2_threshold_lock_eventdriven",
+    "simple_st1_threshold_lock": "simple_st1_threshold_lock_eventdriven",
 }
 
 
@@ -223,15 +249,52 @@ def build_runners(execution_backend=None):
     router = MultiStrategyRouter()
     runners = {}
 
-    for index, cfg_builder, decide_fn, key in (
-        ("NIFTY", make_st2_threshold_event_cfg, rsi_momentum_decide_fn, "st2_threshold"),
-        ("NIFTY", make_simple_st1_threshold_event_cfg, rsi_momentum_decide_fn, "simple_st1_threshold"),
+    # Added 21-Aug-2026, alongside the 2 new daily-profit-lock variants
+    # below - pick_atm_symbols()/_seed_candles()/_previous_close() are
+    # each one real network call; with 2 NEW cfg variants added for the
+    # SAME index (NIFTY), calling them fresh per loop iteration would
+    # double NIFTY's real API calls at every startup for no reason,
+    # since the plain and locked variants share the same ATM strike/
+    # candles/previous-close by design. Cached per index, computed once
+    # on first use.
+    _atm_cache = {}
+    _seed_cache = {}
+    _prev_close_cache = {}
+
+    def _atm_for(index):
+        if index not in _atm_cache:
+            _atm_cache[index] = pick_atm_symbols(index)
+        return _atm_cache[index]
+
+    def _seed_for(index):
+        if index not in _seed_cache:
+            _seed_cache[index] = _seed_candles(index)
+        return _seed_cache[index]
+
+    def _prev_close_for(index):
+        if index not in _prev_close_cache:
+            _prev_close_cache[index] = _previous_close(index)
+        return _prev_close_cache[index]
+
+    for index, cfg_builder, decide_fn, key, cfg_overrides in (
+        ("NIFTY", make_st2_threshold_event_cfg, rsi_momentum_decide_fn, "st2_threshold", {}),
+        ("NIFTY", make_simple_st1_threshold_event_cfg, rsi_momentum_decide_fn, "simple_st1_threshold", {}),
+        # Rs 2,000 daily-profit-lock variants - see STRATEGY_NAMES'
+        # own 21-Aug-2026 note. Same cfg_builder/decide_fn/symbols as
+        # the plain book above it - only daily_profit_lock differs -
+        # registered on the SAME NIFTY CE/PE/spot symbols below
+        # (MultiStrategyRouter.register() already supports multiple
+        # runners per symbol, dispatching a tick to all of them).
+        ("NIFTY", make_st2_threshold_event_cfg, rsi_momentum_decide_fn, "st2_threshold_lock",
+         {"daily_profit_lock": True}),
+        ("NIFTY", make_simple_st1_threshold_event_cfg, rsi_momentum_decide_fn, "simple_st1_threshold_lock",
+         {"daily_profit_lock": True}),
     ):
         name = STRATEGY_NAMES[key]
         index_cfg = INDEX_CONFIG[index]
-        cfg = cfg_builder(index=index, lot_size=index_cfg["lot_size"])
+        cfg = cfg_builder(index=index, lot_size=index_cfg["lot_size"], **cfg_overrides)
 
-        spot, atm_strike, ce_symbol, pe_symbol = pick_atm_symbols(index)
+        spot, atm_strike, ce_symbol, pe_symbol = _atm_for(index)
 
         runner = LiveTickRunner(
             decide_fn=decide_fn,
@@ -241,9 +304,9 @@ def build_runners(execution_backend=None):
             ce_symbol=ce_symbol,
             pe_symbol=pe_symbol,
             squareoff_time=SQUAREOFF_TIME,
-            initial_candles=_seed_candles(index),
+            initial_candles=_seed_for(index),
             execution_backend=execution_backend,
-            previous_close=_previous_close(index),
+            previous_close=_prev_close_for(index),
         )
 
         router.register(index_cfg["underlying_symbol"], runner)
@@ -300,9 +363,27 @@ def refresh_oi_snapshots(runners):
     runners - fetches a real option-chain snapshot via fyers_options_
     oi_footprint.py's own _read_atm_oi_snapshot() (imported, not
     duplicated) and feeds it in.
+
+    FIXED 21-Aug-2026 - real bug caught live: this function was never
+    actually CALLED anywhere (grepped the whole codebase - only its own
+    definition existed, no caller, no scheduled thread) - see main()'s
+    matching fix below. Both oi_footprint books had been running since
+    20-Aug with zero trades, ever (Cash still exactly the untouched
+    initial_capital) - their OIBuildupTracker.latest_signal never had a
+    chance to become anything but None, so oi_footprint_decide_fn's own
+    first check ("SKIPPED (no meaningful OI buildup)") always fired.
     """
 
-    now = datetime.datetime.now()
+    now = datetime.datetime.now(IST)  # FIXED 21-Aug-2026 alongside the
+    # above - was naive datetime.datetime.now() (this VPS's system
+    # clock is UTC, see doc/PROJECT_STATUS.md's 21-Aug cron-timezone
+    # entry), while every "Entry Time"/is_past_squareoff() comparison
+    # this timestamp eventually reaches (via on_oi_snapshot() ->
+    # _maybe_decide() -> _past_squareoff()) assumes an already-IST
+    # value - a naive-UTC "now" here would misjudge squareoff/carried-
+    # over-position checks by 5:30 hours, the same class of bug
+    # strategy/squareoff.py's own module docstring already documents a
+    # real incident for.
 
     for key, index in (("oi_footprint_nifty", "NIFTY"), ("oi_footprint_banknifty", "BANKNIFTY")):
         runner = runners.get(key)
@@ -440,5 +521,26 @@ def main(access_token, execution_backend=None):
         on_error=on_error,
         on_message=on_message,
     )
+
+    # FIXED 21-Aug-2026 - real bug caught live: refresh_oi_snapshots()
+    # existed, was fully wired to feed a real OI snapshot into both
+    # oi_footprint runners, but was never actually CALLED anywhere in
+    # this module - no thread, no scheduled trigger. Both oi_footprint
+    # books had been running since 20-Aug with zero trades ever as a
+    # direct result (OIBuildupTracker.latest_signal stuck at None
+    # forever, so oi_footprint_decide_fn's first check always fired).
+    # Same daemon-thread-with-sleep-loop pattern run_tick_collector.py
+    # already uses for its own ATM re-check - one failed poll must not
+    # kill the whole loop, matching that file's own try/except-and-
+    # continue reasoning.
+    def oi_refresh_loop():
+        while True:
+            time.sleep(OI_REFRESH_SECONDS)
+            try:
+                refresh_oi_snapshots(runners)
+            except Exception as error:
+                print(f"OI snapshot refresh failed (continuing on the old signal): {error}")
+
+    threading.Thread(target=oi_refresh_loop, daemon=True).start()
 
     socket.connect()

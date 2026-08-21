@@ -100,10 +100,12 @@ class _SpyBackend:
         self.closes.append((cfg, trade_record))
 
 
-def _runner(hybrid_sl_cap_pct=2.0, spread_pct=None, execution_backend=None, previous_close=None):
+def _runner(hybrid_sl_cap_pct=2.0, spread_pct=None, execution_backend=None, previous_close=None,
+            daily_profit_lock=False, closed_trades=None):
     cfg = make_st2_threshold_event_cfg(index="NIFTY", lot_size=75, initial_capital=100000,
-                                        hybrid_sl_cap_pct=hybrid_sl_cap_pct, spread_pct=spread_pct)
-    portfolio = {"Cash": 100000, "Position": None, "Closed Trades": []}
+                                        hybrid_sl_cap_pct=hybrid_sl_cap_pct, spread_pct=spread_pct,
+                                        daily_profit_lock=daily_profit_lock)
+    portfolio = {"Cash": 100000, "Position": None, "Closed Trades": closed_trades or []}
     seeded = _seeded_candles(MIN_CANDLES_FOR_RSI + 5)  # RSI ready from tick 1
 
     return LiveTickRunner(
@@ -252,6 +254,30 @@ def test_before_market_open_is_computed_from_tick_timestamp():
     action = runner.on_tick(runner.ce_symbol, _ts(0, second=1, hour=9), 100.0)
 
     assert "SKIPPED (before market open)" in action
+
+
+def test_today_realized_pnl_is_computed_from_closed_trades_and_gates_new_entries():
+    # Real feature added 21-Aug-2026 at the user's own request, after
+    # today's whipsaw-loss session - a Rs 2,000 daily-profit-lock
+    # variant. today's Closed Trades already sum to Rs 2,500 (past the
+    # Rs 2,000 lock) - a new entry attempt must be skipped.
+    todays_trade = {"Entry Time": "2026-08-18 09:00:00", "Exit Time": "2026-08-18 09:05:00", "Net PnL": 2500}
+    runner = _runner(daily_profit_lock=True, closed_trades=[todays_trade])
+
+    runner.on_tick(runner.underlying_symbol, _ts(20), 24500.0)
+    action = runner.on_tick(runner.ce_symbol, _ts(20, 1), 100.0)
+
+    assert "SKIPPED (today's profit lock reached)" in action
+
+
+def test_today_realized_pnl_ignores_a_previous_days_trade():
+    yesterdays_trade = {"Entry Time": "2026-08-17 09:00:00", "Exit Time": "2026-08-17 09:05:00", "Net PnL": 9999}
+    runner = _runner(daily_profit_lock=True, closed_trades=[yesterdays_trade])
+
+    runner.on_tick(runner.underlying_symbol, _ts(20), 24500.0)
+    action = runner.on_tick(runner.ce_symbol, _ts(20, 1), 100.0)
+
+    assert "OPENED CE" in action
 
 
 # --- OIBuildupTracker / OIFootprintTickRunner ---

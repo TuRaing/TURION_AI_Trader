@@ -186,6 +186,40 @@ class LiveTickRunner:
             position["Entry Time"], timestamp, self.squareoff_time, entry_stored_as_utc=False
         )
 
+    def _today_realized_pnl(self, timestamp):
+        """
+        Sum of Net PnL for trades already closed on timestamp's own
+        calendar day - the upstream half of the optional daily_profit_
+        lock gate (rsi_momentum_decide_fn, strategy/event_driven_
+        engine.py), added 21-Aug-2026 at the user's own request. decide_
+        fn never sees Closed Trades directly (only "position", per this
+        module's pure-function contract) so this has to be computed
+        here, where self.portfolio is available.
+
+        "Exit Time" is stored as the tick's own already-IST timestamp
+        directly (see is_past_squareoff()'s own entry_stored_as_utc=
+        False note above) - unlike fyers_options_engine.py's own
+        _today_realized_pnl(), which assumes naive-UTC storage and
+        would misjudge the date boundary if reused here unchanged.
+        """
+
+        today = timestamp.date()
+        total = 0.0
+
+        for trade in self.portfolio.get("Closed Trades", []):
+
+            exit_time_str = trade.get("Exit Time")
+
+            if not exit_time_str:
+                continue
+
+            exit_naive = datetime.datetime.strptime(exit_time_str, "%Y-%m-%d %H:%M:%S")
+
+            if exit_naive.date() == today:
+                total += trade.get("Net PnL", 0)
+
+        return total
+
     def on_tick(self, symbol, timestamp, ltp, bid=None, ask=None):
         """
         Call once per incoming WebSocket SymbolUpdate message. Updates
@@ -224,6 +258,7 @@ class LiveTickRunner:
             "pe_bid": self._latest["pe_bid"], "pe_ask": self._latest["pe_ask"],
             "past_squareoff": self._past_squareoff(timestamp),
             "before_market_open": (timestamp.hour, timestamp.minute) < MARKET_OPEN_TIME,
+            "today_realized_pnl": self._today_realized_pnl(timestamp),
             "previous_close": self.previous_close,
         }
 
