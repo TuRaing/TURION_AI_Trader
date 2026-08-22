@@ -57,15 +57,27 @@ def filter_completed_filenames(filenames, today_filename):
 
 def tick_log_filename(now_ist):
     """
-    One file per calendar day, e.g. "ticks_20260820.jsonl" - matches
-    report/market_checks.py's market_check_log_filename() naming
-    convention. JSONL (one JSON object per line) rather than a single
-    JSON array, so a still-being-written file is always valid up to
-    its last complete line (no need to hold the whole day's ticks in
-    memory to append one more).
+    One file per calendar day, e.g. "ticks_220826.jsonl" (DD-MM-YY,
+    22-Aug-2026 - CHANGED 22-Aug-2026, user's own explicit ask; was
+    YYYYMMDD before that, matching report/market_checks.py's market_
+    check_log_filename() naming convention, which is UNCHANGED and
+    still YYYYMMDD - the two are separate systems, this only touches
+    tick archival). JSONL (one JSON object per line) rather than a
+    single JSON array, so a still-being-written file is always valid
+    up to its last complete line (no need to hold the whole day's
+    ticks in memory to append one more).
+
+    CAVEAT worth knowing: unlike YYYYMMDD, DDMMYY filenames do NOT
+    sort into chronological order alphabetically (e.g. "010926"
+    01-Sep < "300826" 30-Aug as plain strings) - fine for every
+    current caller (run_tick_compress.py/run_tick_upload.py/
+    sync_ticks_from_vps.py's filter_completed_filenames() only needs
+    "is this today's file or not", never chronological order), but
+    would matter if something later needed "the N most recent tick
+    files" by filename sort.
     """
 
-    return f"ticks_{now_ist.strftime('%Y%m%d')}.jsonl"
+    return f"ticks_{now_ist.strftime('%d%m%y')}.jsonl"
 
 
 def format_tick_record(index, leg, symbol, message, received_at=None):

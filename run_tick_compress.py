@@ -75,7 +75,15 @@ def compress_file(path):
 
 def main():
 
-    today_filename = f"ticks_{datetime.datetime.now(IST).strftime('%Y%m%d')}.jsonl"
+    # FIXED 22-Aug-2026 - was a hand-inlined "%Y%m%d" format string
+    # here, duplicating (and, once tick_log_filename() switched to
+    # DDMMYY the same day, silently drifting out of sync with)
+    # strategy/tick_collector.py's own filename rule - exactly the
+    # "second copy to drift apart" problem this whole shared-function
+    # pattern exists to avoid. Reuses the real function instead.
+    from strategy.tick_collector import tick_log_filename
+
+    today_filename = tick_log_filename(datetime.datetime.now(IST))
 
     for path in completed_tick_files(today_filename):
         try:

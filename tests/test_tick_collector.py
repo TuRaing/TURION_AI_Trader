@@ -31,9 +31,12 @@ def test_atm_has_drifted_true_for_banknifty_downward_move():
 
 
 def test_tick_log_filename_format():
+    # CHANGED 22-Aug-2026, user's own explicit ask - DDMMYY, not
+    # YYYYMMDD - see tick_log_filename()'s own docstring for the
+    # sorting caveat this format switch carries.
     now = datetime.datetime(2026, 8, 20, 10, 30, tzinfo=IST)
 
-    assert tick_log_filename(now) == "ticks_20260820.jsonl"
+    assert tick_log_filename(now) == "ticks_200826.jsonl"
 
 
 def test_format_tick_record_spot_leg():
