@@ -18,6 +18,11 @@ reports/*.json
 # reasoning as reports/*.json above, at a much bigger scale).
 data/ticks/
 data/ticks_archive/
+# Added 22-Aug-2026 - verify_depth_websocket.py's own raw diagnostic
+# output (real Fyers WebSocket DepthUpdate payloads) - same "real
+# trading-adjacent data, never git history" reasoning as data/ticks/
+# above, one-off/manual rather than continuous.
+data/depth_websocket_verification.jsonl
 # Added 20-Aug-2026 - report/market_checks.py's own generated output
 # (logs/market_checks/*.log, on both this desktop and the VPS) - was
 # showing up as untracked clutter in `git status` on both machines all
