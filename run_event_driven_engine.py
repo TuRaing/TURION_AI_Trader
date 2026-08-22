@@ -1,3 +1,4 @@
+import datetime
 import os
 import sys
 
@@ -55,8 +56,28 @@ from strategy.execution_backend import resolve_execution_backend
 # deliberately isn't built yet and raises a clear error rather than
 # silently running as paper or crashing unexplained.
 
+IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
+
 
 def main():
+
+    # Added 22-Aug-2026 - real bug caught live: a Saturday systemd
+    # restart (deploying new strategy code, market genuinely closed -
+    # no reason today's Fyers login has run) reached build_runners()'s
+    # unguarded pick_atm_symbols() -> _fetch_option_chain() call, which
+    # raised on the stale/absent token and crashed the whole process -
+    # then kept crash-looping (Restart=on-failure, RestartSec=10) until
+    # systemd's StartLimitBurst=5/StartLimitIntervalSec=300 gave up.
+    # Harmless (market was closed, no trade was ever at risk of being
+    # missed) but pure noise - checked FIRST, before even fetching a
+    # token, same "skip cleanly, don't crash" rule the token check right
+    # below already uses. Weekends only (NSE holidays - Diwali, Republic
+    # Day, etc. - aren't covered; would need a maintained holiday
+    # calendar, a separate, larger feature).
+    now_ist = datetime.datetime.now(IST)
+    if now_ist.weekday() >= 5:  # Saturday=5, Sunday=6
+        print(f"{now_ist.strftime('%A')} - NSE is closed on weekends, skipping this start attempt.")
+        sys.exit(0)
 
     execution_backend = resolve_execution_backend(os.environ.get("TURION_EXECUTION_MODE", "paper"))
 

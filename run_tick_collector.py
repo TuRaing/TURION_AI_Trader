@@ -102,6 +102,15 @@ class TickWriter:
 
 def main():
 
+    # Added 22-Aug-2026 - see run_event_driven_engine.py's matching
+    # 22-Aug-2026 comment for the real incident (same crash-loop on a
+    # Saturday systemd restart, same fix, same "weekends only, not real
+    # NSE holidays" scope).
+    now_ist = datetime.datetime.now(IST)
+    if now_ist.weekday() >= 5:  # Saturday=5, Sunday=6
+        print(f"{now_ist.strftime('%A')} - NSE is closed on weekends, skipping this start attempt.")
+        sys.exit(0)
+
     access_token = fetch_access_token()
 
     if not access_token:
