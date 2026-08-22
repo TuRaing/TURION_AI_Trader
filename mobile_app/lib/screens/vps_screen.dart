@@ -31,19 +31,28 @@ import 'strategy_premium_chart_screen.dart';
 // only ever change via a backend redeploy, which needs an app rebuild
 // anyway to add/relabel a book at all (same as label/underlying below,
 // already hardcoded per book before this).
+// `description` - added 22-Aug-2026, at the user's own explicit ask -
+// one-line Marathi summary of what each book actually does, shown at
+// the top of its own tab (_BookPortfolio.build() below). Kept here,
+// not fetched, same "static, mirrors the Python cfg" reasoning as
+// every other field on this record.
 const _books = [
   (key: 'st2_threshold_eventdriven', label: 'ST2 Threshold', underlying: 'NIFTY',
     lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
-    targetNetPct: 5.0, stopLossPct: 2.0, targetRupees: null, stopLossRupees: null),
+    targetNetPct: 5.0, stopLossPct: 2.0, targetRupees: null, stopLossRupees: null,
+    description: 'RSI वरून CE/PE निवडतो · Target 5% / Stop-Loss 2% · 2 सलग तोट्यानंतर आजसाठी थांबतो'),
   (key: 'simple_st1_threshold_eventdriven', label: 'Simple ST1 Threshold', underlying: 'NIFTY',
     lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
-    targetNetPct: 3.0, stopLossPct: 3.0, targetRupees: null, stopLossRupees: null),
+    targetNetPct: 3.0, stopLossPct: 3.0, targetRupees: null, stopLossRupees: null,
+    description: 'RSI वरून CE/PE निवडतो · Target 3% / Stop-Loss 3% · 2 सलग तोट्यानंतर आजसाठी थांबतो'),
   (key: 'oi_footprint_eventdriven_nifty', label: 'OI Footprint', underlying: 'NIFTY',
     lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
-    targetNetPct: null, stopLossPct: null, targetRupees: 1500.0, stopLossRupees: 1500.0),
+    targetNetPct: null, stopLossPct: null, targetRupees: 1500.0, stopLossRupees: 1500.0,
+    description: 'Open Interest मधल्या बदलावरून buildup ओळखतो · Target/Stop-Loss ₹1,500 (fixed)'),
   (key: 'oi_footprint_eventdriven_banknifty', label: 'OI Footprint', underlying: 'BANKNIFTY',
     lotSize: 30, initialCapital: 100000.0, hybridSlCapPct: 2.0,
-    targetNetPct: null, stopLossPct: null, targetRupees: 1500.0, stopLossRupees: 1500.0),
+    targetNetPct: null, stopLossPct: null, targetRupees: 1500.0, stopLossRupees: 1500.0,
+    description: 'Open Interest मधल्या बदलावरून buildup ओळखतो · Target/Stop-Loss ₹1,500 (fixed)'),
   // Added 21-Aug-2026 - the two new daily-profit-lock variant books
   // (strategy/event_driven_runner.py's STRATEGY_NAMES, same day) -
   // separate books running alongside the plain ones above, not a
@@ -52,10 +61,12 @@ const _books = [
   // a single trade's own Target/SL premium.
   (key: 'st2_threshold_lock_eventdriven', label: 'ST2 Threshold (2% Lock)', underlying: 'NIFTY',
     lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
-    targetNetPct: 5.0, stopLossPct: 2.0, targetRupees: null, stopLossRupees: null),
+    targetNetPct: 5.0, stopLossPct: 2.0, targetRupees: null, stopLossRupees: null,
+    description: 'ST2 Threshold सारखंच · दिवसाचा एकूण नफा 2% गाठला की आजसाठी नवीन trade बंद'),
   (key: 'simple_st1_threshold_lock_eventdriven', label: 'Simple ST1 Threshold (2% Lock)', underlying: 'NIFTY',
     lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
-    targetNetPct: 3.0, stopLossPct: 3.0, targetRupees: null, stopLossRupees: null),
+    targetNetPct: 3.0, stopLossPct: 3.0, targetRupees: null, stopLossRupees: null,
+    description: 'Simple ST1 Threshold सारखंच · दिवसाचा एकूण नफा 2% गाठला की आजसाठी नवीन trade बंद'),
   // Added 21-Aug-2026, same day - 6 more variants (2 per daily-profit-
   // lock tier: 2%/1%/0.5%) of the two "_lock" books above, running
   // rsi_momentum_quote_decide_fn instead of rsi_momentum_decide_fn
@@ -65,22 +76,28 @@ const _books = [
   // of which changes a single trade's own Target/SL premium line).
   (key: 'st2_threshold_lock_quote2pct_eventdriven', label: 'ST2 Threshold (2% Lock, Quote)', underlying: 'NIFTY',
     lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
-    targetNetPct: 5.0, stopLossPct: 2.0, targetRupees: null, stopLossRupees: null),
+    targetNetPct: 5.0, stopLossPct: 2.0, targetRupees: null, stopLossRupees: null,
+    description: '2% Lock सारखंच, पण Target/Stop-Loss खऱ्या bid/ask किमतीवर ठरतो (LTP नाही) - जास्त वास्तववादी PnL'),
   (key: 'simple_st1_threshold_lock_quote2pct_eventdriven', label: 'Simple ST1 Threshold (2% Lock, Quote)',
     underlying: 'NIFTY', lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
-    targetNetPct: 3.0, stopLossPct: 3.0, targetRupees: null, stopLossRupees: null),
+    targetNetPct: 3.0, stopLossPct: 3.0, targetRupees: null, stopLossRupees: null,
+    description: '2% Lock सारखंच, पण Target/Stop-Loss खऱ्या bid/ask किमतीवर ठरतो (LTP नाही) - जास्त वास्तववादी PnL'),
   (key: 'st2_threshold_lock_quote1pct_eventdriven', label: 'ST2 Threshold (1% Lock, Quote)', underlying: 'NIFTY',
     lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
-    targetNetPct: 5.0, stopLossPct: 2.0, targetRupees: null, stopLossRupees: null),
+    targetNetPct: 5.0, stopLossPct: 2.0, targetRupees: null, stopLossRupees: null,
+    description: 'bid/ask-based Target/Stop-Loss · दिवसाचा नफा 1% गाठला की आजसाठी नवीन trade बंद'),
   (key: 'simple_st1_threshold_lock_quote1pct_eventdriven', label: 'Simple ST1 Threshold (1% Lock, Quote)',
     underlying: 'NIFTY', lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
-    targetNetPct: 3.0, stopLossPct: 3.0, targetRupees: null, stopLossRupees: null),
+    targetNetPct: 3.0, stopLossPct: 3.0, targetRupees: null, stopLossRupees: null,
+    description: 'bid/ask-based Target/Stop-Loss · दिवसाचा नफा 1% गाठला की आजसाठी नवीन trade बंद'),
   (key: 'st2_threshold_lock_quote0pt5pct_eventdriven', label: 'ST2 Threshold (0.5% Lock, Quote)',
     underlying: 'NIFTY', lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
-    targetNetPct: 5.0, stopLossPct: 2.0, targetRupees: null, stopLossRupees: null),
+    targetNetPct: 5.0, stopLossPct: 2.0, targetRupees: null, stopLossRupees: null,
+    description: 'bid/ask-based Target/Stop-Loss · दिवसाचा नफा 0.5% गाठला की आजसाठी नवीन trade बंद (सर्वात लवकर थांबणारा)'),
   (key: 'simple_st1_threshold_lock_quote0pt5pct_eventdriven', label: 'Simple ST1 Threshold (0.5% Lock, Quote)',
     underlying: 'NIFTY', lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
-    targetNetPct: 3.0, stopLossPct: 3.0, targetRupees: null, stopLossRupees: null),
+    targetNetPct: 3.0, stopLossPct: 3.0, targetRupees: null, stopLossRupees: null,
+    description: 'bid/ask-based Target/Stop-Loss · दिवसाचा नफा 0.5% गाठला की आजसाठी नवीन trade बंद (सर्वात लवकर थांबणारा)'),
 ];
 
 class VpsScreen extends StatefulWidget {
@@ -147,6 +164,7 @@ class _BookPortfolio extends StatelessWidget {
     String key, String label, String underlying,
     int lotSize, double initialCapital, double hybridSlCapPct,
     double? targetNetPct, double? stopLossPct, double? targetRupees, double? stopLossRupees,
+    String description,
   }) book;
 
   const _BookPortfolio({required this.book});
@@ -176,6 +194,13 @@ class _BookPortfolio extends StatelessWidget {
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            // Added 22-Aug-2026, at the user's own explicit ask - a
+            // small one-line Marathi summary of what THIS book actually
+            // does, right under its own tab, so it doesn't take a code
+            // read (or a chat with Claude) to remember which of the 12
+            // books does what.
+            Text(book.description, style: const TextStyle(fontSize: 12, color: mutedColor)),
+            const SizedBox(height: 12),
             HeroStat(label: '${book.underlying} Total Net PnL', value: formatSignedRupees(totalPnl), color: pnlColor(totalPnl)),
             const SizedBox(height: 10),
             Row(
