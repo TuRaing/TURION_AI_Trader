@@ -30,7 +30,7 @@ Project Started
 
 Last Updated
 
-18-Aug-2026
+22-Aug-2026
 
 --------------------------------------------------
 
@@ -7362,17 +7362,140 @@ See doc/21aug26_SESSION_LOG.md for full detail.
 
 ==================================================
 
+QUOTE-BASED PnL BOOKKEEPING, SIX NEW QUOTE-BASED LOCK STRATEGIES,
+CONSECUTIVE-LOSS CIRCUIT BREAKER (22-Aug) - continuation of 21-Aug's
+depth-slippage finding. (1) Added `Entry Premium (Quote)` / `Exit
+Premium (Quote)` / `Net PnL (Quote)` fields to rsi_momentum_decide_fn/
+oi_footprint_decide_fn (strategy/event_driven_engine.py) - REPORTING
+ONLY, reuses ce_bid/ce_ask/pe_bid/pe_ask already flowing into every
+live data_point but never read before; 4 new tests, 87/87 passing
+(commit 7c6de64fa). (2) Built 6 new quote-based lock books (3
+groups x 2 base strategies: st2_threshold/simple_st1_threshold at
+2%/1%/0.5% daily-profit-lock tiers, a user-requested 4th group
+dropped after discussion) via a new `rsi_momentum_quote_decide_fn`
+where Target/Stop-Loss trigger off real bid/ask instead of LTP -
+refactored the existing decide_fn into a shared `_rsi_momentum_
+decide()` core, confirmed byte-identical behavior for the original
+LTP variant via the unchanged test suite. Ported (not reinvented) a
+consecutive-loss circuit breaker from fyers_options_engine.py's
+proven MAX_CONSECUTIVE_LOSSES mechanism, turned ON for st2_threshold/
+simple_st1_threshold specifically - these whipsawed 81/106 trades on
+21-Aug (net -Rs 44,142/-Rs 49,783); backtested against that real
+sequence, N=2 was the only rule tried that flipped both books to
+profit (+Rs 3,844/+Rs 1,821, only 3-4 trades - too few to trust the
+exact parameter yet). mobile_app/lib/screens/vps_screen.dart updated
+with the 6 new books. 12 new tests, full suite 566/566 passing
+(commit 473d05653). Built with a formal Plan given the scope. See
+doc/22aug26_SESSION_LOG.md for full detail.
+
+WEEKEND CRASH-LOOP FOUND AND FIXED VIA A REAL DEPLOY ATTEMPT (22-Aug) -
+deploying the above to the VPS (Saturday, market closed) exposed both
+systemd services (turion-event-driven, turion-tick-collector)
+crash-looping on restart with "Please provide valid token" (Fyers
+access_token expired - nobody logged in on a non-trading day).
+Confirmed via journalctl this was UNRELATED to the new code - the old
+process was already failing the same way; the restart just exposed it.
+Fixed: both run_event_driven_engine.py and run_tick_collector.py now
+check `datetime.now(IST).weekday() >= 5` as the first thing in main()
+and exit(0) cleanly on a weekend, before even fetching a token. NSE
+real holidays (Diwali, Republic Day etc.) explicitly NOT covered - out
+of scope, would need a maintained holiday calendar. Verified live on
+the VPS: both services now exit clean (status=0/SUCCESS, inactive/
+dead), no more crash-loop (commit 3a0231b9f). Mobile APK rebuilt +
+installed on-device twice this session (after the 6-book change, and
+again after the Marathi descriptions below).
+
+==================================================
+
+TICK ARCHIVE SIZE CHECK, DAILY LOCAL COMPRESSION, MARATHI BOOK
+DESCRIPTIONS, DDMMYY FILENAME CHANGE (22-Aug) - real 21-Aug tick
+archive: 44MB uncompressed (214,303 ticks, confirmed continuous
+09:15:00-15:30:00 coverage, zero gaps over 60s), 2.86MB gzipped
+(~16x smaller). Built run_tick_compress.py (gzips each COMPLETED
+day's file in place, verifies compressed output before deleting the
+original) - cron'd on the VPS at 18:00 IST Mon-Fri; run once manually
+against the real 21-Aug file (45,662,418 -> 2,491,324 bytes); the .gz
+also copied to the user's local machine (gitignored). Same commit
+added per-book Marathi one-line descriptions to mobile_app/lib/
+screens/vps_screen.dart (commit 4f091b582). Separately, changed
+strategy/tick_collector.py's tick_log_filename() from %Y%m%d to
+%d%m%y per the user's explicit ask (e.g. ticks_220826.jsonl) - found
+and fixed run_tick_compress.py's own hand-inlined %Y%m%d format
+string that would have silently drifted out of sync with this change;
+docstring now notes DDMMYY does not sort chronologically
+alphabetically (no current caller needs that). Existing files renamed
+on both VPS and local machine to match (commit 855d2d611). Real
+tick-archive verification (no code change): both NIFTY (103,347
+ticks) and BANKNIFTY (110,956 ticks) confirmed present with real ATM
+strike drift and zero >60s gaps across the full session. Real
+spread-by-moneyness analysis (no code change, reports/options_
+premium_history.jsonl, 42,724 records): ATM 0.36% avg spread, ITM 1-2
+0.38%, ITM 3+ 0.48%, OTM 1-2 0.46%, OTM 3+ 0.81% - confirms ATM
+tightest, deep OTM roughly double. See doc/22aug26_SESSION_LOG.md.
+
+FYERS WEBSOCKET DepthUpdate RESEARCH, VERIFICATION SCHEDULED MONDAY
+(22-Aug, commit 0c313ca35) - real web research confirmed Fyers'
+WebSocket supports a `data_type="DepthUpdate"` mode (vs the
+"SymbolUpdate" already used) that could replace the ~5-min-stale REST
+/depth polling behind 21-Aug's slippage estimate - but the exact
+message field shape could NOT be confirmed from any documentation
+found (conflicting signals, possibly a different paid/protobuf
+product), the same situation the REST /depth endpoint was in on
+16-Aug (needed 3 rounds of live fixes from a wrong assumed shape) -
+so "guess and build" was deliberately avoided. Built
+verify_depth_websocket.py, a ONE-OFF diagnostic script (no systemd
+unit) that dumps the first 20 raw unparsed DepthUpdate messages (or
+120s) to data/depth_websocket_verification.jsonl for human
+inspection; deployed to VPS, untested (market closed Saturday). A
+cloud "schedule" skill routine was tried first and abandoned (no
+access to the SSH key needed to reach the VPS); a one-time VPS
+crontab entry fires it instead at 09:20 IST on 24-Aug-2026 (Monday,
+5 min after open). No automated report-back - follow-up requires an
+explicit ask in this same conversation.
+
+==================================================
+
+TWO STRATEGY-IMPROVEMENT CANDIDATES BACKTESTED AGAINST REAL TICK DATA,
+NEITHER BUILT (22-Aug) - both deferred to next week's larger dataset,
+same as the circuit-breaker parameter above. TRAILING STOP-LOSS
+(ported from fyers_options_engine.py's trailing_min_pct/TRAIL_PCT=
+0.30 peak-tracking mechanism): backtested for real against 21-Aug's
+actual Closed Trades by replaying the real tick-by-tick archive from
+each trade's real Entry Time. Made the two whipsaw books MEANINGFULLY
+WORSE (st2: -Rs 44,142 actual -> -Rs 59,872 simulated; simple_st1:
+-Rs 49,783 -> -Rs 58,622) since most trades never reached the 2%
+trailing-activation threshold before an ordinary Stop-Loss - it
+doesn't address the actual whipsaw problem, which the circuit breaker
+already handles. Roughly neutral on the two single-trade lock books.
+IV-FILTER (exact MAX_IV_RV_RATIO=1.5 mechanism from strategy/fyers_
+options_oi_iv_combo.py, already documented as helping oi_footprint but
+running BACKWARDS on the RSI-threshold family): real backtest using
+Black-Scholes implied vol (indicators/black_scholes.py) against real
+Entry Premium/Spot and yfinance-sourced 10-day realized vol (5.24% as
+of 20-Aug close, no look-ahead) confirmed BOTH prior findings at once
+on the same day's data - would have skipped nearly all of the whipsaw
+books' real losses (st2 kept-only -Rs 1,450 vs actual -Rs 44,142;
+simple_st1 kept-only -Rs 4,892 vs actual -Rs 49,783) but ALSO the one
+profitable trade both lock books caught (+Rs 5,013/+Rs 3,283 -> Rs 0).
+Side-finding flagged, not fixed: fyers_options_oi_iv_combo.py's
+_realized_volatility() calls fyers_download() with period="30d",
+which is not a valid key in fyers_data.py's PERIOD_TO_DAYS - would
+raise ValueError if ever actually invoked live. See doc/22aug26_
+SESSION_LOG.md for full detail on both backtests.
+
+==================================================
+
 Status
 
 🟢 Stable
 
 Current Version
 
-v0.0.57
+v0.0.58
 
 Next Version
 
-v0.0.58
+v0.0.59
 
 ==================================================
 
