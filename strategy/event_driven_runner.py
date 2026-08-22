@@ -9,7 +9,8 @@ from strategy.fyers_options_engine import INDEX_CONFIG, _fetch_option_chain
 from strategy.fyers_options_oi_footprint import _read_atm_oi_snapshot
 from strategy.fyers_data import fyers_download
 from strategy.event_driven_engine import (
-    rsi_momentum_decide_fn, make_st2_threshold_event_cfg, make_simple_st1_threshold_event_cfg,
+    rsi_momentum_decide_fn, rsi_momentum_quote_decide_fn,
+    make_st2_threshold_event_cfg, make_simple_st1_threshold_event_cfg,
     oi_footprint_decide_fn, make_oi_footprint_event_cfg,
 )
 from strategy.execution_backend import PaperExecutionBackend
@@ -81,6 +82,21 @@ STRATEGY_NAMES = {
     # mutation of the original).
     "st2_threshold_lock": "st2_threshold_lock_eventdriven",
     "simple_st1_threshold_lock": "simple_st1_threshold_lock_eventdriven",
+    # Added 21-Aug-2026, same day, user's own explicit ask after real
+    # depth-slippage analysis found the "_lock" books' LTP-based PnL
+    # overstates realistic (bid/ask) PnL by ~87-91% on a thin ATM book
+    # - 6 more variants (2 per daily-profit-lock tier: 2%/1%/0.5%),
+    # running rsi_momentum_quote_decide_fn instead of rsi_momentum_
+    # decide_fn (see that function's own docstring) so Target/Stop-Loss
+    # trigger off real bid/ask from the start, not LTP reconstructed
+    # afterward. Alongside, not replacing, the existing "_lock" books -
+    # same "separate books, never mutate the original" rule as above.
+    "st2_threshold_lock_quote2pct": "st2_threshold_lock_quote2pct_eventdriven",
+    "simple_st1_threshold_lock_quote2pct": "simple_st1_threshold_lock_quote2pct_eventdriven",
+    "st2_threshold_lock_quote1pct": "st2_threshold_lock_quote1pct_eventdriven",
+    "simple_st1_threshold_lock_quote1pct": "simple_st1_threshold_lock_quote1pct_eventdriven",
+    "st2_threshold_lock_quote0pt5pct": "st2_threshold_lock_quote0pt5pct_eventdriven",
+    "simple_st1_threshold_lock_quote0pt5pct": "simple_st1_threshold_lock_quote0pt5pct_eventdriven",
 }
 
 
@@ -291,8 +307,17 @@ def build_runners(execution_backend=None):
         return _prev_close_cache[index]
 
     for index, cfg_builder, decide_fn, key, cfg_overrides in (
-        ("NIFTY", make_st2_threshold_event_cfg, rsi_momentum_decide_fn, "st2_threshold", {}),
-        ("NIFTY", make_simple_st1_threshold_event_cfg, rsi_momentum_decide_fn, "simple_st1_threshold", {}),
+        # Added 21-Aug-2026 - daily_loss_lock/max_consecutive_losses,
+        # ported from fyers_options_engine.py (already proven there),
+        # after these exact two books whipsawed for real today (81/106
+        # trades, 71-79% Stop-Loss - see event_driven_engine.py's
+        # daily_loss_lock cfg note). The "_lock"/"_lock_quote*" variants
+        # below keep their existing daily_profit_lock gate unchanged -
+        # a different failure mode (they already stop after one win).
+        ("NIFTY", make_st2_threshold_event_cfg, rsi_momentum_decide_fn, "st2_threshold",
+         {"daily_loss_lock": True, "max_consecutive_losses": 2}),
+        ("NIFTY", make_simple_st1_threshold_event_cfg, rsi_momentum_decide_fn, "simple_st1_threshold",
+         {"daily_loss_lock": True, "max_consecutive_losses": 2}),
         # 2% daily-profit-lock variants - see STRATEGY_NAMES'
         # own 21-Aug-2026 note. Same cfg_builder/decide_fn/symbols as
         # the plain book above it - only daily_profit_lock differs -
@@ -303,6 +328,22 @@ def build_runners(execution_backend=None):
          {"daily_profit_lock": True}),
         ("NIFTY", make_simple_st1_threshold_event_cfg, rsi_momentum_decide_fn, "simple_st1_threshold_lock",
          {"daily_profit_lock": True}),
+        # 21-Aug-2026, same day - quote-based (bid/ask, not LTP)
+        # siblings of the two "_lock" books above, at 3 daily-profit-
+        # lock tiers (2%/1%/0.5%) - see STRATEGY_NAMES' own note and
+        # rsi_momentum_quote_decide_fn's own docstring.
+        ("NIFTY", make_st2_threshold_event_cfg, rsi_momentum_quote_decide_fn, "st2_threshold_lock_quote2pct",
+         {"daily_profit_lock": True, "daily_profit_lock_pct": 2.0}),
+        ("NIFTY", make_simple_st1_threshold_event_cfg, rsi_momentum_quote_decide_fn,
+         "simple_st1_threshold_lock_quote2pct", {"daily_profit_lock": True, "daily_profit_lock_pct": 2.0}),
+        ("NIFTY", make_st2_threshold_event_cfg, rsi_momentum_quote_decide_fn, "st2_threshold_lock_quote1pct",
+         {"daily_profit_lock": True, "daily_profit_lock_pct": 1.0}),
+        ("NIFTY", make_simple_st1_threshold_event_cfg, rsi_momentum_quote_decide_fn,
+         "simple_st1_threshold_lock_quote1pct", {"daily_profit_lock": True, "daily_profit_lock_pct": 1.0}),
+        ("NIFTY", make_st2_threshold_event_cfg, rsi_momentum_quote_decide_fn, "st2_threshold_lock_quote0pt5pct",
+         {"daily_profit_lock": True, "daily_profit_lock_pct": 0.5}),
+        ("NIFTY", make_simple_st1_threshold_event_cfg, rsi_momentum_quote_decide_fn,
+         "simple_st1_threshold_lock_quote0pt5pct", {"daily_profit_lock": True, "daily_profit_lock_pct": 0.5}),
     ):
         name = STRATEGY_NAMES[key]
         index_cfg = INDEX_CONFIG[index]

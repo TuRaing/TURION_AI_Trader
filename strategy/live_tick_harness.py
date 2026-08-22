@@ -220,6 +220,52 @@ class LiveTickRunner:
 
         return total
 
+    def _today_consecutive_losses(self, timestamp):
+        """
+        The CURRENT losing streak among timestamp's own calendar day's
+        closed trades, counting backward from the most recent trade
+        until a win breaks the streak - the upstream half of the
+        optional daily_loss_lock gate (_rsi_momentum_decide, strategy/
+        event_driven_engine.py), added 21-Aug-2026 after a real
+        whipsaw day (st2_threshold/simple_st1_threshold: 81/106 trades,
+        71-79% Stop-Loss - re-entering on the very next tick after
+        every close, no cooldown).
+
+        Ported from strategy/fyers_options_engine.py's own
+        MAX_CONSECUTIVE_LOSSES/_today_consecutive_losses() (already
+        proven/backtested there) - NOT a blind copy: that version
+        assumes "Exit Time" is naive-UTC; this uses the SAME date
+        convention as _today_realized_pnl() above (already-IST,
+        compared directly), for the same reason that function's own
+        docstring gives.
+        """
+
+        today = timestamp.date()
+        today_trades = []
+
+        for trade in self.portfolio.get("Closed Trades", []):
+
+            exit_time_str = trade.get("Exit Time")
+
+            if not exit_time_str:
+                continue
+
+            exit_naive = datetime.datetime.strptime(exit_time_str, "%Y-%m-%d %H:%M:%S")
+
+            if exit_naive.date() == today:
+                today_trades.append(trade)
+
+        streak = 0
+
+        for trade in reversed(today_trades):
+
+            if trade.get("Net PnL", 0) <= 0:
+                streak += 1
+            else:
+                break
+
+        return streak
+
     def on_tick(self, symbol, timestamp, ltp, bid=None, ask=None):
         """
         Call once per incoming WebSocket SymbolUpdate message. Updates
@@ -259,6 +305,7 @@ class LiveTickRunner:
             "past_squareoff": self._past_squareoff(timestamp),
             "before_market_open": (timestamp.hour, timestamp.minute) < MARKET_OPEN_TIME,
             "today_realized_pnl": self._today_realized_pnl(timestamp),
+            "today_consecutive_losses": self._today_consecutive_losses(timestamp),
             "previous_close": self.previous_close,
         }
 

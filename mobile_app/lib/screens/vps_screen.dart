@@ -56,6 +56,31 @@ const _books = [
   (key: 'simple_st1_threshold_lock_eventdriven', label: 'Simple ST1 Threshold (2% Lock)', underlying: 'NIFTY',
     lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
     targetNetPct: 3.0, stopLossPct: 3.0, targetRupees: null, stopLossRupees: null),
+  // Added 21-Aug-2026, same day - 6 more variants (2 per daily-profit-
+  // lock tier: 2%/1%/0.5%) of the two "_lock" books above, running
+  // rsi_momentum_quote_decide_fn instead of rsi_momentum_decide_fn
+  // (strategy/event_driven_engine.py) - Target/Stop-Loss trigger off
+  // real bid/ask, not LTP. Same target/SL cfg as their un-locked
+  // siblings (only decide_fn and daily_profit_lock_pct differ, neither
+  // of which changes a single trade's own Target/SL premium line).
+  (key: 'st2_threshold_lock_quote2pct_eventdriven', label: 'ST2 Threshold (2% Lock, Quote)', underlying: 'NIFTY',
+    lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
+    targetNetPct: 5.0, stopLossPct: 2.0, targetRupees: null, stopLossRupees: null),
+  (key: 'simple_st1_threshold_lock_quote2pct_eventdriven', label: 'Simple ST1 Threshold (2% Lock, Quote)',
+    underlying: 'NIFTY', lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
+    targetNetPct: 3.0, stopLossPct: 3.0, targetRupees: null, stopLossRupees: null),
+  (key: 'st2_threshold_lock_quote1pct_eventdriven', label: 'ST2 Threshold (1% Lock, Quote)', underlying: 'NIFTY',
+    lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
+    targetNetPct: 5.0, stopLossPct: 2.0, targetRupees: null, stopLossRupees: null),
+  (key: 'simple_st1_threshold_lock_quote1pct_eventdriven', label: 'Simple ST1 Threshold (1% Lock, Quote)',
+    underlying: 'NIFTY', lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
+    targetNetPct: 3.0, stopLossPct: 3.0, targetRupees: null, stopLossRupees: null),
+  (key: 'st2_threshold_lock_quote0pt5pct_eventdriven', label: 'ST2 Threshold (0.5% Lock, Quote)',
+    underlying: 'NIFTY', lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
+    targetNetPct: 5.0, stopLossPct: 2.0, targetRupees: null, stopLossRupees: null),
+  (key: 'simple_st1_threshold_lock_quote0pt5pct_eventdriven', label: 'Simple ST1 Threshold (0.5% Lock, Quote)',
+    underlying: 'NIFTY', lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
+    targetNetPct: 3.0, stopLossPct: 3.0, targetRupees: null, stopLossRupees: null),
 ];
 
 class VpsScreen extends StatefulWidget {

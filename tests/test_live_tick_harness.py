@@ -101,10 +101,12 @@ class _SpyBackend:
 
 
 def _runner(hybrid_sl_cap_pct=2.0, spread_pct=None, execution_backend=None, previous_close=None,
-            daily_profit_lock=False, closed_trades=None):
+            daily_profit_lock=False, daily_loss_lock=False, max_consecutive_losses=2, closed_trades=None):
     cfg = make_st2_threshold_event_cfg(index="NIFTY", lot_size=75, initial_capital=100000,
                                         hybrid_sl_cap_pct=hybrid_sl_cap_pct, spread_pct=spread_pct,
-                                        daily_profit_lock=daily_profit_lock)
+                                        daily_profit_lock=daily_profit_lock,
+                                        daily_loss_lock=daily_loss_lock,
+                                        max_consecutive_losses=max_consecutive_losses)
     portfolio = {"Cash": 100000, "Position": None, "Closed Trades": closed_trades or []}
     seeded = _seeded_candles(MIN_CANDLES_FOR_RSI + 5)  # RSI ready from tick 1
 
@@ -273,6 +275,49 @@ def test_today_realized_pnl_is_computed_from_closed_trades_and_gates_new_entries
 def test_today_realized_pnl_ignores_a_previous_days_trade():
     yesterdays_trade = {"Entry Time": "2026-08-17 09:00:00", "Exit Time": "2026-08-17 09:05:00", "Net PnL": 9999}
     runner = _runner(daily_profit_lock=True, closed_trades=[yesterdays_trade])
+
+    runner.on_tick(runner.underlying_symbol, _ts(20), 24500.0)
+    action = runner.on_tick(runner.ce_symbol, _ts(20, 1), 100.0)
+
+    assert "OPENED CE" in action
+
+
+def test_today_consecutive_losses_gates_new_entries_via_daily_loss_lock():
+    # Added 21-Aug-2026, ported from fyers_options_engine.py's own
+    # proven daily_loss_lock, after st2_threshold/simple_st1_threshold
+    # whipsawed for real today (81/106 trades, 71-79% Stop-Loss).
+    todays_losses = [
+        {"Entry Time": "2026-08-18 09:00:00", "Exit Time": "2026-08-18 09:05:00", "Net PnL": -500},
+        {"Entry Time": "2026-08-18 09:06:00", "Exit Time": "2026-08-18 09:10:00", "Net PnL": -300},
+    ]
+    runner = _runner(daily_loss_lock=True, max_consecutive_losses=2, closed_trades=todays_losses)
+
+    runner.on_tick(runner.underlying_symbol, _ts(20), 24500.0)
+    action = runner.on_tick(runner.ce_symbol, _ts(20, 1), 100.0)
+
+    assert "SKIPPED (today already has 2+ consecutive losses" in action
+
+
+def test_today_consecutive_losses_resets_after_a_win():
+    trades = [
+        {"Entry Time": "2026-08-18 09:00:00", "Exit Time": "2026-08-18 09:05:00", "Net PnL": -500},
+        {"Entry Time": "2026-08-18 09:06:00", "Exit Time": "2026-08-18 09:10:00", "Net PnL": -300},
+        {"Entry Time": "2026-08-18 09:11:00", "Exit Time": "2026-08-18 09:15:00", "Net PnL": 400},
+    ]
+    runner = _runner(daily_loss_lock=True, max_consecutive_losses=2, closed_trades=trades)
+
+    runner.on_tick(runner.underlying_symbol, _ts(20), 24500.0)
+    action = runner.on_tick(runner.ce_symbol, _ts(20, 1), 100.0)
+
+    assert "OPENED CE" in action
+
+
+def test_today_consecutive_losses_ignores_a_previous_days_streak():
+    yesterdays_losses = [
+        {"Entry Time": "2026-08-17 09:00:00", "Exit Time": "2026-08-17 09:05:00", "Net PnL": -500},
+        {"Entry Time": "2026-08-17 09:06:00", "Exit Time": "2026-08-17 09:10:00", "Net PnL": -300},
+    ]
+    runner = _runner(daily_loss_lock=True, max_consecutive_losses=2, closed_trades=yesterdays_losses)
 
     runner.on_tick(runner.underlying_symbol, _ts(20), 24500.0)
     action = runner.on_tick(runner.ce_symbol, _ts(20, 1), 100.0)

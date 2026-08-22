@@ -1,6 +1,7 @@
 from strategy.backtest_live_engine import run_backtest, run_live_check
 from strategy.event_driven_engine import (
-    rsi_momentum_decide_fn, make_st2_threshold_event_cfg, make_simple_st1_threshold_event_cfg,
+    rsi_momentum_decide_fn, rsi_momentum_quote_decide_fn,
+    make_st2_threshold_event_cfg, make_simple_st1_threshold_event_cfg,
     oi_footprint_decide_fn, make_oi_footprint_event_cfg,
 )
 
@@ -209,6 +210,115 @@ def test_quote_pnl_is_none_when_data_point_has_no_bid_ask():
     assert "CLOSED" in action
     assert trade["Exit Premium (Quote)"] is None
     assert trade["Net PnL (Quote)"] is None
+
+
+def test_quote_decide_fn_opens_using_ask_not_ltp():
+    # Added 21-Aug-2026, alongside rsi_momentum_quote_decide_fn - the 6
+    # new "_lock_quote*pct" books trigger Target/Stop-Loss off real
+    # bid/ask, not LTP. Confirms entry reads ce_ask, ignores ce_ltp.
+    cfg = _cfg()
+    action, position, trade = rsi_momentum_quote_decide_fn(
+        cfg, None, _data_point(rsi=55.0, ce_ltp=100.0, ce_ask=100.5)
+    )
+
+    assert "OPENED CE" in action
+    assert position["Entry Premium"] == 100.5
+    # No redundant "(Quote)" field here - Entry Premium above already IS
+    # the quote for this decide_fn.
+    assert "Entry Premium (Quote)" not in position
+
+
+def test_quote_decide_fn_closes_using_bid_not_ltp():
+    cfg = _cfg()
+    _, position, _ = rsi_momentum_quote_decide_fn(
+        cfg, None, _data_point(rsi=55.0, ce_ltp=100.0, ce_ask=100.5)
+    )
+
+    action, new_position, trade = rsi_momentum_quote_decide_fn(
+        cfg, position, _data_point(ce_ltp=100.0, ce_bid=115.0)
+    )
+
+    assert "CLOSED (Target)" in action
+    assert trade["Entry Premium"] == 100.5
+    assert trade["Exit Premium"] == 115.0
+    assert "Net PnL (Quote)" not in trade
+
+
+def test_quote_decide_fn_skips_open_when_ask_missing():
+    # Never silently falls back to LTP - a missing quote just means no
+    # trade, same guard style as a missing/zero LTP does today.
+    cfg = _cfg()
+    point = _data_point(rsi=55.0)
+    point["ce_ask"] = None
+
+    action, position, trade = rsi_momentum_quote_decide_fn(cfg, None, point)
+
+    assert "SKIPPED (no valid premium quote)" in action
+    assert position is None
+
+
+def test_quote_decide_fn_holds_when_bid_missing_while_open():
+    cfg = _cfg()
+    _, position, _ = rsi_momentum_quote_decide_fn(
+        cfg, None, _data_point(rsi=55.0, ce_ask=100.5)
+    )
+
+    point = _data_point()
+    point["ce_bid"] = None
+
+    action, new_position, trade = rsi_momentum_quote_decide_fn(cfg, position, point)
+
+    assert "HELD (no valid premium quote)" in action
+    assert new_position is position
+    assert trade is None
+
+
+def test_skips_open_when_daily_loss_lock_reached():
+    # Added 21-Aug-2026, ported from fyers_options_engine.py's
+    # MAX_CONSECUTIVE_LOSSES/daily_loss_lock (already proven there)
+    # after st2_threshold/simple_st1_threshold whipsawed for real today
+    # (81/106 trades, 71-79% Stop-Loss).
+    cfg = _cfg(daily_loss_lock=True, max_consecutive_losses=2)
+
+    action, position, trade = rsi_momentum_decide_fn(cfg, None, _data_point(today_consecutive_losses=2))
+
+    assert "SKIPPED (today already has 2+ consecutive losses" in action
+    assert position is None
+
+
+def test_daily_loss_lock_does_not_skip_below_streak():
+    cfg = _cfg(daily_loss_lock=True, max_consecutive_losses=2)
+
+    action, position, trade = rsi_momentum_decide_fn(cfg, None, _data_point(today_consecutive_losses=1))
+
+    assert "OPENED" in action
+
+
+def test_daily_loss_lock_ignored_when_flag_is_off():
+    cfg = _cfg(daily_loss_lock=False)
+
+    action, position, trade = rsi_momentum_decide_fn(cfg, None, _data_point(today_consecutive_losses=5))
+
+    assert "OPENED" in action
+
+
+def test_daily_loss_lock_respects_custom_max_consecutive_losses():
+    cfg = _cfg(daily_loss_lock=True, max_consecutive_losses=3)
+
+    action, position, trade = rsi_momentum_decide_fn(cfg, None, _data_point(today_consecutive_losses=2))
+
+    assert "OPENED" in action
+
+
+def test_daily_loss_lock_does_not_block_managing_an_existing_position():
+    cfg = _cfg(daily_loss_lock=True, max_consecutive_losses=2)
+    _, position, _ = rsi_momentum_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ltp=100.0))
+
+    action, new_position, trade = rsi_momentum_decide_fn(
+        cfg, position, _data_point(ce_ltp=101.0, today_consecutive_losses=5)
+    )
+
+    assert "HELD" in action
 
 
 def test_closes_at_hybrid_stop_loss_when_set():
