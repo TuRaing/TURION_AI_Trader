@@ -30,7 +30,7 @@ Project Started
 
 Last Updated
 
-22-Aug-2026
+24-Aug-2026
 
 --------------------------------------------------
 
@@ -7496,6 +7496,125 @@ v0.0.58
 Next Version
 
 v0.0.59
+
+==================================================
+
+REAL FYERS LOGIN + FULL 12-BOOK LIVE VERIFICATION (24-Aug) - user's
+mobile "Login to Fyers" flow had failed with a missing-GITHUB_PAT
+build error; dispatched the real GitHub Actions login trigger
+directly (matching the app's own API call, GITHUB_PAT read from
+local .env, never printed), confirmed success, then rebuilt the
+release APK with --dart-define=GITHUB_PAT and reinstalled it on the
+user's phone. After today's real login, confirmed via journalctl that
+turion-event-driven reconnected with a fresh access_token (real "OI
+snapshot refresh OK" lines) and manually restarted turion-tick-
+collector (it lacks turion-event-driven's auto-retry cron lines - a
+gap noted, not fixed). Fetched fresh portfolio state for all 12
+event-driven books after market open - all 12 (including the 6
+quote-based books from 21/22-Aug) took real trades today, and the
+consecutive-loss breaker was directly observed firing live on
+st2_threshold_eventdriven / simple_st1_threshold_eventdriven (both
+stopped after their 2nd consecutive Stop-Loss, then stayed flat 6+
+minutes despite an active market).
+
+REAL-TIME DepthUpdate WEBSOCKET COLLECTOR BUILT AND DEPLOYED (24-Aug,
+commit 43467c4f4) - verified the real message shape via verify_depth_
+websocket.py: flat bid_price1..5/ask_price1..5/bid_size1..5/ask_
+size1..5/bid_order1..5/ask_order1..5 keys, "type":"dp", no exchange-
+side timestamp field at all (unlike SymbolUpdate's exch_feed_time,
+confirmed absent from all 20 real captured messages). Built strategy/
+depth_collector.py (depth_log_filename(), format_depth_record() -
+transforms the raw message into the same "Bids"/"Asks" shape the
+older REST-based archive already uses, so existing analysis code
+works unchanged) + run_depth_collector.py (VPS entry point, NIFTY ATM
+CE/PE only, weekend-guarded, 15-min ATM-drift recheck) + new systemd
+unit deploy/turion-depth-collector.service, added to deploy.sh. 4 new
+tests. Deployed live and confirmed archiving real sub-second-cadence
+depth data (grew to ~1.9MB in ~30 minutes; confirmed real ATM-drift
+re-subscription 24250->24300 as spot moved).
+
+Built analyze_realtime_depth_slippage.py (commit 356f6c912) - joins
+the new archive with real Closed Trades from the RSI-momentum family
+via binary-search nearest-match on Entry/Exit Time (typically 0.0-0.5
+seconds gap, vs. the old REST collector's ~5-minute gap). 6 new
+tests. First real result: 6 trades on simple_st1_threshold_lock_
+quote2pct matched with sub-second precision showed only a 9.4%
+overstatement (-Rs 7,584.87 recorded vs -Rs 8,301.45 realistic), far
+smaller than 21-Aug's LTP-based ~87-91% estimate, since the quote-
+based decide_fn (built 21-Aug) already captures most of the spread
+cost - the residual 9.4% is pure size-impact (walking beyond the best
+price level), not spread.
+
+Two real bugs found and fixed getting the depth collector's
+verification cron working: (a) the turion VPS user cannot CREATE new
+files in /var/log/ (only append to ones root already created) - fixed
+by pre-touching + chown-ing the needed log files; (b) a bare cron job
+does not load the project's .env (unlike systemd's EnvironmentFile=)
+- worked around by sourcing .env manually for the one-off run. A
+reinstalled cron entry for future re-runs hit a shell-escaping bug
+(literal `\&\&` in the installed line) and was removed rather than
+left broken - the one-off manual run had already achieved the goal.
+
+TWO STRUCTURAL GAPS FOUND AND FIXED (24-Aug). GAP A - CASH TOP-UP
+(commit a7106083c): neither decide_fn ever reads portfolio["Cash"]
+for lot sizing (both use the fixed cfg["initial_capital"]), so Cash
+top-ups don't change future lot sizes - clarified to the user, who
+had assumed otherwise. Built _maybe_top_up_capital() in strategy/
+live_tick_harness.py - user's own 40%-drawdown threshold (Cash <= 60%
+of initial_capital), only when flat, shared by both LiveTickRunner
+and OIFootprintTickRunner. 5 new tests.
+
+GAP B - oi_footprint HAD NO CIRCUIT BREAKER AT ALL (commit
+9c11aa523): a full-VPS sweep found oi_footprint_banknifty had
+whipsawed 141 (later 150) real trades today, 69-72 losses, -Rs 20,180
+to -Rs 23,952 - daily_profit_lock only ever watches for PROFIT, never
+stops a book that's simply losing, and the N=2 consecutive-loss
+breaker (proven 21-Aug on st2_threshold/simple_st1_threshold) had
+never been ported to oi_footprint_decide_fn. Fixed by moving _today_
+consecutive_losses to module level in live_tick_harness.py (shared by
+both runner classes), adding a matching daily_loss_lock gate to
+oi_footprint_decide_fn, wired on for both oi_footprint_nifty/
+banknifty. 9 new tests. Also found the same whipsaw pattern on
+simple_st1_threshold_lock_quote2pct (53-60 real trades, -Rs 40,004 to
+-Rs 45,880) - user backtested N=2/3/4/5 against these real trades,
+picked N=2 (cut the loss to -Rs 4,107, 10x better) - applied to ALL 6
+"_lock_quote*" books (commit dd3b9d7ad), not just the one that
+misbehaved. Finally backtested the same breaker against the last 2
+remaining RSI-momentum lock books (st2_threshold_lock/simple_st1_
+threshold_lock) using their own real trades - changed nothing for
+either book today (neither hit 2 consecutive losses), but the user
+added it anyway as zero-downside protection (commit 748689ba8). Every
+RSI-momentum-family book (8) and both oi_footprint books (2) - 10
+total - now carry the consecutive-loss breaker.
+
+"END-SEP-2026 STATISTICAL-TOOLS CHECKPOINT" FINALLY DEFINED (24-Aug)
+- this phrase had been copy-pasted unexplained across every "Next
+Session" list from 20-Aug through 22-Aug's logs with no original
+definition found anywhere (a genuine documentation-drift bug).
+Defined today: once ~a month of real trading data exists
+(end-Sep-2026), apply Kelly-criterion sizing, win-rate confidence
+intervals, Sharpe/risk-adjusted return, drawdown analysis, and a
+final data-driven pick for the breaker's own N parameter.
+
+Multiple live VPS deploys throughout the day, each with real
+post-deploy verification (systemctl status, real trade data,
+journalctl). See doc/24aug26_SESSION_LOG.md for full detail. Full
+test suite: 586/586 passing (was 566 at the start of the day, net
++20 new tests).
+
+==================================================
+
+Status
+
+🟢 Stable
+
+Current Version
+
+v0.0.59
+
+Next Version
+
+v0.0.60
 
 ==================================================
 
