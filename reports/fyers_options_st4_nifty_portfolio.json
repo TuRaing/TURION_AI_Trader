@@ -1,23 +1,6 @@
 {
-  "Cash": 75917.88837959747,
-  "Position": {
-    "Symbol": "NSE:NIFTY26AUG24300CE",
-    "Strike": 24300,
-    "Option Type": "CE",
-    "Entry Time": "2026-08-24 09:36:25",
-    "Entry Spot": 24276.8,
-    "Entry Premium": 66.2,
-    "Entry ATR": 13.8,
-    "Entry ADX": 25.32,
-    "Lots": 15,
-    "Quantity": 1125,
-    "Capital Deployed": 74475.0,
-    "Peak Spot": 24286.05,
-    "Trailing Active": true,
-    "Last Premium": 63.2,
-    "Last Spot": 24275.65,
-    "Last Checked": "2026-08-24 10:03:10"
-  },
+  "Cash": 71126.25882837246,
+  "Position": null,
   "Closed Trades": [
     {
       "Symbol": "NSE:NIFTY2681124550PE",
@@ -142,9 +125,25 @@
       "Exit Reason": "Trailing Stop",
       "Net PnL": -4269.11,
       "Net PnL %": -4.269
+    },
+    {
+      "Symbol": "NSE:NIFTY26AUG24300CE",
+      "Strike": 24300,
+      "Option Type": "CE",
+      "Entry Time": "2026-08-24 09:36:25",
+      "Entry Premium": 66.2,
+      "Entry Spot": 24276.8,
+      "Peak Spot": 24286.05,
+      "Exit Spot": 24270.5,
+      "Exit Time": "2026-08-24 10:05:20",
+      "Exit Premium": 62.1,
+      "Lots": 15,
+      "Exit Reason": "Trailing Stop",
+      "Net PnL": -4791.63,
+      "Net PnL %": -4.792
     }
   ],
-  "Last Trade Date": "2026-08-21",
+  "Last Trade Date": "2026-08-24",
   "Data Source": "Fyers (real premium)",
   "Strategy": "st4",
   "Index": "NIFTY"
