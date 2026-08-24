@@ -543,16 +543,23 @@ def make_simple_st1_threshold_event_cfg(index, lot_size, initial_capital=100000,
 # original 8-book HYBRID SL CAP finding.
 
 
-def oi_footprint_decide_fn(cfg, position, data_point):
+def _oi_footprint_decide(cfg, position, data_point, entry_field, exit_field):
     """
-    Faithful event-driven port of oi_footprint's real rules. See this
-    module's own header comment above for the OI-signal-precomputed-
-    upstream design note. Pure function, per the Shared Backtest-Live
-    Engine contract - no I/O, no clock, no network.
+    Shared core behind oi_footprint_decide_fn (entry_field=exit_field=
+    "ltp") and oi_footprint_quote_decide_fn (entry_field="ask",
+    exit_field="bid") below - added 24-Aug-2026, same refactor as
+    _rsi_momentum_decide's own 21-Aug-2026 split (see that function's
+    matching note) after the real-depth slippage analysis run today
+    against 55 real oi_footprint_nifty trades confirmed this book has
+    the SAME LTP-vs-real-depth gap the RSI-momentum lock books had
+    before their own quote-fix (recorded PnL even flips sign vs the
+    walk-the-book realistic PnL on many individual trades) - this book
+    never got that fix, only the reporting-only "(Quote)" fields did.
 
     data_point adds `oi_signal` ("CE"/"PE"/None, precomputed upstream)
-    to the same ce/pe_symbol/ce/pe_ltp/spot/timestamp/past_squareoff
-    shape rsi_momentum_decide_fn's data_point already uses.
+    to the same ce/pe_symbol/ce/pe_ltp/ce/pe_ask/ce/pe_bid/spot/
+    timestamp/past_squareoff shape rsi_momentum_decide_fn's data_point
+    already uses.
 
     Returns
     -------
@@ -605,7 +612,7 @@ def oi_footprint_decide_fn(cfg, position, data_point):
 
         option_type = oi_signal
         symbol = data_point[f"{option_type.lower()}_symbol"]
-        entry_premium = data_point[f"{option_type.lower()}_ltp"]
+        entry_premium = data_point.get(f"{option_type.lower()}_{entry_field}")
 
         if not entry_premium or entry_premium <= 0:
             return "SKIPPED (no valid premium quote)", None, None
@@ -619,19 +626,23 @@ def oi_footprint_decide_fn(cfg, position, data_point):
             "Option Type": option_type,
             "Symbol": symbol,
             "Entry Premium": entry_premium,
-            # See rsi_momentum_decide_fn's matching 21-Aug-2026 note
-            # above - same reporting-only quote field, same reasoning.
-            "Entry Premium (Quote)": data_point.get(f"{option_type.lower()}_ask"),
             "Entry Spot": data_point["spot"],
             "Entry Time": data_point["timestamp"],
             "Lots": lots,
             "Capital Deployed": round(entry_premium * lots * cfg["lot_size"], 2),
         }
 
+        if entry_field == "ltp":
+            # See _rsi_momentum_decide's matching 21-Aug-2026 note -
+            # reporting-only, skipped for oi_footprint_quote_decide_fn
+            # (entry_field="ask") where Entry Premium above already IS
+            # the quote.
+            new_position["Entry Premium (Quote)"] = data_point.get(f"{option_type.lower()}_ask")
+
         return f"OPENED {option_type} @ {entry_premium} (OI buildup signal)", new_position, None
 
     option_type = position["Option Type"]
-    current_premium = data_point[f"{option_type.lower()}_ltp"]
+    current_premium = data_point.get(f"{option_type.lower()}_{exit_field}")
 
     if not current_premium or current_premium <= 0:
         return "HELD (no valid premium quote)", position, None
@@ -656,38 +667,87 @@ def oi_footprint_decide_fn(cfg, position, data_point):
     if reason is None:
         return f"HELD (net {round(net_pnl, 2)})", position, None
 
-    exit_quote = data_point.get(f"{option_type.lower()}_bid")
-    net_pnl_quote = _quote_net_pnl(cfg, position.get("Entry Premium (Quote)"), exit_quote, position["Lots"])
-
     trade_record = {
         "Symbol": position["Symbol"],
         "Option Type": option_type,
         "Entry Time": position["Entry Time"],
         "Entry Premium": position["Entry Premium"],
-        "Entry Premium (Quote)": position.get("Entry Premium (Quote)"),
         "Entry Spot": position["Entry Spot"],
         "Exit Time": data_point["timestamp"],
         "Exit Premium": current_premium,
-        "Exit Premium (Quote)": exit_quote,
         "Exit Spot": data_point["spot"],
         "Lots": position["Lots"],
         "Exit Reason": reason,
         "Net PnL": round(net_pnl, 2),
         "Net PnL %": round(net_pnl / cfg["initial_capital"] * 100, 3),
-        "Net PnL (Quote)": round(net_pnl_quote, 2) if net_pnl_quote is not None else None,
     }
 
+    if entry_field == "ltp":
+        # See new_position's own note above - carried through
+        # unchanged from open, reporting only, skipped for
+        # oi_footprint_quote_decide_fn.
+        exit_quote = data_point.get(f"{option_type.lower()}_bid")
+        net_pnl_quote = _quote_net_pnl(cfg, position.get("Entry Premium (Quote)"), exit_quote, position["Lots"])
+        trade_record["Entry Premium (Quote)"] = position.get("Entry Premium (Quote)")
+        trade_record["Exit Premium (Quote)"] = exit_quote
+        trade_record["Net PnL (Quote)"] = round(net_pnl_quote, 2) if net_pnl_quote is not None else None
+
     return f"CLOSED ({reason}) net {round(net_pnl, 2)}", None, trade_record
+
+
+def oi_footprint_decide_fn(cfg, position, data_point):
+    """
+    Faithful event-driven port of oi_footprint's real rules. See this
+    module's own header comment above for the OI-signal-precomputed-
+    upstream design note. Pure function, per the Shared Backtest-Live
+    Engine contract - no I/O, no clock, no network.
+
+    Thin wrapper around _oi_footprint_decide() (added 24-Aug-2026,
+    alongside oi_footprint_quote_decide_fn below, for the refactor's
+    own reasoning) - Target/Stop-Loss trigger off LTP, same as always.
+    Byte-identical to this function's pre-24-Aug-2026 behavior.
+
+    Returns
+    -------
+    (action, new_position, trade_record)
+    """
+
+    return _oi_footprint_decide(cfg, position, data_point, "ltp", "ltp")
+
+
+def oi_footprint_quote_decide_fn(cfg, position, data_point):
+    """
+    Added 24-Aug-2026, same reasoning as rsi_momentum_quote_decide_fn's
+    own 21-Aug-2026 note - real depth-slippage analysis today found
+    oi_footprint_nifty's LTP-based recorded PnL overstates realistic
+    (walk-the-book) PnL badly enough that individual trades' sign even
+    flips (recorded profit, realistic loss) - the same class of problem
+    the RSI-momentum lock books had before their own quote-fix, just
+    never ported here. Same OI-signal/lock/circuit-band/squareoff rules
+    as oi_footprint_decide_fn (shared via _oi_footprint_decide) - the
+    ONLY difference is which data_point field Target/Stop-Loss actually
+    trigger off: the real ASK (buying) at entry, the real BID (selling)
+    at exit, instead of LTP. Missing/zero ask at entry -> SKIPPED
+    (never silently falls back to LTP); missing bid while holding ->
+    HELD (waits for the next tick with a real quote).
+
+    Returns
+    -------
+    (action, new_position, trade_record)
+    """
+
+    return _oi_footprint_decide(cfg, position, data_point, "ask", "bid")
 
 
 def make_oi_footprint_event_cfg(index, lot_size, initial_capital=100000,
                                  hybrid_sl_cap_pct=None, spread_pct=None,
                                  daily_loss_lock=False, max_consecutive_losses=2):
     """
-    cfg builder for oi_footprint_decide_fn. hybrid_sl_cap_pct defaults
-    to None (the original fixed Rs 1,500 Stop-Loss) - pass 2.0 to use
-    the hybrid cap today's cloud-session backtest found slightly better
-    for this book (see this module's header comment).
+    cfg builder for oi_footprint_decide_fn/oi_footprint_quote_decide_fn.
+    hybrid_sl_cap_pct defaults to None (the original fixed Rs 1,500
+    Stop-Loss) - pass 2.0 to use the hybrid cap today's cloud-session
+    backtest found slightly better for this book (see this module's
+    header comment).
 
     daily_loss_lock/max_consecutive_losses - added 24-Aug-2026, same
     fields/defaults as make_st2_threshold_event_cfg's own (21-Aug-2026)

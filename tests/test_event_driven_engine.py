@@ -2,7 +2,7 @@ from strategy.backtest_live_engine import run_backtest, run_live_check
 from strategy.event_driven_engine import (
     rsi_momentum_decide_fn, rsi_momentum_quote_decide_fn,
     make_st2_threshold_event_cfg, make_simple_st1_threshold_event_cfg,
-    oi_footprint_decide_fn, make_oi_footprint_event_cfg,
+    oi_footprint_decide_fn, oi_footprint_quote_decide_fn, make_oi_footprint_event_cfg,
 )
 
 
@@ -651,6 +651,65 @@ def test_oi_footprint_hybrid_sl_cap_overrides_fixed_rupee_sl():
     action, new_position, trade = oi_footprint_decide_fn(cfg, position, _oi_data_point(ce_ltp=59.1))
 
     assert "HELD" in action
+
+
+# --- oi_footprint_quote_decide_fn ---
+
+def test_oi_footprint_quote_decide_fn_opens_using_ask_not_ltp():
+    # Added 24-Aug-2026, same shape as rsi_momentum_quote_decide_fn's
+    # own 21-Aug-2026 tests - confirms entry reads ce_ask, ignores
+    # ce_ltp.
+    cfg = _oi_cfg()
+    action, position, trade = oi_footprint_quote_decide_fn(
+        cfg, None, _oi_data_point(oi_signal="CE", ce_ltp=60.0, ce_ask=60.3)
+    )
+
+    assert "OPENED CE" in action
+    assert position["Entry Premium"] == 60.3
+    assert "Entry Premium (Quote)" not in position
+
+
+def test_oi_footprint_quote_decide_fn_closes_using_bid_not_ltp():
+    cfg = _oi_cfg()
+    _, position, _ = oi_footprint_quote_decide_fn(
+        cfg, None, _oi_data_point(oi_signal="CE", ce_ltp=60.0, ce_ask=60.3)
+    )
+
+    action, new_position, trade = oi_footprint_quote_decide_fn(
+        cfg, position, _oi_data_point(ce_ltp=60.0, ce_bid=82.0)
+    )
+
+    assert "CLOSED (Target)" in action
+    assert trade["Entry Premium"] == 60.3
+    assert trade["Exit Premium"] == 82.0
+    assert "Net PnL (Quote)" not in trade
+
+
+def test_oi_footprint_quote_decide_fn_skips_open_when_ask_missing():
+    cfg = _oi_cfg()
+    point = _oi_data_point(oi_signal="CE")
+    point["ce_ask"] = None
+
+    action, position, trade = oi_footprint_quote_decide_fn(cfg, None, point)
+
+    assert "SKIPPED (no valid premium quote)" in action
+    assert position is None
+
+
+def test_oi_footprint_quote_decide_fn_holds_when_bid_missing_while_open():
+    cfg = _oi_cfg()
+    _, position, _ = oi_footprint_quote_decide_fn(
+        cfg, None, _oi_data_point(oi_signal="CE", ce_ask=60.3)
+    )
+
+    point = _oi_data_point()
+    point["ce_bid"] = None
+
+    action, new_position, trade = oi_footprint_quote_decide_fn(cfg, position, point)
+
+    assert "HELD (no valid premium quote)" in action
+    assert new_position is position
+    assert trade is None
 
 
 def test_oi_footprint_run_backtest_full_sequence():

@@ -11,7 +11,7 @@ from strategy.fyers_data import fyers_download
 from strategy.event_driven_engine import (
     rsi_momentum_decide_fn, rsi_momentum_quote_decide_fn,
     make_st2_threshold_event_cfg, make_simple_st1_threshold_event_cfg,
-    oi_footprint_decide_fn, make_oi_footprint_event_cfg,
+    oi_footprint_decide_fn, oi_footprint_quote_decide_fn, make_oi_footprint_event_cfg,
 )
 from strategy.execution_backend import PaperExecutionBackend
 from strategy.live_tick_harness import LiveTickRunner, OIFootprintTickRunner, handle_symbol_update_message
@@ -97,6 +97,17 @@ STRATEGY_NAMES = {
     "simple_st1_threshold_lock_quote1pct": "simple_st1_threshold_lock_quote1pct_eventdriven",
     "st2_threshold_lock_quote0pt5pct": "st2_threshold_lock_quote0pt5pct_eventdriven",
     "simple_st1_threshold_lock_quote0pt5pct": "simple_st1_threshold_lock_quote0pt5pct_eventdriven",
+    # Added 24-Aug-2026 - quote-based (bid/ask, not LTP) siblings of the
+    # two plain oi_footprint books above, running oi_footprint_quote_
+    # decide_fn instead of oi_footprint_decide_fn - same "separate book,
+    # never mutate the original" rule as the RSI-momentum "_lock_quote*"
+    # books. Built after today's real-depth slippage analysis (55 real
+    # oi_footprint_nifty trades) found the SAME LTP-vs-real-depth gap
+    # the RSI lock books had before their own quote-fix, individual
+    # trades' sign even flipping (recorded profit, realistic loss) - see
+    # oi_footprint_quote_decide_fn's own docstring.
+    "oi_footprint_nifty_quote": "oi_footprint_quote_eventdriven_nifty",
+    "oi_footprint_banknifty_quote": "oi_footprint_quote_eventdriven_banknifty",
 }
 
 
@@ -466,7 +477,34 @@ def build_runners(execution_backend=None):
         router.register(pe_symbol, runner)
         runners[key] = runner
 
-    for index, key in (("NIFTY", "oi_footprint_nifty"), ("BANKNIFTY", "oi_footprint_banknifty")):
+    # Cached per index, same reasoning as the RSI-momentum loop's own
+    # _atm_for/_prev_close_for above - added 24-Aug-2026 alongside the
+    # new "_quote" variant below, which shares the SAME ATM strike/
+    # previous-close as its plain sibling for a given index; without
+    # caching, adding the quote variant would double oi_footprint's own
+    # real network calls at every startup for no reason.
+    _oi_atm_cache = {}
+    _oi_prev_close_cache = {}
+
+    def _oi_atm_for(index):
+        if index not in _oi_atm_cache:
+            _oi_atm_cache[index] = pick_atm_symbols(index)
+        return _oi_atm_cache[index]
+
+    def _oi_prev_close_for(index):
+        if index not in _oi_prev_close_cache:
+            _oi_prev_close_cache[index] = _previous_close(index)
+        return _oi_prev_close_cache[index]
+
+    for index, decide_fn, key in (
+        ("NIFTY", oi_footprint_decide_fn, "oi_footprint_nifty"),
+        ("BANKNIFTY", oi_footprint_decide_fn, "oi_footprint_banknifty"),
+        # Added 24-Aug-2026 - quote-based siblings, see STRATEGY_NAMES'
+        # own matching note. Same cfg/symbols as the plain book for the
+        # same index - only decide_fn differs.
+        ("NIFTY", oi_footprint_quote_decide_fn, "oi_footprint_nifty_quote"),
+        ("BANKNIFTY", oi_footprint_quote_decide_fn, "oi_footprint_banknifty_quote"),
+    ):
         name = STRATEGY_NAMES[key]
         index_cfg = INDEX_CONFIG[index]
         # hybrid_sl_cap_pct=2.0 - added 18-Aug-2026, same choice already
@@ -490,21 +528,24 @@ def build_runners(execution_backend=None):
         # threshold (21-Aug) and the 6 "_lock_quote*" books (24-Aug),
         # after oi_footprint_banknifty whipsawed 141 real trades today
         # (69 losses, -Rs 23,952) with no breaker at all - see
-        # oi_footprint_decide_fn's own matching note.
+        # oi_footprint_decide_fn's own matching note. Applied to the new
+        # "_quote" variants too, from day one - no reason to launch them
+        # without a protection already proven necessary for this exact
+        # signal family.
         cfg = make_oi_footprint_event_cfg(index=index, lot_size=index_cfg["lot_size"], hybrid_sl_cap_pct=2.0,
                                            daily_loss_lock=True, max_consecutive_losses=2)
 
-        spot, atm_strike, ce_symbol, pe_symbol = pick_atm_symbols(index)
+        spot, atm_strike, ce_symbol, pe_symbol = _oi_atm_for(index)
 
         runner = OIFootprintTickRunner(
-            decide_fn=oi_footprint_decide_fn,
+            decide_fn=decide_fn,
             cfg=cfg,
             portfolio=load_portfolio(name, cfg["initial_capital"]),
             ce_symbol=ce_symbol,
             pe_symbol=pe_symbol,
             squareoff_time=SQUAREOFF_TIME,
             execution_backend=execution_backend,
-            previous_close=_previous_close(index),
+            previous_close=_oi_prev_close_for(index),
         )
 
         router.register(ce_symbol, runner)
@@ -544,17 +585,27 @@ def refresh_oi_snapshots(runners):
     # strategy/squareoff.py's own module docstring already documents a
     # real incident for.
 
-    for key, index in (("oi_footprint_nifty", "NIFTY"), ("oi_footprint_banknifty", "BANKNIFTY")):
-        runner = runners.get(key)
-
-        if runner is None:
-            continue
-
+    # Each index's plain and "_quote" runner share the SAME OI-buildup
+    # signal (only their decide_fn differs, see STRATEGY_NAMES' own
+    # 24-Aug-2026 note) - fetch the option-chain snapshot once per
+    # index, feed it to both, rather than doubling this real REST call.
+    for index, keys in (
+        ("NIFTY", ("oi_footprint_nifty", "oi_footprint_nifty_quote")),
+        ("BANKNIFTY", ("oi_footprint_banknifty", "oi_footprint_banknifty_quote")),
+    ):
         index_cfg = INDEX_CONFIG[index]
         oi_cfg = {"underlying_symbol": index_cfg["underlying_symbol"], "strike_step": index_cfg["strike_step"]}
         snapshot = _read_atm_oi_snapshot(oi_cfg)
 
-        if snapshot is not None:
+        if snapshot is None:
+            continue
+
+        for key in keys:
+            runner = runners.get(key)
+
+            if runner is None:
+                continue
+
             runner.on_oi_snapshot(now, snapshot["spot"], snapshot["strike"], snapshot["ce_oi"], snapshot["pe_oi"])
 
 

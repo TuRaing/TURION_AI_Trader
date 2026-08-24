@@ -98,6 +98,21 @@ const _books = [
     underlying: 'NIFTY', lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
     targetNetPct: 3.0, stopLossPct: 3.0, targetRupees: null, stopLossRupees: null,
     description: 'bid/ask-based Target/Stop-Loss · दिवसाचा नफा 0.5% गाठला की आजसाठी नवीन trade बंद (सर्वात लवकर थांबणारा)'),
+  // Added 24-Aug-2026 - quote-based (bid/ask, not LTP) siblings of the
+  // two plain oi_footprint books above - see strategy/event_driven_
+  // runner.py's STRATEGY_NAMES own matching note. Real depth-slippage
+  // analysis today found oi_footprint_nifty's LTP-based recorded PnL
+  // overstates realistic PnL badly enough that individual trades' sign
+  // even flips - same target/SL cfg as the plain books, only decide_fn
+  // differs.
+  (key: 'oi_footprint_quote_eventdriven_nifty', label: 'OI Footprint (Quote)', underlying: 'NIFTY',
+    lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
+    targetNetPct: null, stopLossPct: null, targetRupees: 1500.0, stopLossRupees: 1500.0,
+    description: 'OI Footprint सारखंच, पण Target/Stop-Loss खऱ्या bid/ask किमतीवर ठरतो (LTP नाही) - जास्त वास्तववादी PnL'),
+  (key: 'oi_footprint_quote_eventdriven_banknifty', label: 'OI Footprint (Quote)', underlying: 'BANKNIFTY',
+    lotSize: 30, initialCapital: 100000.0, hybridSlCapPct: 2.0,
+    targetNetPct: null, stopLossPct: null, targetRupees: 1500.0, stopLossRupees: 1500.0,
+    description: 'OI Footprint सारखंच, पण Target/Stop-Loss खऱ्या bid/ask किमतीवर ठरतो (LTP नाही) - जास्त वास्तववादी PnL'),
 ];
 
 class VpsScreen extends StatefulWidget {
