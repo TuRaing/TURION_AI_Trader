@@ -68,7 +68,10 @@ VENV_DIR="$REPO_DIR/venv"
 # both restart on every deploy, same sudoers scope covers both (see
 # this repo's own visudo setup note for the exact NOPASSWD line, kept
 # in sync with SERVICE_NAMES here).
-SERVICE_NAMES="turion-event-driven turion-tick-collector"
+# turion-depth-collector added 24-Aug-2026 - see deploy/turion-depth-
+# collector.service's own comments. Same sudoers NOPASSWD line needs
+# this name added too (VPS-side, one-time step - see that file).
+SERVICE_NAMES="turion-event-driven turion-tick-collector turion-depth-collector"
 BRANCH="main"
 
 cd "$REPO_DIR"

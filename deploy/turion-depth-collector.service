@@ -1,0 +1,50 @@
+# Added 24-Aug-2026, at the user's own explicit request - the systemd
+# unit for run_depth_collector.py (strategy/depth_collector.py), the
+# real-time DepthUpdate archival collector. Mirrors turion-tick-
+# collector.service exactly (same VPS, same access_token source, same
+# restart policy) - see that file's own comments for anything not
+# repeated here.
+#
+# Install once (VPS-side, one-time step):
+#   sudo cp deploy/turion-depth-collector.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable turion-depth-collector
+#   sudo systemctl start turion-depth-collector
+#
+# Same access_token source as the trading engine and tick collector
+# (Firebase Realtime Database) - no separate login needed.
+#
+# No OnFailure alert wired up (same reasoning as turion-tick-collector.
+# service) - lost depth-archival data for a few minutes during a
+# crash/restart is a minor gap for a still-experimental collector, not
+# worth a push notification.
+
+[Unit]
+Description=TURION Order-Book Depth Collector (WebSocket, archival only)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+
+WorkingDirectory=/opt/turion/TURION_AI_Trader
+ExecStart=/opt/turion/TURION_AI_Trader/venv/bin/python run_depth_collector.py
+
+# Same reasoning as turion-tick-collector.service: a clean exit 0 (no
+# token yet, or a weekend) is NOT a crash and is intentionally not
+# restarted by this policy - only a real crash (bad depth data,
+# WebSocket drop) restarts.
+Restart=on-failure
+RestartSec=10
+
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+User=turion
+EnvironmentFile=/opt/turion/TURION_AI_Trader/.env
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

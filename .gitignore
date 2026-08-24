@@ -18,6 +18,10 @@ reports/*.json
 # reasoning as reports/*.json above, at a much bigger scale).
 data/ticks/
 data/ticks_archive/
+# Added 24-Aug-2026 - run_depth_collector.py's continuous real-time
+# depth archive - same "real trading data, never git history" reasoning
+# as data/ticks/ above.
+data/depth/
 # Added 22-Aug-2026 - verify_depth_websocket.py's own raw diagnostic
 # output (real Fyers WebSocket DepthUpdate payloads) - same "real
 # trading-adjacent data, never git history" reasoning as data/ticks/
