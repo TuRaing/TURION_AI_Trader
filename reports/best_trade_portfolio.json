@@ -1,14 +1,22 @@
 {
-  "Cash": 99970.01289350212,
+  "Cash": 99967.93213382062,
   "Position": {
-    "Name": "COALINDIA",
-    "Symbol": "COALINDIA.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-08-24 10:13:59",
-    "Entry Price": 407.2,
+    "Name": "ONGC",
+    "Symbol": "ONGC.NS",
+    "Direction": "SELL",
+<<<<<<< Updated upstream
+    "Entry Time": "2026-08-24 13:46:26",
+    "Entry Price": 236.1,
     "Quantity": 1,
-    "Stop Loss": 405.55,
-    "Target": 410.5
+    "Stop Loss": 236.385,
+    "Target": 235.53
+=======
+    "Entry Time": "2026-08-24 13:47:01",
+    "Entry Price": 236.11,
+    "Quantity": 1,
+    "Stop Loss": 236.395,
+    "Target": 235.54000000000002
+>>>>>>> Stashed changes
   },
   "Closed Trades": [
     {
@@ -812,6 +820,20 @@
       "PnL": -0.59,
       "Cost": 0.19,
       "Net PnL": -0.78
+    },
+    {
+      "Name": "COALINDIA",
+      "Symbol": "COALINDIA.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-08-24 10:13:59",
+      "Entry Price": 407.2,
+      "Exit Time": "2026-08-24 13:44:50",
+      "Exit Price": 405.55,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -1.65,
+      "Cost": 0.43,
+      "Net PnL": -2.08
     }
   ]
 }
