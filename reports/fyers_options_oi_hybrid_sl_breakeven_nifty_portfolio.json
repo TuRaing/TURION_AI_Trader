@@ -1,5 +1,5 @@
 {
-  "Cash": 89613.89152955747,
+  "Cash": 97265.04602841246,
   "Position": null,
   "Closed Trades": [
     {
@@ -392,13 +392,81 @@
       "Exit Reason": "Stop Loss",
       "Net PnL": -2846.26,
       "Net PnL %": -2.846
+    },
+    {
+      "Symbol": "NSE:NIFTY26AUG24300CE",
+      "Strike": 24300,
+      "Option Type": "CE",
+      "Entry Time": "2026-08-24 09:17:50",
+      "Entry Premium": 83.05,
+      "Entry Spot": 24306.9,
+      "Exit Spot": 24305.1,
+      "Entry CE OI": 17833660,
+      "Entry PE OI": 14176565,
+      "Exit Time": "2026-08-24 09:24:55",
+      "Exit Premium": 81.45,
+      "Lots": 14,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -1886.94,
+      "Net PnL %": -1.887
+    },
+    {
+      "Symbol": "NSE:NIFTY26AUG24300PE",
+      "Strike": 24300,
+      "Option Type": "PE",
+      "Entry Time": "2026-08-24 09:27:13",
+      "Entry Premium": 41.5,
+      "Entry Spot": 24304.2,
+      "Exit Spot": 24291.65,
+      "Entry CE OI": 22154145,
+      "Entry PE OI": 21202415,
+      "Exit Time": "2026-08-24 09:29:16",
+      "Exit Premium": 44.65,
+      "Lots": 28,
+      "Exit Reason": "Target",
+      "Net PnL": 6396.43,
+      "Net PnL %": 6.396
+    },
+    {
+      "Symbol": "NSE:NIFTY26AUG24300PE",
+      "Strike": 24300,
+      "Option Type": "PE",
+      "Entry Time": "2026-08-24 09:31:32",
+      "Entry Premium": 47.4,
+      "Entry Spot": 24283.25,
+      "Exit Spot": 24276.45,
+      "Entry CE OI": 24387675,
+      "Entry PE OI": 21299655,
+      "Exit Time": "2026-08-24 09:33:38",
+      "Exit Premium": 50.3,
+      "Lots": 26,
+      "Exit Reason": "Target",
+      "Net PnL": 5427.97,
+      "Net PnL %": 5.428
+    },
+    {
+      "Symbol": "NSE:NIFTY26AUG24300PE",
+      "Strike": 24300,
+      "Option Type": "PE",
+      "Entry Time": "2026-08-24 09:35:36",
+      "Entry Premium": 51.5,
+      "Entry Spot": 24276.6,
+      "Exit Spot": 24281.05,
+      "Entry CE OI": 27503645,
+      "Entry PE OI": 21053695,
+      "Exit Time": "2026-08-24 09:37:48",
+      "Exit Premium": 50.4,
+      "Lots": 25,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -2286.3,
+      "Net PnL %": -2.286
     }
   ],
   "Last OI Snapshot": {
-    "spot": 24231.7,
+    "spot": 24272.15,
     "strike": 24250,
-    "ce_oi": 10380695,
-    "pe_oi": 11546405
+    "ce_oi": 12903410,
+    "pe_oi": 14502930
   },
   "Data Source": "Fyers (real premium)",
   "Strategy": "oi_hybrid_sl_breakeven",

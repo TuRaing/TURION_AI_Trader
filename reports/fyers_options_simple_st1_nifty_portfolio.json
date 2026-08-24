@@ -1,6 +1,19 @@
 {
-  "Cash": 79927.74067733492,
-  "Position": null,
+  "Cash": 61367.859144097434,
+  "Position": {
+    "Symbol": "NSE:NIFTY26AUG24250CE",
+    "Strike": 24250,
+    "Option Type": "CE",
+    "Entry Time": "2026-08-24 10:02:12",
+    "Entry Spot": 24272.5,
+    "Entry Premium": 94.55,
+    "Entry RSI": 65.89,
+    "Lots": 8,
+    "Quantity": 600,
+    "Capital Deployed": 56730.0,
+    "Last Premium": 93.65,
+    "Last Checked": "2026-08-24 10:07:13"
+  },
   "Closed Trades": [
     {
       "Symbol": "NSE:NIFTY2681124600PE",
@@ -4945,6 +4958,66 @@
       "Exit Reason": "Square-Off",
       "Net PnL": 1730.65,
       "Net PnL %": 1.731
+    },
+    {
+      "Symbol": "NSE:NIFTY26AUG24300CE",
+      "Strike": 24300,
+      "Option Type": "CE",
+      "Entry Time": "2026-08-24 09:15:03",
+      "Entry Premium": 82.35,
+      "Entry Spot": 24284.75,
+      "Exit Time": "2026-08-24 09:28:24",
+      "Exit Premium": 77.05,
+      "Exit Spot": 24294.65,
+      "Lots": 12,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -4948.24,
+      "Net PnL %": -4.948
+    },
+    {
+      "Symbol": "NSE:NIFTY26AUG24300CE",
+      "Strike": 24300,
+      "Option Type": "CE",
+      "Entry Time": "2026-08-24 09:30:41",
+      "Entry Premium": 72.55,
+      "Entry Spot": 24283.75,
+      "Exit Time": "2026-08-24 09:32:15",
+      "Exit Premium": 67.1,
+      "Exit Spot": 24275.9,
+      "Lots": 13,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -5484.94,
+      "Net PnL %": -5.485
+    },
+    {
+      "Symbol": "NSE:NIFTY26AUG24300CE",
+      "Strike": 24300,
+      "Option Type": "CE",
+      "Entry Time": "2026-08-24 09:34:44",
+      "Entry Premium": 67.65,
+      "Entry Spot": 24275.65,
+      "Exit Time": "2026-08-24 09:42:07",
+      "Exit Premium": 64.65,
+      "Exit Spot": 24276.9,
+      "Lots": 13,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -3090.68,
+      "Net PnL %": -3.091
+    },
+    {
+      "Symbol": "NSE:NIFTY26AUG24300CE",
+      "Strike": 24300,
+      "Option Type": "CE",
+      "Entry Time": "2026-08-24 09:44:32",
+      "Entry Premium": 66.6,
+      "Entry Spot": 24282,
+      "Exit Time": "2026-08-24 09:58:54",
+      "Exit Premium": 61.6,
+      "Exit Spot": 24271.9,
+      "Lots": 13,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -5036.02,
+      "Net PnL %": -5.036
     }
   ],
   "Data Source": "Fyers (real premium)",

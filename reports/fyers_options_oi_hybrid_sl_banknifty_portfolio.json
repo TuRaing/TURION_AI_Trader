@@ -1,5 +1,5 @@
 {
-  "Cash": 97357.47114233903,
+  "Cash": 86619.69172637902,
   "Position": null,
   "Closed Trades": [
     {
@@ -188,13 +188,64 @@
       "Exit Reason": "Target",
       "Net PnL": 1937.9,
       "Net PnL %": 1.938
+    },
+    {
+      "Symbol": "NSE:BANKNIFTY26AUG57800CE",
+      "Strike": 57800,
+      "Option Type": "CE",
+      "Entry Time": "2026-08-24 09:21:32",
+      "Entry Premium": 224.4,
+      "Entry Spot": 57822.55,
+      "Exit Spot": 57810.65,
+      "Entry CE OI": 738870,
+      "Entry PE OI": 457320,
+      "Exit Time": "2026-08-24 09:25:48",
+      "Exit Premium": 218,
+      "Lots": 14,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -2906.61,
+      "Net PnL %": -2.907
+    },
+    {
+      "Symbol": "NSE:BANKNIFTY26AUG57800PE",
+      "Strike": 57800,
+      "Option Type": "PE",
+      "Entry Time": "2026-08-24 09:33:05",
+      "Entry Premium": 171.05,
+      "Entry Spot": 57762.8,
+      "Exit Spot": 57779.5,
+      "Entry CE OI": 949950,
+      "Entry PE OI": 618420,
+      "Exit Time": "2026-08-24 09:35:07",
+      "Exit Premium": 168,
+      "Lots": 18,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -1863.59,
+      "Net PnL %": -1.864
+    },
+    {
+      "Symbol": "NSE:BANKNIFTY26AUG57800CE",
+      "Strike": 57800,
+      "Option Type": "CE",
+      "Entry Time": "2026-08-24 09:37:29",
+      "Entry Premium": 201.45,
+      "Entry Spot": 57772.5,
+      "Exit Spot": 57738.3,
+      "Entry CE OI": 1045410,
+      "Entry PE OI": 645570,
+      "Exit Time": "2026-08-24 09:41:30",
+      "Exit Premium": 188.65,
+      "Lots": 15,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -5967.58,
+      "Net PnL %": -5.968
     }
   ],
   "Last OI Snapshot": {
-    "spot": 57643.9,
-    "strike": 57600,
-    "ce_oi": 551670,
-    "pe_oi": 564120
+    "spot": 57710.35,
+    "strike": 57700,
+    "ce_oi": 1293210,
+    "pe_oi": 967980
   },
   "Data Source": "Fyers (real premium)",
   "Strategy": "oi_hybrid_sl",
