@@ -20,27 +20,26 @@ from strategy.depth_collector import depth_log_filename, format_depth_record
 # takes them as a plain parameter" split this project already uses for
 # run_tick_collector.py/run_event_driven_engine.py.
 #
-# NIFTY ONLY, ATM CE/PE only - matches strategy/tick_collector.py's own
-# "deliberately ATM-only, not the full chain" scope, narrowed FURTHER to
-# NIFTY only (not BANKNIFTY) because every event-driven book that could
-# use this depth archive for a real walk-the-book slippage measurement
-# (st2_threshold/simple_st1_threshold and their "_lock"/"_lock_quote*"
-# variants) trades NIFTY only - see strategy/event_driven_runner.py's
-# build_runners(). Widen to BANKNIFTY later only if oi_footprint_
-# banknifty or a future NIFTY-BANKNIFTY-both book needs the same
-# analysis - no reason to double the WebSocket's message volume today
-# for a symbol nothing currently needs.
+# WIDENED to NIFTY + BANKNIFTY same day (was NIFTY-only for the first
+# few hours) - user's own explicit ask to cover "all VPS strategies"'
+# real slippage tomorrow, which includes oi_footprint_banknifty
+# (BANKNIFTY-only, the RSI-momentum family's own NIFTY-only scope
+# doesn't cover it). ATM CE/PE only per index still - matches strategy/
+# tick_collector.py's own "deliberately ATM-only, not the full chain"
+# scope.
 #
 # NOT LIVE-TESTED beyond the one real capture verify_depth_websocket.py
 # already did (24-Aug-2026, 20 real messages, confirmed shape) - this
-# is that same verified subscription pattern, just run continuously and
-# archived to disk instead of stopping after 20 messages.
+# is that same verified subscription pattern, just run continuously
+# (both indices) and archived to disk instead of stopping after 20
+# messages.
 
 IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
 DEPTH_DIR = os.path.join("data", "depth")
 ATM_RECHECK_SECONDS = 15 * 60  # same cadence as run_tick_collector.py's
 # own atm_recheck_loop - frequent enough to track real intraday drift,
 # infrequent enough not to hammer the option-chain REST endpoint.
+INDICES = ("NIFTY", "BANKNIFTY")
 
 
 class DepthWriter:
@@ -109,15 +108,28 @@ def main():
 
     writer = DepthWriter()
 
-    print("Fetching initial ATM strike for NIFTY...")
-    spot, atm_strike, ce_symbol, pe_symbol = pick_atm_symbols("NIFTY")
-    state = {"strike": atm_strike, "symbols": {ce_symbol: True, pe_symbol: True}}
-    print(f"NIFTY: spot={spot} atm_strike={atm_strike} ce={ce_symbol} pe={pe_symbol}")
+    # state[index] = {"strike": int, "symbols": {fyers_symbol: True}} - same
+    # per-index shape run_tick_collector.py's own `state` dict already uses.
+    print("Fetching initial ATM strikes for NIFTY, BANKNIFTY...")
+    state = {}
+    for index in INDICES:
+        spot, atm_strike, ce_symbol, pe_symbol = pick_atm_symbols(index)
+        state[index] = {"strike": atm_strike, "symbols": {ce_symbol: True, pe_symbol: True}}
+        print(f"{index}: spot={spot} atm_strike={atm_strike} ce={ce_symbol} pe={pe_symbol}")
+
+    def all_subscribed_symbols():
+        symbols = []
+        for index in INDICES:
+            symbols.extend(state[index]["symbols"].keys())
+        return symbols
+
+    def symbol_is_tracked(symbol):
+        return any(symbol in state[index]["symbols"] for index in INDICES)
 
     def on_message(message):
         symbol = message.get("symbol")
 
-        if symbol not in state["symbols"]:
+        if not symbol_is_tracked(symbol):
             return  # a message for a symbol we just unsubscribed from mid-flight
 
         record = format_depth_record(symbol, message, received_at=datetime.datetime.now(IST))
@@ -130,7 +142,7 @@ def main():
         print(f"[depth collector websocket closed] {message}")
 
     def on_open():
-        socket.subscribe(symbols=list(state["symbols"].keys()), data_type="DepthUpdate")
+        socket.subscribe(symbols=all_subscribed_symbols(), data_type="DepthUpdate")
         socket.keep_running()
 
     socket = data_ws.FyersDataSocket(
@@ -151,28 +163,28 @@ def main():
 
         while True:
             time.sleep(ATM_RECHECK_SECONDS)
-            try:
-                spot, new_strike, ce_symbol, pe_symbol = pick_atm_symbols("NIFTY")
-            except Exception as error:
-                print(f"ATM re-check failed (continuing on the old strike): {error}")
-                continue
+            for index in INDICES:
+                try:
+                    spot, new_strike, ce_symbol, pe_symbol = pick_atm_symbols(index)
+                except Exception as error:
+                    print(f"{index} ATM re-check failed (continuing on the old strike): {error}")
+                    continue
 
-            if not atm_has_drifted(state["strike"], spot, INDEX_CONFIG["NIFTY"]["strike_step"]):
-                continue
+                if not atm_has_drifted(state[index]["strike"], spot, INDEX_CONFIG[index]["strike_step"]):
+                    continue
 
-            old_symbols = list(state["symbols"].keys())
-            new_symbols = {ce_symbol: True, pe_symbol: True}
+                old_symbols = list(state[index]["symbols"].keys())
+                new_symbols = {ce_symbol: True, pe_symbol: True}
 
-            print(f"NIFTY ATM drifted {state['strike']} -> {new_strike}, re-subscribing.")
+                print(f"{index} ATM drifted {state[index]['strike']} -> {new_strike}, re-subscribing.")
 
-            try:
-                socket.unsubscribe(symbols=old_symbols, data_type="DepthUpdate")
-            except Exception as error:
-                print(f"Unsubscribe failed (continuing anyway): {error}")
+                try:
+                    socket.unsubscribe(symbols=old_symbols, data_type="DepthUpdate")
+                except Exception as error:
+                    print(f"Unsubscribe failed for {index} (continuing anyway): {error}")
 
-            socket.subscribe(symbols=list(new_symbols.keys()), data_type="DepthUpdate")
-            state["strike"] = new_strike
-            state["symbols"] = new_symbols
+                socket.subscribe(symbols=list(new_symbols.keys()), data_type="DepthUpdate")
+                state[index] = {"strike": new_strike, "symbols": new_symbols}
 
     threading.Thread(target=atm_recheck_loop, daemon=True).start()
 

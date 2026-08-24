@@ -21,18 +21,24 @@ from strategy.options_transaction_costs import calculate_options_round_trip_cost
 # Manually run, not scheduled (same "one-off/on-demand analysis, not a
 # continuous service" nature as strategy/fyers_depth_collector.py's own
 # module). Reads real trade records from reports/fyers_options_*_
-# portfolio.json (only the RSI-momentum family - st2_threshold/simple_
-# st1_threshold and every "_lock"/"_lock_quote*" variant - since those
-# are the only NIFTY-trading books run_depth_collector.py's archive can
-# possibly match; oi_footprint isn't covered, matching that collector's
-# own NIFTY-ATM-only scope) and data/depth/depth_DDMMYY.jsonl (the
-# real-time archive), joins them by nearest received_at, and reports
-# recorded (LTP) vs realistic (walked) Net PnL per trade.
+# portfolio.json - every RSI-momentum book (NIFTY) and both oi_footprint
+# books (NIFTY + BANKNIFTY, WIDENED same day once run_depth_collector.py
+# itself grew a BANKNIFTY branch - user's own "check all VPS strategies"
+# ask) - and data/depth/depth_DDMMYY.jsonl (the real-time archive),
+# joins them by nearest received_at, and reports recorded (LTP) vs
+# realistic (walked) Net PnL per trade.
 
 DEPTH_DIR = os.path.join("data", "depth")
 REPORTS_DIR = "reports"
 
-RSI_MOMENTUM_BOOK_PREFIXES = ("st2_threshold", "simple_st1_threshold")
+# name substring -> real lot size (strategy/fyers_options_engine.py's own
+# INDEX_CONFIG) - every book this script covers is one or the other.
+BOOK_PREFIXES_AND_LOT_SIZE = (
+    ("st2_threshold", 75),
+    ("simple_st1_threshold", 75),
+    ("oi_footprint_eventdriven_nifty", 75),
+    ("oi_footprint_eventdriven_banknifty", 30),
+)
 
 
 def load_depth_by_symbol(depth_path):
@@ -89,15 +95,19 @@ def walk_book(levels, quantity):
 
 
 def matched_books():
-    """Every portfolio file for the RSI-momentum family - the only
-    books run_depth_collector.py's NIFTY-ATM-only archive can match."""
+    """(path, lot_size) for every portfolio file this script can match
+    against the real-time depth archive - every RSI-momentum book
+    (NIFTY, lot_size 75) and both oi_footprint books (NIFTY 75 /
+    BANKNIFTY 30) - see BOOK_PREFIXES_AND_LOT_SIZE's own comment."""
 
-    paths = []
+    matched = []
     for path in glob.glob(os.path.join(REPORTS_DIR, "fyers_options_*_eventdriven*_portfolio.json")):
         name = os.path.basename(path)
-        if any(prefix in name for prefix in RSI_MOMENTUM_BOOK_PREFIXES):
-            paths.append(path)
-    return sorted(paths)
+        for prefix, lot_size in BOOK_PREFIXES_AND_LOT_SIZE:
+            if prefix in name:
+                matched.append((path, lot_size))
+                break
+    return sorted(matched)
 
 
 def analyze(depth_path, max_gap_seconds=20):
@@ -105,7 +115,7 @@ def analyze(depth_path, max_gap_seconds=20):
     depth_by_symbol = load_depth_by_symbol(depth_path)
     results = []
 
-    for path in matched_books():
+    for path, lot_size in matched_books():
         data = json.load(open(path, encoding="utf-8"))
 
         for trade in data.get("Closed Trades", []):
@@ -127,9 +137,7 @@ def analyze(depth_path, max_gap_seconds=20):
             if entry_gap > max_gap_seconds or exit_gap > max_gap_seconds:
                 continue
 
-            quantity = trade["Lots"] * 75  # NIFTY lot size - every book this script
-            # covers (RSI-momentum family) trades NIFTY only, matching run_depth_
-            # collector.py's own NIFTY-only scope - no BANKNIFTY branch needed here.
+            quantity = trade["Lots"] * lot_size
 
             entry_fill, entry_ran_out = walk_book(records[entry_idx]["Asks"], quantity)
             exit_fill, exit_ran_out = walk_book(records[exit_idx]["Bids"], quantity)
@@ -140,7 +148,7 @@ def analyze(depth_path, max_gap_seconds=20):
             recorded_net_pnl = trade["Net PnL"]
 
             gross_walked = (exit_fill - entry_fill) * quantity
-            cost = calculate_options_round_trip_cost(entry_fill, exit_fill, 75, trade["Lots"])
+            cost = calculate_options_round_trip_cost(entry_fill, exit_fill, lot_size, trade["Lots"])
             realistic_net_pnl = gross_walked - cost
 
             results.append({
