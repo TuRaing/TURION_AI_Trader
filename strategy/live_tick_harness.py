@@ -127,6 +127,58 @@ def _notify_execution_backend(execution_backend, cfg, portfolio, action):
         execution_backend.on_close(cfg, portfolio["Closed Trades"][-1])
 
 
+def _maybe_top_up_capital(cfg, portfolio, timestamp):
+    """
+    Added 24-Aug-2026, user's own explicit request - paper-trading
+    capital is virtual bookkeeping only: neither rsi_momentum_decide_fn
+    nor oi_footprint_decide_fn (strategy/event_driven_engine.py) ever
+    reads portfolio["Cash"] - both always size a new trade's lots off
+    the FIXED cfg["initial_capital"] (decide_fn doesn't even take
+    portfolio as a parameter). That means Cash is purely a running P&L
+    display, never a real spending constraint, and topping it up does
+    NOT change future lot sizes either way - lots were never reduced
+    by losses in the first place. This tops Cash back up to cfg[
+    "initial_capital"] once it has drawn down 40% or more (user's own
+    threshold, CHANGED same day from "only at zero/negative") so a
+    paper book's own numbers stay legible through a long losing
+    stretch, rather than sitting deeply negative for the rest of its
+    life. A real trading account never gets to do this (CLAUDE.md:
+    Claude never executes a real trade), but this never touches
+    anything but a local JSON portfolio file, exactly like every other
+    paper-only bookkeeping field already on this record.
+
+    Shared by both LiveTickRunner and OIFootprintTickRunner below, same
+    "one place, not two copies" reasoning as _notify_execution_backend
+    above. Never applies mid-position (Position is not None) - a
+    Position's own "Capital Deployed" is tied to the Cash basis at
+    entry; topping up under an open trade would make that figure
+    (and the eventual Net PnL %% calculation, which divides by cfg
+    ["initial_capital"] anyway, not Cash - unaffected either way)
+    meaningless. Every top-up is recorded in portfolio["Capital
+    Top-ups"], never silent, so a book's own history always explains
+    where its Cash came from.
+    """
+
+    DRAWDOWN_TRIGGER_PCT = 40.0
+
+    if portfolio.get("Position") is not None:
+        return
+
+    trigger_level = cfg["initial_capital"] * (1 - DRAWDOWN_TRIGGER_PCT / 100)
+
+    if portfolio["Cash"] > trigger_level:
+        return
+
+    cash_before = portfolio["Cash"]
+    portfolio["Cash"] = cfg["initial_capital"]
+
+    portfolio.setdefault("Capital Top-ups", []).append({
+        "Time": timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+        "Cash Before": cash_before,
+        "Topped Up To": cfg["initial_capital"],
+    })
+
+
 class LiveTickRunner:
     """
     Owns one strategy's live decide_fn loop. Feed it every tick for the
@@ -312,6 +364,7 @@ class LiveTickRunner:
         action, self.portfolio = run_live_check(self.decide_fn, self.cfg, self.portfolio, data_point)
         self.last_action = action
         _notify_execution_backend(self.execution_backend, self.cfg, self.portfolio, action)
+        _maybe_top_up_capital(self.cfg, self.portfolio, timestamp)
 
         return action
 
@@ -440,6 +493,7 @@ class OIFootprintTickRunner:
         action, self.portfolio = run_live_check(self.decide_fn, self.cfg, self.portfolio, data_point)
         self.last_action = action
         _notify_execution_backend(self.execution_backend, self.cfg, self.portfolio, action)
+        _maybe_top_up_capital(self.cfg, self.portfolio, timestamp)
 
         return action
 

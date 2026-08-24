@@ -10,6 +10,7 @@ from strategy.event_driven_engine import (
 from strategy.live_tick_harness import (
     CandleAggregator, LiveTickRunner, MIN_CANDLES_FOR_RSI,
     OIBuildupTracker, OIFootprintTickRunner, handle_symbol_update_message,
+    _maybe_top_up_capital,
 )
 
 
@@ -192,6 +193,63 @@ def test_target_close_notifies_execution_backend_on_close():
     assert len(backend.closes) == 1
     cfg, trade_record = backend.closes[0]
     assert trade_record["Exit Reason"] == "Target"
+
+
+def test_top_up_triggers_at_40pct_drawdown():
+    cfg = make_st2_threshold_event_cfg(index="NIFTY", lot_size=75, initial_capital=100000)
+    portfolio = {"Cash": 60000, "Position": None, "Closed Trades": []}  # exactly 40% down
+
+    _maybe_top_up_capital(cfg, portfolio, _ts(20))
+
+    assert portfolio["Cash"] == 100000
+    assert len(portfolio["Capital Top-ups"]) == 1
+    assert portfolio["Capital Top-ups"][0]["Cash Before"] == 60000
+    assert portfolio["Capital Top-ups"][0]["Topped Up To"] == 100000
+    assert portfolio["Capital Top-ups"][0]["Time"] == "2026-08-18 09:20:00"
+
+
+def test_top_up_does_not_trigger_above_40pct_drawdown():
+    cfg = make_st2_threshold_event_cfg(index="NIFTY", lot_size=75, initial_capital=100000)
+    portfolio = {"Cash": 60001, "Position": None, "Closed Trades": []}  # just under 40% down
+
+    _maybe_top_up_capital(cfg, portfolio, _ts(20))
+
+    assert portfolio["Cash"] == 60001
+    assert "Capital Top-ups" not in portfolio
+
+
+def test_top_up_never_triggers_mid_position():
+    cfg = make_st2_threshold_event_cfg(index="NIFTY", lot_size=75, initial_capital=100000)
+    portfolio = {"Cash": 0, "Position": {"Option Type": "CE"}, "Closed Trades": []}
+
+    _maybe_top_up_capital(cfg, portfolio, _ts(20))
+
+    assert portfolio["Cash"] == 0
+    assert "Capital Top-ups" not in portfolio
+
+
+def test_top_up_records_multiple_events_across_repeated_drawdowns():
+    cfg = make_st2_threshold_event_cfg(index="NIFTY", lot_size=75, initial_capital=100000)
+    portfolio = {"Cash": 50000, "Position": None, "Closed Trades": []}
+
+    _maybe_top_up_capital(cfg, portfolio, _ts(20))
+    portfolio["Cash"] = 45000  # a later, separate drawdown
+    _maybe_top_up_capital(cfg, portfolio, _ts(45))
+
+    assert len(portfolio["Capital Top-ups"]) == 2
+    assert portfolio["Cash"] == 100000
+
+
+def test_top_up_flows_through_a_real_liveTickRunner_on_tick():
+    runner = _runner()
+    runner.portfolio["Cash"] = 55000  # 45% down, no open position
+
+    # An underlying tick alone reaches decide_fn/top-up (sets spot, then
+    # proceeds past the "no context yet" guard in the same call).
+    runner.on_tick(runner.underlying_symbol, _ts(20), 24500.0)
+
+    assert runner.portfolio["Cash"] == 100000
+    assert len(runner.portfolio.get("Capital Top-ups", [])) == 1
 
 
 def test_held_tick_does_not_notify_execution_backend():
