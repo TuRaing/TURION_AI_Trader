@@ -332,18 +332,45 @@ def build_runners(execution_backend=None):
         # siblings of the two "_lock" books above, at 3 daily-profit-
         # lock tiers (2%/1%/0.5%) - see STRATEGY_NAMES' own note and
         # rsi_momentum_quote_decide_fn's own docstring.
+        #
+        # daily_loss_lock/max_consecutive_losses ADDED 24-Aug-2026, real
+        # incident found live the same day: daily_profit_lock only ever
+        # watches for PROFIT reaching its threshold - it never stops a
+        # book that's simply losing, since a book that never reaches
+        # +2% for the day never trips the lock at all. simple_st1_
+        # threshold_lock_quote2pct hit exactly this - 53 real trades,
+        # 40 losses, -Rs 45,880 by mid-morning, never once close to its
+        # own +2% lock. Backtested the SAME consecutive-loss breaker
+        # already proven on st2_threshold/simple_st1_threshold (21-Aug)
+        # against these 53 real trades: N=2 cut the loss to -Rs 4,107
+        # (10x better than no breaker, and clearly best among N=2/3/4/5
+        # tried) - user's own explicit choice after seeing that table.
+        # Added to all 6 "_lock_quote*" books, not just the one that
+        # actually misbehaved today - the other 5 stopped early via
+        # daily_profit_lock today (good luck, not because they were
+        # structurally safe), so the same uncontained-loss risk exists
+        # in all of them.
         ("NIFTY", make_st2_threshold_event_cfg, rsi_momentum_quote_decide_fn, "st2_threshold_lock_quote2pct",
-         {"daily_profit_lock": True, "daily_profit_lock_pct": 2.0}),
+         {"daily_profit_lock": True, "daily_profit_lock_pct": 2.0,
+          "daily_loss_lock": True, "max_consecutive_losses": 2}),
         ("NIFTY", make_simple_st1_threshold_event_cfg, rsi_momentum_quote_decide_fn,
-         "simple_st1_threshold_lock_quote2pct", {"daily_profit_lock": True, "daily_profit_lock_pct": 2.0}),
+         "simple_st1_threshold_lock_quote2pct",
+         {"daily_profit_lock": True, "daily_profit_lock_pct": 2.0,
+          "daily_loss_lock": True, "max_consecutive_losses": 2}),
         ("NIFTY", make_st2_threshold_event_cfg, rsi_momentum_quote_decide_fn, "st2_threshold_lock_quote1pct",
-         {"daily_profit_lock": True, "daily_profit_lock_pct": 1.0}),
+         {"daily_profit_lock": True, "daily_profit_lock_pct": 1.0,
+          "daily_loss_lock": True, "max_consecutive_losses": 2}),
         ("NIFTY", make_simple_st1_threshold_event_cfg, rsi_momentum_quote_decide_fn,
-         "simple_st1_threshold_lock_quote1pct", {"daily_profit_lock": True, "daily_profit_lock_pct": 1.0}),
+         "simple_st1_threshold_lock_quote1pct",
+         {"daily_profit_lock": True, "daily_profit_lock_pct": 1.0,
+          "daily_loss_lock": True, "max_consecutive_losses": 2}),
         ("NIFTY", make_st2_threshold_event_cfg, rsi_momentum_quote_decide_fn, "st2_threshold_lock_quote0pt5pct",
-         {"daily_profit_lock": True, "daily_profit_lock_pct": 0.5}),
+         {"daily_profit_lock": True, "daily_profit_lock_pct": 0.5,
+          "daily_loss_lock": True, "max_consecutive_losses": 2}),
         ("NIFTY", make_simple_st1_threshold_event_cfg, rsi_momentum_quote_decide_fn,
-         "simple_st1_threshold_lock_quote0pt5pct", {"daily_profit_lock": True, "daily_profit_lock_pct": 0.5}),
+         "simple_st1_threshold_lock_quote0pt5pct",
+         {"daily_profit_lock": True, "daily_profit_lock_pct": 0.5,
+          "daily_loss_lock": True, "max_consecutive_losses": 2}),
     ):
         name = STRATEGY_NAMES[key]
         index_cfg = INDEX_CONFIG[index]
