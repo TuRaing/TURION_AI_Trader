@@ -1,5 +1,5 @@
 {
-  "Cash": 139471.40103380755,
+  "Cash": 159305.15621198254,
   "Position": null,
   "Closed Trades": [
     {
@@ -166,6 +166,36 @@
       "Exit Reason": "Square-Off",
       "Net PnL": 3177.59,
       "Net PnL %": 3.178
+    },
+    {
+      "Symbol": "NSE:NIFTY26AUG24200PE",
+      "Strike": 24200,
+      "Option Type": "PE",
+      "Entry Time": "2026-08-24 12:16:50",
+      "Entry Premium": 59.05,
+      "Entry Spot": 24191.05,
+      "Exit Time": "2026-08-24 12:20:28",
+      "Exit Premium": 58.05,
+      "Exit Spot": 24190.4,
+      "Lots": 31,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -2624.14,
+      "Net PnL %": -2.624
+    },
+    {
+      "Symbol": "NSE:NIFTY26AUG24200PE",
+      "Strike": 24200,
+      "Option Type": "PE",
+      "Entry Time": "2026-08-24 12:21:30",
+      "Entry Premium": 57.3,
+      "Entry Spot": 24191.75,
+      "Exit Time": "2026-08-24 13:18:30",
+      "Exit Premium": 67.1,
+      "Exit Spot": 24168.4,
+      "Lots": 31,
+      "Exit Reason": "Target",
+      "Net PnL": 22457.9,
+      "Net PnL %": 22.458
     }
   ],
   "Data Source": "Fyers (real premium)",
