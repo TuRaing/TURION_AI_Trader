@@ -585,6 +585,21 @@ def oi_footprint_decide_fn(cfg, position, data_point):
             if data_point.get("today_realized_pnl", 0) >= threshold:
                 return "SKIPPED (today's profit lock reached)", None, None
 
+        # Added 24-Aug-2026, ported from _rsi_momentum_decide's own
+        # 21-Aug-2026 daily_loss_lock (see that function's matching
+        # note) after a real incident found live the same day:
+        # oi_footprint_banknifty whipsawed 141 real trades (69 losses,
+        # -Rs 23,952) with no breaker at all - daily_profit_lock above
+        # only ever watches for PROFIT, never stops a book that's
+        # simply losing. Opt-in, defaults off - every existing
+        # oi_footprint book's behavior is unchanged unless
+        # daily_loss_lock=True.
+        if cfg.get("daily_loss_lock"):
+            max_losses = cfg.get("max_consecutive_losses", 2)
+            if data_point.get("today_consecutive_losses", 0) >= max_losses:
+                return (f"SKIPPED (today already has {max_losses}+ consecutive losses, "
+                        f"no more new trades today)", None, None)
+
         if _near_circuit(data_point):
             return "SKIPPED (near circuit band)", None, None
 
@@ -666,12 +681,18 @@ def oi_footprint_decide_fn(cfg, position, data_point):
 
 
 def make_oi_footprint_event_cfg(index, lot_size, initial_capital=100000,
-                                 hybrid_sl_cap_pct=None, spread_pct=None):
+                                 hybrid_sl_cap_pct=None, spread_pct=None,
+                                 daily_loss_lock=False, max_consecutive_losses=2):
     """
     cfg builder for oi_footprint_decide_fn. hybrid_sl_cap_pct defaults
     to None (the original fixed Rs 1,500 Stop-Loss) - pass 2.0 to use
     the hybrid cap today's cloud-session backtest found slightly better
     for this book (see this module's header comment).
+
+    daily_loss_lock/max_consecutive_losses - added 24-Aug-2026, same
+    fields/defaults as make_st2_threshold_event_cfg's own (21-Aug-2026)
+    - see oi_footprint_decide_fn's matching note for the real incident.
+    Default False keeps every existing book's behavior unchanged.
     """
 
     return {
@@ -682,4 +703,6 @@ def make_oi_footprint_event_cfg(index, lot_size, initial_capital=100000,
         "stop_loss_rupees": 1500,
         "hybrid_sl_cap_pct": hybrid_sl_cap_pct,
         "spread_pct": spread_pct,
+        "daily_loss_lock": daily_loss_lock,
+        "max_consecutive_losses": max_consecutive_losses,
     }

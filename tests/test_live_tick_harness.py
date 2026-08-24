@@ -10,7 +10,7 @@ from strategy.event_driven_engine import (
 from strategy.live_tick_harness import (
     CandleAggregator, LiveTickRunner, MIN_CANDLES_FOR_RSI,
     OIBuildupTracker, OIFootprintTickRunner, handle_symbol_update_message,
-    _maybe_top_up_capital,
+    _maybe_top_up_capital, _today_consecutive_losses,
 )
 
 
@@ -193,6 +193,21 @@ def test_target_close_notifies_execution_backend_on_close():
     assert len(backend.closes) == 1
     cfg, trade_record = backend.closes[0]
     assert trade_record["Exit Reason"] == "Target"
+
+
+def test_today_consecutive_losses_pure_function_counts_backward_from_latest():
+    # Direct unit test of the module-level function itself (moved out
+    # of LiveTickRunner 24-Aug-2026 so OIFootprintTickRunner could
+    # share it too) - the behavior-level tests above/below only cover
+    # it indirectly through a runner.
+    trades = [
+        {"Entry Time": "2026-08-18 09:00:00", "Exit Time": "2026-08-18 09:05:00", "Net PnL": 100},
+        {"Entry Time": "2026-08-18 09:06:00", "Exit Time": "2026-08-18 09:10:00", "Net PnL": -50},
+        {"Entry Time": "2026-08-18 09:11:00", "Exit Time": "2026-08-18 09:15:00", "Net PnL": -75},
+    ]
+    portfolio = {"Closed Trades": trades}
+
+    assert _today_consecutive_losses(portfolio, _ts(20)) == 2
 
 
 def test_top_up_triggers_at_40pct_drawdown():
@@ -413,9 +428,12 @@ def test_oi_tracker_no_signal_on_strike_change():
     assert signal is None
 
 
-def _oi_runner(execution_backend=None, previous_close=None):
-    cfg = make_oi_footprint_event_cfg(index="NIFTY", lot_size=75, initial_capital=100000)
-    portfolio = {"Cash": 100000, "Position": None, "Closed Trades": []}
+def _oi_runner(execution_backend=None, previous_close=None, daily_loss_lock=False,
+                max_consecutive_losses=2, closed_trades=None):
+    cfg = make_oi_footprint_event_cfg(index="NIFTY", lot_size=75, initial_capital=100000,
+                                       daily_loss_lock=daily_loss_lock,
+                                       max_consecutive_losses=max_consecutive_losses)
+    portfolio = {"Cash": 100000, "Position": None, "Closed Trades": closed_trades or []}
 
     return OIFootprintTickRunner(
         decide_fn=oi_footprint_decide_fn,
@@ -436,6 +454,24 @@ def test_oi_runner_on_oi_snapshot_before_any_price_tick_holds_back():
 
     assert action is not None  # spot is now known, decide_fn runs...
     assert "SKIPPED" in action  # ...but no signal yet (first snapshot)
+
+
+def test_oi_runner_today_consecutive_losses_gates_new_entries_via_daily_loss_lock():
+    # Added 24-Aug-2026, after a real incident: oi_footprint_banknifty
+    # whipsawed 141 real trades (69 losses, -Rs 23,952) with no breaker
+    # at all - OIFootprintTickRunner had no _today_consecutive_losses
+    # equivalent (LiveTickRunner-only until this fix moved it to
+    # module level and wired it into both runners).
+    todays_losses = [
+        {"Entry Time": "2026-08-18 09:00:00", "Exit Time": "2026-08-18 09:05:00", "Net PnL": -500},
+        {"Entry Time": "2026-08-18 09:06:00", "Exit Time": "2026-08-18 09:10:00", "Net PnL": -300},
+    ]
+    runner = _oi_runner(daily_loss_lock=True, max_consecutive_losses=2, closed_trades=todays_losses)
+
+    runner.on_oi_snapshot(_ts(20), spot=24500, strike=24500, ce_oi=100000, pe_oi=90000)
+    action = runner.on_oi_snapshot(_ts(25), spot=24520, strike=24500, ce_oi=115000, pe_oi=100000)
+
+    assert "SKIPPED (today already has 2+ consecutive losses" in action
 
 
 def test_oi_runner_full_signal_to_open_to_target_sequence():

@@ -544,6 +544,34 @@ def test_oi_footprint_skips_open_when_no_signal():
     assert position is None
 
 
+def test_oi_footprint_skips_open_when_daily_loss_lock_reached():
+    # Added 24-Aug-2026, after a real incident: oi_footprint_banknifty
+    # whipsawed 141 real trades (69 losses, -Rs 23,952) with no breaker
+    # at all - same gate already proven on the RSI-momentum family.
+    cfg = _oi_cfg(daily_loss_lock=True, max_consecutive_losses=2)
+
+    action, position, trade = oi_footprint_decide_fn(cfg, None, _oi_data_point(today_consecutive_losses=2))
+
+    assert "SKIPPED (today already has 2+ consecutive losses" in action
+    assert position is None
+
+
+def test_oi_footprint_daily_loss_lock_ignored_when_flag_is_off():
+    cfg = _oi_cfg(daily_loss_lock=False)
+
+    action, position, trade = oi_footprint_decide_fn(cfg, None, _oi_data_point(today_consecutive_losses=5))
+
+    assert "OPENED" in action
+
+
+def test_oi_footprint_daily_loss_lock_does_not_block_below_threshold():
+    cfg = _oi_cfg(daily_loss_lock=True, max_consecutive_losses=2)
+
+    action, position, trade = oi_footprint_decide_fn(cfg, None, _oi_data_point(today_consecutive_losses=1))
+
+    assert "OPENED" in action
+
+
 def test_oi_footprint_closes_at_fixed_rupee_target():
     cfg = _oi_cfg()
     _, position, _ = oi_footprint_decide_fn(cfg, None, _oi_data_point(oi_signal="CE", ce_ltp=60.0))

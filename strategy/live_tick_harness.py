@@ -179,6 +179,58 @@ def _maybe_top_up_capital(cfg, portfolio, timestamp):
     })
 
 
+def _today_consecutive_losses(portfolio, timestamp):
+    """
+    The CURRENT losing streak among timestamp's own calendar day's
+    closed trades, counting backward from the most recent trade until
+    a win breaks the streak - the upstream half of the optional
+    daily_loss_lock gate (_rsi_momentum_decide/oi_footprint_decide_fn,
+    strategy/event_driven_engine.py).
+
+    MOVED to module level 24-Aug-2026 (was a LiveTickRunner-only
+    method) - real gap found live the same day: oi_footprint_
+    banknifty whipsawed 141 real trades (69 losses, -Rs 23,952) with
+    no breaker at all, because oi_footprint_decide_fn never had this
+    computed for it - OIFootprintTickRunner had no equivalent method.
+    Same "one place, not two copies" reasoning as _notify_execution_
+    backend/_maybe_top_up_capital above, now shared by both runners
+    instead of duplicating this a second time for OIFootprintTickRunner.
+
+    Originally ported from strategy/fyers_options_engine.py's own
+    MAX_CONSECUTIVE_LOSSES/_today_consecutive_losses() (already proven/
+    backtested there) - NOT a blind copy: that version assumes "Exit
+    Time" is naive-UTC; this uses the SAME date convention as
+    LiveTickRunner._today_realized_pnl() (already-IST, compared
+    directly), for the same reason that method's own docstring gives.
+    """
+
+    today = timestamp.date()
+    today_trades = []
+
+    for trade in portfolio.get("Closed Trades", []):
+
+        exit_time_str = trade.get("Exit Time")
+
+        if not exit_time_str:
+            continue
+
+        exit_naive = datetime.datetime.strptime(exit_time_str, "%Y-%m-%d %H:%M:%S")
+
+        if exit_naive.date() == today:
+            today_trades.append(trade)
+
+    streak = 0
+
+    for trade in reversed(today_trades):
+
+        if trade.get("Net PnL", 0) <= 0:
+            streak += 1
+        else:
+            break
+
+    return streak
+
+
 class LiveTickRunner:
     """
     Owns one strategy's live decide_fn loop. Feed it every tick for the
@@ -272,51 +324,9 @@ class LiveTickRunner:
 
         return total
 
-    def _today_consecutive_losses(self, timestamp):
-        """
-        The CURRENT losing streak among timestamp's own calendar day's
-        closed trades, counting backward from the most recent trade
-        until a win breaks the streak - the upstream half of the
-        optional daily_loss_lock gate (_rsi_momentum_decide, strategy/
-        event_driven_engine.py), added 21-Aug-2026 after a real
-        whipsaw day (st2_threshold/simple_st1_threshold: 81/106 trades,
-        71-79% Stop-Loss - re-entering on the very next tick after
-        every close, no cooldown).
-
-        Ported from strategy/fyers_options_engine.py's own
-        MAX_CONSECUTIVE_LOSSES/_today_consecutive_losses() (already
-        proven/backtested there) - NOT a blind copy: that version
-        assumes "Exit Time" is naive-UTC; this uses the SAME date
-        convention as _today_realized_pnl() above (already-IST,
-        compared directly), for the same reason that function's own
-        docstring gives.
-        """
-
-        today = timestamp.date()
-        today_trades = []
-
-        for trade in self.portfolio.get("Closed Trades", []):
-
-            exit_time_str = trade.get("Exit Time")
-
-            if not exit_time_str:
-                continue
-
-            exit_naive = datetime.datetime.strptime(exit_time_str, "%Y-%m-%d %H:%M:%S")
-
-            if exit_naive.date() == today:
-                today_trades.append(trade)
-
-        streak = 0
-
-        for trade in reversed(today_trades):
-
-            if trade.get("Net PnL", 0) <= 0:
-                streak += 1
-            else:
-                break
-
-        return streak
+    # _today_consecutive_losses moved to module level 24-Aug-2026 - see
+    # that function's own docstring above for why (shared with
+    # OIFootprintTickRunner now).
 
     def on_tick(self, symbol, timestamp, ltp, bid=None, ask=None):
         """
@@ -357,7 +367,7 @@ class LiveTickRunner:
             "past_squareoff": self._past_squareoff(timestamp),
             "before_market_open": (timestamp.hour, timestamp.minute) < MARKET_OPEN_TIME,
             "today_realized_pnl": self._today_realized_pnl(timestamp),
-            "today_consecutive_losses": self._today_consecutive_losses(timestamp),
+            "today_consecutive_losses": _today_consecutive_losses(self.portfolio, timestamp),
             "previous_close": self.previous_close,
         }
 
@@ -488,6 +498,11 @@ class OIFootprintTickRunner:
             "past_squareoff": self._past_squareoff(timestamp),
             "before_market_open": (timestamp.hour, timestamp.minute) < MARKET_OPEN_TIME,
             "previous_close": self.previous_close,
+            # Added 24-Aug-2026 - see _today_consecutive_losses' own
+            # module-level docstring for the real incident (oi_
+            # footprint_banknifty: 141 trades, 69 losses, -Rs 23,952,
+            # no breaker) this closes the gap for.
+            "today_consecutive_losses": _today_consecutive_losses(self.portfolio, timestamp),
         }
 
         action, self.portfolio = run_live_check(self.decide_fn, self.cfg, self.portfolio, data_point)

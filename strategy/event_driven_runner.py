@@ -415,7 +415,14 @@ def build_runners(execution_backend=None):
         # hybrid cap is a second, independent line of defense - no
         # reason to run this book without it once the fix is this cheap
         # (one flag, already implemented and tested).
-        cfg = make_oi_footprint_event_cfg(index=index, lot_size=index_cfg["lot_size"], hybrid_sl_cap_pct=2.0)
+        # daily_loss_lock/max_consecutive_losses=2 - added 24-Aug-2026,
+        # same N=2 breaker already proven on st2_threshold/simple_st1_
+        # threshold (21-Aug) and the 6 "_lock_quote*" books (24-Aug),
+        # after oi_footprint_banknifty whipsawed 141 real trades today
+        # (69 losses, -Rs 23,952) with no breaker at all - see
+        # oi_footprint_decide_fn's own matching note.
+        cfg = make_oi_footprint_event_cfg(index=index, lot_size=index_cfg["lot_size"], hybrid_sl_cap_pct=2.0,
+                                           daily_loss_lock=True, max_consecutive_losses=2)
 
         spot, atm_strike, ce_symbol, pe_symbol = pick_atm_symbols(index)
 
