@@ -1,5 +1,6 @@
 import concurrent.futures
 import datetime
+import json
 
 from strategy.event_driven_runner import (
     MultiStrategyRouter, load_portfolio, save_all, save_portfolio, _should_send_connection_alert,
@@ -157,6 +158,49 @@ def test_save_then_load_portfolio_round_trips(tmp_path, monkeypatch):
     reloaded = load_portfolio("some_book")
 
     assert reloaded == original
+
+
+def test_load_portfolio_recovers_from_an_empty_file(tmp_path, monkeypatch, capsys):
+    # Added 24-Aug-2026, real incident: a killed process (systemctl
+    # restart landing mid-write) left a real portfolio file at 0 bytes
+    # on the VPS, and the old non-defensive load_portfolio() crashed
+    # the WHOLE event-driven engine (all 12 books, not just this one)
+    # trying to json.load() it. Must degrade to a fresh portfolio for
+    # just this one book instead.
+    monkeypatch.setattr(event_driven_runner, "PORTFOLIO_DIR", str(tmp_path))
+    (tmp_path / "fyers_options_broken_book_portfolio.json").write_text("")
+
+    portfolio = load_portfolio("broken_book", initial_capital=100000)
+
+    assert portfolio == {"Cash": 100000, "Position": None, "Closed Trades": []}
+    assert "empty" in capsys.readouterr().out.lower()
+
+
+def test_load_portfolio_recovers_from_a_corrupt_file(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(event_driven_runner, "PORTFOLIO_DIR", str(tmp_path))
+    (tmp_path / "fyers_options_broken_book_portfolio.json").write_text("{not valid json")
+
+    portfolio = load_portfolio("broken_book", initial_capital=75000)
+
+    assert portfolio == {"Cash": 75000, "Position": None, "Closed Trades": []}
+    assert "corrupt" in capsys.readouterr().out.lower()
+
+
+def test_save_portfolio_never_leaves_a_truncated_file_behind(tmp_path, monkeypatch):
+    # Confirms the real fix (atomic write via a temp file + os.replace())
+    # rather than just the defensive-load symptom-fix above - after a
+    # save, there must be no leftover .tmp file and the real file must
+    # be the complete new content, never a partial write.
+    monkeypatch.setattr(event_driven_runner, "PORTFOLIO_DIR", str(tmp_path))
+
+    save_portfolio("some_book", {"Cash": 999, "Position": None, "Closed Trades": []})
+
+    real_path = tmp_path / "fyers_options_some_book_portfolio.json"
+    tmp_path_leftover = tmp_path / "fyers_options_some_book_portfolio.json.tmp"
+
+    assert real_path.exists()
+    assert not tmp_path_leftover.exists()
+    assert json.loads(real_path.read_text())["Cash"] == 999
 
 
 def test_connection_alert_fires_on_the_first_ever_event():

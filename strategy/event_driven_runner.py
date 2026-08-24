@@ -105,6 +105,33 @@ def _portfolio_path(name):
 
 
 def load_portfolio(name, initial_capital=100000):
+    """
+    FIXED 24-Aug-2026 - real incident, took the WHOLE event-driven
+    engine down live: save_portfolio() below used to open(path, "w"),
+    which truncates the file to 0 bytes BEFORE writing the new content
+    - a `systemctl restart` (SIGTERM) landing in that exact window
+    during today's deploy left simple_st1_threshold_lock_quote1pct's
+    portfolio file at 0 bytes. This function then raised
+    json.JSONDecodeError trying to parse it, which propagated all the
+    way up through build_runners() and crashed EVERY book, not just
+    the one with the bad file - confirmed live via journalctl (the
+    traceback's own last frame was this file's old, non-defensive
+    `return json.load(f)`). That single book's real trade history for
+    the day (4 trades, +Rs 1,498) was unrecoverable - the file was
+    genuinely empty, not just malformed - restored to a fresh empty
+    portfolio to get the engine back up, real data loss accepted.
+
+    Two independent fixes for two independent risks: save_portfolio()
+    now writes atomically (temp file + os.replace(), which is atomic
+    on both POSIX and Windows) so a killed process can never again
+    leave a truncated file on disk - THIS is the real fix, preventing
+    the incident from recurring. This function ALSO now degrades
+    gracefully instead of crashing if a portfolio file is ever empty
+    or unparseable anyway (a corrupt disk, a manual edit mistake, or
+    any other cause the atomic-write fix doesn't cover) - one bad
+    book's history is lost, but the other 11 keep trading rather than
+    the whole engine going down with them.
+    """
 
     path = _portfolio_path(name)
 
@@ -112,15 +139,40 @@ def load_portfolio(name, initial_capital=100000):
         return {"Cash": initial_capital, "Position": None, "Closed Trades": []}
 
     with open(path, "r") as f:
-        return json.load(f)
+        content = f.read()
+
+    if not content.strip():
+        print(f"WARNING: {path} is empty (likely an interrupted write) - "
+              f"starting {name} fresh. Any real trade history in this file is lost.")
+        return {"Cash": initial_capital, "Position": None, "Closed Trades": []}
+
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError as error:
+        print(f"WARNING: {path} is corrupt ({error}) - "
+              f"starting {name} fresh. Any real trade history in this file is lost.")
+        return {"Cash": initial_capital, "Position": None, "Closed Trades": []}
 
 
 def save_portfolio(name, portfolio):
+    """
+    Writes atomically (temp file + os.replace()) - see load_portfolio()'s
+    own 24-Aug-2026 note for the real incident this fixes. A process
+    killed mid-write now leaves either the OLD complete file or the
+    NEW complete file, never a truncated one - os.replace() is atomic
+    on both POSIX and Windows, unlike a plain open(path, "w") which
+    truncates before the new content is ever written.
+    """
 
     os.makedirs(PORTFOLIO_DIR, exist_ok=True)
 
-    with open(_portfolio_path(name), "w") as f:
+    path = _portfolio_path(name)
+    tmp_path = path + ".tmp"
+
+    with open(tmp_path, "w") as f:
         json.dump(portfolio, f, indent=2)
+
+    os.replace(tmp_path, path)
 
 
 def pick_atm_symbols(index):
