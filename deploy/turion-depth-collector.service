@@ -14,15 +14,20 @@
 # Same access_token source as the trading engine and tick collector
 # (Firebase Realtime Database) - no separate login needed.
 #
-# No OnFailure alert wired up (same reasoning as turion-tick-collector.
-# service) - lost depth-archival data for a few minutes during a
-# crash/restart is a minor gap for a still-experimental collector, not
-# worth a push notification.
+# OnFailure= ADDED 24-Aug-2026, superseding the original "not worth a
+# push notification" call below - see deploy/turion-tick-collector.
+# service's own matching 24-Aug-2026 note for the real incident and the
+# user's explicit ask this satisfies.
+#
+# (Original 24-Aug-2026 reasoning, no longer the active choice: lost
+# depth-archival data for a few minutes alone seemed like a minor gap
+# for a still-experimental collector, not worth alerting on.)
 
 [Unit]
 Description=TURION Order-Book Depth Collector (WebSocket, archival only)
 After=network-online.target
 Wants=network-online.target
+OnFailure=turion-alert@%N.service
 
 [Service]
 Type=simple

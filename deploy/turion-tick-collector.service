@@ -16,15 +16,23 @@
 # - no separate login needed, no restart needed for a new token (it
 # re-fetches at its own startup only, same as turion-event-driven).
 #
-# No OnFailure alert wired up (unlike turion-event-driven.service) -
-# lost archival data for a few minutes during a crash/restart is a
-# minor gap, not worth a push notification the way a real trading
-# engine outage is. Revisit if this turns out to matter in practice.
+# OnFailure= ADDED 24-Aug-2026, superseding the original "not worth a
+# push notification" call below - user's own explicit ask, after a real
+# incident (a portfolio-file corruption crashed the whole event-driven
+# engine) that this and turion-depth-collector.service both went
+# through the SAME deploy without either alerting: "if something new
+# happens, notify me - I'll say 'fix it' before you do." See deploy/
+# turion-alert@.service's own note - shared by all 3 VPS services now.
+#
+# (Original 18-Aug-2026 reasoning, no longer the active choice but kept
+# for context: lost archival data for a few minutes during a crash/
+# restart alone seemed like a minor gap not worth alerting on.)
 
 [Unit]
 Description=TURION ATM Tick Collector (WebSocket, archival only)
 After=network-online.target
 Wants=network-online.target
+OnFailure=turion-alert@%N.service
 
 [Service]
 Type=simple

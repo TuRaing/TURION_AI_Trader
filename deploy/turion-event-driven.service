@@ -100,7 +100,13 @@ Wants=network-online.target
 # (unlike the in-process one) - a process crash is expected to be rare,
 # so alerting on every occurrence (not just once retries are exhausted)
 # is the right default; revisit if it turns out noisy in practice.
-OnFailure=turion-engine-alert.service
+# CHANGED 24-Aug-2026 - was OnFailure=turion-engine-alert.service (the
+# old single-purpose unit) - now the generic template shared by all 3
+# VPS services, see deploy/turion-alert@.service's own note. %N = this
+# unit's own name without ".service", so %i inside the alert template
+# correctly resolves to "turion-event-driven" (not the alert unit's own
+# name, the real bug the old single-target setup had).
+OnFailure=turion-alert@%N.service
 
 [Service]
 Type=simple

@@ -1,0 +1,52 @@
+# Added 24-Aug-2026 - GENERALIZED from the single-purpose turion-engine-
+# alert.service (18-Aug-2026) into a systemd TEMPLATE unit, so all 3
+# VPS services (turion-event-driven, turion-tick-collector, turion-
+# depth-collector) can share ONE alert unit instead of one each. Real
+# bug in the original: it hardcoded "The event-driven engine..." in the
+# message and used `%n`, which (a real systemd gotcha) expands to the
+# ALERT unit's own name, not the unit whose OnFailure= triggered it -
+# harmless when only one service pointed at it, but would have silently
+# mislabeled every alert once a second/third service used the same
+# unit. Fixed the correct systemd way: a template unit (`@.service`),
+# triggered as `OnFailure=turion-alert@%N.service` (%N = the failing
+# unit's own name WITHOUT its .service suffix) from EACH real service -
+# `%i` inside this template then really is the name of whichever unit
+# actually failed.
+#
+# User's own explicit ask (24-Aug-2026, after today's real portfolio-
+# file-corruption incident that crashed the whole engine): "if
+# something new happens, notify me - I'll say 'fix it' before you do."
+# This is the "notify" half - the actual fix still always waits for
+# that explicit go-ahead in a real conversation, never automatic.
+#
+# App push notification ONLY (report/push_notifier.py's
+# send_push_notification()) - same reasoning as the original: the user
+# does not use Telegram, so report/notifier.py's notify() is
+# deliberately not used here. Reuses the existing "trade_alerts" FCM
+# topic the app already subscribes to - no new mobile app code needed.
+#
+# NOT LIVE-TESTED - config file, install alongside the 3 real services:
+#   sudo cp deploy/turion-alert@.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+# (No `enable`/`start` needed - a template instance only ever runs when
+# systemd fires it via another unit's OnFailure=, never on its own.)
+# Also delete the old deploy/turion-engine-alert.service both here and
+# on the VPS (/etc/systemd/system/) - fully superseded by this file.
+
+[Unit]
+Description=TURION VPS service crash alert (push notification only) - for %i
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/turion/TURION_AI_Trader
+
+# Same secrets file as the real services - needs at least
+# FIREBASE_SERVICE_ACCOUNT to authenticate the push notification.
+EnvironmentFile=/opt/turion/TURION_AI_Trader/.env
+
+# Deliberately a one-line inline Python call rather than a separate .py
+# script - this is the entire job (send one push notification), not
+# worth a dedicated file. `%i` is the real failed unit's name (the
+# instance part after the @), passed by systemd from each real
+# service's own `OnFailure=turion-alert@%N.service` line.
+ExecStart=/opt/turion/TURION_AI_Trader/venv/bin/python -c "from report.push_notifier import send_push_notification; send_push_notification('TURION Service Down', 'A TURION VPS service crashed: %i. Check: systemctl status %i / journalctl -u %i -n 50. Will NOT auto-fix or auto-deploy - tell Claude to look into it and say go-ahead before any fix is applied.')"
