@@ -36,7 +36,18 @@ jobs:
         run: flutter pub get
 
       - name: Build release APK
-        run: flutter build apk --release
+        # --dart-define=GITHUB_PAT - FIXED 24-Aug-2026, real bug caught
+        # live (Fyers login screen showed "App was built without a
+        # GITHUB_PAT (--dart-define) - the trigger cannot be sent" on a
+        # phone install from this exact workflow's own artifact). This
+        # workflow's original plain `flutter build apk --release` never
+        # carried the token every prior local build already needed (see
+        # fyers_login_screen.dart's own module comment) - REPO_ADMIN_PAT
+        # is the same fine-grained, Actions:write-only PAT already used
+        # by .github/workflows/fyers_trigger.yml's own dispatch call,
+        # reused here rather than creating a second secret for the same
+        # token.
+        run: flutter build apk --release --dart-define=GITHUB_PAT=${{ secrets.REPO_ADMIN_PAT }}
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
