@@ -1,5 +1,5 @@
 {
-  "Cash": 97907.63517878401,
+  "Cash": 95504.64798232102,
   "Position": null,
   "Closed Trades": [
     {
@@ -468,13 +468,81 @@
       "Exit Reason": "Target",
       "Net PnL": 3369.75,
       "Net PnL %": 3.37
+    },
+    {
+      "Symbol": "NSE:BANKNIFTY26AUG57400PE",
+      "Strike": 57400,
+      "Option Type": "PE",
+      "Entry Time": "2026-08-24 11:12:48",
+      "Entry Premium": 177.85,
+      "Entry Spot": 57431.4,
+      "Exit Spot": 57423.95,
+      "Entry CE OI": 450480,
+      "Entry PE OI": 566640,
+      "Exit Time": "2026-08-24 11:14:46",
+      "Exit Premium": 188,
+      "Lots": 18,
+      "Exit Reason": "Target",
+      "Net PnL": 5247.5,
+      "Net PnL %": 5.248
+    },
+    {
+      "Symbol": "NSE:BANKNIFTY26AUG57400PE",
+      "Strike": 57400,
+      "Option Type": "PE",
+      "Entry Time": "2026-08-24 11:16:50",
+      "Entry Premium": 191.4,
+      "Entry Spot": 57400.65,
+      "Exit Spot": 57410.8,
+      "Entry CE OI": 520320,
+      "Entry PE OI": 571140,
+      "Exit Time": "2026-08-24 11:18:47",
+      "Exit Premium": 182.05,
+      "Lots": 17,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -4990.43,
+      "Net PnL %": -4.99
+    },
+    {
+      "Symbol": "NSE:BANKNIFTY26AUG57400CE",
+      "Strike": 57400,
+      "Option Type": "CE",
+      "Entry Time": "2026-08-24 11:20:43",
+      "Entry Premium": 232.35,
+      "Entry Spot": 57422.95,
+      "Exit Spot": 57399.5,
+      "Entry CE OI": 596670,
+      "Entry PE OI": 605400,
+      "Exit Time": "2026-08-24 11:22:38",
+      "Exit Premium": 217.5,
+      "Lots": 14,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -6456.8,
+      "Net PnL %": -6.457
+    },
+    {
+      "Symbol": "NSE:BANKNIFTY26AUG57400CE",
+      "Strike": 57400,
+      "Option Type": "CE",
+      "Entry Time": "2026-08-24 11:26:55",
+      "Entry Premium": 206.7,
+      "Entry Spot": 57369.75,
+      "Exit Spot": 57385.9,
+      "Entry CE OI": 677610,
+      "Entry PE OI": 648330,
+      "Exit Time": "2026-08-24 11:28:55",
+      "Exit Premium": 216.25,
+      "Lots": 14,
+      "Exit Reason": "Target",
+      "Net PnL": 3796.73,
+      "Net PnL %": 3.797
     }
   ],
   "Last OI Snapshot": {
-    "spot": 57610.4,
-    "strike": 57600,
-    "ce_oi": 798180,
-    "pe_oi": 697770
+    "spot": 57386.65,
+    "strike": 57400,
+    "ce_oi": 883620,
+    "pe_oi": 814500
   },
   "Data Source": "Fyers (real premium)",
   "Strategy": "oi_footprint",

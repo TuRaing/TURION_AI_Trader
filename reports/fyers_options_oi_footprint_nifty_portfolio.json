@@ -1,5 +1,5 @@
 {
-  "Cash": 60715.846416604894,
+  "Cash": 71652.17611256239,
   "Position": null,
   "Closed Trades": [
     {
@@ -1079,13 +1079,47 @@
       "Exit Reason": "Stop Loss",
       "Net PnL": -3936.07,
       "Net PnL %": -3.936
+    },
+    {
+      "Symbol": "NSE:NIFTY26AUG24250PE",
+      "Strike": 24250,
+      "Option Type": "PE",
+      "Entry Time": "2026-08-24 11:01:23",
+      "Entry Premium": 47.1,
+      "Entry Spot": 24254.1,
+      "Exit Spot": 24244.55,
+      "Entry CE OI": 13432835,
+      "Entry PE OI": 12447695,
+      "Exit Time": "2026-08-24 11:03:27",
+      "Exit Premium": 53.85,
+      "Lots": 17,
+      "Exit Reason": "Target",
+      "Net PnL": 8435.23,
+      "Net PnL %": 8.435
+    },
+    {
+      "Symbol": "NSE:NIFTY26AUG24250PE",
+      "Strike": 24250,
+      "Option Type": "PE",
+      "Entry Time": "2026-08-24 11:05:16",
+      "Entry Premium": 64.25,
+      "Entry Spot": 24229.65,
+      "Exit Spot": 24226.65,
+      "Entry CE OI": 15426320,
+      "Entry PE OI": 12097735,
+      "Exit Time": "2026-08-24 11:06:27",
+      "Exit Premium": 66.8,
+      "Lots": 14,
+      "Exit Reason": "Target",
+      "Net PnL": 2501.1,
+      "Net PnL %": 2.501
     }
   ],
   "Last OI Snapshot": {
-    "spot": 24269.3,
-    "strike": 24250,
-    "ce_oi": 12643020,
-    "pe_oi": 16172325
+    "spot": 24195.8,
+    "strike": 24200,
+    "ce_oi": 27992835,
+    "pe_oi": 22845485
   },
   "Data Source": "Fyers (real premium)",
   "Strategy": "oi_footprint",
