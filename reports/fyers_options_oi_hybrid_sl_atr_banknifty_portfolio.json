@@ -1,6 +1,20 @@
 {
   "Cash": 119980.37307857601,
-  "Position": null,
+  "Position": {
+    "Symbol": "NSE:BANKNIFTY26AUG57800CE",
+    "Strike": 57800,
+    "Option Type": "CE",
+    "Entry Time": "2026-08-24 09:26:43",
+    "Entry Spot": 57835.75,
+    "Entry Premium": 229.35,
+    "Entry CE OI": 824160,
+    "Entry PE OI": 539160,
+    "Lots": 17,
+    "Quantity": 510,
+    "Capital Deployed": 116968.5,
+    "Last Premium": 229.35,
+    "Last Checked": "2026-08-24 09:26:43"
+  },
   "Closed Trades": [
     {
       "Symbol": "NSE:BANKNIFTY26AUG57200PE",
@@ -140,10 +154,10 @@
     }
   ],
   "Last OI Snapshot": {
-    "spot": 57813.05,
+    "spot": 57835.45,
     "strike": 57800,
-    "ce_oi": 724380,
-    "pe_oi": 437370
+    "ce_oi": 824160,
+    "pe_oi": 539160
   },
   "Data Source": "Fyers (real premium)",
   "Strategy": "oi_hybrid_sl_atr",
