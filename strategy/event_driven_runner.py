@@ -324,10 +324,28 @@ def build_runners(execution_backend=None):
         # registered on the SAME NIFTY CE/PE/spot symbols below
         # (MultiStrategyRouter.register() already supports multiple
         # runners per symbol, dispatching a tick to all of them).
+        #
+        # daily_loss_lock/max_consecutive_losses ADDED 24-Aug-2026 -
+        # these 2 books were the only remaining RSI-momentum-family
+        # books still missing the breaker (already on the un-locked
+        # pair since 21-Aug, and on all 6 "_lock_quote*" books earlier
+        # today). Backtested against today's own real trades first
+        # (user's own explicit ask) - the breaker changes NOTHING for
+        # either book's actual result today (Rs 3,396.45/Rs 3,078.38,
+        # identical with or without it - neither ever hit 2 consecutive
+        # losses, daily_profit_lock stopped them first). Added anyway,
+        # user's own explicit call: same daily_profit_lock-only gate
+        # already failed structurally-identical siblings 3 times today
+        # (simple_st1_threshold_lock_quote2pct, oi_footprint_banknifty,
+        # and the original 21-Aug whipsaw) - these two were protected
+        # by today's favorable trade sequence, not by anything
+        # structural, so there is no real downside to enabling a purely
+        # protective, already-proven gate that happened not to bind
+        # today.
         ("NIFTY", make_st2_threshold_event_cfg, rsi_momentum_decide_fn, "st2_threshold_lock",
-         {"daily_profit_lock": True}),
+         {"daily_profit_lock": True, "daily_loss_lock": True, "max_consecutive_losses": 2}),
         ("NIFTY", make_simple_st1_threshold_event_cfg, rsi_momentum_decide_fn, "simple_st1_threshold_lock",
-         {"daily_profit_lock": True}),
+         {"daily_profit_lock": True, "daily_loss_lock": True, "max_consecutive_losses": 2}),
         # 21-Aug-2026, same day - quote-based (bid/ask, not LTP)
         # siblings of the two "_lock" books above, at 3 daily-profit-
         # lock tiers (2%/1%/0.5%) - see STRATEGY_NAMES' own note and
