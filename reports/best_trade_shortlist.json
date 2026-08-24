@@ -1,10 +1,10 @@
 {
-  "Generated At": "2026-08-24 08:00:00",
+  "Generated At": "2026-08-24 08:50:33",
   "Stocks": [
     {
       "Name": "ADANIPORTS",
       "Symbol": "ADANIPORTS.NS",
-      "Price": 1675.9,
+      "Price": 1675.6,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 80.0,
@@ -12,9 +12,19 @@
       "Candle Pattern": "Bearish Engulfing"
     },
     {
+      "Name": "COALINDIA",
+      "Symbol": "COALINDIA.NS",
+      "Price": 405.25,
+      "Decision": "SELL",
+      "Bias": "Bearish",
+      "Confidence": 80.0,
+      "ATR": 5.22,
+      "Candle Pattern": "Shooting Star"
+    },
+    {
       "Name": "HDFCBANK",
       "Symbol": "HDFCBANK.NS",
-      "Price": 726.45,
+      "Price": 725.65,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
@@ -24,17 +34,17 @@
     {
       "Name": "HINDUNILVR",
       "Symbol": "HINDUNILVR.NS",
-      "Price": 2012.9,
+      "Price": 2020.5,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
       "ATR": 24.46,
-      "Candle Pattern": "No Pattern"
+      "Candle Pattern": "Doji"
     },
     {
       "Name": "ITC",
       "Symbol": "ITC.NS",
-      "Price": 268.15,
+      "Price": 268.6,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
@@ -44,21 +54,11 @@
     {
       "Name": "ONGC",
       "Symbol": "ONGC.NS",
-      "Price": 236.2,
+      "Price": 236.0,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
-      "ATR": 3.88,
-      "Candle Pattern": "No Pattern"
-    },
-    {
-      "Name": "TATASTEEL",
-      "Symbol": "TATASTEEL.NS",
-      "Price": 185.05,
-      "Decision": "SELL",
-      "Bias": "Bearish",
-      "Confidence": 60.0,
-      "ATR": 3.67,
+      "ATR": 3.89,
       "Candle Pattern": "No Pattern"
     }
   ],
@@ -80,6 +80,15 @@
   ],
   "News": {
     "ADANIPORTS": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "COALINDIA": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -125,15 +134,6 @@
       "Confidence": 0.0
     },
     "TATASTEEL": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "COALINDIA": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -190,28 +190,20 @@
     "LT": {
       "Headlines": [
         "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
+        "Infosys, HCLTech, other IT stocks gain on Nvidia\u2019s likely price hikes. Are AI bubble worries coming true?",
         "Madhur Knit Crafts, ABH Healthcare SME IPOs Day 1: Early subscription, GMP, and key details",
         "Global Market:  Japan\u2019s Nikkei swings as AI stocks slip ahead of Nvidia results",
         "Gaja Alternative Asset Management allotment expected today; GMP at 11% \u2014 Here\u2019s how to check status online",
         "In favour! FIIs buy 7 multibaggers that soared up to 730% after 2 quarters of selling"
       ],
-      "Positive": 1,
+      "Positive": 2,
       "Negative": 0,
       "Neutral": 4,
       "Sentiment": "Bullish",
       "Score": 1.0,
       "Confidence": 100.0
     },
-    "AXISBANK": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "SUNPHARMA": {
+    "WIPRO": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -256,15 +248,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "EICHERMOT": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "UPL": {
       "Headlines": [],
       "Positive": 0,
@@ -301,7 +284,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "BAJFINANCE": {
+    "AXISBANK": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -319,7 +302,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "ULTRACEMCO": {
+    "MARUTI": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -328,13 +311,31 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "WIPRO": {
+    "HCLTECH": {
       "Headlines": [
-        "Wipro Share Price Live Updates: Wipro Stock Details"
+        "Infosys, HCLTech, other IT stocks gain on Nvidia\u2019s likely price hikes. Are AI bubble worries coming true?"
       ],
+      "Positive": 1,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Bullish",
+      "Score": 1.0,
+      "Confidence": 100.0
+    },
+    "SUNPHARMA": {
+      "Headlines": [],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 1,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "ULTRACEMCO": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -402,7 +403,34 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "BRITANNIA": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "EICHERMOT": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "INDUSINDBK": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "TECHM": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -438,16 +466,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "MARUTI": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "HCLTECH": {
+    "BAJFINANCE": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -457,15 +476,6 @@
       "Confidence": 0.0
     },
     "TITAN": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "BRITANNIA": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -493,15 +503,6 @@
       "Confidence": 0.0
     },
     "APOLLOHOSP": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "TECHM": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -553,6 +554,30 @@
     },
     {
       "Headline": "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "BSE shares:  Prabhudas Lilladher cuts target price to Rs 4,025 as CAS hits derivatives volumes",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Explained: What Oriental Hotels\u2019 merger with IHCL means for shareholders",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Global Market: European shares edge lower as investors await Iran sanctions details",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Markets brace for more hawkish ECB as energy risks threaten to keep inflation elevated",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Global Market: China\u2019s property crisis deepens as Evergrande founder gets life sentence",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Infosys, HCLTech, other IT stocks gain on Nvidia\u2019s likely price hikes. Are AI bubble worries coming true?",
       "Sentiment": "Bullish"
     },
     {
@@ -713,30 +738,6 @@
     },
     {
       "Headline": "Trump stock disclosure shows more than 1,000 trades in June",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "ETMarkets NRI Talk | Rupee at 96: Why NRIs should think twice before sending more money to India, says Sachin Sawrikar",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "ICICI Bank Share Price Live Updates: ICICI Bank News",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "IndusInd Bank Share Price Live Updates: IndusInd Bank Experiences Positive Price Breakout",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Wipro Share Price Live Updates: Wipro Stock Details",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Astral among 4 F&amp;O stocks with a sharp rise in futures open interest",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Hy-Tech Engineers IPO opens today: GMP signals 47% listing premium. Should you subscribe?",
       "Sentiment": "Neutral"
     }
   ]
