@@ -27,6 +27,17 @@
 Description=TURION Order-Book Depth Collector (WebSocket, archival only)
 After=network-online.target
 Wants=network-online.target
+# FIXED 24-Aug-2026, real bug found live (same class in all 3 VPS
+# service files - see the other two's matching fix): StartLimit* keys
+# only take effect in [Unit], NOT [Service] - systemd silently ignores
+# them there ("Unknown key 'StartLimitIntervalSec' in section
+# [Service], ignoring" - confirmed in a real journalctl log). Means the
+# 5-attempts/300s retry-burst-limit had NEVER actually been enforced
+# for any of the 3 services - direct evidence: 22-Aug's real Saturday
+# crash-loop reached "restart counter is at 139", far past what a
+# working StartLimitBurst=5 would ever have allowed.
+StartLimitIntervalSec=300
+StartLimitBurst=5
 OnFailure=turion-alert@%N.service
 
 [Service]
@@ -41,9 +52,6 @@ ExecStart=/opt/turion/TURION_AI_Trader/venv/bin/python run_depth_collector.py
 # WebSocket drop) restarts.
 Restart=on-failure
 RestartSec=10
-
-StartLimitIntervalSec=300
-StartLimitBurst=5
 
 User=turion
 EnvironmentFile=/opt/turion/TURION_AI_Trader/.env

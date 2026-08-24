@@ -108,6 +108,22 @@ Wants=network-online.target
 # name, the real bug the old single-target setup had).
 OnFailure=turion-alert@%N.service
 
+# Caps restart attempts so a persistently-crashing engine doesn't spin
+# forever - 5 attempts within 5 minutes, then systemd gives up and the
+# unit needs a manual `systemctl restart` after the underlying issue
+# (bad credentials, Fyers API down, etc.) is fixed.
+#
+# MOVED from [Service] to [Unit] 24-Aug-2026, real bug found live:
+# StartLimit* keys only take effect in [Unit] - systemd silently
+# ignored them in [Service] the whole time ("Unknown key
+# 'StartLimitIntervalSec' in section [Service], ignoring" - confirmed
+# via a real journalctl warning on a sibling service). This 5-attempts/
+# 300s cap had NEVER actually been enforced - direct evidence: 22-Aug's
+# real Saturday crash-loop reached "restart counter is at 139", far
+# past what a working StartLimitBurst=5 would ever have allowed.
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
 [Service]
 Type=simple
 
@@ -127,13 +143,6 @@ ExecStart=/opt/turion/TURION_AI_Trader/venv/bin/python run_event_driven_engine.p
 # cron approach if this ends up needing a daily kick - not decided).
 Restart=on-failure
 RestartSec=10
-
-# Caps restart attempts so a persistently-crashing engine doesn't spin
-# forever - 5 attempts within 5 minutes, then systemd gives up and the
-# unit needs a manual `systemctl restart` after the underlying issue
-# (bad credentials, Fyers API down, etc.) is fixed.
-StartLimitIntervalSec=300
-StartLimitBurst=5
 
 # PLACEHOLDER - a non-root service account, not root. Create with
 # `sudo useradd -r -s /usr/sbin/nologin turion` once the VPS exists.

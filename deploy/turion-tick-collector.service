@@ -33,6 +33,13 @@ Description=TURION ATM Tick Collector (WebSocket, archival only)
 After=network-online.target
 Wants=network-online.target
 OnFailure=turion-alert@%N.service
+# FIXED 24-Aug-2026, real bug found live - see deploy/turion-depth-
+# collector.service's matching note: StartLimit* only works in [Unit],
+# was silently ignored in [Service] (confirmed via a real journalctl
+# warning) - this service's own retry-burst-limit had never actually
+# been enforced.
+StartLimitIntervalSec=300
+StartLimitBurst=5
 
 [Service]
 Type=simple
@@ -45,9 +52,6 @@ ExecStart=/opt/turion/TURION_AI_Trader/venv/bin/python run_tick_collector.py
 # policy - only a real crash (bad tick data, WebSocket drop) restarts.
 Restart=on-failure
 RestartSec=10
-
-StartLimitIntervalSec=300
-StartLimitBurst=5
 
 User=turion
 EnvironmentFile=/opt/turion/TURION_AI_Trader/.env
