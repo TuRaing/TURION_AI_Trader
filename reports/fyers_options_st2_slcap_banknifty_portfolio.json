@@ -1,19 +1,6 @@
 {
-  "Cash": 41591.251867740095,
-  "Position": {
-    "Symbol": "NSE:BANKNIFTY26AUG57300PE",
-    "Strike": 57300,
-    "Option Type": "PE",
-    "Entry Time": "2026-08-24 13:55:23",
-    "Entry Spot": 57325.45,
-    "Entry Premium": 159.15,
-    "Entry RSI": 44.61,
-    "Lots": 8,
-    "Quantity": 240,
-    "Capital Deployed": 38196.0,
-    "Last Premium": 159.15,
-    "Last Checked": "2026-08-24 13:55:23"
-  },
+  "Cash": 41221.66165278509,
+  "Position": null,
   "Closed Trades": [
     {
       "Symbol": "NSE:BANKNIFTY26AUG57300PE",
@@ -2549,6 +2536,66 @@
       "Exit Reason": "Stop Loss",
       "Net PnL": -963.96,
       "Net PnL %": -0.964
+    },
+    {
+      "Symbol": "NSE:BANKNIFTY26AUG57300PE",
+      "Strike": 57300,
+      "Option Type": "PE",
+      "Entry Time": "2026-08-24 13:55:23",
+      "Entry Premium": 159.15,
+      "Entry Spot": 57325.45,
+      "Exit Time": "2026-08-24 13:59:17",
+      "Exit Premium": 149.1,
+      "Exit Spot": 57346.5,
+      "Lots": 8,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -2526.8,
+      "Net PnL %": -2.527
+    },
+    {
+      "Symbol": "NSE:BANKNIFTY26AUG57300CE",
+      "Strike": 57300,
+      "Option Type": "CE",
+      "Entry Time": "2026-08-24 14:02:43",
+      "Entry Premium": 238.65,
+      "Entry Spot": 57347.95,
+      "Exit Time": "2026-08-24 14:08:46",
+      "Exit Premium": 229.6,
+      "Exit Spot": 57338.95,
+      "Lots": 5,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -1469.33,
+      "Net PnL %": -1.469
+    },
+    {
+      "Symbol": "NSE:BANKNIFTY26AUG57300CE",
+      "Strike": 57300,
+      "Option Type": "CE",
+      "Entry Time": "2026-08-24 14:10:54",
+      "Entry Premium": 234.3,
+      "Entry Spot": 57338.75,
+      "Exit Time": "2026-08-24 14:19:14",
+      "Exit Premium": 222.4,
+      "Exit Spot": 57297.05,
+      "Lots": 5,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -1895.01,
+      "Net PnL %": -1.895
+    },
+    {
+      "Symbol": "NSE:BANKNIFTY26AUG57300CE",
+      "Strike": 57300,
+      "Option Type": "CE",
+      "Entry Time": "2026-08-24 14:21:17",
+      "Entry Premium": 226.9,
+      "Entry Spot": 57309.1,
+      "Exit Time": "2026-08-24 14:38:04",
+      "Exit Premium": 264.5,
+      "Exit Spot": 57380.55,
+      "Lots": 5,
+      "Exit Reason": "Target",
+      "Net PnL": 5521.55,
+      "Net PnL %": 5.522
     }
   ],
   "Data Source": "Fyers (real premium)",
