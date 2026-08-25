@@ -206,7 +206,7 @@ def parse_index_message(message):
     }
 
 
-def connect_and_run(runner, ce_symbol, pe_symbol, index_name):
+def connect_and_run(runner, ce_symbol, pe_symbol, index_name, on_action=None):
     """
     Verified against a REAL live WebSocket connection this session (one
     ticker + one index subscription, both channels confirmed to deliver
@@ -219,6 +219,16 @@ def connect_and_run(runner, ce_symbol, pe_symbol, index_name):
 
     Deribit's JSON-RPC subscribe protocol is unauthenticated for public
     channels - no access_token needed, unlike the Fyers equivalent.
+
+    on_action - added 24-Aug-2026 (Phase 3, run_crypto_options_engine.
+    py) - optional callback(action_string), called after every on_tick()
+    that actually had enough state to run decide_fn (action is not
+    None). This is the one hook point run_crypto_options_engine.py
+    needs to persist/sync the portfolio after each tick - mirrors
+    strategy/event_driven_runner.py's on_message() calling save_all()
+    after routing, but as an explicit parameter instead of a second
+    runner-routing layer, since this sub-project only runs ONE book for
+    now (see run_crypto_options_engine.py's own module docstring).
     """
 
     import asyncio
@@ -257,7 +267,9 @@ def connect_and_run(runner, ce_symbol, pe_symbol, index_name):
                     usd_mark = to_usd_premium(ticker["mark_price"], ticker["index_price"])
                     usd_bid = to_usd_premium(ticker["best_bid_price"], ticker["index_price"])
                     usd_ask = to_usd_premium(ticker["best_ask_price"], ticker["index_price"])
-                    runner.on_tick(ticker["instrument_name"], timestamp, usd_mark, bid=usd_bid, ask=usd_ask)
+                    action = runner.on_tick(ticker["instrument_name"], timestamp, usd_mark, bid=usd_bid, ask=usd_ask)
+                    if action is not None and on_action is not None:
+                        on_action(action)
                     continue
 
                 index = parse_index_message(message)
@@ -265,6 +277,8 @@ def connect_and_run(runner, ce_symbol, pe_symbol, index_name):
                     timestamp = datetime.datetime.fromtimestamp(
                         index["timestamp"] / 1000, tz=datetime.timezone.utc
                     )
-                    runner.on_tick(index_name, timestamp, index["price"])
+                    action = runner.on_tick(index_name, timestamp, index["price"])
+                    if action is not None and on_action is not None:
+                        on_action(action)
 
     asyncio.run(_run())
