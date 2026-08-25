@@ -12,7 +12,7 @@ TURION AI Trader
 
 Version
 
-v0.0.19
+v0.0.61
 
 --------------------------------------------------
 
@@ -30,7 +30,7 @@ Project Started
 
 Last Updated
 
-24-Aug-2026
+25-Aug-2026
 
 --------------------------------------------------
 
@@ -7615,6 +7615,85 @@ v0.0.59
 Next Version
 
 v0.0.60
+
+==================================================
+
+REAL VPS INCIDENT - OWNERSHIP BUG BLOCKED THE DAILY 08:00 IST
+AUTO-DEPLOY, ~2 HOURS OF NO LIVE TRADING (25-Aug). A scheduled market-
+open health check found all 3 systemd services "active" but
+functionally dead - a "Token is expired" WebSocket error at 07:47 IST,
+before market open, with every retry failing since. The user had
+correctly logged into Fyers at 7:00 AM; the real root cause was that
+319 files/directories under /opt/turion/TURION_AI_Trader (including
+deploy.sh itself, which lost its executable bit) had become root-owned
+from Claude running git/deploy commands directly as root over SSH the
+prior day, instead of as the `turion` user the daily cron actually
+runs as - so today's scheduled 08:00 IST deploy.sh (which exists
+specifically to restart all 3 services and pick up the morning login)
+failed silently with a permission error. Fixed via `chown -R
+turion:turion` + restoring deploy.sh's executable bit + a manual
+restart of all 3 services, verified by having `turion` (not root)
+successfully `git pull` cleanly. Saved as a permanent memory - future
+VPS git/deploy work should run as the `turion` user, and a token-
+expiry-looking symptom should prompt checking file ownership/
+turion-deploy.log first, not just assuming a re-login will fix it.
+
+REAL BUG - build_android_apk.yml (GitHub Actions) ALSO MISSING
+--dart-define=GITHUB_PAT (commit 13af3c667) - a third build path hit
+by the same recurring class of bug previously only known to affect
+local `flutter build apk` invocations. Found live via the user's phone
+screenshot after Claude built+installed an APK from that workflow's
+own artifact. Fixed by adding the flag (reusing the existing
+REPO_ADMIN_PAT secret fyers_trigger.yml's own dispatch already uses),
+re-built, re-installed, user confirmed the error banner was gone.
+
+TICK LATENCY INVESTIGATED - REAL ROOT CAUSE FOUND, NOT A SYSTEM
+PROBLEM. Measured real median tick latency (exchange exch_feed_time to
+VPS received_at, via tick_latency_ms()) at 1,177 ms - investigated why
+rather than accepting the number at face value. Ruled out this
+project's own code (received_at is captured at the very top of the
+raw on_message() callback), VPS geography (confirmed physically in
+Mumbai, same city as NSE), and network transit (~0.6 ms ping to
+Fyers). Captured a live raw Fyers SymbolUpdate message directly and
+found exch_feed_time/last_traded_time are BOTH whole-second Unix
+epochs with no sub-second field at all, confirmed across all of
+today's 11,354 archived ticks. The measured 1.2s median is
+substantially a rounding artifact of Fyers' own coarse timestamp, not
+real pipeline slowness - a statistical correction puts the real median
+closer to ~677 ms. Web research suggests Fyers' separate free "TBT"
+(Tick-by-Tick) feed may offer real sub-10ms, millisecond-precision
+data for NFO options specifically - NOT YET verified against official
+docs or this account's real access, flagged as a follow-up.
+
+CRYPTO (DERIBIT) OPTIONS PAPER-TRADING - SCOPED, NOT YET BUILT. User
+asked whether the bot could paper-trade BTC/ETH options the same way
+it live-paper-trades NIFTY/BankNifty. Planned (plan mode) reusing the
+existing rsi_momentum_decide_fn unchanged first (per the user's own
+"try the current strategy before designing a new one" instruction),
+on a fully separate machine (not the current 1vCPU/1GB NIFTY/BankNifty
+VPS, per the already-established no-new-always-on-service rule).
+Deribit's real public API schema verified live (index_price,
+instruments, ticker - option premiums quoted in BTC/ETH, not USD, a
+real conversion this needs). Repo cloned into a separate local folder,
+D:\TURION_Crypto_Trader, at the user's explicit request to keep this
+fully apart from D:\TURION_AI_Trader. No crypto code written yet -
+continuing in a new chat.
+
+See doc/25aug26_SESSION_LOG.md for full detail.
+
+==================================================
+
+Status
+
+🟢 Stable
+
+Current Version
+
+v0.0.61
+
+Next Version
+
+v0.0.62
 
 ==================================================
 
