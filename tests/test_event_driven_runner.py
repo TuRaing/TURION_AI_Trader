@@ -249,6 +249,18 @@ def test_changed_keys_empty_when_nothing_changed():
     assert _changed_keys(["book_a", "book_b"], ["HELD (net 12.5)", "SKIPPED (RSI not ready yet)"]) == []
 
 
+def test_changed_keys_handles_none_action_without_crashing():
+    # Real bug found live minutes after this fix's first deploy:
+    # LiveTickRunner.on_tick()/OIFootprintTickRunner's on_tick() return
+    # None (not a "HELD"/"SKIPPED" string) whenever decide_fn didn't run
+    # this call at all (e.g. a SPOT-only tick) - a frequent, real case
+    # that crashed on_message with "'NoneType' object has no attribute
+    # 'startswith'" the moment route()'s return value started actually
+    # being read.
+    assert _changed_keys(["book_a", "book_b"], [None, "OPENED CE @ 100.0"]) == ["book_b"]
+    assert _changed_keys(["book_a"], [None]) == []
+
+
 def test_changed_keys_keeps_multiple_real_changes():
     assert _changed_keys(
         ["book_a", "book_b", "book_c"],

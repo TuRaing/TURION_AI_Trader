@@ -684,11 +684,23 @@ def _changed_keys(touched_keys, actions):
     trade". `touched_keys`/`actions` are zip()'d in order - MultiStrategy
     Router.runners_for()/route() both iterate the same underlying list
     for a given symbol, so the pairing is positionally correct.
+
+    `action` is None whenever decide_fn didn't actually run this call
+    (LiveTickRunner.on_tick()/OIFootprintTickRunner's own docstrings:
+    "Returns the action string if decide_fn ran this call, else None" -
+    e.g. an underlying SPOT tick that only updates the RSI aggregator,
+    or a tick before `spot` is known yet) - a REAL, frequent case that
+    was never actually exercised before this function existed, since
+    route()'s return value used to be discarded outright. Must be
+    treated the same as a no-op HELD/SKIPPED action, not skipped over
+    with a bare `.startswith()` call (found live - crashed on_message
+    with "'NoneType' object has no attribute 'startswith'" on every
+    such tick immediately after this fix's first deploy).
     """
 
     return [
         key for key, action in zip(touched_keys, actions)
-        if action.startswith("OPENED") or action.startswith("CLOSED")
+        if action is not None and (action.startswith("OPENED") or action.startswith("CLOSED"))
     ]
 
 
