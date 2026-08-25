@@ -12,7 +12,7 @@ TURION AI Trader
 
 Version
 
-v0.0.61
+v0.0.62
 
 --------------------------------------------------
 
@@ -7694,6 +7694,52 @@ v0.0.61
 Next Version
 
 v0.0.62
+
+==================================================
+
+REAL LIVE INCIDENT #2, SAME DAY - turion-event-driven OOM-KILLED BY
+THE KERNEL (25-Aug). A routine VPS check found NRestarts had grown
+unexpectedly; journalctl showed the kernel OOM killer had killed the
+process after ~4h51m uptime with a 780.9M memory + 2.1G swap peak on
+the 1GB VPS. Root cause: concurrent.futures.ThreadPoolExecutor bounds
+concurrent workers (4) but not queued work - sync_strategy_tick (the
+mobile live-chart LTP ticker) was submitted on every qualifying tick
+with no throttle, and save_all (local JSON write + Firebase
+sync_portfolio) ran on every tick touching a runner regardless of
+whether Cash/Position/Closed Trades actually changed. A real Firebase
+write measures ~0.42s (Singapore region) - a ~9-10/sec ceiling below
+the real incoming tick rate across 12+ books - so the queue backed up
+over hours, each pending item holding its own payload copy in memory.
+
+Fixed in two stages: (1, commit e20966183) new pure functions
+_changed_keys() (only save/sync a runner on a real "OPENED"/"CLOSED"
+action, not every "HELD"/"SKIPPED" tick) and _tick_sync_due()
+(throttles the live-chart ticker to at most once/second per book/leg)
+- 8 new tests, deployed as the `turion` user this time, not root; (2,
+commit e43ac2b39, found live minutes into the same deploy's own
+verification) _changed_keys() crashed with "'NoneType' object has no
+attribute 'startswith'" on every tick where decide_fn didn't actually
+run (a real, frequent, previously-undocumented-in-practice case per
+LiveTickRunner.on_tick()'s own docstring) - guarded and redeployed
+within minutes, 2 more tests, 602/602 total passing. Verified via a
+2-minute live Monitor: zero errors, zero restarts, memory growing only
+~6MB (vs. the ~780MB/5hr curve that caused the original kill).
+
+See doc/25aug26_SESSION_LOG.md for full detail.
+
+==================================================
+
+Status
+
+🟢 Stable
+
+Current Version
+
+v0.0.62
+
+Next Version
+
+v0.0.63
 
 ==================================================
 

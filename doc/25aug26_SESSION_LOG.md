@@ -201,40 +201,116 @@ Next Version
 
 v0.0.62
 
+==================================================
+
+REAL LIVE INCIDENT #2 (SAME DAY) - turion-event-driven OOM-KILLED BY
+THE KERNEL, ROOT CAUSE FOUND AND FIXED, TWO-STAGE. User asked for a
+full VPS trade/status check; a routine service check found NRestarts
+had grown from 0 to 1 with no corresponding manual action - journalctl
+showed the kernel OOM killer had killed turion-event-driven after
+~4h51m uptime, "780.9M memory peak, 2.1G memory swap peak" on a 1GB
+VPS (status=9/KILL, systemd auto-restarted it within 10s).
+
+Root cause traced (not guessed) via direct code reading: `concurrent.
+futures.ThreadPoolExecutor` bounds concurrent WORKERS (4, "firebase-
+sync") but has NO bound on queued/pending work items. `sync_strategy_
+tick` (the mobile live-chart LTP ticker) was submitted to this
+executor on EVERY qualifying tick with zero throttling, and `save_all`
+(local JSON write + `sync_portfolio` Firebase submit) ran on every
+tick touching a runner regardless of whether anything in Cash/
+Position/Closed Trades actually changed. Measured a real `sync_
+portfolio()` call at ~0.42s (VPS-to-Firebase, Singapore region) - with
+4 workers that's a ~9-10/sec sustained ceiling, comfortably below the
+real incoming tick rate across 12+ books watching NIFTY/BANKNIFTY.
+Every queued-but-unprocessed submission held its own payload copy
+(including, for `sync_portfolio`, a full copy of that book's growing
+Closed Trades list) in memory until a worker got to it - over hours
+this unbounded backlog is what grew into the observed swap.
+
+FIX 1 (commit e20966183, deployed as the `turion` user this time, not
+root - see yesterday's ownership-bug memory) - two changes to strategy/
+event_driven_runner.py: (a) `_changed_keys()`, a new pure/testable
+function, narrows `save_all`'s `keys` to only runners whose `route()`
+action this tick was a real "OPENED .../CLOSED (..." - not every
+"HELD"/"SKIPPED" no-op tick - cutting the call rate from several/sec
+to a handful/day/book; (b) `_tick_sync_due()` throttles `sync_
+strategy_tick` to at most once/second per (book, leg) via
+TICK_SYNC_MIN_INTERVAL_SECONDS - the live-chart ticker only needs to
+feel live, not reflect every tick. 8 new tests, 601/601 passing.
+
+FIX 2 (commit e43ac2b39, minutes later, found live during the SAME
+deploy's own post-verification) - `_changed_keys()` crashed on_message
+with "'NoneType' object has no attribute 'startswith'" on every tick
+where decide_fn didn't actually run this call (a real, frequent case:
+LiveTickRunner.on_tick()/OIFootprintTickRunner's own docstrings
+already documented "Returns the action string if decide_fn ran this
+call, else None" - a case route()'s return value had simply never been
+read before this session, so it had never been exercised). Guarded
+`action is not None` before calling `.startswith()`, 2 new regression
+tests, 602/602 passing. Redeployed within minutes, verified via a 2-
+minute live Monitor (6 checks, 20s apart): zero errors, zero restarts,
+memory climbing only ~6MB over 2 minutes (84.6MB -> 90.8MB) - a
+dramatically slower, healthy growth curve versus the ~780MB/5-hour
+curve that caused the original OOM kill.
+
+==================================================
+
+Status
+
+🟢 Stable
+
+Current Version
+
+v0.0.62
+
+Next Version
+
+v0.0.63
+
 --------------------------------------------------
 
 Next Session
 
-1. Verify Fyers' TBT (Tick-by-Tick) feed against official docs/real
+1. Watch turion-event-driven's memory over the next few real trading
+   days - the OOM-kill fix (throttled Firebase sync + change-only
+   save_all) was only verified over a 2-minute window today (clean:
+   zero errors, ~6MB growth). Confirm it stays flat/bounded over a
+   FULL trading day before considering this fully closed - if memory
+   still climbs meaningfully (just much slower), there may be a
+   secondary, smaller leak still worth chasing.
+
+2. Verify Fyers' TBT (Tick-by-Tick) feed against official docs/real
    account access (myapi.fyers.in) - if genuinely free and available
    for NFO options, it could fix both today's rounding-artifact
    measurement problem and the real ~700ms latency itself. Not started
    this session beyond web research.
 
-2. Crypto (Deribit) paper-trading - plan approved and saved, repo
+3. Crypto (Deribit) paper-trading - plan approved and saved, repo
    cloned to D:\TURION_Crypto_Trader, Deribit's real API schema
    verified - but the actual `crypto-paper-trading` branch, strategy/
    deribit_data.py, and CryptoTickRunner have NOT been started. Continue
    in the new chat the user asked for, using the handoff briefing
    already given.
 
-3. Port the oi_footprint quote-fix (built 24-Aug, oi_footprint_quote_
+4. Port the oi_footprint quote-fix (built 24-Aug, oi_footprint_quote_
    decide_fn) results once the 2 new books (oi_footprint_quote_
-   eventdriven_nifty/banknifty) accumulate real trades - 0 so far as of
-   this session, since oi_footprint's OI-buildup signal hadn't fired
-   for either new book yet.
+   eventdriven_nifty/banknifty) accumulate real trades - both took
+   their first 2 real trades today (breaker triggered), still too
+   little data.
 
-4. Re-run the depth-slippage analysis after ~1 week of data (per the
+5. Re-run the depth-slippage analysis after ~1 week of data (per the
    project's own repeated conclusion) before trusting any single day's
    quote-based-books percentage - today's reversed-direction result on
    the quote-lock books is exactly the kind of noise this rule exists
    to catch.
 
-5. Consider chown-ing the VPS repo (or switching to `sudo -u turion`
+6. Consider chown-ing the VPS repo (or switching to `sudo -u turion`
    for all future manual git/deploy operations) as a standing habit,
-   not a one-off fix - see feedback_vps_root_ssh_ownership.md.
+   not a one-off fix - see feedback_vps_root_ssh_ownership.md. Today's
+   OOM-fix deploys already did this correctly (deployed as `turion`,
+   not root, both times).
 
-6. Carried over from 24-Aug, still open: turion-tick-collector lacks
+7. Carried over from 24-Aug, still open: turion-tick-collector lacks
    turion-event-driven's auto-retry cron lines; sync_ticks_from_vps.py
    off-machine backup exercise never run; end-Sep-2026 statistical-
    tools checkpoint still ~5 weeks out.
