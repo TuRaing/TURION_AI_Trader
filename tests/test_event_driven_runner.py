@@ -4,6 +4,7 @@ import json
 
 from strategy.event_driven_runner import (
     MultiStrategyRouter, load_portfolio, save_all, save_portfolio, _should_send_connection_alert,
+    _changed_keys, _tick_sync_due,
 )
 from strategy import event_driven_runner
 
@@ -226,3 +227,61 @@ def test_connection_alert_boundary_is_inclusive():
     exactly_at_cooldown = last + datetime.timedelta(seconds=900)
 
     assert _should_send_connection_alert(last, exactly_at_cooldown) is True
+
+
+# Added 25-Aug-2026, real incident: turion-event-driven was OOM-killed
+# after ~5 hours (780.9M RAM + 2.1G swap peak on a 1GB VPS) - traced to
+# firebase_executor's internal queue growing unbounded because save_all()
+# and sync_strategy_tick were both called on EVERY tick, not just on a
+# real state change. _changed_keys()/_tick_sync_due() are the two pure
+# decisions that fix this - see their own module docstrings.
+
+def test_changed_keys_keeps_only_opened_actions():
+    assert _changed_keys(["book_a", "book_b"], ["OPENED CE @ 100.0", "HELD (net 12.5)"]) == ["book_a"]
+
+
+def test_changed_keys_keeps_only_closed_actions():
+    assert _changed_keys(["book_a", "book_b"], ["CLOSED (Target) net 500", "SKIPPED (no valid premium quote)"]) == \
+        ["book_a"]
+
+
+def test_changed_keys_empty_when_nothing_changed():
+    assert _changed_keys(["book_a", "book_b"], ["HELD (net 12.5)", "SKIPPED (RSI not ready yet)"]) == []
+
+
+def test_changed_keys_keeps_multiple_real_changes():
+    assert _changed_keys(
+        ["book_a", "book_b", "book_c"],
+        ["OPENED CE @ 100.0", "HELD (net 12.5)", "CLOSED (Stop Loss) net -500"],
+    ) == ["book_a", "book_c"]
+
+
+def test_tick_sync_due_on_the_first_tick_for_a_key():
+    last_tick_sync = {}
+
+    assert _tick_sync_due(last_tick_sync, ("book_a", "CE"), now_ts=1000.0, min_interval=1.0) is True
+    assert last_tick_sync[("book_a", "CE")] == 1000.0
+
+
+def test_tick_sync_not_due_within_the_interval():
+    last_tick_sync = {("book_a", "CE"): 1000.0}
+
+    assert _tick_sync_due(last_tick_sync, ("book_a", "CE"), now_ts=1000.5, min_interval=1.0) is False
+    # Real bug this guards against: a rejected tick must NOT overwrite
+    # the last-sync time, or a burst of sub-interval ticks would each
+    # reset the clock and the throttle would never actually fire.
+    assert last_tick_sync[("book_a", "CE")] == 1000.0
+
+
+def test_tick_sync_due_again_once_the_interval_has_passed():
+    last_tick_sync = {("book_a", "CE"): 1000.0}
+
+    assert _tick_sync_due(last_tick_sync, ("book_a", "CE"), now_ts=1001.0, min_interval=1.0) is True
+    assert last_tick_sync[("book_a", "CE")] == 1001.0
+
+
+def test_tick_sync_due_is_independent_per_key():
+    last_tick_sync = {("book_a", "CE"): 1000.0}
+
+    assert _tick_sync_due(last_tick_sync, ("book_a", "PE"), now_ts=1000.1, min_interval=1.0) is True
+    assert _tick_sync_due(last_tick_sync, ("book_b", "CE"), now_ts=1000.1, min_interval=1.0) is True

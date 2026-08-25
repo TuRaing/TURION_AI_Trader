@@ -64,6 +64,26 @@ RSI_SEED_INTERVAL = "5m"
 # seconds for no real benefit.
 OI_REFRESH_SECONDS = 5 * 60
 
+# Added 25-Aug-2026, real incident: turion-event-driven was OOM-killed
+# by the kernel after ~5 hours of uptime (780.9M RAM + 2.1G swap peak,
+# on a 1GB VPS) - root cause traced to firebase_executor's internal
+# work queue (concurrent.futures.ThreadPoolExecutor has no bound on
+# QUEUED items, only on concurrent WORKERS) growing without limit,
+# because sync_strategy_tick was submitted on EVERY live-chart-eligible
+# tick with no throttle at all, while a real sync_portfolio() call
+# measured ~0.42s (VPS-to-Firebase, Singapore region) - with only 4
+# workers that's a ~9-10/sec sustained ceiling, comfortably below the
+# real incoming tick rate across 12+ books watching NIFTY/BANKNIFTY.
+# Every queued-but-not-yet-run submission holds its own copy of the
+# tick payload (or, worse, the sync_portfolio path's own snapshot
+# dict - see that fix in main()'s on_message() below) in memory until
+# a worker gets to it - over hours this backlog is exactly what grew
+# into the observed 2.1G of swap. Throttled to at most once per
+# TICK_SYNC_MIN_INTERVAL_SECONDS per (book, leg) - the mobile app's
+# live-chart LTP ticker does not need sub-second precision, only "feels
+# live", so this is a real fix, not a workaround.
+TICK_SYNC_MIN_INTERVAL_SECONDS = 1.0
+
 # Distinct names from every existing live book - see module docstring.
 STRATEGY_NAMES = {
     "st2_threshold": "st2_threshold_eventdriven",
@@ -652,6 +672,47 @@ def _should_send_connection_alert(last_alert_at, now):
     return (now - last_alert_at).total_seconds() >= _CONNECTION_ALERT_COOLDOWN_SECONDS
 
 
+def _changed_keys(touched_keys, actions):
+    """
+    Pure/testable decision, added 25-Aug-2026 alongside TICK_SYNC_MIN_
+    INTERVAL_SECONDS' own note above (real OOM-kill incident) - which
+    of this tick's touched runners had a REAL portfolio state change
+    (a new position opened, or one closed), vs a no-op "HELD"/"SKIPPED"
+    tick that leaves Cash/Position/Closed Trades untouched. Only the
+    former need save_all()'s local-JSON-write + Firebase-submit - this
+    is what cuts that call from "every tick" down to "only on an actual
+    trade". `touched_keys`/`actions` are zip()'d in order - MultiStrategy
+    Router.runners_for()/route() both iterate the same underlying list
+    for a given symbol, so the pairing is positionally correct.
+    """
+
+    return [
+        key for key, action in zip(touched_keys, actions)
+        if action.startswith("OPENED") or action.startswith("CLOSED")
+    ]
+
+
+def _tick_sync_due(last_tick_sync, sync_key, now_ts, min_interval=TICK_SYNC_MIN_INTERVAL_SECONDS):
+    """
+    Pure/testable decision, added 25-Aug-2026 - see TICK_SYNC_MIN_
+    INTERVAL_SECONDS' own note above (real OOM-kill incident). True
+    (and records `now_ts` as the new last-sync time) if this is the
+    first tick ever seen for `sync_key`, or if at least `min_interval`
+    seconds have passed since the last one synced - mutates
+    `last_tick_sync` as a side effect (bounded dict, at most one entry
+    per (book, leg) pair that has ever ticked, never grows further).
+    """
+
+    last = last_tick_sync.get(sync_key, 0)
+
+    if now_ts - last < min_interval:
+        return False
+
+    last_tick_sync[sync_key] = now_ts
+
+    return True
+
+
 def save_all(runners, keys=None, firebase_executor=None):
     """
     Local JSON stays the source of truth (same file this project's own
@@ -752,6 +813,11 @@ def main(access_token, execution_backend=None):
 
     _last_connection_alert = {"time": None}
 
+    # Added 25-Aug-2026, alongside TICK_SYNC_MIN_INTERVAL_SECONDS' own
+    # note above - per-(key, leg) last-sync time, bounded (at most
+    # len(runners) * 2 entries, never grows further).
+    _last_tick_sync = {}
+
     def _alert_connection_issue(kind, message):
         now = datetime.datetime.now()
         if _should_send_connection_alert(_last_connection_alert["time"], now):
@@ -773,11 +839,28 @@ def main(access_token, execution_backend=None):
         # own multi-runner-per-symbol support); firebase_executor moves
         # the network part off this hot path entirely. See save_all()'s
         # own docstring for the full real-incident detail.
+        #
+        # FIXED 25-Aug-2026, real incident: narrowing to touched_keys
+        # (above) was not enough on its own - a runner watching an
+        # actively-ticking symbol still had save_all() (a full local
+        # JSON write AND a Firebase submit) called on EVERY tick, even
+        # the overwhelming majority that only update LTP/bid/ask with
+        # no real change to Cash/Position/Closed Trades at all (every
+        # "HELD"/"SKIPPED" tick). This is what actually grew firebase_
+        # executor's queue into the OOM kill (see TICK_SYNC_MIN_
+        # INTERVAL_SECONDS' own note above for the full mechanism).
+        # route()'s own action strings already distinguish a real state
+        # change ("OPENED .../"CLOSED (...)") from a no-op tick - only
+        # those runners get saved/synced now, cutting the call rate from
+        # "every tick" (several/sec) to "only on an actual trade" (a
+        # handful/day/book), with zero loss of correctness - the local
+        # JSON and Firebase copies were never meant to reflect anything
+        # finer-grained than Cash/Position/Closed Trades anyway.
         symbol = message.get("symbol")
         touched = router.runners_for(symbol)
         touched_keys = [runner_keys[id(runner)] for runner in touched]
-        router.route(message)
-        save_all(runners, keys=touched_keys, firebase_executor=firebase_executor)
+        actions = router.route(message)
+        save_all(runners, keys=_changed_keys(touched_keys, actions), firebase_executor=firebase_executor)
 
         # Added 21-Aug-2026 - see strategy_candle_aggregators' own note
         # above. Only a real CE/PE tick (not the underlying spot) feeds
@@ -804,9 +887,16 @@ def main(access_token, execution_backend=None):
                     continue
 
                 name = STRATEGY_NAMES[key]
-                firebase_executor.submit(
-                    sync_strategy_tick, name, leg, {"ltp": ltp, "timestamp": timestamp_str, "volume": volume}
-                )
+
+                # THROTTLED 25-Aug-2026 - see TICK_SYNC_MIN_INTERVAL_
+                # SECONDS' own note above (real OOM-kill incident) - the
+                # live-chart LTP ticker only needs to feel live, not
+                # reflect every single tick; this was the dominant
+                # source of firebase_executor's unbounded queue growth.
+                if _tick_sync_due(_last_tick_sync, (key, leg), timestamp.timestamp()):
+                    firebase_executor.submit(
+                        sync_strategy_tick, name, leg, {"ltp": ltp, "timestamp": timestamp_str, "volume": volume}
+                    )
 
                 agg = strategy_candle_aggregators[key][leg]
                 if agg.on_tick(timestamp_str, ltp, volume):
