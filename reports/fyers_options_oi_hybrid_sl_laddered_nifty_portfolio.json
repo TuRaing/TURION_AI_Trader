@@ -1,5 +1,5 @@
 {
-  "Cash": 46693.79632886755,
+  "Cash": 47918.54092873755,
   "Position": {
     "Symbol": "NSE:NIFTY26AUG24200PE",
     "Strike": 24200,
@@ -9,11 +9,13 @@
     "Entry Premium": 39.65,
     "Entry CE OI": 31692180,
     "Entry PE OI": 29809780,
-    "Lots": 15,
-    "Quantity": 1125,
+    "Lots": 8,
+    "Quantity": 600,
     "Capital Deployed": 44606.25,
-    "Last Premium": 39.65,
-    "Last Checked": "2026-08-25 09:37:33"
+    "Last Premium": 42.15,
+    "Last Checked": "2026-08-25 09:39:44",
+    "Peak PnL": 2678.39557115,
+    "Partial Booked": true
   },
   "Closed Trades": [
     {
@@ -916,6 +918,23 @@
       "Exit Reason": "Stop Loss",
       "Net PnL": -4021.0,
       "Net PnL %": -4.021
+    },
+    {
+      "Symbol": "NSE:NIFTY26AUG24200PE",
+      "Strike": 24200,
+      "Option Type": "PE",
+      "Entry Time": "2026-08-25 09:37:33",
+      "Entry Premium": 39.65,
+      "Entry Spot": 24181.45,
+      "Exit Spot": 24176.1,
+      "Entry CE OI": 31692180,
+      "Entry PE OI": 29809780,
+      "Exit Time": "2026-08-25 09:39:44",
+      "Exit Premium": 42.15,
+      "Lots": 7,
+      "Exit Reason": "Partial Target",
+      "Net PnL": 1224.74,
+      "Net PnL %": 1.225
     }
   ],
   "Last OI Snapshot": {
