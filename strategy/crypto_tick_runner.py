@@ -1,0 +1,177 @@
+import json
+import os
+
+from strategy.backtest_live_engine import run_live_check
+from strategy.execution_backend import PaperExecutionBackend
+from strategy.live_tick_harness import CandleAggregator, _today_consecutive_losses
+
+# Added 24-Aug-2026 - the crypto paper-trading sub-project's own tick
+# runner, a deliberately simpler sibling of strategy/live_tick_harness.
+# py's LiveTickRunner (see the approved plan). Same on_tick(symbol,
+# timestamp, ltp, bid, ask) shape and state-assembly role - builds a
+# data_point and calls decide_fn via run_live_check(), the SAME
+# function a batch backtest replay uses (strategy/backtest_live_engine.
+# py) - but with NO squareoff_time parameter at all: LiveTickRunner's
+# _past_squareoff() has no disabled/None mode (confirmed by reading
+# that method), and Deribit is a 24/7 market with no daily-close
+# concept, so past_squareoff/before_market_open are simply hardcoded
+# False here instead of reusing that class.
+#
+# Deliberately does NOT import strategy/event_driven_runner.py - this
+# subsystem's only coupling to the NIFTY/BankNifty codebase stays
+# confined to the modules the approved plan explicitly designed to be
+# shared (backtest_live_engine.py, event_driven_engine.py's rsi_
+# momentum_decide_fn, live_tick_harness.py's CandleAggregator/_today_
+# consecutive_losses, execution_backend.py's PaperExecutionBackend) -
+# so this owns its own small atomic-write portfolio load/save below,
+# same pattern as event_driven_runner.py's load_portfolio()/save_
+# portfolio() (including that module's own 24-Aug-2026 fix: atomic
+# temp-file + os.replace() write, and graceful degradation on an
+# empty/corrupt file) rather than importing that module's version.
+#
+# daily_profit_lock is intentionally NOT wired up here yet (data_point
+# omits today_realized_pnl entirely) - that cfg gate defaults to False
+# (make_st2_threshold_event_cfg), and decide_fn's own .get(..., 0)
+# default means an absent field is harmless when the gate is off.
+# today_consecutive_losses IS wired up (module-level _today_
+# consecutive_losses, imported unchanged from live_tick_harness.py,
+# same "one place, not two copies" reasoning that function's own
+# 24-Aug-2026 note gives) since it's cheap and already shared - the
+# daily_loss_lock gate itself still defaults off, same as above. Keeps
+# this a lean first experiment, per the approved plan's own
+# "deliberately not building yet" list - a locked variant can wire up
+# today_realized_pnl the same way LiveTickRunner's own _today_realized_
+# pnl() does, if ever needed.
+
+PORTFOLIO_DIR = "reports"
+
+
+def _portfolio_path(name):
+    return os.path.join(PORTFOLIO_DIR, f"crypto_{name}_portfolio.json")
+
+
+def load_portfolio(name, initial_capital=10000):
+    """
+    Same atomic-read/graceful-degradation contract as strategy/event_
+    driven_runner.py's load_portfolio() - see that function's own
+    24-Aug-2026 incident note for why (a killed process must never be
+    able to crash the whole engine via one truncated/corrupt file).
+    """
+
+    path = _portfolio_path(name)
+
+    if not os.path.exists(path):
+        return {"Cash": initial_capital, "Position": None, "Closed Trades": []}
+
+    with open(path, "r") as f:
+        content = f.read()
+
+    if not content.strip():
+        print(f"WARNING: {path} is empty (likely an interrupted write) - "
+              f"starting {name} fresh. Any real trade history in this file is lost.")
+        return {"Cash": initial_capital, "Position": None, "Closed Trades": []}
+
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError as error:
+        print(f"WARNING: {path} is corrupt ({error}) - "
+              f"starting {name} fresh. Any real trade history in this file is lost.")
+        return {"Cash": initial_capital, "Position": None, "Closed Trades": []}
+
+
+def save_portfolio(name, portfolio):
+    """Writes atomically (temp file + os.replace()) - see load_portfolio()'s
+    own note and event_driven_runner.py's matching 24-Aug-2026 fix."""
+
+    os.makedirs(PORTFOLIO_DIR, exist_ok=True)
+
+    path = _portfolio_path(name)
+    tmp_path = path + ".tmp"
+
+    with open(tmp_path, "w") as f:
+        json.dump(portfolio, f, indent=2)
+
+    os.replace(tmp_path, path)
+
+
+class CryptoTickRunner:
+    """
+    Owns one strategy's live decide_fn loop over a Deribit BTC/ETH
+    options book. Feed it every tick for the symbols it cares about
+    (the underlying index, ATM CE, ATM PE) via on_tick(); once enough
+    state exists to build a full data_point, it calls decide_fn through
+    run_live_check() - the SAME function a batch backtest replay uses,
+    so there is no second copy of the decision logic here, only state-
+    assembly (identical role to LiveTickRunner - see that class's own
+    docstring in strategy/live_tick_harness.py).
+    """
+
+    def __init__(self, decide_fn, cfg, portfolio, underlying_index_name, ce_symbol, pe_symbol,
+                 initial_candles=None, execution_backend=None):
+
+        self.decide_fn = decide_fn
+        self.cfg = cfg
+        self.portfolio = portfolio
+        self.underlying_index_name = underlying_index_name
+        self.ce_symbol = ce_symbol
+        self.pe_symbol = pe_symbol
+        self.aggregator = CandleAggregator(initial_candles)
+        self.execution_backend = execution_backend or PaperExecutionBackend()
+
+        self._latest = {"spot": None, "ce_ltp": None, "ce_bid": None, "ce_ask": None,
+                         "pe_ltp": None, "pe_bid": None, "pe_ask": None}
+        self.last_action = None
+
+    def on_tick(self, symbol, timestamp, ltp, bid=None, ask=None):
+        """
+        Call once per incoming Deribit tick (a parsed ticker.{instrument}
+        .100ms message for ce_symbol/pe_symbol, or a parsed deribit_
+        price_index.{...} message for underlying_index_name - see
+        strategy/deribit_data.py's connect_and_run()). Ticks for symbols
+        this runner doesn't track are ignored.
+
+        Returns the action string if decide_fn ran this call, else None.
+        """
+
+        if symbol == self.underlying_index_name:
+            self.aggregator.on_tick(timestamp, ltp)
+            self._latest["spot"] = ltp
+        elif symbol == self.ce_symbol:
+            self._latest["ce_ltp"] = ltp
+            self._latest["ce_bid"] = bid
+            self._latest["ce_ask"] = ask
+        elif symbol == self.pe_symbol:
+            self._latest["pe_ltp"] = ltp
+            self._latest["pe_bid"] = bid
+            self._latest["pe_ask"] = ask
+        else:
+            return None
+
+        if self._latest["spot"] is None:
+            return None  # no RSI/spot context yet
+
+        data_point = {
+            "timestamp": timestamp.strftime("%Y-%m-%d %H:%M:%S"),  # Deribit's own tick time, UTC
+            "spot": self._latest["spot"],
+            "rsi": self.aggregator.current_rsi(),
+            "ce_symbol": self.ce_symbol, "ce_ltp": self._latest["ce_ltp"],
+            "ce_bid": self._latest["ce_bid"], "ce_ask": self._latest["ce_ask"],
+            "pe_symbol": self.pe_symbol, "pe_ltp": self._latest["pe_ltp"],
+            "pe_bid": self._latest["pe_bid"], "pe_ask": self._latest["pe_ask"],
+            "past_squareoff": False,       # always - no daily close for a 24/7 market
+            "before_market_open": False,   # always - see module docstring
+            "today_consecutive_losses": _today_consecutive_losses(self.portfolio, timestamp),
+            # "previous_close" intentionally omitted - disables the
+            # circuit-band gate for free, same as the plan's own note
+            # (Deribit has no NSE-style circuit bands to begin with).
+        }
+
+        action, self.portfolio = run_live_check(self.decide_fn, self.cfg, self.portfolio, data_point)
+        self.last_action = action
+
+        if action.startswith("OPENED"):
+            self.execution_backend.on_open(self.cfg, self.portfolio["Position"])
+        elif action.startswith("CLOSED"):
+            self.execution_backend.on_close(self.cfg, self.portfolio["Closed Trades"][-1])
+
+        return action

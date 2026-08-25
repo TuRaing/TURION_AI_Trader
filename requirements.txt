@@ -16,3 +16,13 @@ pynacl
 # lazily imported inside connect_and_run() itself so the rest of that
 # module (all the tested logic) still works without it installed.
 fyers-apiv3
+# Added 24-Aug-2026 - only strategy/deribit_data.py's connect_and_run()
+# needs this (the crypto paper-trading sub-project's Deribit WebSocket
+# wiring) - lazily imported inside that function itself, same "rest of
+# the module still works without it" convention as fyers-apiv3 above.
+# `websockets` (async), not `websocket-client` (sync/callback) - this
+# session's real live-connection verification used `websockets`
+# directly against wss://www.deribit.com/ws/api/v2 and confirmed it
+# works; Deribit's public channels are unauthenticated JSON-RPC, so
+# there's no need for fyers_apiv3's own callback-based SDK style here.
+websockets
