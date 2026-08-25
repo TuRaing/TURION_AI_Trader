@@ -1,22 +1,6 @@
 {
-  "Cash": 98867.5,
-  "Position": {
-    "Option Type": "PE",
-    "Short Strike": 23800,
-    "Long Strike": 23650,
-    "Short Symbol": "NSE:NIFTY26AUG23800PE",
-    "Long Symbol": "NSE:NIFTY26AUG23650PE",
-    "Entry Time": "2026-08-25 09:36:21",
-    "Entry Spot": 24186.8,
-    "Entry Credit": 0.2,
-    "Entry RSI": 50.85,
-    "Entry VIX": 11.54,
-    "Lots": 8,
-    "Quantity": 600,
-    "Max Loss": 89880.0,
-    "Last Cost To Close": 0.2,
-    "Last Checked": "2026-08-25 09:36:21"
-  },
+  "Cash": 98927.5,
+  "Position": null,
   "Closed Trades": [
     {
       "Option Type": "PE",
@@ -122,6 +106,24 @@
       "Long Close Premium": 2.1,
       "Lots": 8,
       "Exit Reason": "Square-Off",
+      "Net PnL": 60.0,
+      "Net PnL %": 0.06
+    },
+    {
+      "Option Type": "PE",
+      "Short Strike": 23800,
+      "Long Strike": 23650,
+      "Short Symbol": "NSE:NIFTY26AUG23800PE",
+      "Long Symbol": "NSE:NIFTY26AUG23650PE",
+      "Entry Time": "2026-08-25 09:36:21",
+      "Entry Credit": 0.2,
+      "Entry Spot": 24186.8,
+      "Exit Spot": 24179.55,
+      "Exit Time": "2026-08-25 09:38:16",
+      "Short Close Premium": 0.95,
+      "Long Close Premium": 0.85,
+      "Lots": 8,
+      "Exit Reason": "Target (50% of credit)",
       "Net PnL": 60.0,
       "Net PnL %": 0.06
     }
