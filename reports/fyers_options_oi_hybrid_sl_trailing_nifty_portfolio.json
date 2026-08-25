@@ -1,20 +1,6 @@
 {
-  "Cash": 39931.90012368999,
-  "Position": {
-    "Symbol": "NSE:NIFTY26AUG24200CE",
-    "Strike": 24200,
-    "Option Type": "CE",
-    "Entry Time": "2026-08-25 14:41:30",
-    "Entry Spot": 24207.05,
-    "Entry Premium": 43.85,
-    "Entry CE OI": 29739255,
-    "Entry PE OI": 32044155,
-    "Lots": 12,
-    "Quantity": 900,
-    "Capital Deployed": 39465.0,
-    "Last Premium": 43.85,
-    "Last Checked": "2026-08-25 14:41:30"
-  },
+  "Cash": 35362.63375403999,
+  "Position": null,
   "Closed Trades": [
     {
       "Symbol": "NSE:NIFTY2681824300PE",
@@ -525,6 +511,23 @@
       "Exit Reason": "Trailing Stop",
       "Net PnL": -8283.24,
       "Net PnL %": -8.283
+    },
+    {
+      "Symbol": "NSE:NIFTY26AUG24200CE",
+      "Strike": 24200,
+      "Option Type": "CE",
+      "Entry Time": "2026-08-25 14:41:30",
+      "Entry Premium": 43.85,
+      "Entry Spot": 24207.05,
+      "Exit Spot": 24203.35,
+      "Entry CE OI": 29739255,
+      "Entry PE OI": 32044155,
+      "Exit Time": "2026-08-25 14:43:25",
+      "Exit Premium": 38.9,
+      "Lots": 12,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -4569.27,
+      "Net PnL %": -4.569
     }
   ],
   "Last OI Snapshot": {
