@@ -1,6 +1,19 @@
 {
   "Cash": 101958.50588540749,
-  "Position": null,
+  "Position": {
+    "Symbol": "NSE:NIFTY26AUG24200CE",
+    "Strike": 24200,
+    "Option Type": "CE",
+    "Entry Time": "2026-08-25 14:29:03",
+    "Entry Spot": 24180.6,
+    "Entry Premium": 21.6,
+    "Entry Max Pain": 24200,
+    "Lots": 62,
+    "Quantity": 4650,
+    "Capital Deployed": 100440.0,
+    "Last Premium": 21.6,
+    "Last Checked": "2026-08-25 14:29:03"
+  },
   "Closed Trades": [
     {
       "Symbol": "NSE:NIFTY2681824300PE",
@@ -213,7 +226,7 @@
       "Net PnL %": -16.484
     }
   ],
-  "Last Max Pain": 24150,
+  "Last Max Pain": 24200,
   "Data Source": "Fyers (real premium)",
   "Strategy": "max_pain_drift",
   "Index": "NIFTY"
