@@ -1,30 +1,40 @@
 {
-  "Generated At": "2026-08-25 04:40:49",
+  "Generated At": "2026-08-25 05:33:27",
   "Stocks": [
     {
-      "Name": "COALINDIA",
-      "Symbol": "COALINDIA.NS",
-      "Price": 405.65,
+      "Name": "TATASTEEL",
+      "Symbol": "TATASTEEL.NS",
+      "Price": 184.1,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 80.0,
-      "ATR": 5.03,
+      "ATR": 3.7,
+      "Candle Pattern": "Bearish Engulfing"
+    },
+    {
+      "Name": "COALINDIA",
+      "Symbol": "COALINDIA.NS",
+      "Price": 403.65,
+      "Decision": "SELL",
+      "Bias": "Bearish",
+      "Confidence": 80.0,
+      "ATR": 5.17,
       "Candle Pattern": "Bearish Engulfing"
     },
     {
       "Name": "HINDUNILVR",
       "Symbol": "HINDUNILVR.NS",
-      "Price": 2022.0,
+      "Price": 2023.1,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
       "ATR": 24.46,
-      "Candle Pattern": "No Pattern"
+      "Candle Pattern": "Doji"
     },
     {
       "Name": "ONGC",
       "Symbol": "ONGC.NS",
-      "Price": 235.78,
+      "Price": 235.55,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
@@ -34,27 +44,17 @@
     {
       "Name": "NTPC",
       "Symbol": "NTPC.NS",
-      "Price": 337.6,
+      "Price": 337.35,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
-      "ATR": 5.3,
-      "Candle Pattern": "No Pattern"
-    },
-    {
-      "Name": "TATASTEEL",
-      "Symbol": "TATASTEEL.NS",
-      "Price": 184.84,
-      "Decision": "SELL",
-      "Bias": "Bearish",
-      "Confidence": 60.0,
-      "ATR": 3.65,
+      "ATR": 5.36,
       "Candle Pattern": "No Pattern"
     },
     {
       "Name": "SBILIFE",
       "Symbol": "SBILIFE.NS",
-      "Price": 1767.2,
+      "Price": 1767.0,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
@@ -79,6 +79,15 @@
     }
   ],
   "News": {
+    "TATASTEEL": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "COALINDIA": {
       "Headlines": [],
       "Positive": 0,
@@ -107,19 +116,12 @@
       "Confidence": 0.0
     },
     "NTPC": {
-      "Headlines": [],
+      "Headlines": [
+        "NTPC Share Price Live Updates: NTPC Stock Details"
+      ],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "TATASTEEL": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
+      "Neutral": 1,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -133,7 +135,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "DIVISLAB": {
+    "GRASIM": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -142,7 +144,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "GRASIM": {
+    "SHREECEM": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -165,7 +167,7 @@
     "LT": {
       "Headlines": [
         "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
-        "InCred hires Avendus wealth experts to launch new platform for ultra-high-net-worth individuals"
+        "LTIMindtree Share Price Live Updates: LTIMindtree Stock Details"
       ],
       "Positive": 1,
       "Negative": 0,
@@ -173,6 +175,15 @@
       "Sentiment": "Bullish",
       "Score": 1.0,
       "Confidence": 100.0
+    },
+    "HCLTECH": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
     },
     "POWERGRID": {
       "Headlines": [],
@@ -183,7 +194,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "JSWSTEEL": {
+    "ADANIENT": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -192,7 +203,16 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "SHREECEM": {
+    "ADANIPORTS": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "JSWSTEEL": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -237,25 +257,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "BAJFINANCE": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "ASIANPAINT": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "HCLTECH": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -284,15 +286,14 @@
     },
     "WIPRO": {
       "Headlines": [
-        "Infosys, TCS, Wipro and other IT stocks in focus as Donald Trump administration proposes higher H-1B visa fee",
-        "Wipro Share Price Live Updates: Wipro's Volume Indicates Strong Market Engagement"
+        "Infosys, TCS, Wipro and other IT stocks in focus as Donald Trump administration proposes higher H-1B visa fee"
       ],
-      "Positive": 1,
+      "Positive": 0,
       "Negative": 0,
       "Neutral": 1,
-      "Sentiment": "Bullish",
-      "Score": 1.0,
-      "Confidence": 100.0
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
     },
     "NESTLEIND": {
       "Headlines": [],
@@ -304,15 +305,6 @@
       "Confidence": 0.0
     },
     "M&M": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "ADANIPORTS": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -349,6 +341,17 @@
       "Confidence": 0.0
     },
     "CIPLA": {
+      "Headlines": [
+        "Cipla Share Price Live Updates: Cipla Stock Details"
+      ],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 1,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "DIVISLAB": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -393,20 +396,13 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "TECHM": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "BPCL": {
-      "Headlines": [],
+      "Headlines": [
+        "BPCL Share Price Live Updates: Today's Price Movement for BPCL"
+      ],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 0,
+      "Neutral": 1,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -422,11 +418,12 @@
     },
     "TCS": {
       "Headlines": [
-        "Infosys, TCS, Wipro and other IT stocks in focus as Donald Trump administration proposes higher H-1B visa fee"
+        "Infosys, TCS, Wipro and other IT stocks in focus as Donald Trump administration proposes higher H-1B visa fee",
+        "TCS Share Price Live Updates: TCS Current Price Update"
       ],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 1,
+      "Neutral": 2,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -467,6 +464,15 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "BAJFINANCE": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "MARUTI": {
       "Headlines": [],
       "Positive": 0,
@@ -477,15 +483,6 @@
       "Confidence": 0.0
     },
     "SUNPHARMA": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "ADANIENT": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -512,6 +509,15 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "TECHM": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "UPL": {
       "Headlines": [],
       "Positive": 0,
@@ -522,15 +528,13 @@
       "Confidence": 0.0
     },
     "NIFTY 50": {
-      "Headlines": [
-        "Sensex Today | Nifty 50 | Stock Market LIVE Updates: Sensex falls over 100 pts, Nifty below 24,200; Airtel, Kotak Bank top laggards"
-      ],
+      "Headlines": [],
       "Positive": 0,
-      "Negative": 1,
+      "Negative": 0,
       "Neutral": 0,
-      "Sentiment": "Bearish",
-      "Score": -1.0,
-      "Confidence": 100.0
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
     },
     "BANK NIFTY": {
       "Headlines": [],
@@ -558,6 +562,38 @@
     {
       "Headline": "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
       "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "FACT, Paradeep Phosphates, RCF, other fertiliser stocks rally up to 13%. Here's why",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Pine Labs, Delhivery among 10 stocks that saw sharpest decline in FII holding in Q1. Check full list",
+      "Sentiment": "Bearish"
+    },
+    {
+      "Headline": "ESDS Software's Rs 720-cr IPO to open on Aug 28; sets price band at Rs 408-429",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Global Market: SK Hynix workers reject pay deal amid bonus dispute",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Afcons Infrastructure shares rally 4% after receiving Rs 335.5 crore arbitration award",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Ceigall India shares rise 4% after winning Rs 705 crore Arunachal Pradesh Frontier Highway project",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Global Market: Unitree\u2019s 45% share slump raises bubble concerns after blockbuster Shanghai debut",
+      "Sentiment": "Bearish"
+    },
+    {
+      "Headline": "Fall of market leaders! How 6 Nifty giants trapped investors with negative returns for 5 years",
+      "Sentiment": "Bearish"
     },
     {
       "Headline": "Gold prices fall after 4 days; silver dips Rs 4,300/kg ahead of inflation data, Warsh speech at Jackson Hole",
@@ -612,7 +648,19 @@
       "Sentiment": "Bullish"
     },
     {
-      "Headline": "Annu Projects IPO opens today: Check GMP, price band, and key dates. Should you subscribe?",
+      "Headline": "Bajaj Finserv Share Price Live Updates: Bajaj Finserv Stock Details",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Eicher Motors Share Price Live Updates: Eicher Motors Stock Details",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "IndusInd Bank Share Price Live Updates: IndusInd Bank Stock Details",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Annu Projects IPO opens: Check GMP, price band, and key dates. Should you subscribe?",
       "Sentiment": "Neutral"
     },
     {
@@ -644,7 +692,15 @@
       "Sentiment": "Bullish"
     },
     {
+      "Headline": "Coal India Share Price Live Updates: Current Price Update for Coal India",
+      "Sentiment": "Neutral"
+    },
+    {
       "Headline": "RIL Share Price Live Updates: RIL's Recent Trading Insights",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Divis Labs Share Price Live Updates: Divis Labs Stock Update",
       "Sentiment": "Neutral"
     },
     {
@@ -652,95 +708,43 @@
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Tata Steel Share Price Live Updates: Tata Steel's Price Action Indicates Strength",
+      "Headline": "BPCL Share Price Live Updates: Today's Price Movement for BPCL",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Infosys Share Price Live Updates: Infosys Price Fluctuation",
+      "Headline": "L&amp;T Share Price Live Updates: L&amp;T's Market Update",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Bajaj Finance Share Price Live Updates: Bajaj Finance Sees Strong Trading Activity",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "HCL Tech Share Price Live Updates: HCL Tech's Price Falls Below EMA Threshold",
-      "Sentiment": "Bearish"
-    },
-    {
-      "Headline": "Axis Bank Share Price Live Updates: Axis Bank Surpasses 20-Day Simple Moving Average",
+      "Headline": "Power Grid Share Price Live Updates: Power Grid's Current Market Position",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "M&amp;M Share Price Live Updates: M&amp;M's Stock Shows Signs of Weakness",
-      "Sentiment": "Bearish"
-    },
-    {
-      "Headline": "Adani Ent Share Price Live Updates: Adani Enterprises  Market Performance Snapshot",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Stocks to buy in 2026 for long term: Welspun Corp, Tata Consumer among 5 stocks which could give 10-40% return",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "ICICI Bank Share Price Live Updates: ICICI Bank Volume Analysis",
+      "Headline": "LTIMindtree Share Price Live Updates: LTIMindtree Stock Details",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Wipro Share Price Live Updates: Wipro's Volume Indicates Strong Market Engagement",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Shankesh Jewellers shares to list today; Here's what GMP suggests ahead of listing",
+      "Headline": "Tata Steel Share Price Live Updates: Tata Steel Price Update",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Sunshine Pictures shares list at 10% premium over IPO price",
+      "Headline": "Cipla Share Price Live Updates: Cipla Stock Details",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Stock split alert! Last day to buy this recently-listed travel firm's shares after over 50% rally in 2 months",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Vishal Mega Mart among 4 stocks showing bullish RSI upswing",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Positive Breakout: These 8 stocks cross above their 200 DMAs",
+      "Headline": "SBI Share Price Live Updates: SBI's Current Trading Price",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Oil Price Today (August 25): Crude oil at $92 as investors digest US economic sanctions on Iran. What\u2019s next for investors?",
+      "Headline": "TCS Share Price Live Updates: TCS Current Price Update",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Dollar struggles for traction as markets weigh Iran sanctions, Treasury buybacks",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Gold touches highest level since mid-May as buying momentum builds",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Sensex logs worst two-year return trend since 2012",
+      "Headline": "Tech Mahindra Share Price Live Updates: Tech Mahindra's Recent Market Trends",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Oil prices steady as investors weigh impact of expanded US sanctions against Iran",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Sensex Today | Nifty 50 | Stock Market LIVE Updates: Sensex falls over 100 pts, Nifty below 24,200; Airtel, Kotak Bank top laggards",
-      "Sentiment": "Bearish"
-    },
-    {
-      "Headline": "InCred hires Avendus wealth experts to launch new platform for ultra-high-net-worth individuals",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Renewable energy project deadlines extended up to four months due to West Asia disruptions",
+      "Headline": "NTPC Share Price Live Updates: NTPC Stock Details",
       "Sentiment": "Neutral"
     }
   ]
