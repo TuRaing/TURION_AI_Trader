@@ -1,19 +1,6 @@
 {
-  "Cash": 70908.25929641597,
-  "Position": {
-    "Symbol": "NSE:BANKNIFTY26AUG57400PE",
-    "Strike": 57400,
-    "Option Type": "PE",
-    "Entry Time": "2026-08-25 12:38:18",
-    "Entry Spot": 57407.7,
-    "Entry Premium": 68.25,
-    "Entry RSI": 40.6,
-    "Lots": 34,
-    "Quantity": 1020,
-    "Capital Deployed": 69615.0,
-    "Last Premium": 68.25,
-    "Last Checked": "2026-08-25 12:38:18"
-  },
+  "Cash": 78014.32408113398,
+  "Position": null,
   "Closed Trades": [
     {
       "Symbol": "NSE:BANKNIFTY26AUG57900CE",
@@ -430,6 +417,21 @@
       "Exit Reason": "Target",
       "Net PnL": 10261.38,
       "Net PnL %": 10.261
+    },
+    {
+      "Symbol": "NSE:BANKNIFTY26AUG57400PE",
+      "Strike": 57400,
+      "Option Type": "PE",
+      "Entry Time": "2026-08-25 12:38:18",
+      "Entry Premium": 68.25,
+      "Entry Spot": 57407.7,
+      "Exit Time": "2026-08-25 12:43:32",
+      "Exit Premium": 75.4,
+      "Exit Spot": 57401.1,
+      "Lots": 34,
+      "Exit Reason": "Target",
+      "Net PnL": 7106.06,
+      "Net PnL %": 7.106
     }
   ],
   "Data Source": "Fyers (real premium)",
