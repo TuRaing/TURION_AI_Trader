@@ -1,20 +1,40 @@
 {
-  "Generated At": "2026-08-25 06:51:06",
+  "Generated At": "2026-08-25 07:45:44",
   "Stocks": [
     {
-      "Name": "COALINDIA",
-      "Symbol": "COALINDIA.NS",
-      "Price": 401.9,
+      "Name": "TATASTEEL",
+      "Symbol": "TATASTEEL.NS",
+      "Price": 183.92,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 80.0,
-      "ATR": 5.28,
+      "ATR": 3.73,
       "Candle Pattern": "Bearish Engulfing"
+    },
+    {
+      "Name": "COALINDIA",
+      "Symbol": "COALINDIA.NS",
+      "Price": 401.5,
+      "Decision": "SELL",
+      "Bias": "Bearish",
+      "Confidence": 80.0,
+      "ATR": 5.31,
+      "Candle Pattern": "Bearish Engulfing"
+    },
+    {
+      "Name": "SBILIFE",
+      "Symbol": "SBILIFE.NS",
+      "Price": 1754.8,
+      "Decision": "SELL",
+      "Bias": "Bearish",
+      "Confidence": 80.0,
+      "ATR": 29.41,
+      "Candle Pattern": "Shooting Star"
     },
     {
       "Name": "HINDUNILVR",
       "Symbol": "HINDUNILVR.NS",
-      "Price": 2021.0,
+      "Price": 2015.0,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
@@ -24,41 +44,21 @@
     {
       "Name": "ONGC",
       "Symbol": "ONGC.NS",
-      "Price": 234.48,
+      "Price": 233.97,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
-      "ATR": 3.63,
+      "ATR": 3.69,
       "Candle Pattern": "No Pattern"
     },
     {
       "Name": "NTPC",
       "Symbol": "NTPC.NS",
-      "Price": 336.8,
+      "Price": 336.6,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
-      "ATR": 5.38,
-      "Candle Pattern": "No Pattern"
-    },
-    {
-      "Name": "TATASTEEL",
-      "Symbol": "TATASTEEL.NS",
-      "Price": 184.63,
-      "Decision": "SELL",
-      "Bias": "Bearish",
-      "Confidence": 60.0,
-      "ATR": 3.73,
-      "Candle Pattern": "No Pattern"
-    },
-    {
-      "Name": "SBILIFE",
-      "Symbol": "SBILIFE.NS",
-      "Price": 1757.9,
-      "Decision": "SELL",
-      "Bias": "Bearish",
-      "Confidence": 60.0,
-      "ATR": 29.41,
+      "ATR": 5.42,
       "Candle Pattern": "No Pattern"
     }
   ],
@@ -79,7 +79,25 @@
     }
   ],
   "News": {
+    "TATASTEEL": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "COALINDIA": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "SBILIFE": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -115,24 +133,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "TATASTEEL": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "SBILIFE": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "DIVISLAB": {
       "Headlines": [],
       "Positive": 0,
@@ -151,7 +151,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "ICICIBANK": {
+    "HDFCBANK": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -161,12 +161,10 @@
       "Confidence": 0.0
     },
     "ITC": {
-      "Headlines": [
-        "Bitcoin tops $80,000 for the first time since mid-May"
-      ],
+      "Headlines": [],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 1,
+      "Neutral": 0,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -246,7 +244,34 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "HDFCBANK": {
+    "HINDALCO": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "RELIANCE": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "ICICIBANK": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "INFY": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -274,15 +299,6 @@
       "Confidence": 0.0
     },
     "AXISBANK": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "BAJFINANCE": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -428,6 +444,15 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "INDUSINDBK": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "TECHM": {
       "Headlines": [],
       "Positive": 0,
@@ -438,24 +463,6 @@
       "Confidence": 0.0
     },
     "BPCL": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "HINDALCO": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "RELIANCE": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -476,15 +483,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "INFY": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "SBIN": {
       "Headlines": [],
       "Positive": 0,
@@ -494,7 +492,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "BRITANNIA": {
+    "BAJFINANCE": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -503,7 +501,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "INDUSINDBK": {
+    "BRITANNIA": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -556,6 +554,42 @@
     {
       "Headline": "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
       "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "NSE IPO coming soon: Should investors buy unlisted shares now or wait for the mega issue?",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Q1 earnings show resilience, but downside risks still loom. HSBC explains why",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Bernstein cuts PFC, REC target prices as bank competition weighs on loan growth",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Micron Under Pressure: Is the AI Memory Boom Losing Momentum?",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "IFL Finance shares drop 8% as IIFL Home Finance gets Rs 963 crore tax demand",
+      "Sentiment": "Bearish"
+    },
+    {
+      "Headline": "Jackson Hole 2026: When and what are investors expecting from Fed Chair Kevin Warsh?",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "India bonds flat as oil prices shrug off US curbs on Iran",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Intel stock falls: Why is INTC sliding after $20 billion share sale?",
+      "Sentiment": "Bearish"
+    },
+    {
+      "Headline": "Radhakishan Damani\u2019s portfolio: How his top 5 stock holdings fared in a month",
+      "Sentiment": "Neutral"
     },
     {
       "Headline": "Global Market: Japanese bond yields edge higher as US Treasury yields, oil prices rise",
@@ -703,42 +737,6 @@
     },
     {
       "Headline": "Eicher Motors Share Price Live Updates: Eicher Motors Stock Details",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Jio Financial Services Share Price Live Updates: Jio Financial Services News",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "IndusInd Bank Share Price Live Updates: IndusInd Bank Stock Details",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Annu Projects IPO opens: Check GMP, price band, and key dates. Should you subscribe?",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Muthoot Finance among 6 stocks flashing bullish signals, hinting at a possible uptrend",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Augmont Enterprises IPO Day 3: GMP at 42%, issue subscribed 14.46x. Should you apply?",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Hero MotoCorp Share Price Live Updates: Hero MotoCorp's Price Movement Signals EMA Break",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Hindustan Copper shares fall 6% as govt opens OFS at 10% discount",
-      "Sentiment": "Bearish"
-    },
-    {
-      "Headline": "ETMarkets Smart Talk | India enters earnings-led phase; Anil Rego favours financials, autos, industrials",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Bitcoin tops $80,000 for the first time since mid-May",
       "Sentiment": "Neutral"
     }
   ]
