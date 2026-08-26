@@ -18,6 +18,7 @@ from strategy.fyers_options_engine import INDEX_CONFIG
 from strategy.tick_collector import (
     atm_has_drifted, tick_log_filename, format_tick_record, LiveCandleAggregator,
 )
+from strategy.data_watchdog import watchdog_loop
 
 # Added 20-Aug-2026 - the VPS entry point for the ATM tick-by-tick
 # archival collector (strategy/tick_collector.py's pure logic). Same
@@ -182,7 +183,18 @@ def main():
                 return index, leg
         return None, None
 
+    # Added 26-Aug-2026 - see strategy/data_watchdog.py's own module
+    # docstring for the real incident. Seeded to "now", not None, so a
+    # connection that never receives a single message still gets caught.
+    _last_message_at = {"time": datetime.datetime.now(IST)}
+
     def on_message(message):
+        # Added 26-Aug-2026 - see strategy/data_watchdog.py's own
+        # module docstring (real incident) - updated for EVERY message
+        # (before the unsubscribed-symbol early-return below), so any
+        # sign of life keeps the watchdog quiet.
+        _last_message_at["time"] = datetime.datetime.now(IST)
+
         symbol = message.get("symbol")
         index, leg = symbol_lookup(symbol)
 
@@ -266,6 +278,12 @@ def main():
                 state[index] = {"strike": atm_strike, "symbols": new_symbols}
 
     threading.Thread(target=atm_recheck_loop, daemon=True).start()
+
+    # Added 26-Aug-2026 - see strategy/data_watchdog.py's own module
+    # docstring for the real incident this covers.
+    threading.Thread(
+        target=watchdog_loop, args=(lambda: _last_message_at["time"],), daemon=True
+    ).start()
 
     print("Connecting to Fyers WebSocket for tick archival...")
     socket.connect()

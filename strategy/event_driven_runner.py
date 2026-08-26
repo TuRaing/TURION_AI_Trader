@@ -16,6 +16,7 @@ from strategy.event_driven_engine import (
 from strategy.execution_backend import PaperExecutionBackend
 from strategy.live_tick_harness import LiveTickRunner, OIFootprintTickRunner, handle_symbol_update_message
 from strategy.tick_collector import LiveCandleAggregator
+from strategy.data_watchdog import watchdog_loop
 
 IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
 
@@ -830,6 +831,14 @@ def main(access_token, execution_backend=None):
     # len(runners) * 2 entries, never grows further).
     _last_tick_sync = {}
 
+    # Added 26-Aug-2026 - see strategy/data_watchdog.py's own module
+    # docstring for the real incident (fyers_apiv3's reconnect logic
+    # gives up after 5 attempts and never retries again, leaving the
+    # process alive but permanently data-dead). Seeded to "now", not
+    # None, so a connection that never receives a single message still
+    # gets caught after WATCHDOG_TIMEOUT_MINUTES.
+    _last_message_at = {"time": datetime.datetime.now(IST)}
+
     def _alert_connection_issue(kind, message):
         now = datetime.datetime.now()
         if _should_send_connection_alert(_last_connection_alert["time"], now):
@@ -841,6 +850,12 @@ def main(access_token, execution_backend=None):
             )
 
     def on_message(message):
+        # Added 26-Aug-2026 - see data_watchdog.py's own note (real
+        # incident). Updated for EVERY message (control/ack messages
+        # included, not just real ticks) so the watchdog only fires on
+        # a genuinely dead connection, never a quiet-but-alive one.
+        _last_message_at["time"] = datetime.datetime.now(IST)
+
         # FIXED 21-Aug-2026 - real bug caught live: this used to call
         # save_all(runners) with no `keys` filter and no executor - re-
         # saving/re-syncing ALL 6 runners, including a blocking Firebase
@@ -967,6 +982,12 @@ def main(access_token, execution_backend=None):
                 print(f"OI snapshot refresh failed (continuing on the old signal): {error}")
 
     threading.Thread(target=oi_refresh_loop, daemon=True).start()
+
+    # Added 26-Aug-2026 - see strategy/data_watchdog.py's own module
+    # docstring for the real incident this covers.
+    threading.Thread(
+        target=watchdog_loop, args=(lambda: _last_message_at["time"],), daemon=True
+    ).start()
 
     socket.connect()
 

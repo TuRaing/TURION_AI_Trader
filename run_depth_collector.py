@@ -13,6 +13,7 @@ sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)
 from report.firebase_realtime_sync import fetch_access_token
 from strategy.event_driven_runner import pick_atm_symbols
 from strategy.depth_collector import depth_log_filename, format_depth_record
+from strategy.data_watchdog import watchdog_loop
 
 # Added 24-Aug-2026, at the user's own explicit request - the VPS entry
 # point for real-time DepthUpdate archival (strategy/depth_collector.py's
@@ -126,7 +127,16 @@ def main():
     def symbol_is_tracked(symbol):
         return any(symbol in state[index]["symbols"] for index in INDICES)
 
+    # Added 26-Aug-2026 - see strategy/data_watchdog.py's own module
+    # docstring for the real incident. Seeded to "now", not None, so a
+    # connection that never receives a single message still gets caught.
+    _last_message_at = {"time": datetime.datetime.now(IST)}
+
     def on_message(message):
+        # Updated for EVERY message, before the unsubscribed-symbol
+        # early-return below, so any sign of life keeps the watchdog quiet.
+        _last_message_at["time"] = datetime.datetime.now(IST)
+
         symbol = message.get("symbol")
 
         if not symbol_is_tracked(symbol):
@@ -187,6 +197,12 @@ def main():
                 state[index] = {"strike": new_strike, "symbols": new_symbols}
 
     threading.Thread(target=atm_recheck_loop, daemon=True).start()
+
+    # Added 26-Aug-2026 - see strategy/data_watchdog.py's own module
+    # docstring for the real incident this covers.
+    threading.Thread(
+        target=watchdog_loop, args=(lambda: _last_message_at["time"],), daemon=True
+    ).start()
 
     print("Connecting to Fyers WebSocket for depth archival...")
     socket.connect()
