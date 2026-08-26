@@ -38,11 +38,34 @@ permissions:
 # two runs to genuinely conflict writing the same 2 report files
 # (confirmed in a real failed run's log: "CONFLICT (content): Merge
 # conflict in reports/fyers_options_st2_..._portfolio.json" x2, from
-# an overlapping st2 run, not a different-strategy collision). This
-# queues same-strategy runs instead of letting them overlap - a run
-# for one strategy still proceeds independently of the other 3.
+# an overlapping st2 run, not a different-strategy collision).
+#
+# WIDENED 26-Aug-2026, real bug found live: grouping by `inputs.
+# strategy` only serializes runs that share the EXACT SAME strategy
+# value - an "oi_hybrid_sl_laddered"-only trigger and an "all" trigger
+# (which also runs oi_hybrid_sl_laddered as part of everything) land
+# in DIFFERENT concurrency groups and can still run at the same time,
+# both trying to update reports/fyers_options_oi_hybrid_sl_laddered_
+# {nifty,banknifty}_portfolio.json - confirmed live via a real failed
+# run's log: "CONFLICT (content): Merge conflict in ...oi_hybrid_sl_
+# laddered_banknifty_portfolio.json" / "...nifty_portfolio.json", with
+# 36 runs queued + 20 in_progress simultaneously at the time (the
+# underlying cron-job.org trigger rate exceeding how fast runs can
+# actually complete - a real, separate, external-dashboard issue this
+# change does not fix, only makes safe to have). The commit step below
+# also unconditionally `git add`s every book's portfolio file
+# regardless of which `strategy` input actually ran, so ANY two
+# overlapping runs of this workflow - not just same-strategy ones -
+# are a real conflict risk, not a narrow one. One shared group for the
+# WHOLE workflow (not parameterized by strategy) means no two runs of
+# this workflow ever execute concurrently, at the cost of throughput
+# (runs queue strictly one-at-a-time instead of running strategies in
+# parallel) - accepted trade-off, since the alternative is runs
+# silently losing real trade/portfolio data on a conflict, per this
+# same file's own "Any OTHER conflicted file...aborts and fails
+# loudly" design choice just below.
 concurrency:
-  group: fyers-multi-strategy-${{ inputs.strategy }}
+  group: fyers-multi-strategy-options
   cancel-in-progress: false
 
 jobs:
