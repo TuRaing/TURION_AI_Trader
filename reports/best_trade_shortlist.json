@@ -1,50 +1,40 @@
 {
-  "Generated At": "2026-08-26 07:49:16",
+  "Generated At": "2026-08-26 08:45:43",
   "Stocks": [
     {
       "Name": "HINDUNILVR",
       "Symbol": "HINDUNILVR.NS",
-      "Price": 2026.5,
+      "Price": 2025.0,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 80.0,
-      "ATR": 25.1,
-      "Candle Pattern": "Shooting Star"
-    },
-    {
-      "Name": "RELIANCE",
-      "Symbol": "RELIANCE.NS",
-      "Price": 1305.0,
-      "Decision": "SELL",
-      "Bias": "Bearish",
-      "Confidence": 60.0,
-      "ATR": 16.42,
-      "Candle Pattern": "No Pattern"
-    },
-    {
-      "Name": "ITC",
-      "Symbol": "ITC.NS",
-      "Price": 271.2,
-      "Decision": "SELL",
-      "Bias": "Bearish",
-      "Confidence": 60.0,
-      "ATR": 3.9,
+      "ATR": 25.17,
       "Candle Pattern": "Shooting Star"
     },
     {
       "Name": "KOTAKBANK",
       "Symbol": "KOTAKBANK.NS",
-      "Price": 414.55,
+      "Price": 415.8,
       "Decision": "BUY",
       "Bias": "Bullish",
-      "Confidence": 60.0,
+      "Confidence": 70.0,
       "ATR": 7.01,
+      "Candle Pattern": "No Pattern"
+    },
+    {
+      "Name": "RELIANCE",
+      "Symbol": "RELIANCE.NS",
+      "Price": 1303.0,
+      "Decision": "SELL",
+      "Bias": "Bearish",
+      "Confidence": 60.0,
+      "ATR": 16.55,
       "Candle Pattern": "No Pattern"
     },
     {
       "Name": "ONGC",
       "Symbol": "ONGC.NS",
-      "Price": 232.82,
+      "Price": 233.13,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
@@ -54,12 +44,22 @@
     {
       "Name": "NTPC",
       "Symbol": "NTPC.NS",
-      "Price": 336.95,
+      "Price": 336.35,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
-      "ATR": 5.58,
+      "ATR": 5.63,
       "Candle Pattern": "Bearish Engulfing"
+    },
+    {
+      "Name": "JSWSTEEL",
+      "Symbol": "JSWSTEEL.NS",
+      "Price": 1326.3,
+      "Decision": "BUY",
+      "Bias": "Bullish",
+      "Confidence": 60.0,
+      "ATR": 23.09,
+      "Candle Pattern": "Hammer"
     }
   ],
   "Options": [
@@ -88,6 +88,15 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "KOTAKBANK": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "RELIANCE": {
       "Headlines": [
         "Reliance Industries, SBI among 10 stocks with highest DII holding in Q1. Do you own any?"
@@ -95,24 +104,6 @@
       "Positive": 0,
       "Negative": 0,
       "Neutral": 1,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "ITC": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "KOTAKBANK": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -162,7 +153,16 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "SBIN": {
+    "ITC": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "MARUTI": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -180,7 +180,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "SBILIFE": {
+    "COALINDIA": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -189,7 +189,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "GRASIM": {
+    "SBILIFE": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -216,7 +216,36 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "HINDALCO": {
+      "Headlines": [
+        "Hindustan Zinc vs Hindalco:  Why Jefferies raised target prices for both, but prefers one over the other"
+      ],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 1,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "ADANIENT": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "TCS": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "SBIN": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -237,45 +266,17 @@
     "LT": {
       "Headlines": [
         "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
+        "Private credit play: Modulus Alternatives\u2019 third fund crosses Rs 300 crore in first close",
         "Global Market: KOSPI rises as investors await Nvidia results for AI trade cues",
         "ETMarkets NRI Talk| \u20b910 crore NRI portfolio: How Raghvendra Nath would allocate it across equities, debt and alternatives",
         "LTIMindtree Share Price Live Updates: LTIMindtree's Price Movement Today"
       ],
       "Positive": 2,
       "Negative": 0,
-      "Neutral": 2,
+      "Neutral": 3,
       "Sentiment": "Bullish",
       "Score": 1.0,
       "Confidence": 100.0
-    },
-    "BAJFINANCE": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "ASIANPAINT": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "MARUTI": {
-      "Headlines": [
-        "Maruti Suzuki Share Price Live Updates: Maruti Suzuki's Price Movement Today"
-      ],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 1,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
     },
     "HCLTECH": {
       "Headlines": [],
@@ -287,6 +288,15 @@
       "Confidence": 0.0
     },
     "TITAN": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "WIPRO": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -313,34 +323,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "TATASTEEL": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "ADANIENT": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "ADANIPORTS": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "COALINDIA": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -394,13 +377,11 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "HINDALCO": {
-      "Headlines": [
-        "Hindustan Zinc vs Hindalco:  Why Jefferies raised target prices for both, but prefers one over the other"
-      ],
+    "UPL": {
+      "Headlines": [],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 1,
+      "Neutral": 0,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -432,6 +413,24 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "BAJFINANCE": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "ASIANPAINT": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "SUNPHARMA": {
       "Headlines": [],
       "Positive": 0,
@@ -450,13 +449,11 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "WIPRO": {
-      "Headlines": [
-        "Wipro Share Price Live Updates: Wipro's Current Market Position"
-      ],
+    "TATASTEEL": {
+      "Headlines": [],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 1,
+      "Neutral": 0,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -471,6 +468,15 @@
       "Confidence": 0.0
     },
     "DIVISLAB": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "GRASIM": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -498,15 +504,6 @@
       "Confidence": 0.0
     },
     "INDUSINDBK": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "UPL": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -559,6 +556,22 @@
     {
       "Headline": "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
       "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Four regional Fed banks backed rate hike ahead of July decision, minutes show",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "14 midcap stocks crash up to 55% from their peaks. Are you holding any?",
+      "Sentiment": "Bearish"
+    },
+    {
+      "Headline": "Private credit play: Modulus Alternatives\u2019 third fund crosses Rs 300 crore in first close",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Dmart owner eyes debt market comeback after 7-year hiatus, bankers say",
+      "Sentiment": "Neutral"
     },
     {
       "Headline": "Global Market: Fiscal dominance debate takes centre stage as government debt mounts",
@@ -681,7 +694,7 @@
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Power Grid Share Price Live Updates: Power Grid News",
+      "Headline": "Power Grid Share Price Live Updates: Power Grid's Market Update",
       "Sentiment": "Neutral"
     },
     {
@@ -705,11 +718,11 @@
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Coal India Share Price Live Updates: Coal India  Experiences Slight Decrease",
+      "Headline": "Coal India Share Price Live Updates: Coal India  Price and Returns Analysis",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Asian Paints Share Price Live Updates: Asian Paints Stock Details",
+      "Headline": "Asian Paints Share Price Live Updates: Asian Paints Price and Trend Overview",
       "Sentiment": "Neutral"
     },
     {
@@ -725,23 +738,7 @@
       "Sentiment": "Bearish"
     },
     {
-      "Headline": "Adani Ports SEZ Share Price Live Updates: Adani Ports SEZ Stock Details",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Adani Ent Share Price Live Updates: Adani Ent. Stock Details",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Hindustan Copper shares in focus as OFS opens for retail investors. Here are all the details",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Maruti Suzuki Share Price Live Updates: Maruti Suzuki's Price Movement Today",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Wipro Share Price Live Updates: Wipro's Current Market Position",
+      "Headline": "Adani Ports SEZ Share Price Live Updates: Adani Ports SEZ Daily Price Update",
       "Sentiment": "Neutral"
     }
   ]
