@@ -1,15 +1,6 @@
 {
-  "Cash": 99968.25211542772,
-  "Position": {
-    "Name": "SHREECEM",
-    "Symbol": "SHREECEM.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-08-26 12:49:55",
-    "Entry Price": 24980.0,
-    "Quantity": 1,
-    "Stop Loss": 24910.895,
-    "Target": 25118.21
-  },
+  "Cash": 99872.70126728545,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -840,6 +831,20 @@
       "PnL": 0.57,
       "Cost": 0.25,
       "Net PnL": 0.32
+    },
+    {
+      "Name": "SHREECEM",
+      "Symbol": "SHREECEM.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-08-26 12:49:55",
+      "Entry Price": 24980.0,
+      "Exit Time": "2026-08-26 13:46:50",
+      "Exit Price": 24910.895,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -69.1,
+      "Cost": 26.45,
+      "Net PnL": -95.55
     }
   ]
 }
