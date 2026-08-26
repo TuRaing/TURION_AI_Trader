@@ -12,7 +12,7 @@ TURION AI Trader
 
 Version
 
-v0.0.63
+v0.0.64
 
 --------------------------------------------------
 
@@ -7805,6 +7805,47 @@ v0.0.63
 Next Version
 
 v0.0.64
+
+==================================================
+
+GITHUB ACTIONS - TWO REAL ROOT-CAUSE FIXES (26-Aug afternoon). (1)
+fyers_multi_strategy_options.yml's concurrency group was scoped by
+`inputs.strategy`, so an "all" trigger and a specific-strategy trigger
+land in different groups and can race - confirmed via a real merge
+conflict in oi_hybrid_sl_laddered's own portfolio files, with 36 runs
+queued + 20 in_progress at once. Widened to one shared group for the
+whole workflow, verified live (a run completed with a real "success").
+(2) Separately, reports/best_trade_portfolio.json had raw unresolved
+git conflict markers committed directly to main (git's own --autostash
+format), crashing "Best Trade Entry Scan" every ~1 min - root cause
+was a missing concurrency group plus a blind `|| true` swallowing a
+failed stash-pop. Fixed the corrupted file, added the same concurrency
+fix, and added a JSON-validity check before any commit - verified live
+(2 consecutive real successes).
+
+Also re-confirmed (user question) why cloud agents can't reach the
+VPS - a deliberate security boundary (SSH keys grant full root access,
+unlike the narrowly-scoped API tokens GitHub Actions already uses
+safely) - and found + fixed a SECOND occurrence of 25-Aug's VPS
+ownership drift (7 files went root-owned again from today's own
+root-SSH work) - see doc/26aug26_SESSION_LOG.md for the full detail
+and the open question of making that check more automatic.
+
+See doc/26aug26_SESSION_LOG.md for full detail.
+
+==================================================
+
+Status
+
+🟢 Stable
+
+Current Version
+
+v0.0.64
+
+Next Version
+
+v0.0.65
 
 ==================================================
 

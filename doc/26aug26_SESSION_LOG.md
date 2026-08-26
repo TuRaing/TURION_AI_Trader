@@ -191,7 +191,86 @@ Next Version
 
 v0.0.64
 
---------------------------------------------------
+==================================================
+
+GITHUB ACTIONS - TWO REAL, DISTINCT ROOT-CAUSE FIXES (26-Aug,
+afternoon). User asked why GitHub Actions kept failing - investigated
+rather than guessing.
+
+FIX 1 (commit 5e9ccbdc8) - fyers_multi_strategy_options.yml's
+`concurrency:` group was scoped by `inputs.strategy` (added 07-Aug),
+so an "oi_hybrid_sl_laddered"-only trigger and an "all" trigger (which
+also runs oi_hybrid_sl_laddered as part of everything) land in
+DIFFERENT groups and can run concurrently - confirmed via a real
+failed run's log showing a genuine merge conflict in
+oi_hybrid_sl_laddered_{nifty,banknifty}_portfolio.json, with 36 runs
+queued + 20 in_progress simultaneously at the time. The commit step
+also unconditionally `git add`s every book's file regardless of which
+strategy actually ran, so ANY two overlapping runs of this workflow
+are a conflict risk, not just same-strategy ones. Widened to one
+shared group for the whole workflow - verified live via a Monitor
+watch: a run on the fixed commit completed with a real "success"
+conclusion (not just "cancelled" - GitHub collapses stale queued runs
+in a shared group, which is the correct, intended behavior, not data
+loss, since those never started executing).
+
+FIX 2 (commit 03dfb2f61) - separately, a user-forwarded "run failed"
+email led to finding reports/best_trade_portfolio.json had RAW
+unresolved git conflict markers ("<<<<<<< Updated upstream" /
+"=======" / ">>>>>>> Stashed changes" - confirmed this is git's own
+--autostash-specific conflict format, not a normal rebase/merge
+conflict) committed directly to main - crashing every single run of
+"Best Trade Entry Scan" (firing every ~1 min) with a JSONDecodeError.
+Resolved the conflict (kept the later of two near-duplicate ONGC SELL
+position candidates, 39 seconds apart). Root cause: this workflow had
+NO concurrency group at all, and its initial
+`git pull --rebase --autostash` had a blind `|| true` that silently
+swallowed a failed stash-pop instead of catching it. Fixed both: added
+the same concurrency-group pattern as Fix 1, and added a JSON-validity
+check that now refuses to commit an unparseable portfolio file for ANY
+reason, with a clean abort+reset+retry instead of silently continuing.
+Verified live: 2 consecutive runs on the fixed commit completed with
+real "success" conclusions.
+
+==================================================
+
+CLOUD-AGENT-INSIDE-THE-VPS QUESTION - ANSWERED, DEFERRED. User asked
+in sequence: (1) can a cloud agent check/fix the VPS - re-confirmed
+the existing real constraint (cloud routines have no access to the
+local machine's SSH private key, by design - it's a security boundary,
+not a missing feature, since an SSH key grants full root access,
+unlike Fyers/GitHub's own narrowly-scoped API tokens the OTHER
+automated pieces in this project already use safely); (2) how do the
+OTHER agents (GitHub Actions, VPS cron) work then - explained they
+never need to reach INTO a different machine: GitHub Actions talks
+directly to Fyers' API using a scoped access token, VPS cron runs
+locally on the VPS already; (3) could an AI agent run directly ON the
+VPS itself (so no SSH needed, it's already "inside") - confirmed
+technically possible, but explicitly deferred: this exact VPS OOM-
+crashed for real earlier TODAY from just the 3 existing trading
+services (1vCPU/1GB, already tight), and it would remove the
+human-in-the-loop checkpoint this project deliberately relies on
+(novel issues get a push notification, not an autonomous fix, until
+the user says "fix कर"). User's own words: "ok sadya nako" (not for
+now) - revisit only after the post-live-trading VPS migration. Saved
+to [[project_vps_migration_on_live_trading]].
+
+==================================================
+
+VPS OWNERSHIP DRIFT FOUND AND FIXED AGAIN (26-Aug, same day as
+25-Aug's original incident) - a routine git-sync check found 7 files
+on the VPS had gone root-owned again (a stale __pycache__ file from
+today's earlier TBT protobuf verification work, plus fresh .git
+pack/ref files from a `git fetch` Claude ran directly as root instead
+of via `sudo -u turion`). Same fix as 25-Aug: `chown -R turion:turion`
++ verified `turion` can `git pull` cleanly (732 commits' worth,
+mostly automated portfolio syncs, applied without error). This is the
+SECOND time this exact class of drift has recurred within 48 hours
+despite the 25-Aug memory/lesson - the discipline of re-checking
+ownership after every root-SSH session needs to become more automatic,
+not just remembered.
+
+==================================================
 
 Next Session
 
@@ -225,5 +304,19 @@ Next Session
    driven's auto-retry cron lines; sync_ticks_from_vps.py off-machine
    backup exercise never run; end-Sep-2026 statistical-tools checkpoint
    still ~4-5 weeks out.
+
+7. Watch both GitHub Actions concurrency fixes over the next few days
+   of real ~1-min-interval triggers - verified live via only 2-3
+   consecutive successful runs each, not a full trading day yet.
+   fyers_multi_strategy_options.yml's queue (36+ at the time of the
+   fix) will keep draining slowly as long as cron-job.org's own
+   trigger rate isn't reduced - that external-dashboard fix is still
+   NOT done, only made safe to leave as-is.
+
+8. VPS ownership drift happened AGAIN today (see above) despite
+   25-Aug's own memory entry - consider whether a cheap, automatic
+   check (e.g. one line at the start of every VPS SSH session, or a
+   git pre-something hook) would be more reliable than remembering to
+   check manually every time.
 
 ==================================================
