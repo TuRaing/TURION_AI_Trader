@@ -12,7 +12,7 @@ TURION AI Trader
 
 Version
 
-v0.0.62
+v0.0.63
 
 --------------------------------------------------
 
@@ -30,7 +30,7 @@ Project Started
 
 Last Updated
 
-25-Aug-2026
+26-Aug-2026
 
 --------------------------------------------------
 
@@ -7740,6 +7740,71 @@ v0.0.62
 Next Version
 
 v0.0.63
+
+==================================================
+
+REAL LIVE INCIDENT #3, DIFFERENT ROOT CAUSE FROM 25-AUG (26-Aug) - all
+3 VPS services' WebSocket got a burst of Cloudflare 502s right at
+market open (09:13 IST); fyers_apiv3's own reconnect logic exhausted
+its 5 attempts and gave up permanently ("Max reconnect attempts
+reached. Connection abandoned.") without crashing the process - so
+systemd's Restart=on-failure never triggered, and all 3 services sat
+alive but completely data-dead for ~9 minutes until a human noticed
+and manually restarted them (as the `turion` user this time, following
+25-Aug's own lesson). Fixed with a proper safety net rather than just
+another manual restart: strategy/data_watchdog.py's should_restart_
+for_stale_feed() (pure, 8 tests) + watchdog_loop(), wired into all 3
+entrypoints - each service now tracks its own last-message time and
+deliberately exits (os._exit) if market hours pass with 5+ minutes of
+silence, letting the already-proven Restart=on-failure + push-alert
+machinery recover it automatically instead of needing another human
+to notice.
+
+TBT (Tick-by-Tick) FEED FULLY VERIFIED - corrects yesterday's wrong
+"probably no access" conclusion (an off-hours test that never sent the
+required type:2 "resume channel" message). Live-verified during real
+market hours: real access confirmed, NFO options covered, no paid-plan
+blocker. Decoded real Protobuf messages against Fyers' own published
+schema and found feed_time/send_time are ALSO whole-second precision,
+identical to the standard feed - TBT does not solve the millisecond-
+timestamp problem, closing this investigation thread.
+
+LATENCY VS SPREAD SLIPPAGE ISOLATED WITH REAL DATA - built
+analyze_latency_slippage.py (5 tests) to answer whether the ~0.7-1.2s
+measured latency meaningfully drives the already-known slippage.
+Result: ATM option premiums move a median of Rs 15-109/lot over that
+window (measured from today's real tick archive) versus Rs 300-3,000+
+per trade from spread/depth-walk cost - latency is confirmed a minor
+(10-30x smaller) contributor. Reinforces that porting the remaining
+LTP-based books to quote-based decide_fn (not latency work) is the
+real lever.
+
+Ran the depth-slippage check on today's own profitable trades (user's
+explicit "will slippage eat the profit?" question) - the quote-based
+books' PnL was essentially exact (realistic even slightly better than
+recorded), only the 2 remaining plain LTP-based books showed a real
+17-24% overstatement on their winning trades. Most of today's real
+VPS profit is genuine, not an LTP artifact.
+
+User's own decision: watch this quote-fix-vs-plain-LTP gap for a full
+week before backtesting/deciding on further changes - not acting on
+one day's numbers.
+
+See doc/26aug26_SESSION_LOG.md for full detail.
+
+==================================================
+
+Status
+
+🟢 Stable
+
+Current Version
+
+v0.0.63
+
+Next Version
+
+v0.0.64
 
 ==================================================
 
