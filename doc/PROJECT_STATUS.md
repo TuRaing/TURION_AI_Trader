@@ -12,7 +12,7 @@ TURION AI Trader
 
 Version
 
-v0.0.64
+v0.0.65
 
 --------------------------------------------------
 
@@ -7835,17 +7835,28 @@ See doc/26aug26_SESSION_LOG.md for full detail.
 
 ==================================================
 
+OWNERSHIP-DRIFT SAFETY NET (26-Aug, same day as the drift above) -
+deploy/fix_ownership.sh now runs every 5 minutes via a root crontab
+entry on the VPS, self-healing any file that goes non-turion-owned
+(from a root-SSH session or any other cause) before it could ever
+block a real scheduled operation again. Verified live against a real
+deliberately-drifted test file, not just by reading the script - fixed
+within one real 5-minute cron cycle, logged to /var/log/turion-
+ownership-fix.log.
+
+==================================================
+
 Status
 
 🟢 Stable
 
 Current Version
 
-v0.0.64
+v0.0.65
 
 Next Version
 
-v0.0.65
+v0.0.66
 
 ==================================================
 

@@ -272,6 +272,27 @@ not just remembered.
 
 ==================================================
 
+OWNERSHIP-DRIFT SAFETY NET BUILT (commit 070236f42) - closes item 8
+above the same day it was raised. Rather than relying on "remember to
+chown after every root-SSH session" (which had already failed once,
+live, despite being written down as a lesson from 25-Aug),
+deploy/fix_ownership.sh is now installed as a root crontab entry
+running every 5 minutes on the VPS - finds any non-turion-owned file
+under the repo and fixes it, logging to /var/log/turion-ownership-fix.
+log only when it actually had to act (silent on the common case, so
+the log becomes a real record of how often this happens rather than
+noise). Verified live, not just by reading the script: deliberately
+chowned a real test file to root, watched via a Monitor loop, and
+confirmed the cron picked it up and fixed it within one real 5-minute
+cycle (log entry: "2026-08-26 07:30:01 UTC - found 1 non-turion-owned
+file(s)... -> fixed."). Test file cleaned up afterward. This means any
+future drift (from this cause or any other) self-heals within minutes
+- the class of bug that caused 25-Aug's ~2-hour undetected outage can
+no longer silently block a scheduled operation like the 08:00 IST
+deploy.sh restart.
+
+==================================================
+
 Next Session
 
 1. User's own explicit decision for today: watch the quote-fix vs
@@ -313,10 +334,12 @@ Next Session
    trigger rate isn't reduced - that external-dashboard fix is still
    NOT done, only made safe to leave as-is.
 
-8. VPS ownership drift happened AGAIN today (see above) despite
-   25-Aug's own memory entry - consider whether a cheap, automatic
-   check (e.g. one line at the start of every VPS SSH session, or a
-   git pre-something hook) would be more reliable than remembering to
-   check manually every time.
+8. VPS ownership drift - CLOSED same day (see above) - deploy/
+   fix_ownership.sh now runs every 5 min via root crontab, verified
+   live against a real deliberately-drifted test file. Watch /var/log/
+   turion-ownership-fix.log occasionally to see how often it's
+   actually firing - if it turns out to fire constantly, that would
+   mean something is causing drift more often than just Claude's own
+   occasional root-SSH sessions, worth a closer look.
 
 ==================================================
