@@ -17,6 +17,27 @@ on:
 permissions:
   contents: write
 
+# Added 26-Aug-2026, real bug found live: with runs firing every ~1 min
+# and no concurrency control at all, two overlapping runs could both be
+# mid-commit at once - `git pull --rebase --autostash` (below) stashes
+# local changes, pulls, then pops the stash, and a stash-pop conflict
+# leaves RAW `<<<<<<< Updated upstream` / `=======` / `>>>>>>> Stashed
+# changes` markers in the working file (confirmed: this exact marker
+# style is git's own autostash-conflict format, distinct from a normal
+# rebase/merge conflict's "HEAD"/branch-name markers) - and the retry
+# loop's own `|| true` on that line silently swallowed the failure
+# instead of catching it, so the corrupted file got `git add`ed and
+# committed as-is. reports/best_trade_portfolio.json sat broken on main
+# for real, crashing every single run's "Run best trade entry scan"
+# step with a JSONDecodeError until this was manually found and fixed.
+# One shared concurrency group serializes every run of this workflow -
+# same fix, same reasoning as fyers_multi_strategy_options.yml's own
+# 26-Aug-2026 widening - eliminates the overlapping-runs precondition
+# this bug needed in the first place.
+concurrency:
+  group: best-trade-entry-scan
+  cancel-in-progress: false
+
 jobs:
   best-trade-entry-scan:
     runs-on: ubuntu-latest
@@ -45,14 +66,45 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          # Added 26-Aug-2026 - see this file's own concurrency-group note
+          # above for the real incident. A corrupt (unparseable) portfolio
+          # JSON must never be committed, no matter what caused it - this
+          # is the second, independent line of defense (the concurrency
+          # group above is the first, removing the overlapping-runs
+          # precondition; this catches any OTHER cause too).
+          validate_json() {
+            python -c "import json; json.load(open('reports/best_trade_portfolio.json'))"
+          }
+
           commit_and_push() {
+            if ! validate_json; then
+              echo "reports/best_trade_portfolio.json is not valid JSON - refusing to commit it."
+              return 1
+            fi
             git add reports/best_trade_portfolio.json reports/best_trade_pick.json reports/alignment_history.jsonl || true
             git diff --staged --quiet && return 0
             git commit -m "Update best trade portfolio [skip ci]"
             git push
           }
 
-          git pull --rebase --autostash origin ${{ github.ref_name }} || true
+          # FIXED 26-Aug-2026, real bug found live: the old blind `|| true`
+          # here swallowed a stash-pop conflict from --autostash (its own
+          # distinct "<<<<<<< Updated upstream"/"Stashed changes" marker
+          # style, not a normal rebase conflict) - the working file was
+          # left with raw conflict markers in it, and nothing downstream
+          # caught that before committing. Now: on any failure here
+          # (rebase conflict OR a failed autostash pop), cleanly abort
+          # whatever git operation is mid-flight and hard-reset to the
+          # last known-good origin state instead of silently limping on
+          # with a possibly-corrupted working tree.
+          if ! git pull --rebase --autostash origin ${{ github.ref_name }}; then
+            echo "Initial pull --rebase --autostash failed (or left a conflict) - resetting to clean origin state."
+            git rebase --abort 2>/dev/null || true
+            git stash drop 2>/dev/null || true
+            git fetch origin ${{ github.ref_name }}
+            git reset --hard origin/${{ github.ref_name }}
+            python daily_best_trade.py
+          fi
 
           for i in 1 2 3; do
             if commit_and_push; then
