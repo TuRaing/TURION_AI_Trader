@@ -12,7 +12,7 @@ TURION AI Trader
 
 Version
 
-v0.0.65
+v0.0.66
 
 --------------------------------------------------
 
@@ -30,7 +30,7 @@ Project Started
 
 Last Updated
 
-26-Aug-2026
+27-Aug-2026
 
 --------------------------------------------------
 
@@ -7857,6 +7857,44 @@ v0.0.65
 Next Version
 
 v0.0.66
+
+==================================================
+
+REAL LIVE INCIDENT #4 - STALE-TOKEN CRASH, FIXED AT THE ROOT (27-Aug).
+All 3 VPS services hit a present-but-stale Fyers token at startup
+(yesterday's, since today's login hadn't happened yet) - a RuntimeError
+treated as fatal even though it's the single most common, expected
+startup failure. Burned through systemd's whole Restart=on-failure
+budget in under a minute and sat "failed" until a human manually
+restarted them. User's own question live: "instead of crashing, can't
+it just send a message?" Fixed: strategy/fyers_options_engine.py's new
+is_invalid_token_error() detects Fyers' code -15 response specifically
+- all 3 entrypoints now retry every 120s indefinitely instead of
+crashing on this one cause, with one push notification (not spam) on
+the first failure. A genuinely different error still crashes normally
+through the existing alert path. 3 new tests, deployed and verified
+live (0 root-owned files, clean startup) - the retry path itself
+wasn't exercised live this session since the token was already valid
+by deploy time, only unit-tested.
+
+This is the 4th real live VPS incident across 3 days (25-Aug:
+ownership; 26-Aug: OOM-kill + WebSocket-abandonment + 2 GitHub Actions
+bugs + ownership again; 27-Aug: this one) - each got a real root-cause
+fix, not just a restart. See doc/27aug26_SESSION_LOG.md for full detail.
+
+==================================================
+
+Status
+
+🟢 Stable
+
+Current Version
+
+v0.0.66
+
+Next Version
+
+v0.0.67
 
 ==================================================
 
