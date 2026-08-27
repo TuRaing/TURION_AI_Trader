@@ -1,15 +1,6 @@
 {
-  "Cash": 99744.44498226665,
-  "Position": {
-    "Name": "TATAMOTORS",
-    "Symbol": "TATAMOTORS.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-08-27 11:47:44",
-    "Entry Price": 318.2,
-    "Quantity": 1,
-    "Stop Loss": 317.10499999999996,
-    "Target": 320.39
-  },
+  "Cash": 99743.01324748772,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -450,6 +441,20 @@
       "PnL": -9.16,
       "Cost": 1.9,
       "Net PnL": -11.06
+    },
+    {
+      "Name": "TATAMOTORS",
+      "Symbol": "TATAMOTORS.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-08-27 11:47:44",
+      "Entry Price": 318.2,
+      "Exit Time": "2026-08-27 12:16:48",
+      "Exit Price": 317.10499999999996,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -1.1,
+      "Cost": 0.34,
+      "Net PnL": -1.43
     }
   ],
   "Data Source": "Fyers"
