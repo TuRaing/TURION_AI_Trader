@@ -194,6 +194,39 @@ def save_portfolio(cfg, portfolio):
         json.dump(portfolio, f, indent=2)
 
 
+def is_invalid_token_error(error):
+    """
+    Pure/testable - True if `error` (a RuntimeError raised by
+    _fetch_option_chain below, or anything with the same "Fyers
+    ...: {dict}" message shape) looks like Fyers' own "invalid/expired
+    token" response (code -15, e.g. {'message': 'Please provide valid
+    token', 'code': -15, 's': 'error'}), as opposed to some other,
+    genuinely unexpected failure (a real code bug, a network outage,
+    a different Fyers error code like rate-limiting).
+
+    Added 27-Aug-2026, real live incident: every VPS startup path that
+    calls pick_atm_symbols()/_fetch_option_chain() (event-driven engine,
+    tick-collector, depth-collector) treated ANY failure here as fatal -
+    crashed the whole process even for the single MOST COMMON, entirely
+    expected cause (today's Fyers login just hasn't happened yet, or
+    Firebase still has yesterday's now-expired token). All 3 services
+    crash-looped, burned through systemd's Restart=on-failure budget in
+    under a minute, and sat fully "failed" (dead, no more auto-retry)
+    until a human noticed and manually restarted them - the exact same
+    failure mode "no access_token at all" already handles gracefully
+    (see run_event_driven_engine.py's own `if not access_token: sys.
+    exit(0)` check) just one step earlier. This lets callers extend that
+    same "not ready yet, not an error" treatment to a PRESENT-but-STALE
+    token too - retry-and-wait instead of crash-and-alert. A different
+    RuntimeError (any other code, or no recognizable code at all) still
+    returns False here, so a genuinely unexpected failure keeps crashing
+    normally and going through the existing OnFailure alert path - this
+    is deliberately narrow, not a blanket "swallow every error" change.
+    """
+
+    return "'code': -15" in str(error)
+
+
 def _fetch_option_chain(cfg, strike_count=5):
 
     response = requests.get(

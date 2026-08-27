@@ -3,7 +3,7 @@ import datetime
 from strategy.fyers_options_engine import (
     make_strategy, _net_pnl, _today_realized_pnl, _today_consecutive_losses,
     _hybrid_stop_loss_cap, _daily_profit_lock_threshold, IST, DAILY_PROFIT_LOCK_RS,
-    MAX_CONSECUTIVE_LOSSES, TRAIL_PCT,
+    MAX_CONSECUTIVE_LOSSES, TRAIL_PCT, is_invalid_token_error,
 )
 
 
@@ -268,3 +268,35 @@ def test_trail_pct_is_30_percent():
     # oi_footprint's own live trailing variant - reused here rather
     # than inventing a second, untested value.
     assert TRAIL_PCT == 0.30
+
+
+# Added 27-Aug-2026, real incident: all 3 VPS services crashed and
+# burned through systemd's restart budget on a stale-token startup
+# failure, treated as fatal instead of "not ready yet". is_invalid_
+# token_error() is the pure decision behind letting a startup retry
+# loop distinguish that specific, recoverable case from a genuinely
+# unexpected error.
+
+def test_recognizes_a_real_invalid_token_error():
+    error = RuntimeError(
+        "Fyers option chain fetch failed for NSE:NIFTY50-INDEX: "
+        "{'message': 'Please provide valid token', 'code': -15, 's': 'error'}"
+    )
+
+    assert is_invalid_token_error(error) is True
+
+
+def test_does_not_flag_a_different_fyers_error_code():
+    # e.g. rate-limiting (-429) - a different, real problem that should
+    # NOT be silently retried forever the same way a stale token is.
+    error = RuntimeError(
+        "Fyers option chain fetch failed for NSE:NIFTY50-INDEX: "
+        "{'message': 'request limit reached', 'code': 429, 's': 'error'}"
+    )
+
+    assert is_invalid_token_error(error) is False
+
+
+def test_does_not_flag_an_unrelated_error():
+    assert is_invalid_token_error(ConnectionError("timed out")) is False
+    assert is_invalid_token_error(RuntimeError("something else broke")) is False

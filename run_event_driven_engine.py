@@ -1,6 +1,7 @@
 import datetime
 import os
 import sys
+import time
 
 sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)
 # FIXED 21-Aug-2026 - real bug caught live: under systemd, stdout isn't
@@ -21,6 +22,26 @@ sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)
 from report.firebase_realtime_sync import fetch_access_token
 from strategy.event_driven_runner import main as run_event_driven_engine
 from strategy.execution_backend import resolve_execution_backend
+from strategy.fyers_options_engine import is_invalid_token_error
+
+# Added 27-Aug-2026, real live incident: 03:00 IST, all 3 VPS services
+# hit build_runners()'s pick_atm_symbols() with a PRESENT-but-STALE
+# token (yesterday's, still sitting in Firebase since today's login
+# hadn't happened yet) - a RuntimeError from _fetch_option_chain, not
+# the already-handled "no token at all" case above. Each service
+# crash-looped through systemd's whole Restart=on-failure budget
+# (5 attempts in under a minute) and sat fully "failed" until a human
+# manually restarted them well after the user's actual login. User's
+# own question, live: "crash होण्यापेक्षा फक्त msg send करेल असं करू
+# ना" (instead of crashing, can't it just send a message?) - this is
+# that fix: retry_delay_seconds between attempts, indefinitely (no
+# retry cap - the whole point is "wait however long the user's login
+# actually takes", not reintroduce a different timeout to tune), with
+# ONE push notification on the first stale-token failure so the user
+# still knows to log in, not silence. A genuinely different error
+# (not a recognized invalid-token response) still crashes normally,
+# through the existing OnFailure alert path.
+RETRY_DELAY_SECONDS = 120
 
 # Added 18-Aug-2026 - the VPS entry point for tonight's WebSocket
 # event-driven engine (strategy/event_driven_runner.py). Same "top-
@@ -109,7 +130,39 @@ def main():
     # those shared modules.
     os.environ["FYERS_ACCESS_TOKEN"] = access_token
 
-    run_event_driven_engine(access_token, execution_backend)
+    # See RETRY_DELAY_SECONDS' own note above for the real incident.
+    from report.push_notifier import send_push_notification
+
+    notified = False
+
+    while True:
+        try:
+            run_event_driven_engine(access_token, execution_backend)
+            return  # never actually reached in practice (the call above
+            # blocks forever inside socket.connect()) - kept for
+            # correctness in case that ever changes.
+        except RuntimeError as error:
+            if not is_invalid_token_error(error):
+                raise  # a genuinely unexpected failure - crash normally,
+                # let the existing Restart=on-failure + OnFailure alert
+                # path handle it as before.
+
+            if not notified:
+                send_push_notification(
+                    "TURION Engine - Waiting for today's login",
+                    f"Startup failed with a stale/invalid Fyers token: {error}. "
+                    f"Will keep retrying every {RETRY_DELAY_SECONDS}s until today's "
+                    f"login is done - no action needed unless this repeats after logging in.",
+                )
+                notified = True
+
+            print(f"Startup failed on a stale/invalid token - retrying in "
+                  f"{RETRY_DELAY_SECONDS}s ({error})")
+            time.sleep(RETRY_DELAY_SECONDS)
+
+            access_token = fetch_access_token()
+            if access_token:
+                os.environ["FYERS_ACCESS_TOKEN"] = access_token
 
 
 if __name__ == "__main__":

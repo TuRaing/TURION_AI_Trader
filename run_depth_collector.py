@@ -14,6 +14,11 @@ from report.firebase_realtime_sync import fetch_access_token
 from strategy.event_driven_runner import pick_atm_symbols
 from strategy.depth_collector import depth_log_filename, format_depth_record
 from strategy.data_watchdog import watchdog_loop
+from strategy.fyers_options_engine import is_invalid_token_error
+
+# See run_event_driven_engine.py's matching RETRY_DELAY_SECONDS note
+# for the real incident this covers - identical fix, same value.
+RETRY_DELAY_SECONDS = 120
 
 # Added 24-Aug-2026, at the user's own explicit request - the VPS entry
 # point for real-time DepthUpdate archival (strategy/depth_collector.py's
@@ -102,6 +107,44 @@ def main():
     # the env var directly here makes every one of those calls pick up
     # the real Firebase-sourced token without touching any shared module.
     os.environ["FYERS_ACCESS_TOKEN"] = access_token
+
+    # Added 27-Aug-2026 - see run_event_driven_engine.py's matching
+    # RETRY_DELAY_SECONDS note for the real incident (all 3 VPS
+    # services crash-looped on a present-but-stale token and sat
+    # "failed" until a human manually restarted them). Retries
+    # indefinitely instead of crashing on this one, specific, expected
+    # cause - a genuinely different error still crashes normally.
+    from report.push_notifier import send_push_notification
+
+    notified = False
+
+    while True:
+        try:
+            _run_collector(access_token)
+            return
+        except RuntimeError as error:
+            if not is_invalid_token_error(error):
+                raise
+
+            if not notified:
+                send_push_notification(
+                    "TURION Depth Collector - Waiting for today's login",
+                    f"Startup failed with a stale/invalid Fyers token: {error}. "
+                    f"Will keep retrying every {RETRY_DELAY_SECONDS}s until today's "
+                    f"login is done - no action needed unless this repeats after logging in.",
+                )
+                notified = True
+
+            print(f"Startup failed on a stale/invalid token - retrying in "
+                  f"{RETRY_DELAY_SECONDS}s ({error})")
+            time.sleep(RETRY_DELAY_SECONDS)
+
+            access_token = fetch_access_token()
+            if access_token:
+                os.environ["FYERS_ACCESS_TOKEN"] = access_token
+
+
+def _run_collector(access_token):
 
     from fyers_apiv3.FyersWebsocket import data_ws  # imported here, not at
     # module level, matching live_tick_harness.py/tick_collector.py's own
