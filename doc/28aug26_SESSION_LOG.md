@@ -97,6 +97,30 @@ check.
 
 ==================================================
 
+REAL INCIDENT (28-Aug evening) - VULTR CPU-ABUSE TICKET + VPS REBOOT
+FROM RUNNING BACKTESTS ON THE LIVE VPS. Hours of heavy scratch-
+backtest scripts (cooldown, order-book imbalance, VWAP, ORB, volume-
+spike, then a market-open-buffer test) were run directly on the live
+1vCPU/1GB VPS - the same machine running the 3 real trading services.
+User received a real Vultr email/auto-ticket: "your CPU resource
+utilization profile is excessive... we have limited the maximum CPU
+resources your instances can consume." Checked live: the VPS had just
+rebooted (~7 min uptime, load average 1.31 on 1 core) - almost
+certainly Vultr's enforcement. All 3 live services recovered on their
+own (systemd Restart=on-failure) - no manual fix needed, no confirmed
+trading impact, but genuinely avoidable and close.
+
+Root cause: backtests were run on the wrong machine - there was never
+a technical need for the VPS itself, only its archived tick/depth
+data, which copies down via scp just as easily. Killed the running
+backtest immediately. New PERMANENT rule: all backtest/analysis
+workloads run locally (or a separate box) from now on, copying only
+the needed day's archive file(s) down first - the VPS is for the 3
+live services only. See [[project_vps_migration_on_live_trading]] and
+[[project_quote_pnl_and_whipsaw_decision]] memories for the full note.
+
+==================================================
+
 4 NEW-STRATEGY BACKTESTS RUN FOR REAL, SAME DAY + OI ARCHIVAL BUILT
 AND DEPLOYED LIVE. Followed the cooldown backtest below with real
 standalone backtests (same LiveTickRunner-replay pattern, real tick/
