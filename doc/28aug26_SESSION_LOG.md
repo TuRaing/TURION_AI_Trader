@@ -182,6 +182,56 @@ full detail and sources.
 
 ==================================================
 
+VERIFIED 3 ROUNDS OF PASTED CHATGPT OPTIONS-STRATEGY RESEARCH AGAINST
+REAL WEB SOURCES. User pasted three successive rounds of ChatGPT-
+generated options-strategy research (VRP/regime ideas, GEX-wall
+momentum exhaustion, "compression -> gamma trigger -> breakout" option
+buying) and asked Claude to independently verify each before trusting
+it. Ran real web searches against every specific, checkable claim
+rather than accepting the summaries at face value.
+
+Pattern found across all 3 rounds: GPT's underlying financial/quant
+LOGIC was almost always real and independently confirmable, but its
+SPECIFIC NAMED CITATIONS were frequently unreliable - a named open-
+source tool ("bhav"), a named bias-analysis source ("MoneyTicks"), and
+specific Barron's/MarketWatch articles could not be found by Claude's
+own search, despite the underlying concepts being real via OTHER
+genuine sources. One claim was actively wrong, not just unverifiable:
+GPT said a 2026 SSRN S&P 500 study found IV/skew/put-call metrics have
+"no predictive significance" for breakout failure - Claude found real
+papers (including one by Vilkov, the same author behind the separately
+-verified 0DTE research) showing the opposite - skew/PCR DO carry some
+real predictive power.
+
+What DID verify as real and useful:
+- Nifty VRP is real but not retail-capturable: a second real paper
+  (Sumin Pillai, SSRN) backtested 4 short-vol Nifty strategies with
+  realistic costs (STT/brokerage/slippage) over 119 monthly expiries
+  (2015-2025) - ALL net negative, best case (put-write) still -0.9%
+  annualized, Sharpe -0.37. Confirms: don't build a pure premium-
+  selling strategy on the "VRP exists" argument alone.
+- A REAL, already-written open-source backtest exists for "GEX-wall +
+  momentum-exhaustion credit spread" (github.com/sujoypaulhome/
+  0dte-gex-backtest, real option prices via Polygon API) - the single
+  most actionable lead found this session, since every other idea
+  needs to be built from scratch.
+- Vilkov's 0DTE replication package and the Wallmeier 2025 skew-
+  premium paper both independently confirmed as real.
+
+Final candidate ranking (user's own, after all 3 rounds): (1) full
+Adaptive Gamma+IV/RV+regime classifier - multi-week scope, not a quick
+backtest; (2) GEX-wall momentum exhaustion - most tractable, real code
+exists; (3) IV/RV+skew relative value; (4) "Compression->gamma
+trigger->confirmed breakout->option buy" - internally coherent logic,
+but no combined backtest exists anywhere yet, genuinely untested.
+Pure option-selling explicitly rejected (now doubly disproven).
+
+Nothing built - this was pure research/verification. See
+[[project_quote_pnl_and_whipsaw_decision]] memory for full detail and
+all sources.
+
+==================================================
+
 Status
 
 🟢 Stable
