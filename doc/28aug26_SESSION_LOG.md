@@ -232,6 +232,39 @@ all sources.
 
 ==================================================
 
+"EXPECTED MOVE" OPTION-BUYING IDEA - REAL PHASE-1 DATA CHECK RUN, ONE
+SOBERING AND ONE USEFUL FINDING. Follow-on from the research thread
+above: settled on comparing a forecast of future realized volatility
+against an option's own implied move as a more principled basis for
+option buying than GEX-wall signals. User correctly flagged the real
+blocker before any code was written: our own real options archive is
+only ~6 days old (21/24-28 Aug) - nowhere near enough for a real
+strategy backtest.
+
+Checked what IS possible with available data: yfinance has 5 real
+years of both NIFTY (^NSEI) and India VIX (^INDIAVIX) daily history
+(confirmed live, 1236/1230 rows). Ran a real Phase-1 check (1190 usable
+days) comparing 3 forecasters of the next 20 trading days' realized
+vol - naive rolling RV, Yang-Zhang (OHLC-based), and India VIX itself:
+
+Naive RV: RMSE 5.92, corr 0.347. Yang-Zhang: RMSE 5.44, corr 0.440.
+India VIX: RMSE 4.61, corr 0.629 - BEST of the three. Finding: the
+market's own implied vol already beats simple homemade forecasts -
+weakens the "out-forecast the market" premise for this strategy.
+
+But: VIX has a strong, persistent bias - overstates future realized
+vol by +2.18 vol points on average, 78.3% of days. Independently
+reconfirms the VRP finding from the real Agarwal/Pillai papers found
+earlier this session, now on our own 4-year sample. A simple "VIX
+minus its own historical bias" is a much more tractable next test than
+building HAR-RV/GARCH from scratch.
+
+Decision: document and defer ("doc kar backtest karu") - joins the
+evening/tomorrow backtest queue. See [[project_quote_pnl_and_whipsaw_
+decision]] for full numbers.
+
+==================================================
+
 Status
 
 🟢 Stable
