@@ -97,6 +97,39 @@ check.
 
 ==================================================
 
+4 NEW-STRATEGY BACKTESTS RUN FOR REAL, SAME DAY + OI ARCHIVAL BUILT
+AND DEPLOYED LIVE. Followed the cooldown backtest below with real
+standalone backtests (same LiveTickRunner-replay pattern, real tick/
+depth archive) of 4 proposed new strategies, reusing the existing
+Target/hybrid-SL exit math so only the entry signal differs:
+
+Volume-spike breakout: +Rs 2,123 combined (6 days x 2 indices, best of
+the 4) - notably profitable on 21-Aug (the worst RSI whipsaw day) on
+BOTH indices. Order-book imbalance: -Rs 97,908 (worst on BankNifty,
+0 wins on 3 of 5 days). ORB (options-level): -Rs 121,076. VWAP
+(options-level): -Rs 221,225 (worst, 393 trades - too noisy). Only
+volume-spike breakout is worth a second look; the other 3 in this
+simple form showed no real edge.
+
+GEX-wall momentum-exhaustion, the PCR event-driven port, and the
+oi_footprint OI+Volume filter all stayed blocked on the same real gap:
+OI has only ever been read live, never archived. User asked to fix
+this ("OI collect karayla suruvat") - built strategy/oi_collector.py
+(pure record-shaping, mirrors depth_collector.py's pattern) + a small
+append hook inside event_driven_runner.py's existing refresh_oi_
+snapshots() - purely additive, reuses the SAME real REST call already
+made every ~5 min for the 2 live oi_footprint books, no new API load,
+no change to any decision logic. 3 new tests, 621/621 passing,
+deployed to VPS same day as `turion` (not root), turion-event-driven
+restarted cleanly. Writes data/oi/oi_DDMMYY.jsonl - live verification
+of the first real write is in progress as this entry is written (past
+market close, so today's own file may only get 0-1 real snapshots -
+tomorrow's session should confirm it's accumulating properly).
+
+See [[project_quote_pnl_and_whipsaw_decision]] memory for full numbers.
+
+==================================================
+
 COOLDOWN BACKTEST - REAL RESULTS, RUN THE SAME DAY (user chose "doc
 kar backtest karu" -> "backtest chalu karu" - started immediately
 rather than waiting for 29-Aug). Built a standalone experimental
@@ -307,6 +340,12 @@ v0.0.68
 --------------------------------------------------
 
 Next Session
+
+-1. Confirm data/oi/oi_DDMMYY.jsonl is genuinely accumulating real
+   snapshots on real trading days (deployed late 28-Aug, past market
+   close - not yet confirmed live). Once a few real days exist, GEX-
+   wall momentum-exhaustion, the PCR event-driven port, and the
+   oi_footprint OI+Volume filter all become backtestable.
 
 0. TWO backtests planned, not yet run, timing flexible ("sandyakali
    kiva udya" - this evening or tomorrow, user's own words):
