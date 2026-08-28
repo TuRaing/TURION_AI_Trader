@@ -83,17 +83,54 @@ restarted and left for next time.
 
 ==================================================
 
+REAL LIVE INCIDENT #5, SAME DAY - N=2 CIRCUIT BREAKER FIRED FOR REAL
+ON ALL 14 VPS EVENT-DRIVEN BOOKS WITHIN ~10 MINUTES OF MARKET OPEN.
+Same root cause as 21-Aug: option premium bid/ask jumps instantly at
+market open while the underlying spot barely moves (e.g. `st2_
+threshold` entered and exited a PE in the SAME second, 09:15:00, at
+the SAME spot 24277.6 - pure spread noise, not a real price move).
+Every one of the 14 books took exactly 2 consecutive Stop-Loss trades
+between 09:15:00-09:25:58 IST and the `daily_loss_lock` breaker
+(built 21/24-Aug for this exact pattern) correctly locked all 14 out
+for the rest of the day. Total paper loss across all 14: ~Rs -61,413.
+This is NOT a bug - on 21-Aug, without the breaker, the identical
+pattern ran to 81/106 trades; today it stopped after 2, exactly as
+designed. Second real-world validation of the breaker (first was
+21-Aug itself, which motivated building it).
+
+User's own live observation right after seeing this: "apalyala market
+ugadya nantar kahi buffer time ghyava lagel, ya weekend la tharau" (a
+buffer period after market open before allowing new entries might
+help, since both 21-Aug's and 27-Aug's whipsaws happened in literally
+the first few minutes of trading) - explicitly deferred to the
+weekend, NOT decided or built today. See [[project_quote_pnl_and_
+whipsaw_decision]] memory for the full note - when this comes up
+again, backtest it against real trade timestamps first (same
+discipline as every other gate on this project) before picking any
+buffer length.
+
+Separately confirmed the same day's earlier "depth-collector watchdog
+stuck" worry was a false alarm caused by two of Claude's own mistakes
+mid-investigation (a wrong current-time estimate, then checking the
+wrong date-format filename for the depth log) - not a real bug. The
+watchdog and both collectors were working correctly the whole time;
+re-verified with real file timestamps once the timing error was
+caught.
+
+==================================================
+
 Status
 
 🟢 Stable
 
 Current Version
 
-v0.0.65
+v0.0.66
 
 Next Version
 
-v0.0.66
+v0.0.66 (no code shipped for the breaker/buffer items above - pure
+observation + a deferred decision)
 
 --------------------------------------------------
 
@@ -122,5 +159,12 @@ Next Session
    cron safety net turion-event-driven alone has), sync_ticks_from_
    vps.py exercise, and end-Sep-2026 statistical-tools checkpoint all
    still open from 24-Aug.
+
+4. NEW (added later same day, after the N=2 breaker fired for real on
+   all 14 books) - user proposed a market-open buffer time (skip new
+   entries for the first few minutes after 09:15 IST). Explicitly
+   deferred to the weekend - do not propose building this without the
+   user raising it again; when it does come up, backtest against real
+   trade timestamps first.
 
 ==================================================

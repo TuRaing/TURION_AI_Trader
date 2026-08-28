@@ -12,7 +12,7 @@ TURION AI Trader
 
 Version
 
-v0.0.66
+v0.0.67
 
 --------------------------------------------------
 
@@ -30,7 +30,7 @@ Project Started
 
 Last Updated
 
-27-Aug-2026
+28-Aug-2026
 
 --------------------------------------------------
 
@@ -7884,6 +7884,21 @@ fix, not just a restart. See doc/27aug26_SESSION_LOG.md for full detail.
 
 ==================================================
 
+REAL LIVE INCIDENT #5, SAME DAY (27-Aug) - N=2 CIRCUIT BREAKER FIRED
+FOR REAL ON ALL 14 VPS EVENT-DRIVEN BOOKS within ~10 minutes of
+market open (same root cause as 21-Aug - option premium bid/ask jumps
+instantly at open while spot barely moves). All 14 took exactly 2
+consecutive Stop-Loss trades and the `daily_loss_lock` breaker
+correctly locked every one out for the rest of the day - total paper
+loss ~Rs -61,413. NOT a bug: on 21-Aug, without the breaker, the same
+pattern ran to 81/106 trades; this time it stopped after 2, exactly
+as designed - second real-world validation. User proposed a market-
+open buffer-time idea in response, explicitly deferred to the
+weekend. See doc/27aug26_SESSION_LOG.md and [[project_quote_pnl_and_
+whipsaw_decision]] memory for full detail.
+
+==================================================
+
 Status
 
 🟢 Stable
@@ -7895,6 +7910,44 @@ v0.0.66
 Next Version
 
 v0.0.67
+
+==================================================
+
+REAL LIVE VALIDATION (28-Aug) - 27-AUG'S STALE-TOKEN RETRY FIX WORKED
+PERFECTLY ON ITS FIRST REAL TRIGGER. All 3 VPS services hit today's
+login gap right on schedule and retried cleanly every 120s with no
+crash, no systemd restart-limit exhaustion, and one push notification
+- exactly as designed. All 3 auto-recovered within one retry cycle
+once the user logged in, with zero manual intervention needed for the
+first time in 4 days of this exact failure pattern.
+
+`turion-event-driven` briefly LOOKED stuck after reconnecting (no log
+line confirms a successful retry in that module, unlike the other two
+entrypoints) - investigated live via open-socket inspection, confirmed
+genuinely fine (an ESTABLISHED WebSocket to Fyers), not a bug. Also
+noticed a handful of stale CLOSE-WAIT sockets from repeated Firebase
+token-fetch retries - no functional impact, flagged for a future
+cleanup pass. Both are minor, un-fixed observations, not incidents.
+
+Separately verified all 4 oi_footprint books (NIFTY trading normally
+and profitably; BankNifty quiet but confirmed healthy via clean OI-
+refresh logs, not stuck) at the user's request.
+
+See doc/28aug26_SESSION_LOG.md for full detail.
+
+==================================================
+
+Status
+
+🟢 Stable
+
+Current Version
+
+v0.0.67
+
+Next Version
+
+v0.0.68
 
 ==================================================
 
