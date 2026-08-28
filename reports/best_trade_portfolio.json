@@ -1,15 +1,6 @@
 {
-  "Cash": 99869.4618890607,
-  "Position": {
-    "Name": "JSWSTEEL",
-    "Symbol": "JSWSTEEL.NS",
-    "Direction": "SELL",
-    "Entry Time": "2026-08-28 10:47:03",
-    "Entry Price": 1330.5,
-    "Quantity": 1,
-    "Stop Loss": 1333.71,
-    "Target": 1324.08
-  },
+  "Cash": 99874.47506792561,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -882,6 +873,20 @@
       "PnL": -0.25,
       "Cost": 0.45,
       "Net PnL": -0.7
+    },
+    {
+      "Name": "JSWSTEEL",
+      "Symbol": "JSWSTEEL.NS",
+      "Direction": "SELL",
+      "Entry Time": "2026-08-28 10:47:03",
+      "Entry Price": 1330.5,
+      "Exit Time": "2026-08-28 13:04:55",
+      "Exit Price": 1324.08,
+      "Quantity": 1,
+      "Exit Reason": "Target",
+      "PnL": 6.42,
+      "Cost": 1.41,
+      "Net PnL": 5.01
     }
   ]
 }
