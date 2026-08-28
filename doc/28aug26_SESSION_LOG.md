@@ -97,6 +97,33 @@ check.
 
 ==================================================
 
+COOLDOWN BACKTEST - REAL RESULTS, RUN THE SAME DAY (user chose "doc
+kar backtest karu" -> "backtest chalu karu" - started immediately
+rather than waiting for 29-Aug). Built a standalone experimental
+harness (a throwaway script, NOT touching the real live decide_fn)
+that replays real archived tick data through the SAME LiveTickRunner
+state-assembly production uses, testing a cooldown-after-close gate at
+0/30/60/120/300 seconds against ALL 6 real trading days for BOTH
+NIFTY and BankNifty (st2_threshold cfg). Hit and fixed one real bug
+live: the daily tick-compression cron gzipped 27-Aug's file mid-run -
+script now handles both .jsonl and .jsonl.gz transparently.
+
+Combined totals across all 8 day/index runs: baseline (0s) -Rs 770,740
+total loss; 300s cooldown -Rs 266,558 - a ~65% reduction, the
+strongest and most consistent performer. Most dramatic single case:
+25-Aug BankNifty baseline had 1,594 trades (-Rs 345,802) - a 30s
+cooldown alone cut it to 378 trades and flipped the day to +Rs 24,710
+profit. Caveat: NOT monotonic - 60s/120s were sometimes worse than
+baseline, and the single best value differs day to day - 300s is the
+strongest overall candidate from this data, not a proven universal
+optimum. Still backtest-only, nothing deployed live. Before any real
+deployment: needs more days, a check against interaction with the
+existing N=2 daily_loss_lock breaker, and the same test on oi_
+footprint. See [[project_quote_pnl_and_whipsaw_decision]] memory for
+the full per-day numbers.
+
+==================================================
+
 ROOT CAUSE FOUND - WHY THE RSI-MOMENTUM BOOKS ARE MOSTLY NET NEGATIVE.
 User asked directly "RSI ka chukat aahe" (why is RSI going wrong)
 after seeing the all-14-books-combined all-time PnL: Rs -245,707,
