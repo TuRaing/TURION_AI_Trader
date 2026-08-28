@@ -145,8 +145,40 @@ sizing - already backtested and rejected earlier):
    exist in the older polling engine; port with cooldown/breaker built
    in from day one.
 
-Nothing built yet - backtest first, this evening, per the same data-
-driven-patience discipline as every other change on this project.
+Nothing built yet - backtest first, per the same data-driven-patience
+discipline as every other change on this project.
+
+==================================================
+
+WEB RESEARCH - 2 MORE IDEAS FOUND, 2 ALREADY-PROPOSED ONES
+CORROBORATED. User asked Claude to web-search for proven ideas.
+Added:
+
+5. Opening Range Breakout (ORB) - wait for the first 15-30 min range
+   to form, only enter on a real breakout beyond it. This is a TESTED
+   version of the market-open buffer-time idea from 27-Aug - real
+   backtests found (NIFTY 8-year: 2,122 trades, 48.7% win rate, +91.6%
+   total return, profit factor 1.23; a Jul-Oct 2025 Nifty-futures
+   backtest: 57% win rate, 2.88% return). One finding independently
+   matches this project's own earlier result: "fixed targets beat
+   trailing stops" - this project already backtested trailing-SL and
+   found it made things worse (22-Aug).
+6. OI+Volume combined confirmation filter - not a new strategy, a
+   cheap improvement to the EXISTING oi_footprint book (high volume+
+   rising OI = strong signal, high volume+flat OI = noise, high
+   volume+falling OI = unwinding).
+
+VWAP and order-book-imbalance (already proposed) both got real
+external corroboration (VWAP: 65-68% win rate in trending conditions;
+order-book imbalance: academic research confirms a near-linear
+relationship with short-horizon price moves, strongest within tens of
+seconds).
+
+Full list now 5 new-strategy ideas + 1 cheap existing-book
+improvement. Backtest timing loosened by the user to "sandyakali kiva
+udya" (this evening OR tomorrow, 29-Aug) - not a hard commitment to
+tonight. See [[project_quote_pnl_and_whipsaw_decision]] memory for
+full detail and sources.
 
 ==================================================
 
@@ -166,14 +198,16 @@ v0.0.68
 
 Next Session
 
-0. TWO backtests planned, not yet run:
-   (a) TONIGHT (28-Aug evening) - the 4 new strategy ideas above
-       (order-book imbalance, VWAP, volume-spike breakout, PCR
-       event-driven port) against real tick/depth archive data.
-   (b) TOMORROW (29-Aug) - a cooldown/confirmation gate for the
-       existing RSI-momentum re-entry logic (see root-cause finding
-       above). Do not deploy either without showing the user real
-       backtest numbers first.
+0. TWO backtests planned, not yet run, timing flexible ("sandyakali
+   kiva udya" - this evening or tomorrow, user's own words):
+   (a) 5 new strategy ideas (order-book imbalance, VWAP, volume-spike
+       breakout, PCR event-driven port, Opening Range Breakout) + 1
+       cheap oi_footprint OI+Volume filter improvement - against real
+       tick/depth archive data.
+   (b) A cooldown/confirmation gate for the existing RSI-momentum
+       re-entry logic (see root-cause finding above).
+   Do not deploy either without showing the user real backtest
+   numbers first.
 
 1. `event_driven_runner.py`'s missing "reconnected successfully" log
    line (see above) is a real, if low-priority, gap - worth a one-line
