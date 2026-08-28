@@ -7,6 +7,7 @@ import time
 
 from strategy.fyers_options_engine import INDEX_CONFIG, _fetch_option_chain
 from strategy.fyers_options_oi_footprint import _read_atm_oi_snapshot
+from strategy.oi_collector import oi_log_filename, format_oi_record
 from strategy.fyers_data import fyers_download
 from strategy.event_driven_engine import (
     rsi_momentum_decide_fn, rsi_momentum_quote_decide_fn,
@@ -19,6 +20,31 @@ from strategy.tick_collector import LiveCandleAggregator
 from strategy.data_watchdog import watchdog_loop
 
 IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
+
+# Added 28-Aug-2026 - see strategy/oi_collector.py's own module
+# docstring for why (today's real backtest work found 3 strategy ideas
+# blocked on OI never being archived). Same "data/<kind>/" layout as
+# data/ticks/, data/depth/ - relative to the repo root, matching every
+# other collector's own convention (all entrypoints run from there).
+OI_DIR = os.path.join("data", "oi")
+
+
+def _append_oi_record(index, snapshot, timestamp):
+    """
+    Appends one real OI snapshot to today's archive file - fire-and-
+    forget, best-effort: a write failure here must never take down the
+    live decision path (refresh_oi_snapshots() already reached
+    on_oi_snapshot() successfully by the time this runs), so any
+    exception is caught and logged, not raised.
+    """
+    try:
+        os.makedirs(OI_DIR, exist_ok=True)
+        path = os.path.join(OI_DIR, oi_log_filename(timestamp))
+        record = format_oi_record(index, snapshot, timestamp)
+        with open(path, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(record) + "\n")
+    except Exception as error:
+        print(f"OI archive write failed for {index} (continuing anyway): {error}")
 
 # Added 18-Aug-2026 - the production entry point that ties together
 # everything built tonight (backtest_live_engine.py's decide_fn
@@ -620,6 +646,8 @@ def refresh_oi_snapshots(runners):
 
         if snapshot is None:
             continue
+
+        _append_oi_record(index, snapshot, now)
 
         for key in keys:
             runner = runners.get(key)
