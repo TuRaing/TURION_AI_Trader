@@ -95,6 +95,61 @@ check.
 
 ==================================================
 
+==================================================
+
+ROOT CAUSE FOUND - WHY THE RSI-MOMENTUM BOOKS ARE MOSTLY NET NEGATIVE.
+User asked directly "RSI ka chukat aahe" (why is RSI going wrong)
+after seeing the all-14-books-combined all-time PnL: Rs -245,707,
+5 of 6 real trading days net negative (21-Aug -90k, 24-Aug -39k,
+25-Aug -60k, 26-Aug +25k, 27-Aug -61k, 28-Aug -20k so far). Investigated
+with real data rather than guessing: `_rsi_momentum_decide()` in
+strategy/event_driven_engine.py picks direction with `RSI >= 50 -> CE
+else PE`, computed once per closed 5-min candle - but when flat, it
+re-checks and reopens on EVERY tick with zero cooldown. Proven on real
+`st2_threshold` trades (27/28-Aug): the gap between one trade's Exit
+Time and the next trade's Entry Time was 0.0 seconds in nearly every
+case, six trades in a row, all the same direction (PE) - since RSI
+hadn't changed within that 5-min window, a noisy/wide option bid-ask
+spread right at market open kept re-triggering the tight Target/Stop-
+Loss on the same side, each round-trip paying real spread cost (some
+of the same-second re-entries even hit Target, not just SL - the
+direction was often right, the re-entry cost was the problem).
+
+This is NOT a new root cause - it's the same mechanism already found
+21-Aug (which motivated the N=2 `daily_loss_lock` breaker) - this
+session's investigation just re-confirmed it with sharper, harder
+numbers (0.0s gaps) rather than discovering something new. The breaker
+caps the DAMAGE (stops after 2 losses) but was never a fix for the
+zero-cooldown re-entry mechanism itself.
+
+User's decision: build a cooldown/confirmation gate before re-entry -
+explicitly deferred to a BACKTEST tomorrow (29-Aug), not built/
+deployed today. See [[project_quote_pnl_and_whipsaw_decision]] memory
+for the full note.
+
+==================================================
+
+NEW STRATEGY IDEAS PROPOSED (28-Aug), 4 options, backtest planned for
+THIS EVENING (after market close). User asked for genuinely new
+strategies, not just an RSI fix. Proposed, grounded in infra already
+built (explicitly did not re-propose trailing-SL/IV-filter/Kelly-
+sizing - already backtested and rejected earlier):
+
+1. Order-book imbalance (recommended first) - uses the depth archive
+   (collected since 24-Aug) as a live signal for the first time, not
+   just post-hoc slippage analysis.
+2. VWAP-based momentum/reversion - tick archive already has volume per
+   leg.
+3. Volume-spike breakout - reacts faster than RSI's 5-min-candle lag.
+4. PCR event-driven port - `pcr_momentum`/`pcr_vix_combo` already
+   exist in the older polling engine; port with cooldown/breaker built
+   in from day one.
+
+Nothing built yet - backtest first, this evening, per the same data-
+driven-patience discipline as every other change on this project.
+
+==================================================
+
 Status
 
 🟢 Stable
@@ -110,6 +165,15 @@ v0.0.68
 --------------------------------------------------
 
 Next Session
+
+0. TWO backtests planned, not yet run:
+   (a) TONIGHT (28-Aug evening) - the 4 new strategy ideas above
+       (order-book imbalance, VWAP, volume-spike breakout, PCR
+       event-driven port) against real tick/depth archive data.
+   (b) TOMORROW (29-Aug) - a cooldown/confirmation gate for the
+       existing RSI-momentum re-entry logic (see root-cause finding
+       above). Do not deploy either without showing the user real
+       backtest numbers first.
 
 1. `event_driven_runner.py`'s missing "reconnected successfully" log
    line (see above) is a real, if low-priority, gap - worth a one-line
