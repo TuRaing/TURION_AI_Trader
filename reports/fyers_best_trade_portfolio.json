@@ -1,15 +1,6 @@
 {
-  "Cash": 99736.79184960277,
-  "Position": {
-    "Name": "WIPRO",
-    "Symbol": "WIPRO.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-08-28 10:02:54",
-    "Entry Price": 179.74,
-    "Quantity": 1,
-    "Stop Loss": 178.615,
-    "Target": 181.99
-  },
+  "Cash": 99737.86043727554,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -478,6 +469,20 @@
       "PnL": -4.41,
       "Cost": 1.81,
       "Net PnL": -6.22
+    },
+    {
+      "Name": "WIPRO",
+      "Symbol": "WIPRO.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-08-28 10:02:54",
+      "Entry Price": 179.74,
+      "Exit Time": "2026-08-28 14:46:44",
+      "Exit Price": 181.0,
+      "Quantity": 1,
+      "Exit Reason": "Intraday Square-Off",
+      "PnL": 1.26,
+      "Cost": 0.19,
+      "Net PnL": 1.07
     }
   ],
   "Data Source": "Fyers"
