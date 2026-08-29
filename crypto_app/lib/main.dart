@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'api.dart';
+import 'screens/premium_chart_screen.dart';
 import 'theme.dart';
+import 'widgets/candlestick_chart.dart';
 import 'widgets/common.dart';
 import 'widgets/disclaimer_banner.dart';
 import 'widgets/mesh_background.dart';
@@ -24,6 +26,15 @@ const _books = [
   (key: 'rsi_momentum_crypto_btc', label: 'BTC', initialCapital: 10000.0),
   (key: 'rsi_momentum_crypto_eth', label: 'ETH', initialCapital: 1047.89),
 ];
+
+// Matches strategy/event_driven_engine.py's make_st2_threshold_event_
+// cfg() defaults - both crypto books use these unchanged (see
+// run_crypto_options_engine.py's build_runner(), no override passed) -
+// needed here only to draw the Target/Stop-Loss reference lines on the
+// live position's own chart, same formula as StrategyPremiumChartScreen
+// in the main app.
+const _targetNetPct = 5.0;
+const _hybridSlCapPct = 2.0;
 
 void main() {
   runApp(const TurionCryptoApp());
@@ -206,7 +217,7 @@ class _CryptoBookTabState extends State<_CryptoBookTab> {
                   child: Text('No open position', style: TextStyle(color: mutedColor)),
                 )
               else
-                CryptoPositionCard(position: position),
+                CryptoPositionCard(position: position, onViewChart: () => _openPositionChart(context, position)),
             ],
           ),
         ),
@@ -220,8 +231,63 @@ class _CryptoBookTabState extends State<_CryptoBookTab> {
             child: Text('No closed trades yet', style: TextStyle(color: mutedColor)),
           )
         else
-          ...closedTrades.reversed.map((t) => CryptoClosedTradeCard(trade: t)),
+          ...closedTrades.reversed.map(
+            (t) => CryptoClosedTradeCard(trade: t, onViewChart: () => _openClosedTradeChart(context, t)),
+          ),
       ],
+    );
+  }
+
+  void _openPositionChart(BuildContext context, Map<String, dynamic> position) {
+    final entryPremium = (position['Entry Premium'] as num).toDouble();
+    final lots = (position['Lots'] as num).toInt();
+    final capitalDeployed = (position['Capital Deployed'] as num).toDouble();
+    final leg = position['Option Type'] == 'PE' ? 'PE' : 'CE';
+
+    final targetPremium = entryPremium + (_targetNetPct / 100 * widget.book.initialCapital) / lots;
+    final flatCap = widget.book.initialCapital * _hybridSlCapPct / 100;
+    final pctCap = capitalDeployed * _hybridSlCapPct / 100;
+    final hybridCap = flatCap < pctCap ? flatCap : pctCap;
+    final slPremium = entryPremium - hybridCap / lots;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PremiumChartScreen(
+          strategyKey: widget.book.key,
+          bookLabel: widget.book.label,
+          leg: leg,
+          symbol: position['Symbol'] as String? ?? '',
+          referenceLines: [
+            ChartReferenceLine(price: entryPremium, label: 'Entry', color: accentColor),
+            ChartReferenceLine(price: targetPremium, label: 'Target', color: successColor),
+            ChartReferenceLine(price: slPremium, label: 'SL', color: dangerColor),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openClosedTradeChart(BuildContext context, Map<String, dynamic> trade) {
+    final entryPremium = (trade['Entry Premium'] as num).toDouble();
+    final exitPremium = (trade['Exit Premium'] as num).toDouble();
+    final leg = trade['Option Type'] == 'PE' ? 'PE' : 'CE';
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PremiumChartScreen(
+          strategyKey: widget.book.key,
+          bookLabel: widget.book.label,
+          leg: leg,
+          symbol: trade['Symbol'] as String? ?? '',
+          referenceLines: [
+            ChartReferenceLine(price: entryPremium, label: 'Entry', color: accentColor),
+            ChartReferenceLine(
+                price: exitPremium, label: 'Exit', color: exitPremium >= entryPremium ? successColor : dangerColor),
+          ],
+        ),
+      ),
     );
   }
 }

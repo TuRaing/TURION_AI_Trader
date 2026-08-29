@@ -1,3 +1,4 @@
+import concurrent.futures
 import datetime
 import os
 import sys
@@ -28,7 +29,7 @@ if _service_account_file and not os.environ.get("FIREBASE_SERVICE_ACCOUNT"):
     with open(_service_account_file, "r") as _f:
         os.environ["FIREBASE_SERVICE_ACCOUNT"] = _f.read()
 
-from report.firebase_realtime_sync import sync_portfolio
+from report.firebase_realtime_sync import sync_portfolio, sync_strategy_tick, sync_strategy_candles
 from strategy.crypto_transaction_costs import calculate_crypto_options_round_trip_cost
 from strategy.crypto_tick_runner import CryptoTickRunner, load_portfolio, save_portfolio
 from strategy.deribit_data import (
@@ -37,6 +38,7 @@ from strategy.deribit_data import (
 from strategy.event_driven_engine import rsi_momentum_decide_fn, make_st2_threshold_event_cfg
 from strategy.execution_backend import PaperExecutionBackend
 from strategy.live_tick_harness import MIN_CANDLES_FOR_RSI
+from strategy.tick_collector import LiveCandleAggregator
 
 # Added 24-Aug-2026 - Phase 3 of the approved crypto paper-trading plan
 # (see this branch's own plan / doc/PROJECT_STATUS.md): the VM entry
@@ -182,7 +184,40 @@ def main():
         save_portfolio(STRATEGY_NAME, runner.portfolio)
         sync_portfolio(STRATEGY_NAME, runner.portfolio)
 
-    connect_and_run(runner, runner.ce_symbol, runner.pe_symbol, runner.underlying_index_name, on_action=_persist)
+    # Added 29-Aug-2026, at the user's own request - a live CE/PE
+    # premium candlestick chart in crypto_app, same real-data (not
+    # spot-approximated) chart strategy/event_driven_runner.py already
+    # builds for the NIFTY side (strategy_ticks/strategy_candles paths,
+    # see that module's own 21-Aug-2026 note). firebase_executor keeps
+    # every sync call off this hot path - Deribit's ticker channel ticks
+    # at 100ms, far faster than Fyers' ticks, so a blocking network call
+    # per tick here would stall the WebSocket read loop badly (the exact
+    # "blocking-Firebase-call latency bug" event_driven_runner.py's own
+    # history already found once on the NIFTY side).
+    firebase_executor = concurrent.futures.ThreadPoolExecutor(max_workers=2, thread_name_prefix="firebase-sync")
+    candle_aggregators = {"CE": LiveCandleAggregator(), "PE": LiveCandleAggregator()}
+
+    def _sync_premium_tick(instrument_name, timestamp, usd_premium):
+        if usd_premium is None:
+            return
+
+        leg = "CE" if instrument_name == runner.ce_symbol else "PE" if instrument_name == runner.pe_symbol else None
+        if leg is None:
+            return
+
+        timestamp_str = timestamp.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+        firebase_executor.submit(
+            sync_strategy_tick, STRATEGY_NAME, leg, {"ltp": usd_premium, "timestamp": timestamp_str}
+        )
+
+        agg = candle_aggregators[leg]
+        if agg.on_tick(timestamp_str, usd_premium):
+            firebase_executor.submit(sync_strategy_candles, STRATEGY_NAME, leg, agg.as_list())
+
+    connect_and_run(
+        runner, runner.ce_symbol, runner.pe_symbol, runner.underlying_index_name,
+        on_action=_persist, on_tick=_sync_premium_tick,
+    )
 
 
 if __name__ == "__main__":

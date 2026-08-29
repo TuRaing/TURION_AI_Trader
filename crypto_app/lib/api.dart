@@ -37,3 +37,63 @@ Future<Map<String, dynamic>?> fetchPortfolio(String strategyName) async {
 
   return json.decode(response.body) as Map<String, dynamic>;
 }
+
+// Added 29-Aug-2026, at the user's own request for a live candlestick
+// chart - reads the SAME strategy_ticks/strategy_candles paths
+// report/firebase_realtime_sync.py's sync_strategy_tick()/sync_
+// strategy_candles() write (see run_crypto_options_engine.py's own
+// matching 29-Aug-2026 note for the on_tick() wiring on the Python
+// side). `leg` is "CE" or "PE".
+
+String _strategyCandlesUrl(String strategyName, String leg) =>
+    '$_rtdbBase/strategy_candles/$strategyName/$leg.json';
+String _strategyTickUrl(String strategyName, String leg) => '$_rtdbBase/strategy_ticks/$strategyName/$leg.json';
+
+/// One-time fetch of the rolling closed-candle history for one leg -
+/// seeds the chart on open. [] if nothing has synced yet.
+Future<List<Map<String, dynamic>>> fetchStrategyCandles(String strategyName, String leg) async {
+  final uri = Uri.parse('${_strategyCandlesUrl(strategyName, leg)}?t=${DateTime.now().millisecondsSinceEpoch}');
+  final response = await http.get(uri).timeout(const Duration(seconds: 15));
+
+  if (response.statusCode != 200 || response.body == 'null') {
+    return [];
+  }
+
+  final raw = json.decode(response.body);
+  return _castCandleList(raw);
+}
+
+/// The latest single tick for one leg - polled periodically (this app
+/// has no live Stream, see this file's own top comment) to keep the
+/// CURRENT, still-forming candle updating between backend candle
+/// closes. Null if nothing has synced yet.
+Future<Map<String, dynamic>?> fetchStrategyTick(String strategyName, String leg) async {
+  final uri = Uri.parse('${_strategyTickUrl(strategyName, leg)}?t=${DateTime.now().millisecondsSinceEpoch}');
+  final response = await http.get(uri).timeout(const Duration(seconds: 15));
+
+  if (response.statusCode != 200 || response.body == 'null') {
+    return null;
+  }
+
+  return json.decode(response.body) as Map<String, dynamic>;
+}
+
+/// Firebase can return a JSON array OR a Map with numeric string keys
+/// for the same logical list, depending on how it was written (a
+/// known quirk - see mobile_app/lib/event_driven_realtime_service.dart's
+/// own 21-Aug-2026 note about this exact behavior for the SDK; the
+/// REST API is more consistent but this stays defensive rather than
+/// assuming).
+List<Map<String, dynamic>> _castCandleList(dynamic raw) {
+  if (raw is List) {
+    return raw.whereType<Object>().map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  if (raw is Map) {
+    final entries = raw.entries.toList()
+      ..sort((a, b) => (int.tryParse(a.key.toString()) ?? 0).compareTo(int.tryParse(b.key.toString()) ?? 0));
+    return entries.map((e) => Map<String, dynamic>.from(e.value as Map)).toList();
+  }
+
+  return <Map<String, dynamic>>[];
+}

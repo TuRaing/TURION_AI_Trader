@@ -1,4 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Required for api.dart's Firebase RTDB REST reads - the debug
+         build's manifest overlay grants this automatically for
+         Flutter's own debug tooling, which is why this bug only
+         showed up in the release build (confirmed live, 29-Aug-2026:
+         "Failed host lookup" - DNS itself is blocked without this). -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="turion_crypto"
         android:name="${applicationName}"

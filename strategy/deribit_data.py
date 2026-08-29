@@ -235,7 +235,7 @@ def parse_index_message(message):
     }
 
 
-def connect_and_run(runner, ce_symbol, pe_symbol, index_name, on_action=None):
+def connect_and_run(runner, ce_symbol, pe_symbol, index_name, on_action=None, on_tick=None):
     """
     Verified against a REAL live WebSocket connection this session (one
     ticker + one index subscription, both channels confirmed to deliver
@@ -258,6 +258,18 @@ def connect_and_run(runner, ce_symbol, pe_symbol, index_name, on_action=None):
     after routing, but as an explicit parameter instead of a second
     runner-routing layer, since this sub-project only runs ONE book for
     now (see run_crypto_options_engine.py's own module docstring).
+
+    on_tick - added 29-Aug-2026, at the user's own request for a live
+    CE/PE premium candlestick chart in crypto_app - optional
+    callback(instrument_name, timestamp, usd_premium), called for
+    EVERY parsed ticker message (CE or PE), independent of on_action -
+    unlike on_action, this fires even before decide_fn has enough
+    state to run (e.g. before the first index tick arrives), since a
+    premium chart doesn't need RSI/spot context the way a trading
+    decision does. run_crypto_options_engine.py uses this to sync a
+    live tick + closed-candle history per leg, mirroring strategy/
+    event_driven_runner.py's on_message()/strategy_candle_aggregators
+    pattern for the NIFTY side.
     """
 
     import asyncio
@@ -296,6 +308,8 @@ def connect_and_run(runner, ce_symbol, pe_symbol, index_name, on_action=None):
                     usd_mark = to_usd_premium(ticker["mark_price"], ticker["index_price"])
                     usd_bid = to_usd_premium(ticker["best_bid_price"], ticker["index_price"])
                     usd_ask = to_usd_premium(ticker["best_ask_price"], ticker["index_price"])
+                    if on_tick is not None:
+                        on_tick(ticker["instrument_name"], timestamp, usd_mark)
                     action = runner.on_tick(ticker["instrument_name"], timestamp, usd_mark, bid=usd_bid, ask=usd_ask)
                     if action is not None and on_action is not None:
                         on_action(action)
