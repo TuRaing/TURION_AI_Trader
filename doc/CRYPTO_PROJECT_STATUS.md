@@ -59,6 +59,35 @@ real Deribit market data instead of Fyers/NSE data.
   real live VM data (BTC open position, ETH's first closed trade) via
   the browser before committing.
 
+  **Installed and verified on a real phone, same session** (Motorola
+  Edge 20 Fusion, `adb install` over USB) - release APK size cut from
+  140MB (debug) to 13-17MB via `flutter build apk --release
+  --split-per-abi`. Found and fixed a real bug live: the release build
+  loaded but every network call failed ("Failed host lookup") - the
+  release `AndroidManifest.xml` was missing `<uses-permission
+  android.permission.INTERNET/>` (debug builds get it automatically
+  via a Flutter tooling manifest overlay; release needs it declared).
+
+  **Candlestick chart + trade-detail sheet added same day**, at the
+  user's own follow-up ask ("tick by tick candlestick सुद्धा दिसू दे").
+  Position/closed-trade cards are now tappable -> a detail sheet
+  (entry/exit/lots, a real cost breakdown using Deribit's actual 0.03%
+  taker fee - NOT the main app's Rupee/NIFTY cost model) -> "View
+  Chart" -> a live candlestick chart (Entry/Target/SL lines for the
+  open position, Entry/Exit for a closed trade). Backend: `strategy/
+  deribit_data.py`'s `connect_and_run()` gained an `on_tick` callback
+  (fires on every CE/PE ticker message, independent of `on_action`);
+  `run_crypto_options_engine.py` uses it to sync per-leg tick/candle
+  history to the same `strategy_ticks`/`strategy_candles` Firebase
+  paths the NIFTY side already uses, via a `ThreadPoolExecutor` so a
+  blocking Firebase call never stalls the WebSocket loop at Deribit's
+  100ms tick rate. `crypto_app` has no live Firebase Stream (see its
+  own `api.dart`), so the chart polls the tick endpoint every 3s and
+  client-side-aggregates the current forming candle, same bucket-merge
+  logic the main app's Stream-based screen uses. Deployed to the VM
+  (both systemd units restarted) and verified live: `strategy_ticks`
+  confirmed populating for both BTC and ETH via a direct curl.
+
 ## Redeploying code to the VM
 
 ```
@@ -142,6 +171,6 @@ clean from the start, never having run the buggy cost model live.
 
 1. Let BTC and ETH run live for a while and watch real paper results
    (win rate, trade frequency) now that the cost-model bug is fixed.
-2. Install `crypto_app`'s debug APK on a real phone and confirm it
-   still renders correctly outside a browser (web build was the
-   verification so far — see Phase 5 above).
+2. User is testing the installed phone app (candlestick chart, trade
+   detail sheet) live as of this session's end — no reported issues
+   yet, follow up next session if any come back.
