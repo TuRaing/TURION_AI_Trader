@@ -43,7 +43,21 @@ real Deribit market data instead of Fyers/NSE data.
 
   Both confirmed live and holding positions normally (no repeat of the
   stop-loss loop below) right after deploy.
-- **Phase 5 (mobile `crypto_screen.dart`)** — not started.
+- **Phase 5 (mobile app)** — done differently than originally planned,
+  29-Aug-2026: instead of adding a `crypto_screen.dart` tab to the
+  main `mobile_app`, the user explicitly asked for a **separate,
+  standalone Flutter app** — `crypto_app/` at the repo root, own
+  `pubspec.yaml`/APK, same dark-neon theme as the main app but showing
+  only the two crypto books (BTC/ETH), none of the ~60 NIFTY/BankNifty
+  ones. Reads the same Firebase RTDB path
+  (`event_driven_portfolios/{strategy_name}`) `run_crypto_options_
+  engine.py` already writes to, via plain HTTPS REST polling (the
+  RTDB's read rules are already public — confirmed live — so no
+  `firebase_core`/`firebase_database` SDK or Firebase Console app
+  registration needed). `flutter analyze` clean, `flutter test`
+  passes, and a built web version was visually verified against the
+  real live VM data (BTC open position, ETH's first closed trade) via
+  the browser before committing.
 
 ## Redeploying code to the VM
 
@@ -128,4 +142,6 @@ clean from the start, never having run the buggy cost model live.
 
 1. Let BTC and ETH run live for a while and watch real paper results
    (win rate, trade frequency) now that the cost-model bug is fixed.
-2. Phase 5 — mobile `crypto_screen.dart`.
+2. Install `crypto_app`'s debug APK on a real phone and confirm it
+   still renders correctly outside a browser (web build was the
+   verification so far — see Phase 5 above).
