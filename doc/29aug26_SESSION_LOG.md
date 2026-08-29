@@ -126,28 +126,80 @@ note across all these backtests.
 
 ==================================================
 
+DEPLOYED THE PERF FIX LIVE, THEN FOUND AND FIXED A REAL CRON GAP IT
+EXPOSED. User approved deploying today's `live_tick_harness.py` perf
+fix to the VPS after confirming it was safe (Saturday, market closed,
+no open positions on any of the 3 event-driven services - the 3 open
+positions found on the VPS belong to a completely separate system, the
+GitHub-Actions-driven swing strategies, which don't run on this VPS at
+all). Ran `deploy/deploy.sh` as `turion` (not root, per the established
+ownership-drift lesson) via `sudo -u turion bash -c`: git fast-forwarded
+cleanly, dependencies installed, all 3 services restarted successfully.
+(The script's own final `sudo systemctl status` step failed - turion's
+sudoers NOPASSWD scope covers `restart`/`start` but not `status` - a
+minor, pre-existing gap in deploy.sh itself, not a deploy failure; the
+restarts had already succeeded by that point.)
+
+All 3 services then showed "inactive" - investigated rather than
+assuming a break: this is a real, pre-existing, deliberate feature
+(added 22-Aug-2026 after an earlier real Saturday crash-loop incident)
+- each entrypoint checks `now_ist.weekday() >= 5` at startup and exits
+cleanly (exit 0, not a crash) on a weekend. Confirmed via `journalctl`:
+"Saturday - NSE is closed on weekends, skipping this start attempt."
+NOT caused by today's perf fix - this is the first restart since
+Friday, so it's the first time this exact weekend-skip path has been
+exercised outside of a crash scenario.
+
+Found a real, previously-latent gap this exposed: `turion-event-driven`
+already has 3 crontab lines (`30-55/5 2 * * 1-5` / `*/5 3 * * 1-5` /
+`0-25/5 4 * * 1-5 sudo systemctl start turion-event-driven`, documented
+in `deploy/turion-event-driven.service`, added 18-Aug-2026) that retry
+`systemctl start` across the pre-market window every weekday, so it
+reliably comes back up regardless of `deploy.sh`'s own restart firing.
+`turion-tick-collector` and `turion-depth-collector` never got the
+matching entries - and `deploy.sh` only restarts services when there is
+a NEW commit to pull, which isn't guaranteed on a Monday morning (all
+of this project's own automated GitHub Actions commits - best-trade
+shortlist refresh, etc. - are weekday-scheduled, so nothing new lands
+over a weekend). Net effect: without a fix, both collectors would have
+stayed down all Monday with nothing to bring them back automatically.
+Real trading itself was never at risk (`turion-event-driven` - the
+actual trading engine - is the one already covered); this was a data-
+archival gap only.
+
+Fixed live: added the same 3-line pattern for both collectors to
+`crontab -u turion` on the VPS (verified: `start` for both was already
+in turion's NOPASSWD sudoers scope alongside `restart` - no sudoers
+change needed). Documented the same fix in `deploy/turion-tick-
+collector.service` and `deploy/turion-depth-collector.service` (mirroring
+`turion-event-driven.service`'s own 18-Aug-2026 pattern) so a future
+VPS reinstall reproduces this crontab, not just the live box having it.
+
+==================================================
+
 Status
 
 🟢 Stable
 
 Current Version
 
-v0.0.68
+v0.0.69
 
 Next Version
 
-v0.0.68 (no code shipped live this session - the live_tick_harness.py
-perf fix is made and fully tested locally, but not yet committed/
-pushed/deployed; the buffer backtest itself stays backtest-only)
+v0.0.69 (perf fix committed, pushed, and deployed live to the VPS this
+session; the buffer backtest itself stays backtest-only, nothing shipped
+from it)
 
 --------------------------------------------------
 
 Next Session
 
-1. Decide whether to commit + push the `live_tick_harness.py`
-   perf-caching fix (RSI/today_realized_pnl/today_consecutive_losses)
-   to `main` - safe and fully tested (621/621), but user has not yet
-   been asked to confirm the commit itself.
+1. Verify Monday morning (31-Aug, next real trading day) that BOTH
+   `turion-tick-collector` and `turion-depth-collector` actually come
+   back up via today's new crontab entries (not just `turion-event-
+   driven`, which already had this safety net) - this is the FIRST
+   real trading-day test of that fix.
 
 2. 10-minute market-open buffer is the best candidate found - still
    just one dataset (5 days), same "more real data before deciding"

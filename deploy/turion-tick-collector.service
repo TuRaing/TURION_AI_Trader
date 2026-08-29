@@ -27,6 +27,24 @@
 # (Original 18-Aug-2026 reasoning, no longer the active choice but kept
 # for context: lost archival data for a few minutes during a crash/
 # restart alone seemed like a minor gap not worth alerting on.)
+#
+# ADDED 29-Aug-2026 - real gap found live: a Saturday manual deploy
+# restarted all 3 VPS services; this one (and turion-depth-collector)
+# hit the same weekend self-skip check turion-event-driven already has
+# (see run_tick_collector.py) and exited cleanly (exit 0) - but unlike
+# turion-event-driven, NO crontab entry existed to retry `systemctl
+# start` around the next trading day's market open, so this service
+# would have stayed down all Monday with nothing to bring it back
+# (deploy.sh's own restart only fires when there's a new commit to
+# pull - not guaranteed on a quiet Monday). Same fix as turion-event-
+# driven.service's own 18-Aug-2026 note, mirrored here (installed live
+# on the VPS crontab the same day this comment was added):
+#   30-55/5 2 * * 1-5 sudo systemctl start turion-tick-collector
+#   */5 3 * * 1-5 sudo systemctl start turion-tick-collector
+#   0-25/5 4 * * 1-5 sudo systemctl start turion-tick-collector
+# (already covered by the same NOPASSWD sudoers scope used for the
+# restart/start commands deploy.sh and turion-event-driven.service's
+# own cron entry already rely on - no sudoers change needed.)
 
 [Unit]
 Description=TURION ATM Tick Collector (WebSocket, archival only)
