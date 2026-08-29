@@ -1,0 +1,72 @@
+# Added 29-Aug-2026 - Phase 4 of the approved crypto paper-trading
+# plan: systemd unit for running run_crypto_options_engine.py
+# continuously on the standalone crypto VM (Oracle Cloud, Always Free
+# Ampere A1, Mumbai region - a completely separate machine from the
+# NIFTY/BankNifty VPS, per this sub-project's own hard constraint).
+# Mirrors deploy/turion-event-driven.service's structure (StartLimit*
+# in [Unit], EnvironmentFile for Firebase credentials, Restart=on-
+# failure) but simpler: no daily Fyers token/login gate and no
+# weekend/market-hours check - every Deribit endpoint here is
+# unauthenticated public data, and crypto is a 24/7 market.
+#
+# LIVE-TESTED on the actual deployed VM, 29-Aug-2026 (unlike turion-
+# event-driven.service, which remained code-prep-only when written):
+# REST, WebSocket, decide_fn, and Firebase sync all confirmed working
+# against real Deribit data on the real VM before this unit file was
+# installed.
+#
+# Install with:
+#   sudo cp deploy/turion-crypto-options.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable turion-crypto-options   # auto-start on boot
+#   sudo systemctl start turion-crypto-options
+#
+# Useful commands once running:
+#   sudo systemctl status turion-crypto-options   # is it up, last exit code
+#   journalctl -u turion-crypto-options -f        # follow live logs
+#   sudo systemctl restart turion-crypto-options  # manual restart
+
+[Unit]
+Description=TURION Crypto Options Engine (Deribit BTC, WebSocket, paper-trading)
+After=network-online.target
+Wants=network-online.target
+
+# Caps restart attempts so a persistently-crashing engine doesn't spin
+# forever - 5 attempts within 5 minutes, then systemd gives up and the
+# unit needs a manual `systemctl restart` after the underlying issue
+# is fixed. Must live in [Unit], not [Service] - see turion-event-
+# driven.service's own 24-Aug-2026 note for the real bug this avoids
+# repeating (StartLimit* keys are silently ignored in [Service]).
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+
+# PLACEHOLDER - set to wherever this repo is checked out on the VM.
+WorkingDirectory=/home/ubuntu/turion-crypto
+
+# PLACEHOLDER - use the VM's venv, not system python.
+ExecStart=/home/ubuntu/turion-crypto/venv/bin/python run_crypto_options_engine.py
+
+# Crash (WebSocket drop, a bad tick, Deribit API hiccup) restarts
+# after a short delay - unlike the NIFTY engine, there's no "clean
+# exit 0 because no token yet" case here (no login gate at all), so
+# every exit this unit sees is a real failure worth restarting from.
+Restart=on-failure
+RestartSec=10
+
+# PLACEHOLDER - needs FIREBASE_SERVICE_ACCOUNT and FIREBASE_DATABASE_URL
+# at minimum, same two values already used by the NIFTY VPS - see
+# report/firebase_realtime_sync.py's module docstring. This file does
+# not exist in the repo (secrets are never committed) - create it
+# manually on the VM.
+EnvironmentFile=/home/ubuntu/turion-crypto/.env
+
+# Sends stdout/stderr to the systemd journal (journalctl -u ...)
+# instead of a separate log file - nothing extra to rotate.
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
