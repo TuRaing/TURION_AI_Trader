@@ -1,4 +1,7 @@
+import datetime
 import sys
+
+import pandas as pd
 
 sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)
 # See run_event_driven_engine.py's own matching note - under systemd,
@@ -8,9 +11,12 @@ sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)
 
 from report.firebase_realtime_sync import sync_portfolio
 from strategy.crypto_tick_runner import CryptoTickRunner, load_portfolio, save_portfolio
-from strategy.deribit_data import get_index_price, get_instruments, pick_atm_instruments, connect_and_run
+from strategy.deribit_data import (
+    get_index_price, get_instruments, get_tradingview_chart_data, pick_atm_instruments, connect_and_run,
+)
 from strategy.event_driven_engine import rsi_momentum_decide_fn, make_st2_threshold_event_cfg
 from strategy.execution_backend import PaperExecutionBackend
+from strategy.live_tick_harness import MIN_CANDLES_FOR_RSI
 
 # Added 24-Aug-2026 - Phase 3 of the approved crypto paper-trading plan
 # (see this branch's own plan / doc/PROJECT_STATUS.md): the VM entry
@@ -44,6 +50,44 @@ from strategy.execution_backend import PaperExecutionBackend
 CURRENCY = "BTC"
 STRATEGY_NAME = "rsi_momentum_crypto_btc"
 INITIAL_CAPITAL = 10000.0
+CANDLE_SEED_HOURS = 12  # comfortably more than MIN_CANDLES_FOR_RSI * 5min needs
+
+
+def _seed_candles(currency):
+    """
+    Real historical 5-min BTC-PERPETUAL/ETH-PERPETUAL bars (see
+    crypto_options_backtest.py's own module docstring for why the
+    perpetual, not the index itself, is used - Deribit's tradingview
+    endpoint rejects instrument_name="btc_usd" outright), so RSI is
+    available from the first live tick instead of needing ~75 minutes
+    of live ticks to warm up MIN_CANDLES_FOR_RSI candles from scratch -
+    same reasoning as event_driven_runner.py's own _seed_candles() for
+    the NIFTY/BankNifty engine.
+
+    Returns None (not raises) on any fetch problem - RSI just stays
+    unready until enough live ticks arrive, same graceful-degradation
+    rule every other network-sourced signal in this project follows;
+    a startup hiccup here must never block the engine from starting.
+    """
+
+    try:
+        perpetual = "BTC-PERPETUAL" if currency.upper() == "BTC" else "ETH-PERPETUAL"
+        now_ms = int(datetime.datetime.now(datetime.timezone.utc).timestamp() * 1000)
+        start_ms = now_ms - CANDLE_SEED_HOURS * 3600 * 1000
+
+        bars = get_tradingview_chart_data(perpetual, start_ms, now_ms, resolution_minutes=5)
+
+        if len(bars) < MIN_CANDLES_FOR_RSI:
+            print(f"Only {len(bars)} historical bars available - RSI will warm up live instead.")
+            return None
+
+        rows = [{"Open": close, "High": close, "Low": close, "Close": close} for _, close in bars]
+        idx = [datetime.datetime.fromtimestamp(ts / 1000, tz=datetime.timezone.utc) for ts, _ in bars]
+
+        return pd.DataFrame(rows, index=idx)
+    except Exception as error:
+        print(f"Could not seed candles ({error}) - RSI will warm up live instead.")
+        return None
 
 
 def build_runner():
@@ -78,6 +122,7 @@ def build_runner():
         underlying_index_name=CURRENCY,
         ce_symbol=ce_symbol,
         pe_symbol=pe_symbol,
+        initial_candles=_seed_candles(CURRENCY),
         execution_backend=PaperExecutionBackend(),
     )
 

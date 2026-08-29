@@ -82,6 +82,35 @@ def get_ticker(instrument_name):
     return response.json()["result"]
 
 
+def get_tradingview_chart_data(instrument_name, start_ms, end_ms, resolution_minutes=5):
+    """
+    Real close-price bars (ticks[i] -> close[i], both real fields
+    confirmed 24-Aug-2026), ms-epoch UTC ticks. Works for BTC-PERPETUAL/
+    ETH-PERPETUAL (used as the "spot" proxy - confirmed the same day
+    that instrument_name="btc_usd" itself is rejected by this endpoint,
+    "instrument not found") and for real option instruments (returns
+    their own coin-denominated TRADE price history, not mark price -
+    Deribit doesn't expose historical mark-price bars via this
+    endpoint). Returns [] on "no_data" (a real, confirmed status value)
+    rather than raising - a genuinely untraded instrument/window is a
+    valid (if useless) real answer, not an error.
+    """
+
+    response = requests.get(f"{REST_BASE_URL}/public/get_tradingview_chart_data", params={
+        "instrument_name": instrument_name,
+        "start_timestamp": start_ms,
+        "end_timestamp": end_ms,
+        "resolution": str(resolution_minutes),
+    }, timeout=30)
+    response.raise_for_status()
+    result = response.json()["result"]
+
+    if result.get("status") != "ok":
+        return []
+
+    return list(zip(result["ticks"], result["close"]))
+
+
 def to_usd_premium(coin_price, index_price):
     """
     Converts a Deribit coin-denominated option price (mark/bid/ask) to

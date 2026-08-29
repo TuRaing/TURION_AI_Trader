@@ -1,9 +1,7 @@
 import datetime
 
-import requests
-
 from strategy.backtest_live_engine import run_backtest
-from strategy.deribit_data import get_instruments, pick_atm_instruments, to_usd_premium
+from strategy.deribit_data import get_instruments, get_tradingview_chart_data, pick_atm_instruments, to_usd_premium
 from strategy.event_driven_engine import rsi_momentum_decide_fn, make_st2_threshold_event_cfg
 from strategy.live_tick_harness import CandleAggregator
 
@@ -54,33 +52,9 @@ from strategy.live_tick_harness import CandleAggregator
 # without a paid data source. Acceptable for a first strategy-
 # validation pass over a short (days) lookback window.
 
-CHART_BASE_URL = "https://www.deribit.com/api/v2/public/get_tradingview_chart_data"
 RESOLUTION_MINUTES = 5
 LOOKBACK_DAYS = 7
 INITIAL_CAPITAL = 10000.0
-
-
-def _fetch_chart_bars(instrument_name, start_ms, end_ms, resolution_minutes=RESOLUTION_MINUTES):
-    """
-    Real close-price bars (ticks[i] -> close[i]), ms-epoch UTC ticks.
-    Returns [] on "no_data" (confirmed real status value, 24-Aug-2026)
-    rather than raising - a genuinely untraded instrument/window is a
-    valid (if useless) real answer, not an error.
-    """
-
-    response = requests.get(CHART_BASE_URL, params={
-        "instrument_name": instrument_name,
-        "start_timestamp": start_ms,
-        "end_timestamp": end_ms,
-        "resolution": str(resolution_minutes),
-    }, timeout=30)
-    response.raise_for_status()
-    result = response.json()["result"]
-
-    if result.get("status") != "ok":
-        return []
-
-    return list(zip(result["ticks"], result["close"]))
 
 
 def build_historical_data_points(currency="BTC", lookback_days=LOOKBACK_DAYS):
@@ -95,7 +69,7 @@ def build_historical_data_points(currency="BTC", lookback_days=LOOKBACK_DAYS):
     start_ms = now_ms - lookback_days * 24 * 3600 * 1000
 
     perpetual = "BTC-PERPETUAL" if currency.upper() == "BTC" else "ETH-PERPETUAL"
-    spot_bars = _fetch_chart_bars(perpetual, start_ms, now_ms)
+    spot_bars = get_tradingview_chart_data(perpetual, start_ms, now_ms, RESOLUTION_MINUTES)
 
     if not spot_bars:
         raise RuntimeError(f"No historical spot data returned by Deribit for {perpetual}")
@@ -107,8 +81,8 @@ def build_historical_data_points(currency="BTC", lookback_days=LOOKBACK_DAYS):
     print(f"ATM instruments picked from today's chain: {ce_symbol} / {pe_symbol} "
           f"(strike {atm_strike}, expiry {datetime.datetime.fromtimestamp(expiry / 1000, tz=datetime.timezone.utc)})")
 
-    ce_bars = dict(_fetch_chart_bars(ce_symbol, start_ms, now_ms))
-    pe_bars = dict(_fetch_chart_bars(pe_symbol, start_ms, now_ms))
+    ce_bars = dict(get_tradingview_chart_data(ce_symbol, start_ms, now_ms, RESOLUTION_MINUTES))
+    pe_bars = dict(get_tradingview_chart_data(pe_symbol, start_ms, now_ms, RESOLUTION_MINUTES))
 
     print(f"Bars fetched: spot={len(spot_bars)}, ce={len(ce_bars)}, pe={len(pe_bars)}")
 
