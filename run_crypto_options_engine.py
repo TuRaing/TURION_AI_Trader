@@ -1,4 +1,5 @@
 import datetime
+import os
 import sys
 
 import pandas as pd
@@ -8,6 +9,24 @@ sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)
 # stdout isn't a TTY, so Python defaults to full block buffering
 # instead of line buffering, which would sit every print() unflushed
 # for a long time rather than reaching `journalctl` promptly.
+
+# Added 29-Aug-2026, real bug caught live on the deployed VM: systemd's
+# EnvironmentFile= parser does not safely round-trip a raw JSON blob
+# (the service account key's embedded quotes/backslashes get mangled -
+# confirmed live: "Unable to load PEM file... Invalid symbol 61") even
+# though the exact same FIREBASE_SERVICE_ACCOUNT-env-var-holds-raw-JSON
+# contract already works fine via GitHub Actions secrets (see report/
+# push_notifier.py's own docstring). Rather than touch that shared,
+# already-proven module, this entrypoint reads the JSON from a FILE
+# (FIREBASE_SERVICE_ACCOUNT_FILE, a plain path - safe for systemd's
+# EnvironmentFile, no special characters) and sets the env var itself,
+# in Python, where there's no shell/systemd-style escaping to get
+# wrong. FIREBASE_SERVICE_ACCOUNT itself (if already set directly) is
+# left untouched - this is purely a fallback for the file-based path.
+_service_account_file = os.environ.get("FIREBASE_SERVICE_ACCOUNT_FILE")
+if _service_account_file and not os.environ.get("FIREBASE_SERVICE_ACCOUNT"):
+    with open(_service_account_file, "r") as _f:
+        os.environ["FIREBASE_SERVICE_ACCOUNT"] = _f.read()
 
 from report.firebase_realtime_sync import sync_portfolio
 from strategy.crypto_tick_runner import CryptoTickRunner, load_portfolio, save_portfolio
