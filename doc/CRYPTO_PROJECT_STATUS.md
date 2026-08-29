@@ -25,16 +25,24 @@ real Deribit market data instead of Fyers/NSE data.
 - **Phase 3 (live-wiring code-prep)** — done.
   `run_crypto_options_engine.py`, `sync_portfolio()` under key
   `rsi_momentum_crypto_<currency>`.
-- **Phase 4 (standalone VM + deploy)** — done, 29-Aug-2026. Oracle
-  Cloud Always Free VM: Ubuntu 26.04 aarch64, Ampere A1 (2 OCPU/12GB),
-  India West (Mumbai), public IP `129.154.227.170`, hostname
-  `turion-crypto-vm`. SSH as `ubuntu`, key at
-  `C:\Users\TuriON\Downloads\ssh-key-2026-08-29.key` (dev machine).
+- **Phase 4 (standalone VM + deploy)** — done, 29-Aug-2026, BTC and
+  ETH both live. Oracle Cloud Always Free VM: Ubuntu 26.04 aarch64,
+  Ampere A1 (2 OCPU/12GB), India West (Mumbai), public IP
+  `129.154.227.170`, hostname `turion-crypto-vm`. SSH as `ubuntu`, key
+  at `C:\Users\TuriON\Downloads\ssh-key-2026-08-29.key` (dev machine).
   Code at `~/turion-crypto` (deployed via `git archive` + `scp`, not a
-  git clone — the VM has no GitHub credentials by design). Running as
-  systemd unit `turion-crypto-options` (currently BTC only — one
-  systemd service per currency by design, ETH's own unit not created
-  yet).
+  git clone — the VM has no GitHub credentials by design). Two
+  independent systemd units, one per currency (each its own WebSocket
+  connection, portfolio file, and crash/restart lifecycle):
+  - `turion-crypto-options` — BTC, `rsi_momentum_crypto_btc`, $10,000
+    capital.
+  - `turion-crypto-options-eth` — ETH, `rsi_momentum_crypto_eth`, Rs
+    1,00,000-equivalent ($1,047.89) capital. Added 29-Aug-2026,
+    `deploy/turion-crypto-options-eth.service` (mirrors the BTC unit,
+    only `Description` and `Environment="CRYPTO_CURRENCY=ETH"` differ).
+
+  Both confirmed live and holding positions normally (no repeat of the
+  stop-loss loop below) right after deploy.
 - **Phase 5 (mobile `crypto_screen.dart`)** — not started.
 
 ## Redeploying code to the VM
@@ -87,10 +95,14 @@ strategy-performance result, not a bug (a prior backtest window
 showed +$7,716 on the same signal — small-sample variance is expected
 and already documented behavior for this signal).
 
-**Not yet done:** the live VM is still running the OLD buggy code,
-with the corrupted (-$26,545 Cash) portfolio state from the loop.
-Needs: stop the service, reset/reseed the portfolio state file, deploy
-the fixed code, restart.
+**Deployed live, 29-Aug-2026:** stopped the BTC service, backed up
+(not deleted) the corrupted portfolio state as
+`reports/crypto_rsi_momentum_crypto_btc_portfolio.json.bak-buggy-loop-29aug26`
+on the VM, deployed the fixed code, restarted with a clean $10,000
+Cash. Confirmed live: position opens once and is HELD normally as the
+real premium moves (no more instant-close loop). ETH's own systemd
+unit was created the same session (see Phase 4 above) and came up
+clean from the start, never having run the buggy cost model live.
 
 ## Architecture decisions on record
 
@@ -108,14 +120,12 @@ the fixed code, restart.
   ($1,047.89) separately — Deribit's `lot_size=1` means 1 contract =
   1 full coin notional, so one fixed capital figure doesn't fit both
   currencies' very different real contract economics.
-- **Scope:** BTC first (validated), ETH as a deliberate fast-follow,
-  not both at once for the live deploy (ETH's own systemd unit not
-  created yet, though both are now backtested).
+- **Scope:** BTC first (validated), ETH as a deliberate fast-follow —
+  both now live simultaneously as of 29-Aug-2026, each its own
+  systemd unit (see Phase 4 above), not a single shared process.
 
 ## Next priorities
 
-1. Decide: redeploy the fixed code + reset VM portfolio state now, or
-   later.
-2. Create ETH's own systemd unit (`CRYPTO_CURRENCY=ETH`) once BTC is
-   confirmed stable live again.
-3. Phase 5 — mobile `crypto_screen.dart`.
+1. Let BTC and ETH run live for a while and watch real paper results
+   (win rate, trade frequency) now that the cost-model bug is fixed.
+2. Phase 5 — mobile `crypto_screen.dart`.
