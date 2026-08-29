@@ -59,6 +59,14 @@ class CandleAggregator:
         )
         self._bucket_start = None
         self._bucket = None
+        # Cache: current_rsi() only depends on self.candles, which only
+        # changes in _close_bucket() - recomputing calculate_rsi() (a
+        # pandas rolling computation) on every single tick instead of
+        # once per closed candle made a backtest replay (hundreds of
+        # thousands of ticks/day) unusably slow with zero change in the
+        # returned value between candle closes. Added 29-Aug-2026.
+        self._rsi_cache_len = None
+        self._rsi_cache_value = None
 
     @staticmethod
     def _floor_to_bucket(timestamp):
@@ -101,10 +109,16 @@ class CandleAggregator:
         if len(self.candles) < MIN_CANDLES_FOR_RSI:
             return None
 
+        if self._rsi_cache_len == len(self.candles):
+            return self._rsi_cache_value
+
         rsi_series = calculate_rsi(self.candles)
         latest = rsi_series.iloc[-1]
 
-        return float(latest) if pd.notna(latest) else None
+        self._rsi_cache_value = float(latest) if pd.notna(latest) else None
+        self._rsi_cache_len = len(self.candles)
+
+        return self._rsi_cache_value
 
 
 def _notify_execution_backend(execution_backend, cfg, portfolio, action):
@@ -179,13 +193,23 @@ def _maybe_top_up_capital(cfg, portfolio, timestamp):
     })
 
 
-def _today_consecutive_losses(portfolio, timestamp):
+def _today_consecutive_losses(portfolio, timestamp, _cache=None):
     """
     The CURRENT losing streak among timestamp's own calendar day's
     closed trades, counting backward from the most recent trade until
     a win breaks the streak - the upstream half of the optional
     daily_loss_lock gate (_rsi_momentum_decide/oi_footprint_decide_fn,
     strategy/event_driven_engine.py).
+
+    Optional `_cache` (a dict the caller owns, e.g. one per
+    LiveTickRunner/OIFootprintTickRunner instance) memoizes the result
+    by (len(Closed Trades), today's date) - both runners call this once
+    per tick, re-parsing every closed trade's "Exit Time" string with
+    strptime each time otherwise. The result only actually changes when
+    a trade closes (list length changes) or the calendar day rolls over
+    - both captured by the cache key, so this is exact, not approximate.
+    Default None (unused by the pure-function tests below) preserves
+    the original always-recompute behavior exactly.
 
     MOVED to module level 24-Aug-2026 (was a LiveTickRunner-only
     method) - real gap found live the same day: oi_footprint_
@@ -205,9 +229,16 @@ def _today_consecutive_losses(portfolio, timestamp):
     """
 
     today = timestamp.date()
+    trades = portfolio.get("Closed Trades", [])
+
+    if _cache is not None:
+        cache_key = (len(trades), today)
+        if _cache.get("key") == cache_key:
+            return _cache["value"]
+
     today_trades = []
 
-    for trade in portfolio.get("Closed Trades", []):
+    for trade in trades:
 
         exit_time_str = trade.get("Exit Time")
 
@@ -227,6 +258,10 @@ def _today_consecutive_losses(portfolio, timestamp):
             streak += 1
         else:
             break
+
+    if _cache is not None:
+        _cache["key"] = cache_key
+        _cache["value"] = streak
 
     return streak
 
@@ -267,6 +302,12 @@ class LiveTickRunner:
         self._latest = {"spot": None, "ce_ltp": None, "ce_bid": None, "ce_ask": None,
                          "pe_ltp": None, "pe_bid": None, "pe_ask": None}
         self.last_action = None
+        # See _today_consecutive_losses' and _today_realized_pnl's own
+        # cache comments - both re-parse every closed trade's "Exit
+        # Time" on every tick otherwise. Added 29-Aug-2026.
+        self._losses_cache = {}
+        self._pnl_cache_key = None
+        self._pnl_cache_value = None
 
     def _past_squareoff(self, timestamp):
         """
@@ -308,9 +349,15 @@ class LiveTickRunner:
         """
 
         today = timestamp.date()
+        trades = self.portfolio.get("Closed Trades", [])
+        cache_key = (len(trades), today)
+
+        if self._pnl_cache_key == cache_key:
+            return self._pnl_cache_value
+
         total = 0.0
 
-        for trade in self.portfolio.get("Closed Trades", []):
+        for trade in trades:
 
             exit_time_str = trade.get("Exit Time")
 
@@ -321,6 +368,9 @@ class LiveTickRunner:
 
             if exit_naive.date() == today:
                 total += trade.get("Net PnL", 0)
+
+        self._pnl_cache_key = cache_key
+        self._pnl_cache_value = total
 
         return total
 
@@ -367,7 +417,7 @@ class LiveTickRunner:
             "past_squareoff": self._past_squareoff(timestamp),
             "before_market_open": (timestamp.hour, timestamp.minute) < MARKET_OPEN_TIME,
             "today_realized_pnl": self._today_realized_pnl(timestamp),
-            "today_consecutive_losses": _today_consecutive_losses(self.portfolio, timestamp),
+            "today_consecutive_losses": _today_consecutive_losses(self.portfolio, timestamp, self._losses_cache),
             "previous_close": self.previous_close,
         }
 
@@ -438,6 +488,8 @@ class OIFootprintTickRunner:
         self._latest = {"spot": None, "ce_ltp": None, "ce_bid": None, "ce_ask": None,
                          "pe_ltp": None, "pe_bid": None, "pe_ask": None}
         self.last_action = None
+        # See LiveTickRunner's matching _losses_cache comment above.
+        self._losses_cache = {}
 
     def _past_squareoff(self, timestamp):
         """FIXED 19-Aug-2026 - see LiveTickRunner's matching fix above
@@ -502,7 +554,7 @@ class OIFootprintTickRunner:
             # module-level docstring for the real incident (oi_
             # footprint_banknifty: 141 trades, 69 losses, -Rs 23,952,
             # no breaker) this closes the gap for.
-            "today_consecutive_losses": _today_consecutive_losses(self.portfolio, timestamp),
+            "today_consecutive_losses": _today_consecutive_losses(self.portfolio, timestamp, self._losses_cache),
         }
 
         action, self.portfolio = run_live_check(self.decide_fn, self.cfg, self.portfolio, data_point)
