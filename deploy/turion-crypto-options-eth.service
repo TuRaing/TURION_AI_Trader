@@ -1,0 +1,65 @@
+# Added 29-Aug-2026 - ETH counterpart of deploy/turion-crypto-
+# options.service, per run_crypto_options_engine.py's own "ONE
+# currency per PROCESS" design: a second, independent systemd unit
+# rather than a shared multi-currency process, so BTC and ETH each get
+# their own connect_and_run() WebSocket connection, portfolio file
+# (STRATEGY_NAME derives from CRYPTO_CURRENCY -
+# rsi_momentum_crypto_eth here, vs _btc for the other unit), and
+# restart/crash lifecycle - one currency's WebSocket drop or crash
+# never takes the other down. Same [Unit]/[Service] shape as the BTC
+# unit - only the Description and the CRYPTO_CURRENCY environment
+# variable differ. INITIAL_CAPITAL needs no override here -
+# run_crypto_options_engine.py's own _DEFAULT_CAPITAL already maps ETH
+# to the Rs 1,00,000-equivalent ($1,047.89) automatically once
+# CRYPTO_CURRENCY=ETH is set.
+#
+# Install with:
+#   sudo cp deploy/turion-crypto-options-eth.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable turion-crypto-options-eth   # auto-start on boot
+#   sudo systemctl start turion-crypto-options-eth
+#
+# Useful commands once running:
+#   sudo systemctl status turion-crypto-options-eth   # is it up, last exit code
+#   journalctl -u turion-crypto-options-eth -f        # follow live logs
+#   sudo systemctl restart turion-crypto-options-eth  # manual restart
+
+[Unit]
+Description=TURION Crypto Options Engine (Deribit ETH, WebSocket, paper-trading)
+After=network-online.target
+Wants=network-online.target
+
+# See the BTC unit's own matching note - StartLimit* must live in
+# [Unit], not [Service], or it's silently ignored.
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+
+# PLACEHOLDER - set to wherever this repo is checked out on the VM.
+# Same checkout as the BTC unit - both units run from one repo copy,
+# only their runtime CRYPTO_CURRENCY env var differs.
+WorkingDirectory=/home/ubuntu/turion-crypto
+
+# PLACEHOLDER - use the VM's venv, not system python.
+ExecStart=/home/ubuntu/turion-crypto/venv/bin/python run_crypto_options_engine.py
+
+Restart=on-failure
+RestartSec=10
+
+# Selects ETH instead of run_crypto_options_engine.py's own "BTC"
+# default - set directly here (not in the shared .env file below) so
+# the BTC unit is untouched and each unit's currency is visible from
+# its own systemd file, not a shared/edited secret.
+Environment="CRYPTO_CURRENCY=ETH"
+
+# Same shared Firebase credentials as the BTC unit - see that unit's
+# own matching note. No secrets are currency-specific.
+EnvironmentFile=/home/ubuntu/turion-crypto/.env
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
