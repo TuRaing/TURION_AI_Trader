@@ -7951,4 +7951,53 @@ v0.0.68
 
 ==================================================
 
+MARKET-OPEN BUFFER BACKTEST DONE (29-Aug), AFTER FIXING A REAL
+PRODUCTION PERFORMANCE BUG. User reported yesterday's buffer backtest
+had a bug and this morning's re-run crashed the Windows Claude app
+before finishing - asked to re-run it. Found two real, separate
+problems rather than just re-running blind: (1) yesterday's script had
+a real methodology bug (RSI left unseeded, so every buffer value
+looked identical for the first ~75 min); a corrected, RSI-seeded
+version existed but had never actually completed a run. (2) Re-running
+it exposed a genuine O(ticks x trades) performance bug in `strategy/
+live_tick_harness.py` - RSI, today's realized PnL, and today's
+consecutive-loss streak were all being recomputed from scratch (full
+`strptime` re-parse of every closed trade) on EVERY tick instead of
+only when a candle/trade actually closed - 22.5 minutes for a single
+day/index backtest, almost certainly the real cause of the crash.
+Fixed with pure caching (zero logic change, verified identical output
+before/after, full suite 621/621 passing) - cut to ~60 seconds/day
+(~20x). NOT yet committed/pushed - local fix only, pending the user's
+go-ahead. This same inefficiency runs on the live VPS engine too, just
+masked by realistic tick pacing there.
+
+Backtest itself (5 available days x NIFTY/BankNifty, 10 runs; 24-Aug's
+archive isn't present locally): a 10-minute market-open buffer was the
+best of 5 values tested (~17% less total loss than no buffer,
+-Rs 3,36,888 vs -Rs 4,07,551) - real but far weaker than 28-Aug's
+cooldown-after-close idea (~65% reduction). A 5-minute buffer was
+actively WORSE than no buffer at all (cuts good early trades on days
+where it binds, without skipping anything on days where the first real
+trade already happens after 09:20 anyway). Not monotonic - 10-min is
+the best candidate from this data, not a proven optimum. Nothing
+deployed live. See doc/29aug26_SESSION_LOG.md for full detail and
+[[project_quote_pnl_and_whipsaw_decision]] memory for the running note.
+
+==================================================
+
+Status
+
+🟢 Stable
+
+Current Version
+
+v0.0.68
+
+Next Version
+
+v0.0.68 (perf fix made + tested locally, not yet committed/deployed;
+backtest itself stays backtest-only, nothing shipped live)
+
+==================================================
+
 END OF DOCUMENT
