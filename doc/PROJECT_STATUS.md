@@ -7991,9 +7991,20 @@ loop, every buffer value beats baseline (unlike the breaker-off run,
 where 5-min was worse than no buffer) and the optimum shifts to 15-min.
 Treat THIS run as the real number - it reflects adding a buffer on top
 of the already-deployed breaker, not a from-scratch hypothetical.
-Nothing deployed live. See doc/29aug26_SESSION_LOG.md for full detail
-and [[project_quote_pnl_and_whipsaw_decision]] memory for the running
-note.
+
+Also re-ran 28-Aug's cooldown-after-close backtest (that ~65% reduction
+finding) with the same real N=2 breaker - LARGELY OVERTURNS it. 28-Aug's
+script was measured breaker-off, where cooldown was doing double duty
+(whipsaw prevention AND the damage-capping the breaker already does in
+production). With the breaker on: 0s -Rs 75,024; 30s -Rs 82,527 (worse);
+60s -Rs 82,356 (worse); **120s -Rs 67,075 (best, only ~11% better)**;
+300s -Rs 1,08,957 (WORST - actively harmful, the opposite of 28-Aug's
+conclusion). Neither the buffer nor the cooldown idea is anywhere near
+as strong against the real production config as their breaker-off
+numbers suggested - 120s cooldown (~11%) is currently the single best
+verified lever between the two. Nothing deployed live. See doc/
+29aug26_SESSION_LOG.md for full detail and [[project_quote_pnl_and_
+whipsaw_decision]] memory for the running note.
 
 ==================================================
 

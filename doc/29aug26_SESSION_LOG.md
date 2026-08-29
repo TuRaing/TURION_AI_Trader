@@ -160,6 +160,42 @@ deployed.
 
 ==================================================
 
+COOLDOWN-AFTER-CLOSE BACKTEST ALSO RE-RUN WITH THE REAL N=2 BREAKER ON
+- LARGELY OVERTURNS 28-Aug's ORIGINAL "65% reduction" FINDING. User
+asked which backtest finding was actually worth pursuing; recommended
+re-testing the 300s cooldown-after-close idea (28-Aug's strongest
+result) against the real breaker, same gap as the buffer backtest had.
+28-Aug's original cooldown script no longer exists locally (never
+committed) - rebuilt it fresh (`scratch_cooldown_backtest.py`, same
+RSI-seeded LiveTickRunner-replay pattern, same "don't touch the real
+decide_fn" rule) with `daily_loss_lock=True, max_consecutive_losses=2`
+from the start.
+
+Combined PnL by cooldown length, breaker ON (same 10 day/index runs):
+
+- 0s (baseline): -Rs 75,024
+- 30s: -Rs 82,527 (worse)
+- 60s: -Rs 82,356 (worse)
+- **120s: -Rs 67,075 (best, only ~11% better than baseline)**
+- 300s: -Rs 1,08,957 (WORST - actively harmful)
+
+28-Aug's original "300s cooldown, ~65% reduction" finding was measured
+WITHOUT the breaker - cooldown was doing double duty there (both
+preventing rapid whipsaw AND doing the damage-capping the breaker
+already does in production). With the real breaker already capping
+each day at 2 consecutive losses, cooldown's own added value shrinks
+to a modest ~11% at 120s, and a long 300s cooldown actively HURTS
+(occasionally causes the strategy to miss good recovery trades or
+re-enter at a worse moment once the cooldown window finally clears).
+Net conclusion: neither the buffer nor the cooldown idea, once tested
+against the ACTUAL production config, is anywhere near as strong as
+their breaker-off numbers suggested - 120s cooldown (~11%) is currently
+the single best verified lever from either backtest. Still backtest-
+only, nothing deployed. See [[project_quote_pnl_and_whipsaw_decision]]
+memory for the running note.
+
+==================================================
+
 DEPLOYED THE PERF FIX LIVE, THEN FOUND AND FIXED A REAL CRON GAP IT
 EXPOSED. User approved deploying today's `live_tick_harness.py` perf
 fix to the VPS after confirming it was safe (Saturday, market closed,
@@ -235,16 +271,21 @@ Next Session
    driven`, which already had this safety net) - this is the FIRST
    real trading-day test of that fix.
 
-2. 15-minute market-open buffer (WITH the real N=2 daily_loss_lock
-   breaker on, near break-even) is the best candidate found - still
-   just one dataset (5 days), same "more real data before deciding"
-   discipline as everything else on this project. Not deployed.
+2. Both the 15-min market-open buffer (near break-even) and 120s
+   cooldown-after-close (~11% better than baseline) are real but modest
+   levers once tested against the ACTUAL production config (N=2 breaker
+   on) - neither is close to their breaker-off numbers. Still just one
+   dataset (5 days) either way, same "more real data before deciding"
+   discipline as everything else on this project. Not deployed. Worth
+   testing whether combining both (buffer + cooldown together) beats
+   either alone, if the user wants to take this further.
 
-3. Carried over from 28-Aug, still not run: the cooldown-after-close
-   gate (~65% reduction candidate) and the 5 new-strategy backtests
-   (order-book imbalance, VWAP, volume-spike breakout, PCR event-
-   driven port, ORB) + the OI+Volume oi_footprint filter improvement -
-   timing was left flexible by the user ("sandyakali kiva udya").
+3. PCR event-driven port, GEX-wall momentum-exhaustion, and the
+   OI+Volume oi_footprint filter improvement all still blocked on OI
+   archive data (only 2 partial days so far) - real backtest possible
+   after 31-Aug. Volume-spike breakout (+Rs 2,123, 28-Aug) is the only
+   profitable new strategy found so far but hasn't been re-tested with
+   the real breaker either - same open question as the two above.
 
 4. Carried over: `event_driven_runner.py`'s missing "reconnected"
    log line, and the Firebase `CLOSE-WAIT` socket-leak cleanup - both
