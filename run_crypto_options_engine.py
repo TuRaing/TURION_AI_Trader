@@ -48,10 +48,13 @@ from strategy.live_tick_harness import MIN_CANDLES_FOR_RSI
 #
 # rsi_momentum_decide_fn/make_st2_threshold_event_cfg used byte-for-
 # byte unchanged (strategy/event_driven_engine.py), per the plan's own
-# "try the current strategy first" rule - already backtest-validated
-# against real historical Deribit data (crypto_options_backtest.py: 16
-# trades, 50% win rate, net +$7,716 on $10,000 over a real 7-day
-# window) before this live-wiring step was written.
+# "try the current strategy first" rule - checked against real
+# historical Deribit data first (crypto_options_backtest.py) before
+# this live-wiring step was written. Two separate 7-day backtest runs
+# gave opposite results (+$7,716 then -$4,382, on $10,000, different
+# real weeks) - small-sample real-market variance, not yet enough to
+# call the signal proven OR broken. Live paper results on the deployed
+# VM are what actually decides that, not either single backtest run.
 #
 # ONE book only for now (BTC) - per the plan's own "no multi-book
 # proliferation, one BTC book first" rule - so this deliberately skips
@@ -68,7 +71,13 @@ from strategy.live_tick_harness import MIN_CANDLES_FOR_RSI
 
 CURRENCY = "BTC"
 STRATEGY_NAME = "rsi_momentum_crypto_btc"
-INITIAL_CAPITAL = 10000.0
+# CHANGED 29-Aug-2026, user's own explicit ask - Rs 1,00,000 equivalent
+# (matches the NIFTY books' own typical initial_capital scale), not a
+# flat $10,000 - converted at the live USD/INR rate on the day this was
+# set (~95.43). A fixed USD number, not re-converted daily - same
+# "paper bookkeeping, not a real spending constraint" reasoning
+# strategy/live_tick_harness.py's _maybe_top_up_capital() already uses.
+INITIAL_CAPITAL = 1047.89
 CANDLE_SEED_HOURS = 12  # comfortably more than MIN_CANDLES_FOR_RSI * 5min needs
 
 

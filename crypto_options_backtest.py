@@ -54,7 +54,10 @@ from strategy.live_tick_harness import CandleAggregator
 
 RESOLUTION_MINUTES = 5
 LOOKBACK_DAYS = 7
-INITIAL_CAPITAL = 10000.0
+# CHANGED 29-Aug-2026 - matches run_crypto_options_engine.py's own
+# Rs 1,00,000-equivalent capital (user's explicit ask), so backtest
+# results stay comparable to the live engine's actual sizing.
+INITIAL_CAPITAL = 1047.89
 
 
 def build_historical_data_points(currency="BTC", lookback_days=LOOKBACK_DAYS):
