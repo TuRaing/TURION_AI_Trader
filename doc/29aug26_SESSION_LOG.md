@@ -126,6 +126,40 @@ note across all these backtests.
 
 ==================================================
 
+MARKET-OPEN BUFFER BACKTEST RE-RUN WITH THE REAL N=2 daily_loss_lock
+BREAKER ON - SUPERSEDES THE RESULT ABOVE. User's own catch: the first
+run above used `make_st2_threshold_event_cfg` with its default
+`daily_loss_lock=False` - NOT what any real book on the VPS actually
+runs with (every live event-driven book has the N=2 breaker on, per
+21/27-Aug's own incidents). Re-ran the identical 10 day/index sweep
+with `daily_loss_lock=True, max_consecutive_losses=2` added to the cfg
+(one-line change to `scratch_buffer_backtest_v2.py`, not committed -
+still a throwaway script).
+
+Combined PnL by buffer length, breaker ON:
+
+- 0 min (baseline): -Rs 75,024
+- 5 min: -Rs 50,059
+- 10 min: -Rs 10,909
+- **15 min: -Rs 3,387 (best - near break-even)**
+- 20 min: -Rs 8,474
+
+Two real differences from the breaker-OFF run: (1) every value's
+MAGNITUDE dropped by roughly 5-10x (2-9 trades/day now instead of
+100-1600+) - the breaker itself already caps most of the damage, so
+total losses look far smaller across the board regardless of buffer;
+(2) the OPTIMAL buffer shifted from 10-min (breaker off) to **15-min**
+(breaker on), and unlike the breaker-off run, every buffer value now
+beats baseline (the breaker-off run had 5-min actively worse than no
+buffer - that inversion disappears once the real breaker is in the
+loop). This run reflects what adding a buffer on top of the ALREADY-
+DEPLOYED breaker would actually do, not a from-scratch hypothetical -
+treat this as the real number, the breaker-OFF version above as a
+useful but less faithful first pass. Still backtest-only, nothing
+deployed.
+
+==================================================
+
 DEPLOYED THE PERF FIX LIVE, THEN FOUND AND FIXED A REAL CRON GAP IT
 EXPOSED. User approved deploying today's `live_tick_harness.py` perf
 fix to the VPS after confirming it was safe (Saturday, market closed,
@@ -201,7 +235,8 @@ Next Session
    driven`, which already had this safety net) - this is the FIRST
    real trading-day test of that fix.
 
-2. 10-minute market-open buffer is the best candidate found - still
+2. 15-minute market-open buffer (WITH the real N=2 daily_loss_lock
+   breaker on, near break-even) is the best candidate found - still
    just one dataset (5 days), same "more real data before deciding"
    discipline as everything else on this project. Not deployed.
 

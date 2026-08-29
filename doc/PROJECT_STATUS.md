@@ -7979,9 +7979,21 @@ cooldown-after-close idea (~65% reduction). A 5-minute buffer was
 actively WORSE than no buffer at all (cuts good early trades on days
 where it binds, without skipping anything on days where the first real
 trade already happens after 09:20 anyway). Not monotonic - 10-min is
-the best candidate from this data, not a proven optimum. Nothing
-deployed live. See doc/29aug26_SESSION_LOG.md for full detail and
-[[project_quote_pnl_and_whipsaw_decision]] memory for the running note.
+the best candidate from this data, not a proven optimum.
+
+SUPERSEDED same day, same session - user caught that the run above used
+the cfg's default `daily_loss_lock=False`, not what any real VPS book
+actually runs with (every live book has the N=2 breaker on). Re-ran the
+identical sweep with `daily_loss_lock=True, max_consecutive_losses=2`:
+0min -Rs 75,024; 5min -Rs 50,059; 10min -Rs 10,909; **15min -Rs 3,387
+(best, near break-even)**; 20min -Rs 8,474. With the real breaker in the
+loop, every buffer value beats baseline (unlike the breaker-off run,
+where 5-min was worse than no buffer) and the optimum shifts to 15-min.
+Treat THIS run as the real number - it reflects adding a buffer on top
+of the already-deployed breaker, not a from-scratch hypothetical.
+Nothing deployed live. See doc/29aug26_SESSION_LOG.md for full detail
+and [[project_quote_pnl_and_whipsaw_decision]] memory for the running
+note.
 
 ==================================================
 
