@@ -1,6 +1,7 @@
 import datetime
 
 from strategy.backtest_live_engine import run_backtest
+from strategy.crypto_transaction_costs import calculate_crypto_options_round_trip_cost
 from strategy.deribit_data import get_instruments, get_tradingview_chart_data, pick_atm_instruments, to_usd_premium
 from strategy.event_driven_engine import rsi_momentum_decide_fn, make_st2_threshold_event_cfg
 from strategy.live_tick_harness import CandleAggregator
@@ -54,10 +55,6 @@ from strategy.live_tick_harness import CandleAggregator
 
 RESOLUTION_MINUTES = 5
 LOOKBACK_DAYS = 7
-# CHANGED 29-Aug-2026 - matches run_crypto_options_engine.py's own
-# Rs 1,00,000-equivalent capital (user's explicit ask), so backtest
-# results stay comparable to the live engine's actual sizing.
-INITIAL_CAPITAL = 1047.89
 
 
 def build_historical_data_points(currency="BTC", lookback_days=LOOKBACK_DAYS):
@@ -117,24 +114,45 @@ def build_historical_data_points(currency="BTC", lookback_days=LOOKBACK_DAYS):
     return data_points
 
 
-def main():
-    cfg = make_st2_threshold_event_cfg(index="BTC", lot_size=1, initial_capital=INITIAL_CAPITAL)
-    data_points = build_historical_data_points("BTC")
+def run_for(currency, initial_capital):
+    """
+    Runs one currency's backtest at its own capital - split out
+    29-Aug-2026 so BTC and ETH (very different real contract sizes -
+    1 lot = 1 full coin notional, so BTC's own ATM premium runs
+    $1,500-2,500+ vs ETH's $50-150) can each be checked at the capital
+    that actually suits their own economics, in one script run, rather
+    than only ever testing one currency/capital pair per run.
+    """
 
-    portfolio, actions = run_backtest(rsi_momentum_decide_fn, cfg, data_points, initial_capital=INITIAL_CAPITAL)
+    cfg = make_st2_threshold_event_cfg(index=currency, lot_size=1, initial_capital=initial_capital,
+                                        cost_fn=calculate_crypto_options_round_trip_cost)
+    data_points = build_historical_data_points(currency)
+
+    portfolio, actions = run_backtest(rsi_momentum_decide_fn, cfg, data_points, initial_capital=initial_capital)
 
     closed = portfolio["Closed Trades"]
     wins = [t for t in closed if t["Net PnL"] > 0]
 
-    print(f"\nData points: {len(data_points)}")
+    print(f"\n=== {currency} (capital {initial_capital:.2f}) ===")
+    print(f"Data points: {len(data_points)}")
     print(f"Trades: {len(closed)}")
     if closed:
         print(f"Win rate: {len(wins) / len(closed) * 100:.1f}%")
         for t in closed:
             print(f"  {t['Entry Time']} -> {t['Exit Time']} | {t['Option Type']} | "
                   f"{t['Exit Reason']:<10} | Net PnL {t['Net PnL']:.2f}")
-    print(f"\nFinal Cash: {portfolio['Cash']:.2f} (started at {INITIAL_CAPITAL:.2f})")
-    print(f"Net PnL: {portfolio['Cash'] - INITIAL_CAPITAL:.2f}")
+    print(f"Final Cash: {portfolio['Cash']:.2f} (started at {initial_capital:.2f})")
+    print(f"Net PnL: {portfolio['Cash'] - initial_capital:.2f}")
+
+
+def main():
+    # CHANGED 29-Aug-2026, user's own explicit ask - BTC at an amount
+    # that can actually afford a lot ($10,000), ETH at the Rs
+    # 1,00,000-equivalent ($1,047.89) - see run_crypto_options_engine.
+    # py's own matching 29-Aug-2026 note for the real "capital
+    # insufficient for 1 lot" finding behind this split.
+    run_for("BTC", 10000.0)
+    run_for("ETH", 1047.89)
 
 
 if __name__ == "__main__":

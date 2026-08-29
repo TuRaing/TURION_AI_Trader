@@ -29,6 +29,7 @@ if _service_account_file and not os.environ.get("FIREBASE_SERVICE_ACCOUNT"):
         os.environ["FIREBASE_SERVICE_ACCOUNT"] = _f.read()
 
 from report.firebase_realtime_sync import sync_portfolio
+from strategy.crypto_transaction_costs import calculate_crypto_options_round_trip_cost
 from strategy.crypto_tick_runner import CryptoTickRunner, load_portfolio, save_portfolio
 from strategy.deribit_data import (
     get_index_price, get_instruments, get_tradingview_chart_data, pick_atm_instruments, connect_and_run,
@@ -56,28 +57,37 @@ from strategy.live_tick_harness import MIN_CANDLES_FOR_RSI
 # call the signal proven OR broken. Live paper results on the deployed
 # VM are what actually decides that, not either single backtest run.
 #
-# ONE book only for now (BTC) - per the plan's own "no multi-book
-# proliferation, one BTC book first" rule - so this deliberately skips
-# strategy/event_driven_runner.py's MultiStrategyRouter (built for
-# routing one WebSocket connection's ticks across several concurrent
-# runners); a single runner + connect_and_run()'s own on_action hook
-# is simpler and sufficient until ETH is added as a genuinely second,
-# concurrent connect_and_run() process.
+# ONE currency per PROCESS (not per script) - each currency runs as
+# its own systemd service/connect_and_run() connection, configured via
+# CRYPTO_CURRENCY/CRYPTO_INITIAL_CAPITAL env vars rather than a shared
+# MultiStrategyRouter (strategy/event_driven_runner.py's approach for
+# NIFTY's 4 concurrent books) - simpler, and each currency's own ATM
+# instrument/capital needs are genuinely independent, not worth a
+# shared-connection abstraction for just two books.
+#
+# CHANGED 29-Aug-2026, real constraint found live on the deployed VM:
+# 1 Deribit option contract = 1 full coin notional (lot_size=1) - at
+# BTC's real spot (~$77-79k), a single ATM weekly premium runs
+# $1,500-2,500+, so a Rs 1,00,000-equivalent ($1,048) BTC book can
+# NEVER afford even 1 lot ("SKIPPED (capital insufficient for 1 lot..."
+# on every single tick, confirmed live). ETH's spot (~$2,400-2,500) is
+# ~30x smaller, so ETH's own ATM weekly premiums ($50-150) fit
+# comfortably inside Rs 1,00,000 - user's own explicit fix: run BTC at
+# an amount that can actually afford lots ($10,000, the original,
+# already-proven-live value) and ETH at the Rs 1,00,000-equivalent
+# ($1,047.89) separately, rather than forcing one capital figure onto
+# both currencies' very different real contract economics.
 #
 # NOT LIVE-TESTED beyond this session's own manual WebSocket
 # verification (see strategy/deribit_data.py's connect_and_run()
 # docstring) - actually running this needs the standalone VM from
 # Phase 4 of the plan, which doesn't exist yet.
 
-CURRENCY = "BTC"
-STRATEGY_NAME = "rsi_momentum_crypto_btc"
-# CHANGED 29-Aug-2026, user's own explicit ask - Rs 1,00,000 equivalent
-# (matches the NIFTY books' own typical initial_capital scale), not a
-# flat $10,000 - converted at the live USD/INR rate on the day this was
-# set (~95.43). A fixed USD number, not re-converted daily - same
-# "paper bookkeeping, not a real spending constraint" reasoning
-# strategy/live_tick_harness.py's _maybe_top_up_capital() already uses.
-INITIAL_CAPITAL = 1047.89
+_DEFAULT_CAPITAL = {"BTC": 10000.0, "ETH": 1047.89}
+
+CURRENCY = os.environ.get("CRYPTO_CURRENCY", "BTC").upper()
+INITIAL_CAPITAL = float(os.environ.get("CRYPTO_INITIAL_CAPITAL", _DEFAULT_CAPITAL.get(CURRENCY, 10000.0)))
+STRATEGY_NAME = f"rsi_momentum_crypto_{CURRENCY.lower()}"
 CANDLE_SEED_HOURS = 12  # comfortably more than MIN_CANDLES_FOR_RSI * 5min needs
 
 
@@ -140,7 +150,8 @@ def build_runner():
 
     print(f"ATM picked: {ce_symbol} / {pe_symbol} (strike {atm_strike}, spot {spot})")
 
-    cfg = make_st2_threshold_event_cfg(index=CURRENCY, lot_size=1, initial_capital=INITIAL_CAPITAL)
+    cfg = make_st2_threshold_event_cfg(index=CURRENCY, lot_size=1, initial_capital=INITIAL_CAPITAL,
+                                        cost_fn=calculate_crypto_options_round_trip_cost)
     portfolio = load_portfolio(STRATEGY_NAME, INITIAL_CAPITAL)
 
     return CryptoTickRunner(

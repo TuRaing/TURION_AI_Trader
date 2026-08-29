@@ -196,7 +196,16 @@ def _net_pnl(cfg, entry_premium, exit_premium, lots):
 
     quantity = lots * cfg["lot_size"]
     gross_pnl = (exit_premium - entry_premium) * quantity
-    cost = calculate_options_round_trip_cost(
+    # cost_fn - added 29-Aug-2026, opt-in (cfg.get, default None ->
+    # unchanged NIFTY/BankNifty cost model) so a currency-specific cost
+    # function (e.g. crypto_transaction_costs.py's Deribit USD model)
+    # can be swapped in per book without touching this shared function
+    # or any existing book's cfg - see crypto_transaction_costs.py's
+    # own docstring for the real bug this exists to let crypto opt out
+    # of (the NIFTY cost model's Rs-denominated flat brokerage being
+    # subtracted as USD dollars).
+    cost_fn = cfg.get("cost_fn") or calculate_options_round_trip_cost
+    cost = cost_fn(
         entry_premium, exit_premium, cfg["lot_size"], lots, spread_pct=cfg.get("spread_pct")
     )
 
@@ -432,7 +441,8 @@ def rsi_momentum_quote_decide_fn(cfg, position, data_point):
 def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
                                   hybrid_sl_cap_pct=2.0, spread_pct=None,
                                   daily_profit_lock=False, daily_profit_lock_pct=2.0,
-                                  daily_loss_lock=False, max_consecutive_losses=2):
+                                  daily_loss_lock=False, max_consecutive_losses=2,
+                                  cost_fn=None):
     """
     cfg builder for rsi_momentum_decide_fn/rsi_momentum_quote_decide_fn
     - mirrors fyers_options_engine.py's make_strategy() field names
@@ -464,6 +474,13 @@ def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
     engine.py's MAX_CONSECUTIVE_LOSSES/daily_loss_lock - see _rsi_
     momentum_decide()'s own note. Defaults to False/2, no behavior
     change unless explicitly turned on per book.
+
+    cost_fn - added 29-Aug-2026 for the crypto sub-project (see _net_
+    pnl()'s own matching note) - None (default) keeps every existing
+    NIFTY/BankNifty book's cost model byte-identical; pass strategy/
+    crypto_transaction_costs.py's calculate_crypto_options_round_trip_
+    cost for a Deribit book so its USD premiums aren't run through the
+    NIFTY model's Rs-denominated flat brokerage.
     """
 
     return {
@@ -474,6 +491,7 @@ def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
         "stop_loss_pct": 2.0,
         "hybrid_sl_cap_pct": hybrid_sl_cap_pct,
         "spread_pct": spread_pct,
+        "cost_fn": cost_fn,
         "daily_profit_lock": daily_profit_lock,
         "daily_profit_lock_pct": daily_profit_lock_pct,
         "daily_loss_lock": daily_loss_lock,
