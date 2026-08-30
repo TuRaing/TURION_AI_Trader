@@ -205,6 +205,47 @@ currently used by any live crypto book (the one combination tried made
 things worse) - kept as a real, reusable, tested capability for future
 experiments, not dead code.
 
+### [FIXED, 30-Aug-2026] Both profit-lock books crashed within minutes of deploy
+
+**Symptom:** `turion-crypto-options-btc-profitlock` and `-eth-profitlock`
+both went to systemd `failed` state (exhausted their 5-restarts/300s
+limit) within ~10-15 minutes of first going live - silently down for
+~2.5 hours before being noticed via a direct `systemctl status` check.
+
+**Root cause:** `TypeError: can't compare offset-naive and offset-aware
+datetimes` inside the brand-new `_realized_pnl_within_hours()`.
+`CryptoTickRunner.on_tick()` receives a timezone-AWARE timestamp on the
+real Deribit path (`strategy/deribit_data.py`'s `connect_and_run()`
+builds it via `datetime.fromtimestamp(..., tz=utc)`), but every stored
+Entry/Exit Time string is naive - comparing the two raises immediately.
+Never caught in `crypto_options_backtest.py`'s own testing (all its
+timestamps are naive, via `strptime()`), so the bug only existed on
+the live path, invisible to every backtest run this session already
+did.
+
+**Fix:** strip `tzinfo` at the top of `_realized_pnl_within_hours()`,
+matching the already-live-proven `_today_consecutive_losses()`'s own
+naive convention. Added `tests/test_crypto_tick_runner.py`'s
+`test_profit_lock_gate_works_with_a_timezone_aware_timestamp()` - the
+only test in that file that deliberately builds an aware timestamp -
+so this exact class of bug can't silently regress again.
+
+**Deployed and verified, 30-Aug-2026:** `sudo systemctl reset-failed`
++ restart on both units, confirmed active and holding positions
+normally afterward. Checked both ETH books directly via Firebase
+shortly after: original ETH book at 111 closed trades (continuing its
+known whipsaw pattern, unlocked - expected, not a bug), profit-lock
+ETH book showing exactly 1 real closed trade from before the crash
+(-$26.14, ~14.5min hold - normal, not a loop) plus a fresh position
+opened cleanly right after the restart.
+
+**Lesson worth remembering:** a live crypto WebSocket path and this
+project's own backtest replay do NOT automatically exercise the same
+timestamp representation (aware vs naive) even when they call the
+exact same shared decide_fn - any new helper that touches `timestamp`
+directly (not just cfg/data_point fields) needs to be checked against
+BOTH paths, not just backtested, before it's trusted live.
+
 ## Redeploying code to the VM
 
 ```
