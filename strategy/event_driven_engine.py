@@ -176,6 +176,13 @@ def _near_circuit(data_point):
     return is_near_circuit_band(data_point["spot"], previous_close)
 
 
+# Added 30-Aug-2026, for the opt-in trailing_min_pct check below -
+# same 30% peak-giveback already used and analyzed for strategy/fyers_
+# options_engine.py's own trailing variant (that module's TRAIL_PCT) -
+# reused here rather than inventing a second, untested value.
+TRAILING_GIVEBACK_PCT = 0.30
+
+
 def _hybrid_stop_loss_cap(cfg, capital_deployed):
     """Same formula as fyers_options_engine.py's _hybrid_stop_loss_cap -
     duplicated (not imported) because that module's version reads from
@@ -347,13 +354,39 @@ def _rsi_momentum_decide(cfg, position, data_point, entry_field, exit_field):
 
     reason = None
 
-    if net_pnl_pct >= cfg["target_net_pct"]:
+    # trailing_min_pct - added 30-Aug-2026, at the user's own request,
+    # ported from strategy/fyers_options_engine.py's own trailing
+    # variant (that module's make_strategy() docstring gives the full
+    # reasoning). REPLACES the plain target_net_pct check entirely when
+    # set: no fixed upper target, the position runs until its peak Net
+    # PnL %% first reaches trailing_min_pct, then a trailing stop
+    # (TRAILING_GIVEBACK_PCT giveback from the peak) takes over. Unlike
+    # fyers_options_engine.py's own version (which could NOT be
+    # backtested - that module's historical records are Entry/Exit-only,
+    # no intraday peak) this DOES work in crypto_options_backtest.py's
+    # backtest too, since rsi_momentum_decide_fn already runs against
+    # every intermediate 5-min data point, not just entry/exit, so the
+    # real intraday peak is visible here. Peak is tracked by mutating
+    # `position` in place (same pattern fyers_options_engine.py already
+    # uses) - safe because backtest_live_engine.py's _step() stores
+    # back the exact same object it's given as the new position.
+    if cfg.get("trailing_min_pct") is not None:
+        peak_pnl_pct = max(position.get("Peak PnL %", net_pnl_pct), net_pnl_pct)
+        position["Peak PnL %"] = peak_pnl_pct
+
+        if peak_pnl_pct >= cfg["trailing_min_pct"]:
+            trail_floor_pct = peak_pnl_pct * (1 - (cfg.get("trailing_giveback_pct") or TRAILING_GIVEBACK_PCT))
+            if net_pnl_pct <= trail_floor_pct:
+                reason = "Trailing Stop"
+    elif net_pnl_pct >= cfg["target_net_pct"]:
         reason = "Target"
-    elif cfg.get("hybrid_sl_cap_pct") is not None:
-        if net_pnl <= -_hybrid_stop_loss_cap(cfg, position["Capital Deployed"]):
+
+    if reason is None:
+        if cfg.get("hybrid_sl_cap_pct") is not None:
+            if net_pnl <= -_hybrid_stop_loss_cap(cfg, position["Capital Deployed"]):
+                reason = "Stop Loss"
+        elif net_pnl_pct <= -cfg["stop_loss_pct"]:
             reason = "Stop Loss"
-    elif net_pnl_pct <= -cfg["stop_loss_pct"]:
-        reason = "Stop Loss"
 
     if reason is None and _near_circuit(data_point):
         reason = "Circuit Risk"
@@ -442,7 +475,7 @@ def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
                                   hybrid_sl_cap_pct=2.0, spread_pct=None,
                                   daily_profit_lock=False, daily_profit_lock_pct=2.0,
                                   daily_loss_lock=False, max_consecutive_losses=2,
-                                  cost_fn=None):
+                                  cost_fn=None, trailing_min_pct=None, trailing_giveback_pct=None):
     """
     cfg builder for rsi_momentum_decide_fn/rsi_momentum_quote_decide_fn
     - mirrors fyers_options_engine.py's make_strategy() field names
@@ -481,6 +514,15 @@ def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
     crypto_transaction_costs.py's calculate_crypto_options_round_trip_
     cost for a Deribit book so its USD premiums aren't run through the
     NIFTY model's Rs-denominated flat brokerage.
+
+    trailing_min_pct/trailing_giveback_pct - added 30-Aug-2026, ported
+    from strategy/fyers_options_engine.py's own trailing variant (see
+    _rsi_momentum_decide()'s own matching note for exactly how this
+    replaces target_net_pct once set). None (default) keeps every
+    existing book's plain fixed-target behavior unchanged.
+    trailing_giveback_pct defaults to None here too, meaning "use
+    TRAILING_GIVEBACK_PCT (30%)" - only pass a number to override that
+    shared default for one specific book.
     """
 
     return {
@@ -492,6 +534,8 @@ def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
         "hybrid_sl_cap_pct": hybrid_sl_cap_pct,
         "spread_pct": spread_pct,
         "cost_fn": cost_fn,
+        "trailing_min_pct": trailing_min_pct,
+        "trailing_giveback_pct": trailing_giveback_pct,
         "daily_profit_lock": daily_profit_lock,
         "daily_profit_lock_pct": daily_profit_lock_pct,
         "daily_loss_lock": daily_loss_lock,

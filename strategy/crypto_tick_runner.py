@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 
@@ -29,21 +30,52 @@ from strategy.live_tick_harness import CandleAggregator, _today_consecutive_loss
 # temp-file + os.replace() write, and graceful degradation on an
 # empty/corrupt file) rather than importing that module's version.
 #
-# daily_profit_lock is intentionally NOT wired up here yet (data_point
-# omits today_realized_pnl entirely) - that cfg gate defaults to False
-# (make_st2_threshold_event_cfg), and decide_fn's own .get(..., 0)
-# default means an absent field is harmless when the gate is off.
 # today_consecutive_losses IS wired up (module-level _today_
 # consecutive_losses, imported unchanged from live_tick_harness.py,
 # same "one place, not two copies" reasoning that function's own
 # 24-Aug-2026 note gives) since it's cheap and already shared - the
-# daily_loss_lock gate itself still defaults off, same as above. Keeps
-# this a lean first experiment, per the approved plan's own
-# "deliberately not building yet" list - a locked variant can wire up
-# today_realized_pnl the same way LiveTickRunner's own _today_realized_
-# pnl() does, if ever needed.
+# daily_loss_lock gate itself still defaults off unless a book opts in.
+#
+# today_realized_pnl - added 30-Aug-2026, at the user's own request,
+# for a real BTC/ETH backtest finding (doc/CRYPTO_PROJECT_STATUS.md's
+# own record of the session): daily_profit_lock helps, but ONLY with a
+# short ROLLING window (2-3h), not the UTC-calendar-day boundary
+# _today_consecutive_losses above uses - see _realized_pnl_within_
+# hours()'s own note for why a 24/7 market needs a rolling window
+# instead of a clock-boundary reset. Computed only when a book actually
+# opts into daily_profit_lock (cfg.get check below) - a no-op scan over
+# Closed Trades on every tick would be needless cost for every book
+# that doesn't use this gate.
 
 PORTFOLIO_DIR = "reports"
+
+
+def _realized_pnl_within_hours(portfolio, timestamp, hours):
+    """
+    Rolling-window sibling of strategy/live_tick_harness.py's
+    LiveTickRunner._today_realized_pnl() - sums Net PnL for trades
+    whose Exit Time falls within the last `hours` hours of `timestamp`,
+    instead of that method's UTC-calendar-day boundary. Moved here
+    (from crypto_options_backtest.py, where it was first written and
+    proven during this session's backtest sweep) so the exact same
+    function drives both the backtest and this live runner - no second
+    copy to drift out of sync, same principle every other decide_fn
+    helper in this project already follows.
+    """
+
+    cutoff = timestamp - datetime.timedelta(hours=hours)
+    total = 0.0
+
+    for trade in portfolio.get("Closed Trades", []):
+        exit_time_str = trade.get("Exit Time")
+        if not exit_time_str:
+            continue
+
+        exit_naive = datetime.datetime.strptime(exit_time_str, "%Y-%m-%d %H:%M:%S")
+        if exit_naive >= cutoff:
+            total += trade.get("Net PnL", 0)
+
+    return total
 
 
 def _portfolio_path(name):
@@ -107,7 +139,7 @@ class CryptoTickRunner:
     """
 
     def __init__(self, decide_fn, cfg, portfolio, underlying_index_name, ce_symbol, pe_symbol,
-                 initial_candles=None, execution_backend=None):
+                 initial_candles=None, execution_backend=None, profit_lock_window_hours=24):
 
         self.decide_fn = decide_fn
         self.cfg = cfg
@@ -117,6 +149,12 @@ class CryptoTickRunner:
         self.pe_symbol = pe_symbol
         self.aggregator = CandleAggregator(initial_candles)
         self.execution_backend = execution_backend or PaperExecutionBackend()
+        # profit_lock_window_hours - added 30-Aug-2026, only meaningful
+        # when cfg["daily_profit_lock"] is True (see on_tick()'s own
+        # note) - default 24 (a full rolling day) if a profit-lock book
+        # doesn't override it; the real BTC/ETH-tuned values (2h/3h)
+        # are passed explicitly by run_crypto_options_engine.py.
+        self.profit_lock_window_hours = profit_lock_window_hours
 
         self._latest = {"spot": None, "ce_ltp": None, "ce_bid": None, "ce_ask": None,
                          "pe_ltp": None, "pe_bid": None, "pe_ask": None}
@@ -165,6 +203,15 @@ class CryptoTickRunner:
             # circuit-band gate for free, same as the plan's own note
             # (Deribit has no NSE-style circuit bands to begin with).
         }
+
+        # Added 30-Aug-2026 - see this module's own top-of-file note.
+        # Only computed for a book that actually opted into daily_
+        # profit_lock (cfg.get check) - a no-op scan over every closed
+        # trade on every single tick would be needless cost otherwise.
+        if self.cfg.get("daily_profit_lock"):
+            data_point["today_realized_pnl"] = _realized_pnl_within_hours(
+                self.portfolio, timestamp, self.profit_lock_window_hours
+            )
 
         action, self.portfolio = run_live_check(self.decide_fn, self.cfg, self.portfolio, data_point)
         self.last_action = action

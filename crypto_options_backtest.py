@@ -1,6 +1,7 @@
 import datetime
 
 from strategy.backtest_live_engine import run_backtest
+from strategy.crypto_tick_runner import _realized_pnl_within_hours
 from strategy.crypto_transaction_costs import calculate_crypto_options_round_trip_cost
 from strategy.deribit_data import get_instruments, get_tradingview_chart_data, pick_atm_instruments, to_usd_premium
 from strategy.event_driven_engine import rsi_momentum_decide_fn, make_st2_threshold_event_cfg
@@ -57,15 +58,27 @@ RESOLUTION_MINUTES = 5
 LOOKBACK_DAYS = 7
 
 
-def build_historical_data_points(currency="BTC", lookback_days=LOOKBACK_DAYS):
+def build_historical_data_points(currency="BTC", lookback_days=LOOKBACK_DAYS, offset_days=0):
     """
     Assembles real historical Deribit data into the same data_point
     shape strategy/crypto_tick_runner.py's CryptoTickRunner.on_tick()
     builds live - see this module's own docstring for the real data
     sources and their limitations.
+
+    offset_days - added 30-Aug-2026, at the user's own request for a
+    consistency check on a DIFFERENT window than "the last 7 days from
+    right now" - shifts the whole window back by this many days (e.g.
+    offset_days=3 tests 10-3=7 days ago through 3 days ago). Real
+    constraint (see this module's own docstring on ATM being picked
+    from TODAY's chain): the currently-listed weekly option only has
+    real trade history back to when it was FIRST listed - roughly 10-11
+    days before its own expiry - so offset_days much beyond ~3-4 will
+    start running into thin/missing real CE-PE data for a weekly
+    contract, not a limitation of this parameter itself.
     """
 
     now_ms = int(datetime.datetime.now(datetime.timezone.utc).timestamp() * 1000)
+    now_ms -= offset_days * 24 * 3600 * 1000
     start_ms = now_ms - lookback_days * 24 * 3600 * 1000
 
     perpetual = "BTC-PERPETUAL" if currency.upper() == "BTC" else "ETH-PERPETUAL"
@@ -114,22 +127,7 @@ def build_historical_data_points(currency="BTC", lookback_days=LOOKBACK_DAYS):
     return data_points
 
 
-def run_for(currency, initial_capital):
-    """
-    Runs one currency's backtest at its own capital - split out
-    29-Aug-2026 so BTC and ETH (very different real contract sizes -
-    1 lot = 1 full coin notional, so BTC's own ATM premium runs
-    $1,500-2,500+ vs ETH's $50-150) can each be checked at the capital
-    that actually suits their own economics, in one script run, rather
-    than only ever testing one currency/capital pair per run.
-    """
-
-    cfg = make_st2_threshold_event_cfg(index=currency, lot_size=1, initial_capital=initial_capital,
-                                        cost_fn=calculate_crypto_options_round_trip_cost)
-    data_points = build_historical_data_points(currency)
-
-    portfolio, actions = run_backtest(rsi_momentum_decide_fn, cfg, data_points, initial_capital=initial_capital)
-
+def _print_summary(currency, initial_capital, portfolio, data_points):
     closed = portfolio["Closed Trades"]
     wins = [t for t in closed if t["Net PnL"] > 0]
 
@@ -145,14 +143,134 @@ def run_for(currency, initial_capital):
     print(f"Net PnL: {portfolio['Cash'] - initial_capital:.2f}")
 
 
+def run_for(currency, initial_capital, data_points):
+    """
+    Runs one currency's backtest at its own capital - split out
+    29-Aug-2026 so BTC and ETH (very different real contract sizes -
+    1 lot = 1 full coin notional, so BTC's own ATM premium runs
+    $1,500-2,500+ vs ETH's $50-150) can each be checked at the capital
+    that actually suits their own economics, in one script run, rather
+    than only ever testing one currency/capital pair per run.
+
+    data_points - CHANGED 30-Aug-2026 from "fetched internally" to "a
+    parameter" - real bug caught the same day: this used to call
+    build_historical_data_points() itself, so calling this multiple
+    times per currency (to compare variants) each refetched "the last
+    7 days from right now" independently. Since real time moves forward
+    between calls, each variant silently ran against a DIFFERENT
+    historical window (occasionally even a different ATM strike, if
+    spot crossed one between calls) - the daily_loss_lock/12h-window
+    comparison this function exists for was NOT apples-to-apples until
+    this fix (confirmed live: the exact same "24h lock" config produced
+    opposite-sign results, +$1,702 then -$6,586, purely from this).
+    Callers now fetch data_points ONCE per currency and pass the SAME
+    object to every variant being compared.
+    """
+
+    cfg = make_st2_threshold_event_cfg(index=currency, lot_size=1, initial_capital=initial_capital,
+                                        cost_fn=calculate_crypto_options_round_trip_cost)
+
+    portfolio, actions = run_backtest(rsi_momentum_decide_fn, cfg, data_points, initial_capital=initial_capital)
+    _print_summary(currency, initial_capital, portfolio, data_points)
+
+
+def run_for_with_profit_lock(currency, initial_capital, data_points, profit_lock_pct=1.0, lock_window_hours=2,
+                              trailing_min_pct=None):
+    """
+    Added 30-Aug-2026, at the user's own request - "2h साठी 1% profit
+    lock करून trade stop": once realized PnL within the last
+    `lock_window_hours` hours reaches `profit_lock_pct`% of
+    initial_capital, block new entries until that rolling window's
+    realized PnL drops back under the threshold again (naturally, as
+    old winning trades age out of the window) - cfg's existing
+    daily_profit_lock/daily_profit_lock_pct (make_st2_threshold_event_
+    cfg) fed by a rolling-window today_realized_pnl instead of a
+    UTC-calendar-day one, same rolling-window treatment already given
+    to daily_loss_lock above (see run_for_with_daily_loss_lock()'s own
+    note for why a calendar-day reset doesn't fit a 24/7 market).
+
+    Same "reimplement the trivial step loop locally, don't touch the
+    shared backtest_live_engine.py" reasoning as run_for_with_daily_
+    loss_lock() - only one more injected field (today_realized_pnl)
+    alongside the same today_consecutive_losses this needs too, since
+    daily_loss_lock's own gate stays available (both gates are
+    independent opt-ins in cfg).
+
+    trailing_min_pct - added 30-Aug-2026, user's own follow-up ask
+    ("profit lock (1%, 12h) ला trailing stop loss लाऊन") - optional,
+    stacks strategy/event_driven_engine.py's trailing-stop variant
+    (see that module's own 30-Aug-2026 note) on top of the profit lock
+    being tested here, rather than being a separate function - the two
+    are independent cfg opt-ins that compose cleanly (profit lock gates
+    NEW entries; trailing changes how an OPEN position exits).
+    """
+
+    cfg = make_st2_threshold_event_cfg(index=currency, lot_size=1, initial_capital=initial_capital,
+                                        cost_fn=calculate_crypto_options_round_trip_cost,
+                                        daily_profit_lock=True, daily_profit_lock_pct=profit_lock_pct,
+                                        trailing_min_pct=trailing_min_pct)
+
+    portfolio = {"Cash": initial_capital, "Position": None, "Closed Trades": []}
+
+    for data_point in data_points:
+        timestamp = datetime.datetime.strptime(data_point["timestamp"], "%Y-%m-%d %H:%M:%S")
+        realized_pnl = _realized_pnl_within_hours(portfolio, timestamp, lock_window_hours)
+        data_point = {**data_point, "today_realized_pnl": realized_pnl}
+
+        action, position, trade = rsi_momentum_decide_fn(cfg, portfolio["Position"], data_point)
+        portfolio["Position"] = position
+        if trade is not None:
+            portfolio["Cash"] += trade["Net PnL"]
+            portfolio["Closed Trades"].append(trade)
+
+    label = f"{currency} (profit lock, {profit_lock_pct}%, {lock_window_hours}h window"
+    label += f", trailing {trailing_min_pct}%)" if trailing_min_pct is not None else ")"
+    _print_summary(label, initial_capital, portfolio, data_points)
+
+
 def main():
     # CHANGED 29-Aug-2026, user's own explicit ask - BTC at an amount
     # that can actually afford a lot ($10,000), ETH at the Rs
     # 1,00,000-equivalent ($1,047.89) - see run_crypto_options_engine.
     # py's own matching 29-Aug-2026 note for the real "capital
     # insufficient for 1 lot" finding behind this split.
-    run_for("BTC", 10000.0)
-    run_for("ETH", 1047.89)
+    #
+    # data_points fetched ONCE per currency here, then reused for every
+    # variant below - see run_for()'s own 30-Aug-2026 note for the real
+    # apples-to-apples bug this fixes.
+    #
+    # SIMPLIFIED 30-Aug-2026 - this function briefly carried several
+    # more experiments (daily_loss_lock at 24h/12h windows, a trailing-
+    # stop variant) tried and rejected the same session (all made
+    # things worse or showed no consistent benefit vs the plain
+    # baseline - see doc/CRYPTO_PROJECT_STATUS.md's own record of each
+    # result) - removed here to keep this script's actual current
+    # experiment readable, not a growing pile of dead-end variants.
+    # Only the one variant that showed a real, consistent improvement -
+    # profit lock (1%, 2h rolling window), no trailing - is kept, now
+    # tested on TWO different real windows for a consistency check.
+    btc_data_recent = build_historical_data_points("BTC")
+    eth_data_recent = build_historical_data_points("ETH")
+
+    run_for("BTC", 10000.0, btc_data_recent)
+    run_for("ETH", 1047.89, eth_data_recent)
+
+    run_for_with_profit_lock("BTC", 10000.0, btc_data_recent, profit_lock_pct=1.0, lock_window_hours=2)
+    run_for_with_profit_lock("ETH", 1047.89, eth_data_recent, profit_lock_pct=1.0, lock_window_hours=2)
+
+    # Added 30-Aug-2026, user's own explicit consistency check - same
+    # profit-lock setting, an OLDER, non-overlapping-as-far-as-real-
+    # data-allows window (offset_days=3 - see build_historical_data_
+    # points()'s own note on why this can't go much further back for a
+    # weekly option contract).
+    btc_data_older = build_historical_data_points("BTC", offset_days=3)
+    eth_data_older = build_historical_data_points("ETH", offset_days=3)
+
+    run_for("BTC", 10000.0, btc_data_older)
+    run_for("ETH", 1047.89, eth_data_older)
+
+    run_for_with_profit_lock("BTC", 10000.0, btc_data_older, profit_lock_pct=1.0, lock_window_hours=2)
+    run_for_with_profit_lock("ETH", 1047.89, eth_data_older, profit_lock_pct=1.0, lock_window_hours=2)
 
 
 if __name__ == "__main__":

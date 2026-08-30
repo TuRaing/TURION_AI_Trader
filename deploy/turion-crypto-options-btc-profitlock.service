@@ -1,0 +1,52 @@
+# Added 30-Aug-2026 - profit-lock BTC sibling of deploy/turion-crypto-
+# options.service, per a real backtest sweep this session found:
+# daily_profit_lock (1% of capital, rolling 2h window - NOT the usual
+# UTC-calendar-day boundary, see strategy/crypto_tick_runner.py's
+# _realized_pnl_within_hours() for why) consistently improved BTC's
+# results across two different real historical windows (see
+# doc/CRYPTO_PROJECT_STATUS.md's own record). Same "separate book, not
+# a change to the running one" rule as the BTC-quote unit - own
+# STRATEGY_NAME (rsi_momentum_crypto_btc_profitlock) via CRYPTO_
+# PROFIT_LOCK_PCT/CRYPTO_PROFIT_LOCK_WINDOW_HOURS, so its portfolio
+# file never mixes with the original BTC book's.
+#
+# Install with:
+#   sudo cp deploy/turion-crypto-options-btc-profitlock.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable turion-crypto-options-btc-profitlock
+#   sudo systemctl start turion-crypto-options-btc-profitlock
+#
+# Useful commands once running:
+#   sudo systemctl status turion-crypto-options-btc-profitlock
+#   journalctl -u turion-crypto-options-btc-profitlock -f
+#   sudo systemctl restart turion-crypto-options-btc-profitlock
+
+[Unit]
+Description=TURION Crypto Options Engine (Deribit BTC, profit-lock 1%/2h, WebSocket, paper-trading)
+After=network-online.target
+Wants=network-online.target
+
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+
+WorkingDirectory=/home/ubuntu/turion-crypto
+ExecStart=/home/ubuntu/turion-crypto/venv/bin/python run_crypto_options_engine.py
+
+Restart=on-failure
+RestartSec=10
+
+# CRYPTO_CURRENCY unset -> defaults to BTC. Profit lock: 1% of
+# capital, rolling 2-hour window (backtest-tuned this session).
+Environment="CRYPTO_PROFIT_LOCK_PCT=1.0"
+Environment="CRYPTO_PROFIT_LOCK_WINDOW_HOURS=2"
+
+EnvironmentFile=/home/ubuntu/turion-crypto/.env
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

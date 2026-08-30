@@ -1,0 +1,51 @@
+# Added 30-Aug-2026 - profit-lock ETH sibling of deploy/turion-crypto-
+# options-eth.service - see deploy/turion-crypto-options-btc-
+# profitlock.service's own note for the full reasoning. ETH's own
+# backtest-tuned setting differs from BTC's (0.5%/3h vs BTC's 1%/2h) -
+# a real finding this session, not an oversight: ETH's much smaller
+# average win size meant the 2h window that worked for BTC was
+# actually one of the worse choices for ETH (see doc/CRYPTO_PROJECT_
+# STATUS.md's own sweep record).
+#
+# Install with:
+#   sudo cp deploy/turion-crypto-options-eth-profitlock.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable turion-crypto-options-eth-profitlock
+#   sudo systemctl start turion-crypto-options-eth-profitlock
+#
+# Useful commands once running:
+#   sudo systemctl status turion-crypto-options-eth-profitlock
+#   journalctl -u turion-crypto-options-eth-profitlock -f
+#   sudo systemctl restart turion-crypto-options-eth-profitlock
+
+[Unit]
+Description=TURION Crypto Options Engine (Deribit ETH, profit-lock 0.5%/3h, WebSocket, paper-trading)
+After=network-online.target
+Wants=network-online.target
+
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+
+WorkingDirectory=/home/ubuntu/turion-crypto
+ExecStart=/home/ubuntu/turion-crypto/venv/bin/python run_crypto_options_engine.py
+
+Restart=on-failure
+RestartSec=10
+
+# Profit lock: 0.5% of capital, rolling 3-hour window (backtest-tuned
+# this session - see this unit's own top comment for why this differs
+# from BTC's 1%/2h).
+Environment="CRYPTO_CURRENCY=ETH"
+Environment="CRYPTO_PROFIT_LOCK_PCT=0.5"
+Environment="CRYPTO_PROFIT_LOCK_WINDOW_HOURS=3"
+
+EnvironmentFile=/home/ubuntu/turion-crypto/.env
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

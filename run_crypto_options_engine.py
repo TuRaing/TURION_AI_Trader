@@ -104,7 +104,28 @@ CANDLE_SEED_HOURS = 12  # comfortably more than MIN_CANDLES_FOR_RSI * 5min needs
 # - see deploy/turion-crypto-options-*-quote.service.
 QUOTE_BASED = os.environ.get("CRYPTO_QUOTE_BASED", "0") == "1"
 DECIDE_FN = rsi_momentum_quote_decide_fn if QUOTE_BASED else rsi_momentum_decide_fn
-STRATEGY_NAME = f"rsi_momentum_crypto_{CURRENCY.lower()}" + ("_quote" if QUOTE_BASED else "")
+
+# CRYPTO_PROFIT_LOCK_PCT/CRYPTO_PROFIT_LOCK_WINDOW_HOURS - added
+# 30-Aug-2026, at the user's own request, after a real backtest sweep
+# (doc/CRYPTO_PROJECT_STATUS.md's own record) found daily_profit_lock
+# helps BOTH BTC and ETH, but only with a short ROLLING window (BTC:
+# 1%/2h, ETH: 0.5%/3h - NOT the same for both, and NOT the UTC-
+# calendar-day boundary daily_profit_lock normally uses elsewhere - see
+# strategy/crypto_tick_runner.py's _realized_pnl_within_hours() for
+# why a 24/7 market needs a rolling window instead). Same "separate
+# book, not a change to the running one" rule as CRYPTO_QUOTE_BASED
+# above - own STRATEGY_NAME suffix ("_profitlock") so it never mixes
+# portfolio history with the original book. PROFIT_LOCK_PCT unset
+# (None) means the gate stays off entirely - every existing book's
+# behavior is unchanged unless a systemd unit explicitly sets this.
+_profit_lock_pct_raw = os.environ.get("CRYPTO_PROFIT_LOCK_PCT")
+PROFIT_LOCK_ENABLED = _profit_lock_pct_raw is not None
+PROFIT_LOCK_PCT = float(_profit_lock_pct_raw) if PROFIT_LOCK_ENABLED else None
+PROFIT_LOCK_WINDOW_HOURS = float(os.environ.get("CRYPTO_PROFIT_LOCK_WINDOW_HOURS", 24))
+
+STRATEGY_NAME = f"rsi_momentum_crypto_{CURRENCY.lower()}"
+STRATEGY_NAME += "_quote" if QUOTE_BASED else ""
+STRATEGY_NAME += "_profitlock" if PROFIT_LOCK_ENABLED else ""
 
 
 def _seed_candles(currency):
@@ -167,7 +188,9 @@ def build_runner():
     print(f"ATM picked: {ce_symbol} / {pe_symbol} (strike {atm_strike}, spot {spot})")
 
     cfg = make_st2_threshold_event_cfg(index=CURRENCY, lot_size=1, initial_capital=INITIAL_CAPITAL,
-                                        cost_fn=calculate_crypto_options_round_trip_cost)
+                                        cost_fn=calculate_crypto_options_round_trip_cost,
+                                        daily_profit_lock=PROFIT_LOCK_ENABLED,
+                                        daily_profit_lock_pct=PROFIT_LOCK_PCT or 2.0)
     portfolio = load_portfolio(STRATEGY_NAME, INITIAL_CAPITAL)
 
     return CryptoTickRunner(
@@ -179,6 +202,7 @@ def build_runner():
         pe_symbol=pe_symbol,
         initial_candles=_seed_candles(CURRENCY),
         execution_backend=PaperExecutionBackend(),
+        profit_lock_window_hours=PROFIT_LOCK_WINDOW_HOURS,
     )
 
 
