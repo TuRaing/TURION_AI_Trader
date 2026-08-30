@@ -40,9 +40,12 @@ real Deribit market data instead of Fyers/NSE data.
     1,00,000-equivalent ($1,047.89) capital. Added 29-Aug-2026,
     `deploy/turion-crypto-options-eth.service` (mirrors the BTC unit,
     only `Description` and `Environment="CRYPTO_CURRENCY=ETH"` differ).
+  - `turion-crypto-options-btc-profitlock` / `-eth-profitlock` — added
+    30-Aug-2026, see "Profit-lock books" below. Separate books, not a
+    change to the two above.
 
-  Both confirmed live and holding positions normally (no repeat of the
-  stop-loss loop below) right after deploy.
+  All four confirmed live and holding positions normally (no repeat of
+  the stop-loss loop below) right after their own deploys.
 - **Phase 5 (mobile app)** — done differently than originally planned,
   29-Aug-2026: instead of adding a `crypto_screen.dart` tab to the
   main `mobile_app`, the user explicitly asked for a **separate,
@@ -137,6 +140,71 @@ help?) but explicitly NOT built yet - the top-of-book bid/ask already
 gave a clear, decisive answer to the immediate question ("is this
 viable right now"), so the added infra wasn't justified yet.
 
+## Profit-lock books (BTC/ETH), 30-Aug-2026
+
+Separate follow-up experiment, same session: real trade analysis found
+both LTP books whipsawing well under their own breakeven win rate
+(BTC 23.3% vs 31.8% needed, ETH 18.1% vs 29.0% needed), median ~9-min
+holds - re-entering right after almost every stop-loss. Backtested
+`daily_profit_lock` (already existed in `make_st2_threshold_event_cfg`,
+unused by crypto until now) as the fix, using a genuinely **rolling**
+window instead of that field's normal UTC-calendar-day boundary (a
+24/7 market has no real "today" - see `strategy/crypto_tick_runner.py`'s
+new `_realized_pnl_within_hours()`).
+
+**`daily_loss_lock`/`max_consecutive_losses` was tried FIRST and
+rejected** - made BTC notably worse in a proper apples-to-apples
+backtest (a first, flawed comparison had wrongly suggested it helped -
+each variant was independently refetching "the last 7 days from right
+now" from a live API, so time moving forward between calls meant every
+variant silently ran on different data; fixed by fetching data_points
+once and reusing them - see `run_for()`'s own note in `crypto_options_
+backtest.py`).
+
+**`daily_profit_lock` DOES help, but needs a per-currency-tuned
+window** - a full parameter sweep (0.5-3% x 1-8h, two different real
+7-day windows each) found:
+- **BTC: 1% / 2h window** - the ONLY window where both tested real
+  windows improved over baseline (recent: -$3,391 -> +$3,620; older:
+  +$9,045 -> +$9,758). Every other window (1h/3h/4h/6h/8h) helped one
+  window while making the OTHER one worse than baseline - not a robust
+  choice.
+- **ETH: 0.5% / 3h window** - the 2h window that worked for BTC was
+  actually one of the WORSE choices for ETH (its much smaller average
+  win, ~$56 vs BTC's ~$528, means the exact window length matters more
+  than the exact %, which barely matters at all above ~0.5% since a
+  single win crosses every threshold from 0.5-3% at once).
+- A trailing-stop was also tried stacked on the 12h BTC variant
+  (`trailing_min_pct=3.0`) - made things dramatically worse (9 trades,
+  -$7,021 vs the 12h-alone -$2,585) - not pursued further.
+- Went looking for an even OLDER real window to triple-check
+  consistency - not possible: Deribit's public API only retains
+  already-expired instruments for `settlement_period="day"`, not
+  `"week"` - last week's weekly BTC contract's real trade history is
+  already gone entirely. The two windows tested (recent + `offset_
+  days=3`) are close to the full real range this specific weekly
+  contract has ever had.
+
+**Deployed as two NEW, separate books** (not a change to the original
+LTP books, same "never silently change a running book" rule as the
+quote-based experiment) - `rsi_momentum_crypto_btc_profitlock` /
+`_eth_profitlock`, via `CRYPTO_PROFIT_LOCK_PCT`/`CRYPTO_PROFIT_LOCK_
+WINDOW_HOURS` env vars, `deploy/turion-crypto-options-{btc,eth}-
+profitlock.service`. `crypto_app` gained two matching tabs (now 4
+total, TabBar made scrollable) - the original BTC/ETH tabs are
+unchanged, per the user's explicit "old strategy चालू राहू द्या" ask.
+
+**Trailing-stop capability added to the shared engine** (`strategy/
+event_driven_engine.py`'s new opt-in `trailing_min_pct`, ported from
+`strategy/fyers_options_engine.py`'s own NIFTY version) as a side
+effect of testing it above - unlike the NIFTY version (which couldn't
+be backtested at all - Entry/Exit-only historical records), this DOES
+work in `crypto_options_backtest.py` since `rsi_momentum_decide_fn`
+already runs against every intermediate 5-min data point. Not
+currently used by any live crypto book (the one combination tried made
+things worse) - kept as a real, reusable, tested capability for future
+experiments, not dead code.
+
 ## Redeploying code to the VM
 
 ```
@@ -227,8 +295,13 @@ clean from the start, never having run the buggy cost model live.
    still useful as an RSI-signal-quality signal even though the
    Quote-based PnL is what would actually happen.
 3. User is testing the installed phone app (candlestick chart, trade
-   detail sheet) live - no reported issues yet, follow up next session
-   if any come back.
+   detail sheet, now 4 tabs including the two new profit-lock books)
+   live - no reported issues yet, follow up next session if any come
+   back.
+4. Let the two new profit-lock books run live for a few weeks and see
+   if the backtest-tuned improvement holds up on real forward data,
+   same "single-window backtest isn't proof" caution as everywhere
+   else in this doc.
 
 ## Note on dates in this doc and its commits
 
