@@ -196,6 +196,36 @@ memory for the running note.
 
 ==================================================
 
+COMBINED 15-MIN BUFFER + 120s COOLDOWN - FIRST GENUINELY PROFITABLE
+RESULT TODAY. User's own follow-up: since buffer alone was near-break-
+even and cooldown alone was only a modest improvement, does stacking
+BOTH together beat either alone? Built `scratch_combined_backtest.py`
+(same RSI-seeded LiveTickRunner-replay pattern, same real N=2 breaker)
+testing baseline / buffer-only / cooldown-only / both-together across
+the same 10 day/index runs.
+
+Combined PnL by variant:
+
+- Baseline: -Rs 75,024
+- 15-min buffer only: -Rs 3,387
+- 120s cooldown only: -Rs 67,075
+- **15-min + 120s combined: +Rs 10,027 (net PROFIT - first positive
+  total from any variant tested today)**
+
+7 of 10 day/index runs were individually profitable with both gates
+on. The two gates appear to address different failure modes (buffer =
+market-open crowd-whipsaw, cooldown = post-trade re-entry whipsaw) and
+compound rather than substitute for each other. EXPLICIT CAVEAT (same
+data-driven-patience discipline as everything else on this project):
+only 5 days of data, and 4 different variants were compared in the same
+pass - a positive result from picking the best of several combinations
+on a small sample could be partly a lucky fit, not a proven edge. Needs
+re-verification once more real trading days (24-Aug's archive, plus
+whatever accumulates after 31-Aug) are available before this is
+anywhere near a deploy decision. Still backtest-only, nothing deployed.
+
+==================================================
+
 DEPLOYED THE PERF FIX LIVE, THEN FOUND AND FIXED A REAL CRON GAP IT
 EXPOSED. User approved deploying today's `live_tick_harness.py` perf
 fix to the VPS after confirming it was safe (Saturday, market closed,

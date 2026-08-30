@@ -8002,9 +8002,33 @@ production). With the breaker on: 0s -Rs 75,024; 30s -Rs 82,527 (worse);
 conclusion). Neither the buffer nor the cooldown idea is anywhere near
 as strong against the real production config as their breaker-off
 numbers suggested - 120s cooldown (~11%) is currently the single best
-verified lever between the two. Nothing deployed live. See doc/
-29aug26_SESSION_LOG.md for full detail and [[project_quote_pnl_and_
-whipsaw_decision]] memory for the running note.
+verified lever between the two. Nothing deployed live.
+
+Then combined BOTH gates (15-min buffer + 120s cooldown) together -
+first genuinely profitable result of the day: +Rs 10,027 net (vs
+-Rs 75,024 baseline, -Rs 3,387 buffer-only, -Rs 67,075 cooldown-only),
+7 of 10 day/index runs individually profitable. Explicit caveat: only 5
+days of data and 4 variants compared in one pass - needs re-verification
+on more days before any deploy decision, same discipline as everything
+else here. See doc/29aug26_SESSION_LOG.md for full detail and
+[[project_quote_pnl_and_whipsaw_decision]] memory for the running note.
+
+==================================================
+
+OI ARCHIVE CHECKED (30-Aug) - ZERO USABLE DATA YET. Synced the 2
+existing `data/oi/*.jsonl` files down from the VPS and inspected them
+directly rather than assuming "partial data is still useful data":
+every record in both files is byte-for-byte identical, repeated every
+~5 min for hours - because both files' time ranges fall entirely
+outside real market hours (28-Aug: after 15:30 close; 29-Aug: before
+09:15 open, and a Saturday besides). Not a bug - option-chain OI
+genuinely doesn't move when the market's closed. `strategy/oi_
+collector.py` has not yet recorded a single real intraday OI change
+since its 28-Aug deploy. 31-Aug (Monday) is the first real test. All 3
+OI-dependent backtest ideas (PCR event-driven port, GEX-wall momentum-
+exhaustion, oi_footprint OI+Volume filter) stay blocked until then -
+more strongly blocked than 29-Aug's note suggested. See doc/
+30aug26_SESSION_LOG.md for full detail.
 
 ==================================================
 
@@ -8014,12 +8038,14 @@ Status
 
 Current Version
 
-v0.0.68
+v0.0.69
 
 Next Version
 
-v0.0.68 (perf fix made + tested locally, not yet committed/deployed;
-backtest itself stays backtest-only, nothing shipped live)
+v0.0.69 (perf fix committed, pushed, and deployed live to the VPS;
+collector cron safety-net entries added live + documented; all
+backtest work - buffer, cooldown, combined, OI-blocked - stays
+backtest-only, nothing else shipped)
 
 ==================================================
 
