@@ -165,6 +165,41 @@ def test_today_consecutive_losses_gates_new_entries_via_daily_loss_lock():
     assert "SKIPPED (today already has 2+ consecutive losses" in action
 
 
+def test_profit_lock_gate_works_with_a_timezone_aware_timestamp():
+    # Regression test for a real crash caught live, 30-Aug-2026: on
+    # the real Deribit path, on_tick() is called with a timezone-AWARE
+    # timestamp (see strategy/deribit_data.py's connect_and_run(),
+    # datetime.fromtimestamp(..., tz=utc)) while Entry/Exit Time
+    # strings are always naive - comparing the two inside
+    # _realized_pnl_within_hours() raised "TypeError: can't compare
+    # offset-naive and offset-aware datetimes" within minutes of the
+    # profit-lock books going live. This test uses an aware timestamp
+    # deliberately (unlike every other test in this file, which use
+    # this module's own naive _ts() helper) so the fix can't silently
+    # regress.
+    cfg = make_st2_threshold_event_cfg(
+        index="BTC", lot_size=1, initial_capital=10000,
+        daily_profit_lock=True, daily_profit_lock_pct=1.0,
+    )
+    recent_win = [
+        {"Entry Time": "2026-08-24 08:50:00", "Exit Time": "2026-08-24 08:55:00", "Net PnL": 200},
+    ]
+    portfolio = {"Cash": 10200, "Position": None, "Closed Trades": recent_win}
+    seeded = _seeded_candles(MIN_CANDLES_FOR_RSI + 5)
+
+    runner = CryptoTickRunner(
+        decide_fn=rsi_momentum_decide_fn, cfg=cfg, portfolio=portfolio,
+        underlying_index_name="BTC", ce_symbol="BTC-25AUG26-68000-C", pe_symbol="BTC-25AUG26-68000-P",
+        initial_candles=seeded, profit_lock_window_hours=2,
+    )
+
+    aware_timestamp = datetime.datetime(2026, 8, 24, 9, 20, tzinfo=datetime.timezone.utc)
+    runner.on_tick(runner.underlying_index_name, aware_timestamp, 79000.0)
+    action = runner.on_tick(runner.ce_symbol, aware_timestamp, 100.0)
+
+    assert "SKIPPED (today's profit lock reached)" in action
+
+
 # --- load_portfolio / save_portfolio (atomic write, graceful degradation) ---
 
 def test_save_then_load_round_trips():

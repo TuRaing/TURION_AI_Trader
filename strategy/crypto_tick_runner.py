@@ -61,7 +61,23 @@ def _realized_pnl_within_hours(portfolio, timestamp, hours):
     function drives both the backtest and this live runner - no second
     copy to drift out of sync, same principle every other decide_fn
     helper in this project already follows.
+
+    FIXED 30-Aug-2026, real crash caught live within minutes of
+    deploy: `timestamp` here is timezone-AWARE when called from
+    CryptoTickRunner.on_tick() (built via datetime.fromtimestamp(...,
+    tz=utc) in strategy/deribit_data.py's connect_and_run()), but
+    Entry/Exit Time strings are always stored and re-parsed NAIVE (no
+    tzinfo, matching every other timestamp field in this project's
+    portfolio JSON) - comparing the two raised "TypeError: can't
+    compare offset-naive and offset-aware datetimes". Never caught in
+    crypto_options_backtest.py's own testing because that script always
+    builds a NAIVE timestamp via strptime() - the aware/naive mismatch
+    only exists on the live path. Stripping tzinfo up front makes this
+    match _today_consecutive_losses()'s own naive convention exactly.
     """
+
+    if timestamp.tzinfo is not None:
+        timestamp = timestamp.replace(tzinfo=None)
 
     cutoff = timestamp - datetime.timedelta(hours=hours)
     total = 0.0
