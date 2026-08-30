@@ -1,0 +1,52 @@
+# Added 29-Aug-2026 - quote-based (real bid/ask, not LTP) sibling of
+# deploy/turion-crypto-options.service, per the user's own real live
+# finding: analyze_crypto_slippage.py showed the original BTC book's
+# LTP-based "Net PnL" overstates the real (bid/ask-fill) PnL by ~95% on
+# this thin ATM book. Same fix pattern the NIFTY side used on
+# 21-Aug-2026 (rsi_momentum_quote_decide_fn) - a SEPARATE book, not a
+# change to the original one, so the original's history/comparison
+# value is preserved (see run_crypto_options_engine.py's own
+# CRYPTO_QUOTE_BASED note). Own STRATEGY_NAME
+# (rsi_momentum_crypto_btc_quote) via CRYPTO_QUOTE_BASED=1, so its
+# portfolio file never mixes with the LTP book's.
+#
+# Install with:
+#   sudo cp deploy/turion-crypto-options-btc-quote.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable turion-crypto-options-btc-quote
+#   sudo systemctl start turion-crypto-options-btc-quote
+#
+# Useful commands once running:
+#   sudo systemctl status turion-crypto-options-btc-quote
+#   journalctl -u turion-crypto-options-btc-quote -f
+#   sudo systemctl restart turion-crypto-options-btc-quote
+
+[Unit]
+Description=TURION Crypto Options Engine (Deribit BTC, quote-based, WebSocket, paper-trading)
+After=network-online.target
+Wants=network-online.target
+
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+
+WorkingDirectory=/home/ubuntu/turion-crypto
+ExecStart=/home/ubuntu/turion-crypto/venv/bin/python run_crypto_options_engine.py
+
+Restart=on-failure
+RestartSec=10
+
+# CRYPTO_CURRENCY unset -> defaults to BTC (see run_crypto_options_
+# engine.py). CRYPTO_QUOTE_BASED=1 -> rsi_momentum_quote_decide_fn,
+# STRATEGY_NAME "rsi_momentum_crypto_btc_quote".
+Environment="CRYPTO_QUOTE_BASED=1"
+
+EnvironmentFile=/home/ubuntu/turion-crypto/.env
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

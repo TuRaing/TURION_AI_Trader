@@ -35,7 +35,7 @@ from strategy.crypto_tick_runner import CryptoTickRunner, load_portfolio, save_p
 from strategy.deribit_data import (
     get_index_price, get_instruments, get_tradingview_chart_data, pick_atm_instruments, connect_and_run,
 )
-from strategy.event_driven_engine import rsi_momentum_decide_fn, make_st2_threshold_event_cfg
+from strategy.event_driven_engine import rsi_momentum_decide_fn, rsi_momentum_quote_decide_fn, make_st2_threshold_event_cfg
 from strategy.execution_backend import PaperExecutionBackend
 from strategy.live_tick_harness import MIN_CANDLES_FOR_RSI
 from strategy.tick_collector import LiveCandleAggregator
@@ -89,8 +89,22 @@ _DEFAULT_CAPITAL = {"BTC": 10000.0, "ETH": 1047.89}
 
 CURRENCY = os.environ.get("CRYPTO_CURRENCY", "BTC").upper()
 INITIAL_CAPITAL = float(os.environ.get("CRYPTO_INITIAL_CAPITAL", _DEFAULT_CAPITAL.get(CURRENCY, 10000.0)))
-STRATEGY_NAME = f"rsi_momentum_crypto_{CURRENCY.lower()}"
 CANDLE_SEED_HOURS = 12  # comfortably more than MIN_CANDLES_FOR_RSI * 5min needs
+
+# CRYPTO_QUOTE_BASED - added 29-Aug-2026, real live finding: comparing
+# every closed trade's LTP-based "Net PnL" against its already-recorded
+# "Net PnL (Quote)" (analyze_crypto_slippage.py) showed LTP overstates
+# real PnL by ~90-95% on this thin ATM book - same class of gap the
+# NIFTY side found on 21-Aug-2026, fixed there the same way: a second,
+# SEPARATE book (rsi_momentum_quote_decide_fn - real ask at entry, real
+# bid at exit, not LTP) alongside the original rather than replacing
+# it, per this project's "never silently change a running book" rule.
+# Own STRATEGY_NAME (suffix "_quote") so it gets its own portfolio
+# file/systemd unit and never mixes history with the original LTP book
+# - see deploy/turion-crypto-options-*-quote.service.
+QUOTE_BASED = os.environ.get("CRYPTO_QUOTE_BASED", "0") == "1"
+DECIDE_FN = rsi_momentum_quote_decide_fn if QUOTE_BASED else rsi_momentum_decide_fn
+STRATEGY_NAME = f"rsi_momentum_crypto_{CURRENCY.lower()}" + ("_quote" if QUOTE_BASED else "")
 
 
 def _seed_candles(currency):
@@ -157,7 +171,7 @@ def build_runner():
     portfolio = load_portfolio(STRATEGY_NAME, INITIAL_CAPITAL)
 
     return CryptoTickRunner(
-        decide_fn=rsi_momentum_decide_fn,
+        decide_fn=DECIDE_FN,
         cfg=cfg,
         portfolio=portfolio,
         underlying_index_name=CURRENCY,

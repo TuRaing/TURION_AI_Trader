@@ -1,0 +1,46 @@
+# Added 29-Aug-2026 - quote-based (real bid/ask, not LTP) sibling of
+# deploy/turion-crypto-options-eth.service - see deploy/turion-crypto-
+# options-btc-quote.service's own note for the full reasoning (same
+# real live finding, same fix pattern, just the ETH leg).
+#
+# Install with:
+#   sudo cp deploy/turion-crypto-options-eth-quote.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable turion-crypto-options-eth-quote
+#   sudo systemctl start turion-crypto-options-eth-quote
+#
+# Useful commands once running:
+#   sudo systemctl status turion-crypto-options-eth-quote
+#   journalctl -u turion-crypto-options-eth-quote -f
+#   sudo systemctl restart turion-crypto-options-eth-quote
+
+[Unit]
+Description=TURION Crypto Options Engine (Deribit ETH, quote-based, WebSocket, paper-trading)
+After=network-online.target
+Wants=network-online.target
+
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+
+WorkingDirectory=/home/ubuntu/turion-crypto
+ExecStart=/home/ubuntu/turion-crypto/venv/bin/python run_crypto_options_engine.py
+
+Restart=on-failure
+RestartSec=10
+
+# CRYPTO_QUOTE_BASED=1 -> rsi_momentum_quote_decide_fn, STRATEGY_NAME
+# "rsi_momentum_crypto_eth_quote". INITIAL_CAPITAL needs no override -
+# _DEFAULT_CAPITAL already maps ETH to $1,047.89.
+Environment="CRYPTO_CURRENCY=ETH"
+Environment="CRYPTO_QUOTE_BASED=1"
+
+EnvironmentFile=/home/ubuntu/turion-crypto/.env
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
