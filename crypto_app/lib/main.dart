@@ -25,6 +25,13 @@ import 'widgets/mesh_background.dart';
 const _books = [
   (key: 'rsi_momentum_crypto_btc', label: 'BTC', initialCapital: 10000.0),
   (key: 'rsi_momentum_crypto_eth', label: 'ETH', initialCapital: 1047.89),
+  // Added 30-Aug-2026 - the two new profit-lock books (see
+  // run_crypto_options_engine.py's own CRYPTO_PROFIT_LOCK_PCT note) -
+  // separate books/tabs alongside the originals above, not a
+  // replacement, per the user's own explicit "old strategy चालू राहू
+  // द्या" ask.
+  (key: 'rsi_momentum_crypto_btc_profitlock', label: 'BTC (Profit Lock)', initialCapital: 10000.0),
+  (key: 'rsi_momentum_crypto_eth_profitlock', label: 'ETH (Profit Lock)', initialCapital: 1047.89),
 ];
 
 // Matches strategy/event_driven_engine.py's make_st2_threshold_event_
@@ -83,6 +90,8 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
         title: const Text('TURION Crypto'),
         bottom: TabBar(
           controller: _tabController,
+          isScrollable: true,
+          tabAlignment: TabAlignment.start,
           tabs: _books.map((b) => Tab(text: b.label)).toList(),
         ),
       ),
