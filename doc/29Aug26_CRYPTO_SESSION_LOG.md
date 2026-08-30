@@ -140,15 +140,16 @@ capital split, per the user's own prior explicit ask).
 
 ## Note on the date in this file's own name
 
-This entire session (steps 1-15 above) actually ran on **2026-08-30**,
-not 29-Aug as this file's name and every commit message from today
-say - the assistant carried the "29-Aug-2026" date forward from the
-memory/prior session's own note (when the VM was first deployed)
-without rechecking the actual current date for today's own new work.
-Left as-is rather than renamed mid-session (would only add confusion
-against already-pushed commit messages) - just worth knowing if a
-future session cross-checks this file's date against git log
-timestamps and finds them off by a day.
+CORRECTED - the note previously here was wrong. Checked against real
+`git log` timestamps: steps 1-8 above (access check through the
+candlestick-chart work) genuinely happened on **29-Aug-2026**, matching
+this file's own name - correctly dated. Only steps 13-15 (the slippage
+finding, the quote-based book experiment/rollback, and this doc pass
+itself) happened after the session carried past midnight into
+**30-Aug-2026** - a real, correct calendar-day rollover mid-session,
+not a labeling mistake. Left in this one file rather than split across
+two, since it's one continuous session/narrative - but steps 13-15
+should be understood as 30-Aug-2026 work.
 
 ## Carried to next session
 

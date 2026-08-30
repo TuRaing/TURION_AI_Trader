@@ -232,11 +232,14 @@ clean from the start, never having run the buggy cost model live.
 
 ## Note on dates in this doc and its commits
 
-This whole file, and every commit message from this sub-project's
-first live session, says "29-Aug-2026" - including work that actually
-happened on 2026-08-30 (the day after). The mistake: the assistant
-carried the "29-Aug-2026" date forward from the memory/prior session's
-own note about when the VM was first deployed, without rechecking the
-actual current date for its OWN new work. Not worth rewriting past
-commit messages/comments over - just worth knowing if the dates here
-look inconsistent with git's own commit timestamps later.
+CORRECTED - the note previously here was itself wrong. Checked against
+real `git log` timestamps: everything through the candlestick-chart
+work genuinely happened on **29-Aug-2026** (commits up to and
+including `63969f714`, 15:48) - correctly dated throughout. Only the
+LATER work - `analyze_crypto_slippage.py`, the quote-based book
+experiment/rollback, and this doc's own completion pass (commits
+`fbfe0786a` onward, starting ~18:36) - happened after the session
+carried past midnight into **30-Aug-2026**. That's a real, correct
+calendar-day rollover mid-session, not a labeling mistake - so text
+in this file describing that later work should say 30-Aug-2026, not
+29-Aug-2026, if it names a date at all.
