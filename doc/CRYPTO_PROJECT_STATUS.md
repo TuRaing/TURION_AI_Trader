@@ -88,6 +88,55 @@ real Deribit market data instead of Fyers/NSE data.
   (both systemd units restarted) and verified live: `strategy_ticks`
   confirmed populating for both BTC and ETH via a direct curl.
 
+## Real finding: LTP overstates real PnL by ~90-95% (spread, not a bug)
+
+Same class of gap the NIFTY side found on 21-Aug-2026, now confirmed
+for crypto too. `analyze_crypto_slippage.py` (new script) compares two
+fields already recorded on every closed trade - "Net PnL" (LTP-based,
+what the live engine reports) against "Net PnL (Quote)" (real bid/ask
+fill, reporting-only, already computed by `_rsi_momentum_decide()` but
+never used to drive real decisions) - no new data collection needed.
+
+Result on the first ~1.5 days of real live trading:
+
+| | BTC (83 trades) | ETH (77 trades) |
+|---|---|---|
+| Net PnL (LTP) | -$2,628.68 | -$579.85 |
+| Net PnL (Quote, real fill) | **-$51,464.47** | **-$5,583.79** |
+| LTP overstates by | +94.9% | +89.6% |
+
+**Root cause:** the ATM weekly Deribit options book is thin - the real
+bid-ask spread is wide enough that crossing it (buying at the real
+ask, selling at the real bid) costs far more than the LTP-based
+numbers ever showed.
+
+**Tested the fix, then rolled it back (same day):** wired
+`rsi_momentum_quote_decide_fn` (already existed - the exact fix the
+NIFTY side used for its own 21-Aug version of this problem) into two
+NEW, separate books (`rsi_momentum_crypto_btc_quote` / `_eth_quote`,
+`CRYPTO_QUOTE_BASED=1`, own systemd units
+`turion-crypto-options-{btc,eth}-quote`) rather than changing the
+original LTP books - confirmed live: BOTH immediately fell into a
+rapid open/close stop-loss loop (BTC ~-$635/cycle, ETH ~-$59.77/cycle,
+about once a second) - not a bug, the real spread genuinely triggers
+the stop-loss cap on nearly every single entry. **Stopped and disabled
+both quote-based units** (user's own call, "थांबव") once the
+conclusion was clear - running them further would only keep burning
+paper cash to no new insight. The two original LTP books were left
+running unchanged throughout.
+
+**Where this leaves the project:** the RSI-momentum signal itself may
+have real edge, but at the CURRENT position size / instrument
+liquidity (ATM weekly, `lot_size=1`), the real bid-ask spread alone
+appears to make this book unviable - a materially different
+conclusion from what the LTP-based numbers alone would suggest. A real
+Deribit order-book depth collector (mirroring `strategy/depth_
+collector.py`'s NIFTY equivalent) was discussed as a way to explore
+this further (does a more liquid strike/expiry help? does smaller size
+help?) but explicitly NOT built yet - the top-of-book bid/ask already
+gave a clear, decisive answer to the immediate question ("is this
+viable right now"), so the added infra wasn't justified yet.
+
 ## Redeploying code to the VM
 
 ```
@@ -169,8 +218,25 @@ clean from the start, never having run the buggy cost model live.
 
 ## Next priorities
 
-1. Let BTC and ETH run live for a while and watch real paper results
-   (win rate, trade frequency) now that the cost-model bug is fixed.
-2. User is testing the installed phone app (candlestick chart, trade
-   detail sheet) live as of this session's end — no reported issues
-   yet, follow up next session if any come back.
+1. Decide what to do about the LTP-vs-real-spread gap above - options
+   discussed but not decided: try a more liquid strike/expiry, reduce
+   position size, or accept this book as LTP-only-for-signal-research
+   (not a realistic paper P&L) until spread is addressed.
+2. Let the two original (LTP) BTC/ETH books keep running live and
+   watch real paper results now that the cost-model bug is fixed -
+   still useful as an RSI-signal-quality signal even though the
+   Quote-based PnL is what would actually happen.
+3. User is testing the installed phone app (candlestick chart, trade
+   detail sheet) live - no reported issues yet, follow up next session
+   if any come back.
+
+## Note on dates in this doc and its commits
+
+This whole file, and every commit message from this sub-project's
+first live session, says "29-Aug-2026" - including work that actually
+happened on 2026-08-30 (the day after). The mistake: the assistant
+carried the "29-Aug-2026" date forward from the memory/prior session's
+own note about when the VM was first deployed, without rechecking the
+actual current date for its OWN new work. Not worth rewriting past
+commit messages/comments over - just worth knowing if the dates here
+look inconsistent with git's own commit timestamps later.

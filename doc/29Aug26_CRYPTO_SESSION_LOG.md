@@ -81,19 +81,84 @@ capital split, per the user's own prior explicit ask).
    invisible to any other session/device. User asked for these to stay
    fully separate files from the NIFTY docs to avoid merge conflicts.
 
-## Not yet done (carried to next session)
+## What happened next, same session (continued)
 
-- Local fix is NOT yet committed to git.
-- The live VM is still running the OLD buggy code, with the corrupted
-  (-$26,545 Cash) portfolio state from the loop — needs: stop the
-  service, reset the portfolio state file, deploy the fixed code,
-  restart.
-- Whether to push these two new doc files (and the code fix) to
-  `main` or keep them on `crypto-paper-trading` was raised but not
-  resolved — the user's own repeated hard constraint is to never touch
-  `main` (the branch the live NIFTY VPS deploys from), which is in
-  tension with CLAUDE.md's general "docs live on main" rule. Punted to
-  keeping crypto docs on `crypto-paper-trading` for now, given the
-  user's explicit separate-file ask this session.
-- ETH's own systemd unit not created yet (BTC-only live so far).
-- Phase 5 (mobile `crypto_screen.dart`) not started.
+9. **Committed and pushed the cost-model fix**, then **deployed it
+   live**: stopped the BTC service, backed up (not deleted) the
+   corrupted portfolio state as `...portfolio.json.bak-buggy-loop`,
+   deployed the fixed code, restarted clean at $10,000 Cash - confirmed
+   live, holding a position normally with no more instant-close loop.
+
+10. **Added ETH's own systemd unit** (`turion-crypto-options-eth`,
+    `CRYPTO_CURRENCY=ETH`) - both BTC and ETH now live simultaneously,
+    each its own process/portfolio/crash lifecycle.
+
+11. **Built `crypto_app`** - a separate, standalone Flutter app (own
+    APK), at the user's explicit ask ("same app style, but only this
+    one trade"), not a tab added to the main `mobile_app`. Reads the
+    same Firebase RTDB path the engine already writes to, via plain
+    REST polling (no `firebase_database` SDK needed - the RTDB's read
+    rules are already public). Installed on a real phone (Motorola
+    Edge 20 Fusion, USB `adb install`) - found and fixed a real bug
+    live: the release APK's `AndroidManifest.xml` was missing the
+    INTERNET permission (debug builds get it for free via a Flutter
+    tooling overlay; release doesn't), so the app loaded but every
+    network call failed.
+
+12. **Added a live candlestick chart + trade-detail sheet** to
+    `crypto_app`, at the user's follow-up ask. Backend: `connect_and_
+    run()` gained an `on_tick` callback (fires on every CE/PE ticker
+    message) so `run_crypto_options_engine.py` can sync per-leg tick/
+    candle history to Firebase, off a `ThreadPoolExecutor` so it never
+    blocks the WebSocket loop. App: position/closed-trade cards are now
+    tappable, showing entry/exit/lots and a REAL Deribit-taker-fee cost
+    breakdown (not the main app's Rupee/NIFTY one), with a "View Chart"
+    button into a polling-based candlestick screen.
+
+13. **Found a second, more serious real problem**: LTP overstates real
+    PnL by ~90-95% (`analyze_crypto_slippage.py`, comparing the "Net
+    PnL" vs the already-recorded "Net PnL (Quote)" field on every
+    trade) - BTC reported -$2,628.68 but a real bid/ask fill would have
+    been -$51,464.47; ETH reported -$579.85 vs a real -$5,583.79. Root
+    cause: the ATM weekly Deribit book's real bid-ask spread is wide
+    enough that crossing it costs far more than LTP-based numbers show
+    - same class of gap the NIFTY side found on 21-Aug-2026.
+
+14. **Tested the known fix, then rolled it back**: wired the
+    already-existing `rsi_momentum_quote_decide_fn` (real ask at entry,
+    real bid at exit) into two NEW, separate books/systemd units
+    (`_btc_quote`/`_eth_quote`) rather than changing the originals.
+    Confirmed live: both immediately fell into a rapid stop-loss loop
+    (~once/second, -$635/cycle BTC, -$59.77/cycle ETH) - not a bug, a
+    real demonstration that the spread alone makes this book
+    unviable at its current size/liquidity. Stopped and disabled both
+    once the conclusion was clear (user's own call) - the two original
+    LTP books were left running unchanged throughout.
+
+15. **Updated both doc files** (this one + `CRYPTO_PROJECT_STATUS.md`)
+    to record all of the above.
+
+## Note on the date in this file's own name
+
+This entire session (steps 1-15 above) actually ran on **2026-08-30**,
+not 29-Aug as this file's name and every commit message from today
+say - the assistant carried the "29-Aug-2026" date forward from the
+memory/prior session's own note (when the VM was first deployed)
+without rechecking the actual current date for today's own new work.
+Left as-is rather than renamed mid-session (would only add confusion
+against already-pushed commit messages) - just worth knowing if a
+future session cross-checks this file's date against git log
+timestamps and finds them off by a day.
+
+## Carried to next session
+
+- Undecided: what to do about the real LTP-vs-spread gap (try a more
+  liquid strike/expiry, reduce size, or accept the LTP books as
+  signal-quality research only, not realistic paper P&L) - see
+  `CRYPTO_PROJECT_STATUS.md`'s own "Next priorities".
+- A real Deribit depth collector (mirroring `strategy/depth_
+  collector.py`) was discussed as a way to explore the spread question
+  further, explicitly NOT built - top-of-book bid/ask already answered
+  the immediate viability question.
+- Phase 5's mobile app is done (as `crypto_app`, not `crypto_screen.
+  dart`) but the user was still testing it live as this session ended.
