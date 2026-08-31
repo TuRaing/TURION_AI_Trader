@@ -8049,4 +8049,69 @@ backtest-only, nothing else shipped)
 
 ==================================================
 
+REAL LOGIN INCIDENT ROOT-CAUSED AND FIXED (31-Aug) - THE APP'S "LOGIN
+TO FYERS" SCREEN COULD ONLY EVER CONFIRM A GITHUB ACTIONS DISPATCH WAS
+ACCEPTED, NEVER THE REAL RESULT. User's login kept showing app-side
+"success" while the VPS stayed on an invalid token; checked the actual
+`fyers_trigger.yml` run history via the GitHub API rather than guessing
+- only 3 runs existed today (not the "12" attempted), 1 failed with a
+real `invalid auth code` error (Fyers' auth_code is single-use/short-
+lived - reusing a stale copy fails cleanly server-side), 1 succeeded
+and had already pushed a valid token to Firebase moments before
+Claude's own manual trigger (which was therefore redundant, though
+harmless). Fixed properly: `fyers_login_screen.dart` now polls the
+real workflow conclusion (~2 min) before declaring success; `strategy/
+event_driven_runner.py`/`run_event_driven_engine.py` now sync a live
+`engine_status/token` state to Firebase (also closes 28-Aug's flagged
+"no reconnect log line" gap); the VPS tab got a new live status badge
+reading that state directly. `flutter analyze` clean, 621/621 tests
+pass. VPS deploy + a fresh APK build both explicitly deferred to
+evening (user's call, market was about to open). See doc/31aug26_
+SESSION_LOG.md for full detail.
+
+==================================================
+
+FIRST REAL LIVE TRADING DAY SINCE THIS WEEK'S FIXES (31-Aug) - REAL
+DATA PULLED AND A WRONG SAME-DAY RECOMMENDATION SELF-CORRECTED. All 14
+event-driven books: 43 trades in the first ~11 minutes, combined
+-Rs 2,70,005.24; 12 of 14 already breaker-STOPPED (N=2), only the 2
+oi_footprint BankNifty books still running (both green). Root-caused
+why 4 plain-LTP books lost an unusually large -Rs 54,748 each: the
+FIRST LTP tick of the day was a ~40% same-second, zero-spot-movement
+"move" - a stale/pre-open print, not a real price - directly confirmed
+via that same trade's own `Net PnL (Quote)` field showing a real
+PROFIT under bid/ask accounting versus a LOSS under LTP.
+
+Initially recommended switching those 4 books to the already-existing
+quote-based decide_fn based on this one trade - then backtested it
+properly (`scratch_quote_vs_ltp_backtest.py`, same 5 days x 2 indices,
+real N=2 breaker) before accepting the conclusion, and it was WRONG:
+Quote ask/bid totalled -Rs 1,65,921 vs LTP's -Rs 75,024 - 2.2x WORSE,
+not better. Quote-based pays the real bid-ask spread on every entry/
+exit, and this strategy's frequent same-second whipsaw re-entries each
+pay that spread twice - compounds badly. Quote-based PnL is more
+ACCURATE (avoids illusory stale-print swings) but that does not mean
+lower losses here. Corrected recommendation given back to the user
+same-day: do NOT switch these books to quote-based. See doc/31aug26_
+SESSION_LOG.md for full detail and [[project_quote_pnl_and_whipsaw_
+decision]] memory for the running note.
+
+==================================================
+
+Status
+
+🟢 Stable
+
+Current Version
+
+v0.0.70
+
+Next Version
+
+v0.0.70 (login-flow fix + VPS status indicator pushed to GitHub, VPS
+deploy + APK build both deferred to this evening; all of today's
+backtest work stays backtest-only)
+
+==================================================
+
 END OF DOCUMENT
