@@ -1,15 +1,6 @@
 {
-  "Cash": 99874.47506792561,
-  "Position": {
-    "Name": "TITAN",
-    "Symbol": "TITAN.NS",
-    "Direction": "SELL",
-    "Entry Time": "2026-08-31 10:01:16",
-    "Entry Price": 5115.0,
-    "Quantity": 1,
-    "Stop Loss": 5136.27,
-    "Target": 5072.46
-  },
+  "Cash": 99853.24093581236,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -896,6 +887,20 @@
       "PnL": 6.42,
       "Cost": 1.41,
       "Net PnL": 5.01
+    },
+    {
+      "Name": "TITAN",
+      "Symbol": "TITAN.NS",
+      "Direction": "SELL",
+      "Entry Time": "2026-08-31 10:01:16",
+      "Entry Price": 5115.0,
+      "Exit Time": "2026-08-31 14:41:37",
+      "Exit Price": 5130.7998046875,
+      "Quantity": 1,
+      "Exit Reason": "Intraday Square-Off",
+      "PnL": -15.8,
+      "Cost": 5.43,
+      "Net PnL": -21.23
     }
   ]
 }
