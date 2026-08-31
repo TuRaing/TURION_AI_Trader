@@ -262,6 +262,61 @@ useful (saves re-investigating them later) rather than wasted effort.
 
 ==================================================
 
+SUPPORT/RESISTANCE GATE ADDED, THEN A FULL 3-GATE COMBO BACKTEST -
+DEBOUNCE ALONE STILL WINS. User asked for one more genuinely different
+angle: block a CE entry too close to recent resistance, a PE entry too
+close to recent support (adapts strategy/signal_engine.py's EXISTING
+apply_support_resistance_filter() - built for the older polling engine,
+never wired into the event-driven RSI-momentum books - into a gate on
+top of _rsi_momentum_decide, using a 30-min rolling spot high/low
+instead of that function's original 20-DAILY-candle version).
+`scratch_support_resistance_backtest.py`. Hit and fixed a real O(n)-
+per-tick perf bug on the first attempt (min()/max() over the whole
+window every tick - 19 MINUTES for one day) with a proper O(1)-
+amortized sliding-window max/min via two monotonic deques - same class
+of bug as 29-Aug's RSI/PnL caching fix.
+
+Combined PnL by buffer %, real N=2 breaker: 0.1% -Rs 47,714; 0.2%
+-Rs 34,690; 0.3% -Rs 27,864 (best, ~63% better than baseline, and a
+genuinely clean monotonic curve unlike the other gates); 0.5%
+-Rs 30,649 (over-blocks - several days show 0 trades). Real, but still
+net-negative alone - weaker than the debounce.
+
+Then built `scratch_full_combo_backtest.py` - all 8 combinations of
+debounce (10 ticks) / cooldown (120s) / S-R (0.3%, 30-min lookback),
+deliberately excluding the market-open buffer (already proven to
+cancel debounce's benefit). Combined PnL:
+
+1. Debounce alone: +Rs 37,004 (still the single best - unbeaten by
+   ANY combination tried this week)
+2. All 3 combined: +Rs 31,411
+3. Debounce + cooldown: +Rs 22,724
+4. Debounce + S/R: +Rs 11,017
+5. Baseline: -Rs 75,024
+6. S/R alone: -Rs 27,864
+7. Cooldown + S/R: -Rs 40,736
+8. Cooldown alone: -Rs 67,075
+
+Consistent pattern across every combination tested this week: stacking
+ANY other gate on top of the debounce dilutes it rather than improving
+it - the debounce alone remains the strongest, cleanest candidate.
+
+APPLIES TO (real gap check, not assumed): `_rsi_momentum_decide` -
+which all of today's gates wrap - is the decide_fn behind exactly 10
+of the 14 live event-driven books (all NIFTY): `simple_st1_threshold`,
+`simple_st1_threshold_lock`, its 3 `_lock_quote0.5/1/2pct` siblings,
+`st2_threshold`, `st2_threshold_lock`, and its 3 `_lock_quote0.5/1/2pct`
+siblings. Does NOT apply to the 4 `oi_footprint`/`oi_footprint_quote`
+books (NIFTY+BankNifty) - those run a different decide_fn (OI-buildup
+based), untested by any of this week's gates.
+
+Still backtest-only - same overfitting caveat as every combo tested
+this week (5-day sample, many variants compared against it). Debounce
+alone remains the strongest single candidate if/when a real deploy
+decision is made.
+
+==================================================
+
 Status
 
 🟢 Stable
