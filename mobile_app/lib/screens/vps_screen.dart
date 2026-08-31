@@ -122,6 +122,57 @@ class VpsScreen extends StatefulWidget {
   State<VpsScreen> createState() => _VpsScreenState();
 }
 
+// Added 31-Aug-2026, real incident: the app's "Login to Fyers" flow
+// could only ever confirm the GitHub Actions dispatch was ACCEPTED
+// (an HTTP 204), never whether the VPS actually ended up with a
+// working token - a stale/reused auth_code silently failed the real
+// exchange inside the workflow while the dispatch itself still
+// succeeded, so the app kept showing "Triggered! success" while the
+// VPS sat retrying on an invalid token. Reads strategy/event_driven_
+// runner.py's/run_event_driven_engine.py's own live "engine_status/
+// token" sync (event_driven_realtime_service.dart's watchTokenStatus())
+// - direct proof from the VPS itself, not an inference from the
+// dispatch call's own HTTP status.
+class _TokenStatusBadge extends StatelessWidget {
+  const _TokenStatusBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<Map<String, dynamic>?>(
+      stream: watchTokenStatus(),
+      builder: (context, snapshot) {
+        final status = snapshot.data;
+        final checkedAt = status?['checked_at'] as String?;
+        final ready = status?['status'] == 'ready';
+
+        final Color color = status == null ? mutedColor : (ready ? successColor : dangerColor);
+        final String label = status == null
+            ? 'VPS login: माहीत नाही'
+            : ready
+                ? 'VPS: आजचं login ready'
+                : 'VPS: login हवं आहे';
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(status == null ? Icons.help_outline : (ready ? Icons.check_circle : Icons.error_outline),
+                  size: 14, color: color),
+              const SizedBox(width: 6),
+              Text(
+                checkedAt == null ? label : '$label · ${formatBackendTimestamp(checkedAt)}',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _VpsScreenState extends State<VpsScreen> with SingleTickerProviderStateMixin {
   late final TabController _tabController;
 
@@ -152,9 +203,15 @@ class _VpsScreenState extends State<VpsScreen> with SingleTickerProviderStateMix
             style: TextStyle(fontSize: 12, color: accent2Color),
           ),
         ),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Align(alignment: Alignment.centerLeft, child: FyersLoginButton()),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: const [
+              FyersLoginButton(),
+              SizedBox(width: 10),
+              _TokenStatusBadge(),
+            ],
+          ),
         ),
         TabBar(
           controller: _tabController,

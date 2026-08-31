@@ -132,6 +132,7 @@ def main():
 
     # See RETRY_DELAY_SECONDS' own note above for the real incident.
     from report.push_notifier import send_push_notification
+    from report.firebase_realtime_sync import sync_state
 
     notified = False
 
@@ -146,6 +147,17 @@ def main():
                 raise  # a genuinely unexpected failure - crash normally,
                 # let the existing Restart=on-failure + OnFailure alert
                 # path handle it as before.
+
+            # Added 31-Aug-2026 - see event_driven_runner.py's matching
+            # "engine_status/token" sync note (its own success-path write)
+            # for the real incident this closes the loop on - the app's
+            # login screen can now show "still waiting" live instead of a
+            # stale/misleading state.
+            sync_state("engine_status/token", {
+                "status": "not_ready",
+                "checked_at": datetime.datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S"),
+                "detail": str(error),
+            })
 
             if not notified:
                 send_push_notification(

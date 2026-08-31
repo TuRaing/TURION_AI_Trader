@@ -821,9 +821,29 @@ def main(access_token, execution_backend=None):
 
     from fyers_apiv3.FyersWebsocket import data_ws
     from report.push_notifier import send_push_notification
-    from report.firebase_realtime_sync import sync_strategy_tick, sync_strategy_candles
+    from report.firebase_realtime_sync import sync_strategy_tick, sync_strategy_candles, sync_state
 
     router, runners = build_runners(execution_backend)
+
+    # Added 31-Aug-2026 - two real gaps found live the same day: (1)
+    # this module had NO log line confirming a successful (re)connect
+    # (flagged 28-Aug, never fixed - a working retry looked identical to
+    # a real hang for up to 5 minutes, until the periodic OI-refresh line
+    # happened to fire); (2) the app's "Login to Fyers" button had no way
+    # to tell the user whether the VPS actually picked up today's token -
+    # only whether the GitHub Actions dispatch was ACCEPTED, not whether
+    # the underlying auth_code exchange or Firebase sync succeeded (a
+    # stale/reused auth_code silently failed the real exchange while the
+    # app still showed "Triggered! success" every time). build_runners()
+    # succeeding here is the actual proof - it just fetched a real ATM
+    # option chain, so today's token is genuinely valid - the earliest,
+    # most direct point to both log and share that.
+    print("Successfully connected - build_runners() completed (ATM strikes fetched, "
+          "today's token is valid), starting WebSocket listeners.")
+    sync_state("engine_status/token", {
+        "status": "ready",
+        "checked_at": datetime.datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S"),
+    })
 
     # See save_all()'s own 21-Aug-2026 note (firebase_executor param) -
     # bounded, not a raw thread per tick, so a tick burst can't spawn

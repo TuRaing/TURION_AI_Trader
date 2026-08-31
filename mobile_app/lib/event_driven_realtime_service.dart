@@ -130,6 +130,29 @@ Stream<List<Map<String, dynamic>>> watchHealthChecks(String checkType, {int limi
   });
 }
 
+const _engineStatusPath = 'engine_status';
+
+/// Whether the VPS event-driven engine has today's valid Fyers token
+/// right now - synced live by strategy/event_driven_runner.py (once
+/// build_runners() succeeds - proof the token actually worked) and
+/// run_event_driven_engine.py (on each stale-token retry attempt, every
+/// 120s - see report/firebase_realtime_sync.py's matching sync_state()
+/// calls, added 31-Aug-2026). Closes a real gap: the app's "Login to
+/// Fyers" flow could only ever confirm the GitHub Actions dispatch was
+/// ACCEPTED, never whether the VPS actually ended up with a working
+/// token (a stale/reused auth_code silently failed the real exchange
+/// while the dispatch itself still succeeded). Emits null if nothing
+/// has synced yet today (not an error - e.g. before the VPS's first
+/// startup attempt of the day, or Firebase not configured).
+Stream<Map<String, dynamic>?> watchTokenStatus() {
+  final ref = _database.ref('$_engineStatusPath/token');
+
+  return ref.onValue.map((DatabaseEvent event) {
+    final raw = event.snapshot.value;
+    return raw == null ? null : _deepCastToStringKeyedMap(raw);
+  });
+}
+
 const _strategyTicksPath = 'strategy_ticks';
 const _strategyCandlesPath = 'strategy_candles';
 
