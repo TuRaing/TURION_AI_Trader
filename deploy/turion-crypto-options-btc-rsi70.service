@@ -1,0 +1,55 @@
+# Added 31-Aug-2026 - RSI-70/30-threshold BTC sibling of deploy/
+# turion-crypto-options.service, per a real backtest finding: a plain
+# RSI>=50 midpoint split fires on every marginal RSI wobble on a
+# choppy day, disproportionately hurting PE (down-direction) entries -
+# see strategy/event_driven_engine.py's own 31-Aug-2026 note.
+# CE>=70/PE<=30 (genuine conviction required before either side) flips
+# BTC from a real backtest loss to a real profit, and critically PE
+# trades THEMSELVES turn profitable too, not just filtered out - see
+# doc/CRYPTO_PROJECT_STATUS.md's own sweep record. Same "separate
+# book, not a change to the running one" rule as every other opt-in
+# variant - own STRATEGY_NAME (rsi_momentum_crypto_btc_rsi70) via
+# CRYPTO_RSI_CE_THRESHOLD/CRYPTO_RSI_PE_THRESHOLD, so its portfolio
+# file never mixes with the original BTC book's.
+#
+# Install with:
+#   sudo cp deploy/turion-crypto-options-btc-rsi70.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable turion-crypto-options-btc-rsi70
+#   sudo systemctl start turion-crypto-options-btc-rsi70
+#
+# Useful commands once running:
+#   sudo systemctl status turion-crypto-options-btc-rsi70
+#   journalctl -u turion-crypto-options-btc-rsi70 -f
+#   sudo systemctl restart turion-crypto-options-btc-rsi70
+
+[Unit]
+Description=TURION Crypto Options Engine (Deribit BTC, RSI 70/30 threshold, WebSocket, paper-trading)
+After=network-online.target
+Wants=network-online.target
+
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+
+WorkingDirectory=/home/ubuntu/turion-crypto
+ExecStart=/home/ubuntu/turion-crypto/venv/bin/python run_crypto_options_engine.py
+
+Restart=on-failure
+RestartSec=10
+
+# CRYPTO_CURRENCY unset -> defaults to BTC. CE only >=70 RSI, PE only
+# <=30 RSI - real conviction required for either side (backtest-tuned
+# this session).
+Environment="CRYPTO_RSI_CE_THRESHOLD=70"
+Environment="CRYPTO_RSI_PE_THRESHOLD=30"
+
+EnvironmentFile=/home/ubuntu/turion-crypto/.env
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

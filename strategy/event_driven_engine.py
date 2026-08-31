@@ -302,7 +302,29 @@ def _rsi_momentum_decide(cfg, position, data_point, entry_field, exit_field):
         if _near_circuit(data_point):
             return "SKIPPED (near circuit band)", None, None
 
-        option_type = "CE" if data_point["rsi"] >= 50 else "PE"
+        # rsi_ce_threshold/rsi_pe_threshold - added 31-Aug-2026, at the
+        # user's own request after a real finding: a plain RSI>=50
+        # midpoint split fires on every marginal RSI wobble around 50
+        # on a choppy day, which a real 31-Aug crypto trading day
+        # showed disproportionately hurts PE (down-direction) entries -
+        # BTC profit-lock book: PE -$3,991 net vs CE -$130 net, same
+        # day. Widening the gap (e.g. CE only >=60, PE only <=40)
+        # requires genuine conviction before entering either side,
+        # instead of any RSI reading on the wrong side of an exact
+        # midpoint. Both default to 50 (cfg.get, not required) so
+        # every existing book's behavior is BYTE-IDENTICAL to before
+        # this was added - a >=50/<50 split with no neutral zone.
+        rsi = data_point["rsi"]
+        ce_threshold = cfg.get("rsi_ce_threshold", 50)
+        pe_threshold = cfg.get("rsi_pe_threshold", 50)
+
+        if rsi >= ce_threshold:
+            option_type = "CE"
+        elif rsi <= pe_threshold:
+            option_type = "PE"
+        else:
+            return f"SKIPPED (RSI {round(rsi, 1)} in neutral zone)", None, None
+
         symbol = data_point[f"{option_type.lower()}_symbol"]
         entry_premium = data_point.get(f"{option_type.lower()}_{entry_field}")
 
@@ -475,7 +497,8 @@ def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
                                   hybrid_sl_cap_pct=2.0, spread_pct=None,
                                   daily_profit_lock=False, daily_profit_lock_pct=2.0,
                                   daily_loss_lock=False, max_consecutive_losses=2,
-                                  cost_fn=None, trailing_min_pct=None, trailing_giveback_pct=None):
+                                  cost_fn=None, trailing_min_pct=None, trailing_giveback_pct=None,
+                                  rsi_ce_threshold=50, rsi_pe_threshold=50):
     """
     cfg builder for rsi_momentum_decide_fn/rsi_momentum_quote_decide_fn
     - mirrors fyers_options_engine.py's make_strategy() field names
@@ -523,6 +546,12 @@ def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
     trailing_giveback_pct defaults to None here too, meaning "use
     TRAILING_GIVEBACK_PCT (30%)" - only pass a number to override that
     shared default for one specific book.
+
+    rsi_ce_threshold/rsi_pe_threshold - added 31-Aug-2026, see _rsi_
+    momentum_decide()'s own matching note for the real finding behind
+    this. Both default to 50 - a plain >=50 CE / <50 PE split with no
+    neutral zone, BYTE-IDENTICAL to this function's behavior before
+    this was added, for every existing call site.
     """
 
     return {
@@ -536,6 +565,8 @@ def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
         "cost_fn": cost_fn,
         "trailing_min_pct": trailing_min_pct,
         "trailing_giveback_pct": trailing_giveback_pct,
+        "rsi_ce_threshold": rsi_ce_threshold,
+        "rsi_pe_threshold": rsi_pe_threshold,
         "daily_profit_lock": daily_profit_lock,
         "daily_profit_lock_pct": daily_profit_lock_pct,
         "daily_loss_lock": daily_loss_lock,

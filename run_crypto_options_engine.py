@@ -123,9 +123,26 @@ PROFIT_LOCK_ENABLED = _profit_lock_pct_raw is not None
 PROFIT_LOCK_PCT = float(_profit_lock_pct_raw) if PROFIT_LOCK_ENABLED else None
 PROFIT_LOCK_WINDOW_HOURS = float(os.environ.get("CRYPTO_PROFIT_LOCK_WINDOW_HOURS", 24))
 
+# CRYPTO_RSI_CE_THRESHOLD/CRYPTO_RSI_PE_THRESHOLD - added 31-Aug-2026,
+# after a real finding: a plain RSI>=50 midpoint split fires on every
+# marginal RSI wobble on a choppy day, disproportionately hurting PE
+# entries (see strategy/event_driven_engine.py's own 31-Aug-2026 note
+# for the exact BTC/ETH numbers). A backtest sweep found CE>=70/PE<=30
+# (real conviction required, not just crossing 50) flips BOTH BTC and
+# ETH from a loss to a real profit - and critically, PE trades
+# THEMSELVES turn profitable too, not just filtered out. Same
+# "separate book" rule as every other opt-in above - own STRATEGY_NAME
+# suffix ("_rsi70") so it never mixes history with the plain book.
+# Both default to 50 (unset) so every existing book's behavior is
+# unchanged.
+RSI_CE_THRESHOLD = float(os.environ.get("CRYPTO_RSI_CE_THRESHOLD", 50))
+RSI_PE_THRESHOLD = float(os.environ.get("CRYPTO_RSI_PE_THRESHOLD", 50))
+RSI_THRESHOLD_CHANGED = RSI_CE_THRESHOLD != 50 or RSI_PE_THRESHOLD != 50
+
 STRATEGY_NAME = f"rsi_momentum_crypto_{CURRENCY.lower()}"
 STRATEGY_NAME += "_quote" if QUOTE_BASED else ""
 STRATEGY_NAME += "_profitlock" if PROFIT_LOCK_ENABLED else ""
+STRATEGY_NAME += f"_rsi{int(RSI_CE_THRESHOLD)}" if RSI_THRESHOLD_CHANGED else ""
 
 
 def _seed_candles(currency):
@@ -190,7 +207,9 @@ def build_runner():
     cfg = make_st2_threshold_event_cfg(index=CURRENCY, lot_size=1, initial_capital=INITIAL_CAPITAL,
                                         cost_fn=calculate_crypto_options_round_trip_cost,
                                         daily_profit_lock=PROFIT_LOCK_ENABLED,
-                                        daily_profit_lock_pct=PROFIT_LOCK_PCT or 2.0)
+                                        daily_profit_lock_pct=PROFIT_LOCK_PCT or 2.0,
+                                        rsi_ce_threshold=RSI_CE_THRESHOLD,
+                                        rsi_pe_threshold=RSI_PE_THRESHOLD)
     portfolio = load_portfolio(STRATEGY_NAME, INITIAL_CAPITAL)
 
     return CryptoTickRunner(
