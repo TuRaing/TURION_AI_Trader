@@ -209,6 +209,59 @@ for the running note.
 
 ==================================================
 
+3 "OUT OF THE BOX" IDEAS TESTED, ALL 3 NEGATIVE - USEFUL, NOT WASTED.
+User explicitly asked for genuinely different angles (not another
+tweak on the same gates). Tested 3 real ideas rather than just
+brainstorming:
+
+1. Spread-widening as a CONTINUOUS (not just opening-minutes) filter -
+   skip a new entry whenever a leg's bid-ask spread exceeds a multiple
+   of its own recent rolling median. Combined PnL across the same 5
+   days x 2 indices, multiplier 1.5x/2x/3x/5x: all 4 variants WORSE
+   than baseline (-Rs 79,150 to -Rs 86,376 vs -Rs 75,024). Root cause
+   of the failure: the filter needs 5+ prior ticks to establish a
+   baseline before it can detect an anomaly - exactly unavailable at
+   the market-open moment where the real stale-print problem lives, so
+   it never protects against the case that motivated it, while still
+   occasionally blocking genuinely fine mid-day trades elsewhere - net
+   negative. `scratch_spread_widening_backtest.py`.
+
+2. NIFTY-vs-BankNifty lead-lag - a pure statistical check (not a
+   trading backtest), `scratch_leadlag_analysis.py`: 1-second-resampled
+   cross-correlation between NIFTY's and BankNifty's spot returns at
+   lags from -30s to +30s, run on 4 of the 5 days. Consistent result
+   every day: correlation peaks AT lag=0 (0.48-0.53), everywhere else
+   near-zero (|corr| < 0.11). No exploitable lead-lag relationship -
+   the two indices move together contemporaneously, not one predicting
+   the other with a tradeable delay. Ruled out.
+
+   Found and fixed a real, separate data-quality bug while building
+   this: a small number of tick-archive records carry a corrupt
+   epoch-underflow timestamp ("1901-12-14...") mixed into real 2026
+   data - blew up a pandas resample() call trying to allocate a
+   ~124-year date range (29GB). Filtered to year>=2020 as a guard in
+   the analysis script; the archive files themselves were not touched.
+   Worth a look at whatever timestamp-parsing path produces these if
+   it recurs elsewhere.
+
+3. Weekly-expiry-day awareness - checked which of the 5 sample days
+   was itself an expiry day by reading the real ATM symbol's own
+   expiry code from the archive rather than guessing: 26-Aug (a
+   Wednesday) was the expiry for the contract used across 21/25/26-Aug;
+   27/28-Aug already show the next cycle's symbol. 26-Aug NIFTY had the
+   single worst loss in the whole 5-day sample (-Rs 43,523) - a real,
+   suggestive observation, but from exactly ONE expiry-day sample.
+   Genuinely inconclusive - would need several more expiry days (the
+   weekly cycle only gives ~4-5/month) before this is anything more
+   than an anecdote. Not backtested further today.
+
+Net effect: none of today's 3 new ideas add anything - the 10-tick
+debounce (+ optionally cooldown) from earlier remains the single best,
+most promising lever found this week. Ruling these 3 out is itself
+useful (saves re-investigating them later) rather than wasted effort.
+
+==================================================
+
 Status
 
 🟢 Stable
