@@ -123,7 +123,13 @@ class _FyersLoginScreenState extends State<FyersLoginScreen> {
       return;
     }
 
-    setState(() => _stage = _Stage.triggering);
+    // Reset - _errorMessage doubles as a success-path caveat (see
+    // _didLoginSucceedDespiteFailure), so a stale value from a PREVIOUS
+    // attempt must not leak into this one's plain-success screen.
+    setState(() {
+      _stage = _Stage.triggering;
+      _errorMessage = null;
+    });
 
     // Added 31-Aug-2026, real incident - a stale/reused auth_code (the
     // Fyers login redirect's auth_code is single-use and short-lived,
@@ -191,7 +197,19 @@ class _FyersLoginScreenState extends State<FyersLoginScreen> {
       'Accept': 'application/vnd.github+json',
     };
 
-    for (var attempt = 0; attempt < 30; attempt++) {
+    // Added 31-Aug-2026 - real incident: fyers_trigger_run.py's single
+    // "Run today's Fyers tasks" step does the auth_code exchange AND
+    // THEN runs every other unrelated daily task (run_all_tasks() -
+    // stock-history fetches for the older polling books, etc.). A
+    // transient network/SSL error in ANY of those later, unrelated
+    // fetches fails the WHOLE step - so a run whose login genuinely
+    // succeeded can still show conclusion="failure", and this screen
+    // was showing the scary "auth_code was likely already used" message
+    // even then (confirmed live: login had actually already reached
+    // Firebase before the later ITC-stock SSL error killed the job).
+    // 45 x 4s = 3 min (was 2 min) - run_all_tasks() has been seen to
+    // run past 100s+ before even reaching the failure point.
+    for (var attempt = 0; attempt < 45; attempt++) {
       await Future.delayed(const Duration(seconds: 4));
 
       try {
@@ -210,9 +228,25 @@ class _FyersLoginScreenState extends State<FyersLoginScreen> {
 
         if (run['status'] != 'completed') continue;
 
+        if (run['conclusion'] == 'success') {
+          if (mounted) setState(() => _stage = _Stage.success);
+          return;
+        }
+
+        // Not a clean success - check whether the login itself actually
+        // went through before treating this as an auth failure. "id" is
+        // the RUN id; jobs (and their logs) are addressed by a separate
+        // JOB id - fetch that first.
+        final loginActuallySucceeded = await _didLoginSucceedDespiteFailure(run['id'], headers);
+
         if (mounted) {
-          if (run['conclusion'] == 'success') {
-            setState(() => _stage = _Stage.success);
+          if (loginActuallySucceeded) {
+            setState(() {
+              _stage = _Stage.success;
+              _errorMessage = 'Login itself succeeded - an unrelated background task '
+                  '(unconnected to Fyers login) hit a transient error afterward. '
+                  "Today's token is saved and working, no action needed.";
+            });
           } else {
             setState(() {
               _stage = _Stage.error;
@@ -234,9 +268,39 @@ class _FyersLoginScreenState extends State<FyersLoginScreen> {
     if (mounted) {
       setState(() {
         _stage = _Stage.error;
-        _errorMessage = 'Dispatched, but could not confirm the result within 2 minutes. '
+        _errorMessage = 'Dispatched, but could not confirm the result within 3 minutes. '
             'Check the VPS status badge on the VPS tab, or GitHub Actions directly.';
       });
+    }
+  }
+
+  /// A failed run's log may still show the auth_code exchange itself
+  /// succeeded ("Connected as ...") before some LATER, unrelated step
+  /// failed - that's a real success, not an auth problem. Best-effort:
+  /// any failure fetching job id/logs falls through to "false" (the
+  /// caller's existing generic auth-failure message), never blocks the
+  /// UI - this is a courtesy upgrade to the message, not a requirement.
+  Future<bool> _didLoginSucceedDespiteFailure(dynamic runId, Map<String, String> headers) async {
+    try {
+      final jobsResponse = await http.get(
+        Uri.parse('https://api.github.com/repos/$_githubOwner/$_githubRepo/actions/runs/$runId/jobs'),
+        headers: headers,
+      );
+      if (jobsResponse.statusCode != 200) return false;
+
+      final jobs = (json.decode(jobsResponse.body)['jobs'] as List).cast<Map<String, dynamic>>();
+      if (jobs.isEmpty) return false;
+      final jobId = jobs.first['id'];
+
+      final logsResponse = await http.get(
+        Uri.parse('https://api.github.com/repos/$_githubOwner/$_githubRepo/actions/jobs/$jobId/logs'),
+        headers: headers,
+      );
+      if (logsResponse.statusCode != 200) return false;
+
+      return logsResponse.body.contains('Connected as ');
+    } catch (_) {
+      return false;
     }
   }
 
@@ -276,17 +340,22 @@ class _FyersLoginScreenState extends State<FyersLoginScreen> {
               ],
             ),
           ),
-        _Stage.success => const Center(
+        _Stage.success => Center(
             child: Padding(
-              padding: EdgeInsets.all(24),
+              padding: const EdgeInsets.all(24),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.check_circle_outline, size: 48, color: successColor),
-                  SizedBox(height: 16),
+                  const Icon(Icons.check_circle_outline, size: 48, color: successColor),
+                  const SizedBox(height: 16),
                   Text(
-                    'Confirmed! Today\'s login succeeded and the VPS has a valid token. '
-                    'Check the VPS tab\'s status badge or the Fyers/Options tabs in a few minutes.',
+                    // _errorMessage doubles as a success-path caveat here
+                    // (see _didLoginSucceedDespiteFailure's own note) -
+                    // set only when the run technically failed but the
+                    // login itself is confirmed to have gone through.
+                    _errorMessage ??
+                        'Confirmed! Today\'s login succeeded and the VPS has a valid token. '
+                            'Check the VPS tab\'s status badge or the Fyers/Options tabs in a few minutes.',
                     textAlign: TextAlign.center,
                   ),
                 ],
