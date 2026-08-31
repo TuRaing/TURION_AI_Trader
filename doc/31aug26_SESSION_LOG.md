@@ -175,6 +175,40 @@ combining it with the buffer+cooldown result is the natural next step.
 
 ==================================================
 
+ALL 3 GATES COMBINED (`scratch_triple_combined_backtest.py`, 8 variants
+x same 10 day/index runs) - FOUND A REAL, COUNTERINTUITIVE INTERACTION:
+adding the market-open buffer to the stale-print debounce THROWS AWAY
+the debounce's own benefit rather than adding to it.
+
+Full ranking (combined PnL):
+
+1. 10-tick debounce alone: +Rs 37,004 (best)
+2. Cooldown + debounce: +Rs 22,724
+3. Buffer + cooldown (= all 3 combined, identical): +Rs 10,027
+4. Buffer alone: -Rs 3,387
+5. Cooldown alone: -Rs 67,075
+6. Baseline: -Rs 75,024
+
+Root cause of the interaction: `buffer + debounce`'s per-day numbers are
+IDENTICAL to `buffer alone`'s, and `all 3 combined`'s are IDENTICAL to
+`buffer + cooldown`'s - the 15-min buffer already delays any entry past
+09:30, by which point far more than 10 ticks have already arrived on
+both legs, so the debounce condition is already satisfied before the
+buffer even lifts - it never actually gates anything once stacked
+behind the buffer. Practical conclusion: do NOT combine the buffer with
+the debounce - it silently cancels the debounce's own (much larger)
+benefit and falls back to the buffer's weaker level instead. The two
+real candidates going forward are debounce alone or debounce+cooldown,
+not any variant involving the buffer.
+
+Same overfitting caveat as every backtest this week applies with extra
+force here - 8 variants were compared on the same 5-day sample, on top
+of the 5-value N sweep that already picked "10" from the same data.
+Nothing deployed. See [[project_quote_pnl_and_whipsaw_decision]] memory
+for the running note.
+
+==================================================
+
 Status
 
 🟢 Stable
