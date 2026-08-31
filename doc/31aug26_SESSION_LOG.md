@@ -146,6 +146,35 @@ they use.
 
 ==================================================
 
+STALE-PRINT DEBOUNCE BACKTEST - THE BEST RESULT FOUND ALL WEEK. The
+narrower fix flagged as still-open above: instead of switching decide_
+fn's PRICE SOURCE (quote, proven worse), require each CE/PE leg to have
+received at least N ticks TODAY before trusting its premium for a NEW
+entry - still plain LTP, no spread cost, just "don't act on the very
+first, possibly-stale print." Built `scratch_stale_print_backtest.py`
+(same RSI-seeded LiveTickRunner-replay pattern, real N=2 breaker),
+swept N = 0/5/10/15/20 across the same 5 days x 2 indices.
+
+Combined PnL:
+
+- 0 (baseline): -Rs 75,024
+- 5 ticks: -Rs 40,062
+- **10 ticks: +Rs 37,004 - net PROFIT, the single best result of any
+  idea tested this entire week** (beats buffer alone -Rs 3,387,
+  cooldown alone -Rs 67,075, buffer+cooldown combined +Rs 10,027, and
+  obviously quote-based -Rs 1,65,921)
+- 15 ticks: -Rs 31,919
+- 20 ticks: -Rs 12,161
+
+NOT monotonic (10 is a clear peak, 15/20 both worse) - real caveat:
+whether "10" is a genuine sweet spot or a lucky fit to this specific
+5-day sample is not yet known; this swept 5 different N values against
+the same small sample, which increases (not eliminates) that risk.
+Still the strongest, most promising candidate found this week -
+combining it with the buffer+cooldown result is the natural next step.
+
+==================================================
+
 Status
 
 🟢 Stable
