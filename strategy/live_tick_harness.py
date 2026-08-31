@@ -308,6 +308,15 @@ class LiveTickRunner:
         self._losses_cache = {}
         self._pnl_cache_key = None
         self._pnl_cache_value = None
+        # Added 31-Aug-2026 - see _rsi_momentum_decide()'s own
+        # stale_print_debounce_ticks note (event_driven_engine.py) for
+        # the real incident and backtest this feeds. Counts today's real
+        # ticks per leg so that gate can tell "the very first print of
+        # the day" apart from an established, trustworthy price. See
+        # on_tick()'s own note for why _tick_counts_date exists (this
+        # runner can outlive a single calendar day in production).
+        self._tick_counts = {"ce": 0, "pe": 0}
+        self._tick_counts_date = None
 
     def _past_squareoff(self, timestamp):
         """
@@ -389,6 +398,20 @@ class LiveTickRunner:
         Returns the action string if decide_fn ran this call, else None.
         """
 
+        # Added 31-Aug-2026 - unlike a backtest replay (a fresh process
+        # per day), this runner can genuinely live across a real day
+        # boundary in production - the process only restarts when
+        # deploy.sh finds a new commit to pull (see 29-Aug's real "no
+        # commit -> no restart" gap). Without this, _tick_counts would
+        # just keep climbing past stale_print_debounce_ticks forever
+        # after day 1 and silently stop protecting anything from day 2
+        # onward. Checked on every tick (cheap - one date() call), not
+        # just CE/PE, so a quiet SPOT-only morning still resets on time.
+        today = timestamp.date()
+        if self._tick_counts_date != today:
+            self._tick_counts = {"ce": 0, "pe": 0}
+            self._tick_counts_date = today
+
         if symbol == self.underlying_symbol:
             self.aggregator.on_tick(timestamp, ltp)
             self._latest["spot"] = ltp
@@ -396,10 +419,12 @@ class LiveTickRunner:
             self._latest["ce_ltp"] = ltp
             self._latest["ce_bid"] = bid
             self._latest["ce_ask"] = ask
+            self._tick_counts["ce"] += 1
         elif symbol == self.pe_symbol:
             self._latest["pe_ltp"] = ltp
             self._latest["pe_bid"] = bid
             self._latest["pe_ask"] = ask
+            self._tick_counts["pe"] += 1
         else:
             return None
 
@@ -414,6 +439,7 @@ class LiveTickRunner:
             "ce_bid": self._latest["ce_bid"], "ce_ask": self._latest["ce_ask"],
             "pe_symbol": self.pe_symbol, "pe_ltp": self._latest["pe_ltp"],
             "pe_bid": self._latest["pe_bid"], "pe_ask": self._latest["pe_ask"],
+            "ce_tick_count": self._tick_counts["ce"], "pe_tick_count": self._tick_counts["pe"],
             "past_squareoff": self._past_squareoff(timestamp),
             "before_market_open": (timestamp.hour, timestamp.minute) < MARKET_OPEN_TIME,
             "today_realized_pnl": self._today_realized_pnl(timestamp),

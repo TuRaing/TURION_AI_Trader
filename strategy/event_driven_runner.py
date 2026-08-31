@@ -424,8 +424,17 @@ def build_runners(execution_backend=None):
         # daily_loss_lock cfg note). The "_lock"/"_lock_quote*" variants
         # below keep their existing daily_profit_lock gate unchanged -
         # a different failure mode (they already stop after one win).
+        # stale_print_debounce_ticks=10 ADDED 31-Aug-2026, live on THIS
+        # book ONLY - see event_driven_engine.py's _rsi_momentum_
+        # decide() and make_st2_threshold_event_cfg()'s own matching
+        # notes for the real incident and backtest (+Rs 37,004 vs
+        # baseline -Rs 75,024, the single best result found all week,
+        # beating every other gate/combination tried). User's own
+        # explicit choice to start with the plain book only (not the
+        # 4 other st2_threshold variants, not simple_st1_threshold -
+        # backtested worse, +Rs 12,675) before considering wider rollout.
         ("NIFTY", make_st2_threshold_event_cfg, rsi_momentum_decide_fn, "st2_threshold",
-         {"daily_loss_lock": True, "max_consecutive_losses": 2}),
+         {"daily_loss_lock": True, "max_consecutive_losses": 2, "stale_print_debounce_ticks": 10}),
         ("NIFTY", make_simple_st1_threshold_event_cfg, rsi_momentum_decide_fn, "simple_st1_threshold",
          {"daily_loss_lock": True, "max_consecutive_losses": 2}),
         # 2% daily-profit-lock variants - see STRATEGY_NAMES'

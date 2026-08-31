@@ -317,6 +317,58 @@ decision is made.
 
 ==================================================
 
+STALE-PRINT DEBOUNCE DEPLOYED LIVE - st2_threshold ONLY (first real
+gate deployment from this week's whole backtest series). Before
+deploying, ran one more real check: the debounce has only ever been
+tested against st2_threshold's own 5%/2% Target/Stop-Loss ratios -
+built `scratch_strategy_comparison_backtest.py` to run the SAME 10-tick
+debounce against simple_st1_threshold's cfg (3%/3%, the only other
+family sharing `_rsi_momentum_decide`) across the same 5 days x 2
+indices. st2_threshold won clearly: +Rs 37,004 vs simple_st1_
+threshold's +Rs 12,675 (~3x weaker) - confirms st2_threshold (already
+the winning candidate all week) is also the right book to deploy this
+on, not an assumption.
+
+User's own explicit scope choice, offered 3 options (plain st2_
+threshold only / the whole 5-book st2_threshold family / all 10 RSI-
+momentum books including simple_st1_threshold): chose the most
+conservative - plain `st2_threshold` only, none of its `_lock`/
+`_lock_quoteX%` siblings, and not simple_st1_threshold (backtested
+weaker anyway).
+
+Implementation (opt-in cfg flag, zero behavior change for every other
+book/call site - same pattern as daily_profit_lock/daily_loss_lock):
+
+- `strategy/live_tick_harness.py`'s `LiveTickRunner` now tracks
+  `_tick_counts` {ce, pe} per leg, supplied to decide_fn as data_point's
+  new `ce_tick_count`/`pe_tick_count` fields. Real production concern
+  handled: this runner can live across a calendar-day boundary (deploy.
+  sh only restarts on a new commit - see 29-Aug's own "no commit -> no
+  restart" gap) - added `_tick_counts_date` tracking so counts reset on
+  a new day rather than staying permanently past the threshold (which
+  would silently disable the gate from day 2 onward otherwise).
+- `strategy/event_driven_engine.py`'s `_rsi_momentum_decide()` gained
+  the actual gate check (new `stale_print_debounce_ticks` cfg key,
+  defaults to `None`/off) and `make_st2_threshold_event_cfg()` gained
+  the matching parameter.
+- `strategy/event_driven_runner.py`'s `STRATEGY_NAMES`-adjacent book
+  list: added `"stale_print_debounce_ticks": 10` to ONLY the plain
+  `st2_threshold` entry's cfg_overrides.
+
+7 new tests added (`tests/test_event_driven_engine.py`: gate blocks/
+allows/ignores-when-off/doesn't-block-managing-a-position;
+`tests/test_live_tick_harness.py`: a fresh runner's first ticks are
+blocked, entry opens once both legs cross the threshold, AND a real
+day-boundary reset test - the concern above, verified not just
+reasoned about). Full suite: 628/628 passing (was 621).
+
+Verified no open st2_threshold position existed before considering a
+live deploy (market already closed, 15:25 squareoff already ran).
+Deploy itself deferred to immediately after this doc entry, in the
+same session - see the Status block below for the deployed commit.
+
+==================================================
+
 Status
 
 🟢 Stable

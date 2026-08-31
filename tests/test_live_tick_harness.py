@@ -102,12 +102,14 @@ class _SpyBackend:
 
 
 def _runner(hybrid_sl_cap_pct=2.0, spread_pct=None, execution_backend=None, previous_close=None,
-            daily_profit_lock=False, daily_loss_lock=False, max_consecutive_losses=2, closed_trades=None):
+            daily_profit_lock=False, daily_loss_lock=False, max_consecutive_losses=2, closed_trades=None,
+            stale_print_debounce_ticks=None):
     cfg = make_st2_threshold_event_cfg(index="NIFTY", lot_size=75, initial_capital=100000,
                                         hybrid_sl_cap_pct=hybrid_sl_cap_pct, spread_pct=spread_pct,
                                         daily_profit_lock=daily_profit_lock,
                                         daily_loss_lock=daily_loss_lock,
-                                        max_consecutive_losses=max_consecutive_losses)
+                                        max_consecutive_losses=max_consecutive_losses,
+                                        stale_print_debounce_ticks=stale_print_debounce_ticks)
     portfolio = {"Cash": 100000, "Position": None, "Closed Trades": closed_trades or []}
     seeded = _seeded_candles(MIN_CANDLES_FOR_RSI + 5)  # RSI ready from tick 1
 
@@ -153,6 +155,63 @@ def test_underlying_tick_with_seeded_rsi_can_open_a_position():
     assert "OPENED CE" in action
     assert runner.portfolio["Position"] is not None
     assert runner.portfolio["Position"]["Option Type"] == "CE"
+
+
+def test_stale_print_debounce_blocks_a_fresh_runners_first_ticks():
+    # Added 31-Aug-2026 - real incident: the very FIRST CE/PE tick of
+    # the day can be a stale/pre-open print (a same-second, zero-spot-
+    # movement ~40% "move" seen live on 31-Aug). A brand-new runner's
+    # own tick counts start at 0, so this should hold every entry back
+    # until real ticks accumulate on both legs - LiveTickRunner supplies
+    # ce_tick_count/pe_tick_count, rsi_momentum_decide_fn's own gate
+    # does the rest (see test_event_driven_engine.py's matching tests).
+    runner = _runner(stale_print_debounce_ticks=10)
+
+    runner.on_tick(runner.underlying_symbol, _ts(15), 24500.0)
+    action = runner.on_tick(runner.ce_symbol, _ts(15, 1), 100.0)  # 1st CE tick
+
+    assert action == "SKIPPED (stale-print debounce)"
+    assert runner.portfolio["Position"] is None
+
+
+def test_stale_print_debounce_allows_open_once_both_legs_have_enough_real_ticks():
+    runner = _runner(stale_print_debounce_ticks=2)
+
+    runner.on_tick(runner.underlying_symbol, _ts(15), 24500.0)
+    actions = []
+    for i in range(4):  # well past the threshold of 2 on each leg
+        actions.append(runner.on_tick(runner.ce_symbol, _ts(15, i), 100.0))
+        actions.append(runner.on_tick(runner.pe_symbol, _ts(15, i), 90.0))
+
+    # An "OPENED" shows up as soon as both legs cross the threshold -
+    # not necessarily on the very last tick, since RSI can act the
+    # instant the debounce itself lifts.
+    assert any(a is not None and "OPENED" in a for a in actions)
+
+
+def test_stale_print_debounce_resets_tick_counts_on_a_new_calendar_day():
+    # Added 31-Aug-2026 - real production concern: this runner can live
+    # across a real day boundary (deploy.sh only restarts on a new
+    # commit - see 29-Aug's own gap), so tick counts must reset per day
+    # or the debounce would silently stop protecting anything from day
+    # 2 onward.
+    runner = _runner(stale_print_debounce_ticks=2)
+    day1 = datetime.datetime(2026, 8, 18, 9, 15)
+    day2 = datetime.datetime(2026, 8, 19, 9, 15)
+
+    runner.on_tick(runner.underlying_symbol, day1, 24500.0)
+    day1_actions = []
+    for i in range(4):
+        day1_actions.append(runner.on_tick(runner.ce_symbol, day1 + datetime.timedelta(seconds=i), 100.0))
+        day1_actions.append(runner.on_tick(runner.pe_symbol, day1 + datetime.timedelta(seconds=i), 90.0))
+    assert any(a is not None and "OPENED" in a for a in day1_actions)
+
+    runner.portfolio["Position"] = None  # pretend yesterday's position was squared off
+
+    runner.on_tick(runner.underlying_symbol, day2, 24500.0)
+    action = runner.on_tick(runner.ce_symbol, day2 + datetime.timedelta(seconds=1), 100.0)
+
+    assert action == "SKIPPED (stale-print debounce)"
 
 
 def test_full_open_then_target_close_sequence_via_ticks():

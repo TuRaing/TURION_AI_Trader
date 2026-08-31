@@ -283,6 +283,25 @@ def _rsi_momentum_decide(cfg, position, data_point, entry_field, exit_field):
                 return (f"SKIPPED (today already has {max_losses}+ consecutive losses, "
                         f"no more new trades today)", None, None)
 
+        # Added 31-Aug-2026, live on st2_threshold only (opt-in, defaults
+        # off) - real backtest found this week: the FIRST tick of the
+        # day on a leg can be a stale/pre-open print (a same-second,
+        # zero-spot-movement ~40% "move" seen live on 31-Aug), which a
+        # brand-new position would otherwise enter on. Skip a NEW entry
+        # until each leg has received more than debounce_ticks real
+        # ticks today - LiveTickRunner tracks and supplies ce_tick_
+        # count/pe_tick_count below. Backtested across 5 real days x 2
+        # indices (scratch_stale_print_backtest.py, not committed):
+        # 10 ticks was the single best result found all week (+Rs 37,004
+        # vs baseline -Rs 75,024, N=2 breaker on) - see doc/31aug26_
+        # SESSION_LOG.md for the full sweep and the overfitting caveat
+        # (only 5 days backtested).
+        debounce_ticks = cfg.get("stale_print_debounce_ticks")
+        if debounce_ticks:
+            if (data_point.get("ce_tick_count", 0) <= debounce_ticks
+                    or data_point.get("pe_tick_count", 0) <= debounce_ticks):
+                return "SKIPPED (stale-print debounce)", None, None
+
         if _near_circuit(data_point):
             return "SKIPPED (near circuit band)", None, None
 
@@ -432,13 +451,20 @@ def rsi_momentum_quote_decide_fn(cfg, position, data_point):
 def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
                                   hybrid_sl_cap_pct=2.0, spread_pct=None,
                                   daily_profit_lock=False, daily_profit_lock_pct=2.0,
-                                  daily_loss_lock=False, max_consecutive_losses=2):
+                                  daily_loss_lock=False, max_consecutive_losses=2,
+                                  stale_print_debounce_ticks=None):
     """
     cfg builder for rsi_momentum_decide_fn/rsi_momentum_quote_decide_fn
     - mirrors fyers_options_engine.py's make_strategy() field names
     where they overlap, so a real Fyers response can be mapped into a
     data_point without a second translation layer to keep in sync
     later.
+
+    stale_print_debounce_ticks - added 31-Aug-2026, live on
+    st2_threshold ONLY (see event_driven_runner.py's own STRATEGY_NAMES
+    call site) - see _rsi_momentum_decide()'s own matching note for the
+    real incident and backtest this closes. Defaults to None/off, no
+    behavior change for every other cfg builder call site.
 
     daily_profit_lock/daily_profit_lock_pct - added 21-Aug-2026, at the
     user's own request after today's real -Rs 22,949.63 stale-data
@@ -478,6 +504,7 @@ def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
         "daily_profit_lock_pct": daily_profit_lock_pct,
         "daily_loss_lock": daily_loss_lock,
         "max_consecutive_losses": max_consecutive_losses,
+        "stale_print_debounce_ticks": stale_print_debounce_ticks,
     }
 
 

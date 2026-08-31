@@ -321,6 +321,55 @@ def test_daily_loss_lock_does_not_block_managing_an_existing_position():
     assert "HELD" in action
 
 
+def test_skips_open_when_stale_print_debounce_active():
+    # Added 31-Aug-2026 - live on st2_threshold only after a real
+    # incident (a same-second, zero-spot-movement ~40% "move" on the
+    # very first LTP tick of 31-Aug) and a backtest finding this the
+    # single best gate of the week (+Rs 37,004 vs baseline -Rs 75,024).
+    cfg = _cfg(stale_print_debounce_ticks=10)
+
+    action, position, trade = rsi_momentum_decide_fn(
+        cfg, None, _data_point(ce_tick_count=3, pe_tick_count=15)
+    )
+
+    assert action == "SKIPPED (stale-print debounce)"
+    assert position is None
+    assert trade is None
+
+
+def test_stale_print_debounce_allows_open_once_both_legs_exceed_threshold():
+    cfg = _cfg(stale_print_debounce_ticks=10)
+
+    action, position, trade = rsi_momentum_decide_fn(
+        cfg, None, _data_point(ce_tick_count=11, pe_tick_count=11)
+    )
+
+    assert "OPENED" in action
+
+
+def test_stale_print_debounce_ignored_when_not_set():
+    cfg = _cfg()  # stale_print_debounce_ticks defaults to None
+
+    action, position, trade = rsi_momentum_decide_fn(
+        cfg, None, _data_point(ce_tick_count=0, pe_tick_count=0)
+    )
+
+    assert "OPENED" in action
+
+
+def test_stale_print_debounce_does_not_block_managing_an_existing_position():
+    cfg = _cfg(stale_print_debounce_ticks=10)
+    _, position, _ = rsi_momentum_decide_fn(
+        cfg, None, _data_point(rsi=55.0, ce_ltp=100.0, ce_tick_count=11, pe_tick_count=11)
+    )
+
+    action, new_position, trade = rsi_momentum_decide_fn(
+        cfg, position, _data_point(ce_ltp=101.0, ce_tick_count=0, pe_tick_count=0)
+    )
+
+    assert "HELD" in action
+
+
 def test_closes_at_hybrid_stop_loss_when_set():
     cfg = _cfg(hybrid_sl_cap_pct=2.0)
     _, position, _ = rsi_momentum_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ltp=100.0))
