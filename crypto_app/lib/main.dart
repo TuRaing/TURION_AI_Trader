@@ -32,6 +32,12 @@ const _books = [
   // द्या" ask.
   (key: 'rsi_momentum_crypto_btc_profitlock', label: 'BTC (Profit Lock)', initialCapital: 10000.0),
   (key: 'rsi_momentum_crypto_eth_profitlock', label: 'ETH (Profit Lock)', initialCapital: 1047.89),
+  // Added 31-Aug-2026 - the two new RSI-70/30-threshold books (see
+  // run_crypto_options_engine.py's own CRYPTO_RSI_CE_THRESHOLD note) -
+  // same "separate books, old ones untouched" rule as the profit-lock
+  // pair above.
+  (key: 'rsi_momentum_crypto_btc_rsi70', label: 'BTC (RSI 70/30)', initialCapital: 10000.0),
+  (key: 'rsi_momentum_crypto_eth_rsi70', label: 'ETH (RSI 70/30)', initialCapital: 1047.89),
 ];
 
 // Matches strategy/event_driven_engine.py's make_st2_threshold_event_
