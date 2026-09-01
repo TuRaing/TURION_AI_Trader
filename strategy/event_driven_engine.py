@@ -268,6 +268,23 @@ def _rsi_momentum_decide(cfg, position, data_point, entry_field, exit_field):
         if data_point.get("past_squareoff"):
             return "SKIPPED (past square-off time)", None, None
 
+        if cfg.get("stop_at_zero_capital") and data_point.get("current_cash", cfg["initial_capital"]) <= 0:
+            # Added 01-Sep-2026, at the user's own explicit request -
+            # "balance minus मध्ये जातायत, zero झालं की stop व्हायला
+            # हवं". Lot sizing (below) always uses the FIXED cfg[
+            # "initial_capital"], never the live, shrinking Cash - a
+            # deliberate "paper bookkeeping, not a real spending
+            # constraint" choice elsewhere in this project (see
+            # _maybe_top_up_capital()'s own reasoning) - so without this
+            # gate a book keeps opening full-size positions forever even
+            # once its own realized Cash has gone deeply negative. Only
+            # blocks NEW entries - an already-open position still runs
+            # to its own Target/Stop-Loss, same as every other lock
+            # above. Opt-in (cfg.get, default falsy) - every existing
+            # book's behavior is unchanged unless a caller explicitly
+            # sets this.
+            return "SKIPPED (capital depleted - book stopped)", None, None
+
         if cfg.get("daily_profit_lock"):
             # CHANGED 21-Aug-2026, user's own follow-up ask - percentage
             # of initial_capital (scales with capital), not a flat
@@ -498,7 +515,8 @@ def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
                                   daily_profit_lock=False, daily_profit_lock_pct=2.0,
                                   daily_loss_lock=False, max_consecutive_losses=2,
                                   cost_fn=None, trailing_min_pct=None, trailing_giveback_pct=None,
-                                  rsi_ce_threshold=50, rsi_pe_threshold=50):
+                                  rsi_ce_threshold=50, rsi_pe_threshold=50,
+                                  stop_at_zero_capital=False):
     """
     cfg builder for rsi_momentum_decide_fn/rsi_momentum_quote_decide_fn
     - mirrors fyers_options_engine.py's make_strategy() field names
@@ -552,6 +570,12 @@ def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
     this. Both default to 50 - a plain >=50 CE / <50 PE split with no
     neutral zone, BYTE-IDENTICAL to this function's behavior before
     this was added, for every existing call site.
+
+    stop_at_zero_capital - added 01-Sep-2026, see _rsi_momentum_
+    decide()'s own matching note. False (default) keeps every existing
+    book's behavior unchanged - a book keeps opening full-size new
+    positions off its own fixed initial_capital regardless of how
+    negative its real Cash has gone, same as always.
     """
 
     return {
@@ -567,6 +591,7 @@ def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
         "trailing_giveback_pct": trailing_giveback_pct,
         "rsi_ce_threshold": rsi_ce_threshold,
         "rsi_pe_threshold": rsi_pe_threshold,
+        "stop_at_zero_capital": stop_at_zero_capital,
         "daily_profit_lock": daily_profit_lock,
         "daily_profit_lock_pct": daily_profit_lock_pct,
         "daily_loss_lock": daily_loss_lock,

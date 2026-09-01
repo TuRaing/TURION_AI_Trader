@@ -215,6 +215,15 @@ class CryptoTickRunner:
             "past_squareoff": False,       # always - no daily close for a 24/7 market
             "before_market_open": False,   # always - see module docstring
             "today_consecutive_losses": _today_consecutive_losses(self.portfolio, timestamp),
+            # current_cash - added 01-Sep-2026, at the user's own
+            # explicit request ("balance minus मध्ये जातायत... zero
+            # झालं की stop व्हायला हवं") - feeds event_driven_engine.
+            # py's opt-in stop_at_zero_capital gate. Always included
+            # (unlike today_realized_pnl below, which is gated behind
+            # its own cfg check) - this is just a dict read, no scan
+            # over Closed Trades, so there's no meaningful cost to
+            # always providing it even for a book that doesn't use it.
+            "current_cash": self.portfolio.get("Cash"),
             # "previous_close" intentionally omitted - disables the
             # circuit-band gate for free, same as the plan's own note
             # (Deribit has no NSE-style circuit bands to begin with).

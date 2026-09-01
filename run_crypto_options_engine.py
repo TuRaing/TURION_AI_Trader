@@ -209,7 +209,17 @@ def build_runner():
                                         daily_profit_lock=PROFIT_LOCK_ENABLED,
                                         daily_profit_lock_pct=PROFIT_LOCK_PCT or 2.0,
                                         rsi_ce_threshold=RSI_CE_THRESHOLD,
-                                        rsi_pe_threshold=RSI_PE_THRESHOLD)
+                                        rsi_pe_threshold=RSI_PE_THRESHOLD,
+                                        # Added 01-Sep-2026, user's own
+                                        # explicit ask, applied to EVERY
+                                        # crypto book unconditionally
+                                        # (not opt-in per book like the
+                                        # experiments above) - a real
+                                        # risk-control fix, not a
+                                        # performance experiment to A/B
+                                        # test. See event_driven_engine.
+                                        # py's own matching note.
+                                        stop_at_zero_capital=True)
     portfolio = load_portfolio(STRATEGY_NAME, INITIAL_CAPITAL)
 
     return CryptoTickRunner(

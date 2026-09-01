@@ -68,6 +68,43 @@ def test_skips_open_when_before_market_open():
     assert position is None
 
 
+def test_skips_open_when_capital_depleted():
+    cfg = _cfg(stop_at_zero_capital=True)
+
+    action, position, trade = rsi_momentum_decide_fn(cfg, None, _data_point(current_cash=-500.0))
+
+    assert "SKIPPED (capital depleted - book stopped)" in action
+    assert position is None
+
+
+def test_stop_at_zero_capital_does_not_skip_while_cash_positive():
+    cfg = _cfg(stop_at_zero_capital=True)
+
+    action, position, trade = rsi_momentum_decide_fn(cfg, None, _data_point(current_cash=1.0))
+
+    assert "OPENED" in action
+
+
+def test_stop_at_zero_capital_ignored_when_flag_is_off():
+    # Defaults to False (make_st2_threshold_event_cfg) - a negative
+    # current_cash must not matter unless explicitly turned on.
+    action, position, trade = rsi_momentum_decide_fn(_cfg(), None, _data_point(current_cash=-999999.0))
+
+    assert "OPENED" in action
+
+
+def test_stop_at_zero_capital_does_not_block_managing_an_existing_position():
+    cfg = _cfg(stop_at_zero_capital=True)
+    _, position, _ = rsi_momentum_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ltp=100.0, current_cash=1000.0))
+
+    action, new_position, trade = rsi_momentum_decide_fn(
+        cfg, position, _data_point(ce_ltp=101.0, current_cash=-500.0)
+    )
+
+    assert "HELD" in action
+    assert new_position is not None
+
+
 def test_skips_open_when_daily_profit_lock_reached():
     cfg = _cfg(daily_profit_lock=True, daily_profit_lock_pct=2.0)
 
