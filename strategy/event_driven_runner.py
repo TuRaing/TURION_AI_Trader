@@ -433,10 +433,25 @@ def build_runners(execution_backend=None):
         # explicit choice to start with the plain book only (not the
         # 4 other st2_threshold variants, not simple_st1_threshold -
         # backtested worse, +Rs 12,675) before considering wider rollout.
+        # stale_print_debounce_ticks=10 EXPANDED 01-Sep-2026 to all 9
+        # remaining RSI-momentum books below (was st2_threshold only,
+        # see the 31-Aug note just above) - real live evidence the SAME
+        # morning: simple_st1_threshold (no debounce yet) hit the exact
+        # same stale-print-through-Stop-Loss pattern the gate targets
+        # (-14.585%/-14.25% on 2 same-second trades, spot barely moved -
+        # the SL fired correctly, just far past its own 3% threshold
+        # because the underlying tick was bad, not the price genuinely
+        # moving that much) - meanwhile st2_threshold (debounce on) lost
+        # ~74% less on the same morning (-Rs 7,617 vs -Rs 28,834). The
+        # gate is decide_fn-level, not tied to any book's specific
+        # Target/Stop-Loss/lock parameters, so the same protection
+        # applies identically regardless of cfg. User's own explicit
+        # choice: roll out to all remaining 9 at once now that there is
+        # real same-day live evidence, not just the original backtest.
         ("NIFTY", make_st2_threshold_event_cfg, rsi_momentum_decide_fn, "st2_threshold",
          {"daily_loss_lock": True, "max_consecutive_losses": 2, "stale_print_debounce_ticks": 10}),
         ("NIFTY", make_simple_st1_threshold_event_cfg, rsi_momentum_decide_fn, "simple_st1_threshold",
-         {"daily_loss_lock": True, "max_consecutive_losses": 2}),
+         {"daily_loss_lock": True, "max_consecutive_losses": 2, "stale_print_debounce_ticks": 10}),
         # 2% daily-profit-lock variants - see STRATEGY_NAMES'
         # own 21-Aug-2026 note. Same cfg_builder/decide_fn/symbols as
         # the plain book above it - only daily_profit_lock differs -
@@ -462,9 +477,11 @@ def build_runners(execution_backend=None):
         # protective, already-proven gate that happened not to bind
         # today.
         ("NIFTY", make_st2_threshold_event_cfg, rsi_momentum_decide_fn, "st2_threshold_lock",
-         {"daily_profit_lock": True, "daily_loss_lock": True, "max_consecutive_losses": 2}),
+         {"daily_profit_lock": True, "daily_loss_lock": True, "max_consecutive_losses": 2,
+          "stale_print_debounce_ticks": 10}),
         ("NIFTY", make_simple_st1_threshold_event_cfg, rsi_momentum_decide_fn, "simple_st1_threshold_lock",
-         {"daily_profit_lock": True, "daily_loss_lock": True, "max_consecutive_losses": 2}),
+         {"daily_profit_lock": True, "daily_loss_lock": True, "max_consecutive_losses": 2,
+          "stale_print_debounce_ticks": 10}),
         # 21-Aug-2026, same day - quote-based (bid/ask, not LTP)
         # siblings of the two "_lock" books above, at 3 daily-profit-
         # lock tiers (2%/1%/0.5%) - see STRATEGY_NAMES' own note and
@@ -489,25 +506,25 @@ def build_runners(execution_backend=None):
         # in all of them.
         ("NIFTY", make_st2_threshold_event_cfg, rsi_momentum_quote_decide_fn, "st2_threshold_lock_quote2pct",
          {"daily_profit_lock": True, "daily_profit_lock_pct": 2.0,
-          "daily_loss_lock": True, "max_consecutive_losses": 2}),
+          "daily_loss_lock": True, "max_consecutive_losses": 2, "stale_print_debounce_ticks": 10}),
         ("NIFTY", make_simple_st1_threshold_event_cfg, rsi_momentum_quote_decide_fn,
          "simple_st1_threshold_lock_quote2pct",
          {"daily_profit_lock": True, "daily_profit_lock_pct": 2.0,
-          "daily_loss_lock": True, "max_consecutive_losses": 2}),
+          "daily_loss_lock": True, "max_consecutive_losses": 2, "stale_print_debounce_ticks": 10}),
         ("NIFTY", make_st2_threshold_event_cfg, rsi_momentum_quote_decide_fn, "st2_threshold_lock_quote1pct",
          {"daily_profit_lock": True, "daily_profit_lock_pct": 1.0,
-          "daily_loss_lock": True, "max_consecutive_losses": 2}),
+          "daily_loss_lock": True, "max_consecutive_losses": 2, "stale_print_debounce_ticks": 10}),
         ("NIFTY", make_simple_st1_threshold_event_cfg, rsi_momentum_quote_decide_fn,
          "simple_st1_threshold_lock_quote1pct",
          {"daily_profit_lock": True, "daily_profit_lock_pct": 1.0,
-          "daily_loss_lock": True, "max_consecutive_losses": 2}),
+          "daily_loss_lock": True, "max_consecutive_losses": 2, "stale_print_debounce_ticks": 10}),
         ("NIFTY", make_st2_threshold_event_cfg, rsi_momentum_quote_decide_fn, "st2_threshold_lock_quote0pt5pct",
          {"daily_profit_lock": True, "daily_profit_lock_pct": 0.5,
-          "daily_loss_lock": True, "max_consecutive_losses": 2}),
+          "daily_loss_lock": True, "max_consecutive_losses": 2, "stale_print_debounce_ticks": 10}),
         ("NIFTY", make_simple_st1_threshold_event_cfg, rsi_momentum_quote_decide_fn,
          "simple_st1_threshold_lock_quote0pt5pct",
          {"daily_profit_lock": True, "daily_profit_lock_pct": 0.5,
-          "daily_loss_lock": True, "max_consecutive_losses": 2}),
+          "daily_loss_lock": True, "max_consecutive_losses": 2, "stale_print_debounce_ticks": 10}),
     ):
         name = STRATEGY_NAMES[key]
         index_cfg = INDEX_CONFIG[index]

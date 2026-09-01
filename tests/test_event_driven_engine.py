@@ -527,6 +527,18 @@ def test_simple_st1_threshold_cfg_uses_symmetric_3pct_ratios():
     assert cfg["stop_loss_pct"] == 3.0
 
 
+def test_simple_st1_threshold_cfg_passes_through_stale_print_debounce_ticks():
+    # Added 01-Sep-2026 - make_simple_st1_threshold_event_cfg() gained
+    # this parameter the same day the debounce gate itself expanded to
+    # all 9 remaining RSI-momentum books (was st2_threshold-only) - the
+    # gate's own behavior is already covered by test_event_driven_
+    # engine.py's earlier stale-print-debounce tests; this just confirms
+    # this SECOND cfg builder wires the value through correctly too.
+    cfg = _st1_cfg(stale_print_debounce_ticks=10)
+
+    assert cfg["stale_print_debounce_ticks"] == 10
+
+
 def test_simple_st1_threshold_closes_at_its_own_3pct_target():
     cfg = _st1_cfg(hybrid_sl_cap_pct=None)
     _, position, _ = rsi_momentum_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ltp=100.0))

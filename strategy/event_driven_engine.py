@@ -511,7 +511,8 @@ def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
 def make_simple_st1_threshold_event_cfg(index, lot_size, initial_capital=100000,
                                          hybrid_sl_cap_pct=2.0, spread_pct=None,
                                          daily_profit_lock=False, daily_profit_lock_pct=2.0,
-                                         daily_loss_lock=False, max_consecutive_losses=2):
+                                         daily_loss_lock=False, max_consecutive_losses=2,
+                                         stale_print_debounce_ticks=None):
     """
     cfg builder for rsi_momentum_decide_fn/rsi_momentum_quote_decide_fn,
     simple_st1_threshold's real ratios (Target 3%, Stop-Loss 3% -
@@ -523,6 +524,11 @@ def make_simple_st1_threshold_event_cfg(index, lot_size, initial_capital=100000,
 
     daily_loss_lock/max_consecutive_losses - see make_st2_threshold_
     event_cfg()'s matching 21-Aug-2026 note above.
+
+    stale_print_debounce_ticks - see make_st2_threshold_event_cfg()'s
+    matching 31-Aug-2026 note above. Expanded here 01-Sep-2026, all 9
+    remaining RSI-momentum books at once - see event_driven_runner.py's
+    own STRATEGY_NAMES call-site note for the real live evidence.
     """
 
     return {
@@ -537,6 +543,7 @@ def make_simple_st1_threshold_event_cfg(index, lot_size, initial_capital=100000,
         "daily_profit_lock_pct": daily_profit_lock_pct,
         "daily_loss_lock": daily_loss_lock,
         "max_consecutive_losses": max_consecutive_losses,
+        "stale_print_debounce_ticks": stale_print_debounce_ticks,
     }
 
 
