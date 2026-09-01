@@ -17,7 +17,7 @@ from strategy.event_driven_engine import (
 from strategy.execution_backend import PaperExecutionBackend
 from strategy.live_tick_harness import LiveTickRunner, OIFootprintTickRunner, handle_symbol_update_message
 from strategy.tick_collector import LiveCandleAggregator
-from strategy.data_watchdog import watchdog_loop
+from strategy.data_watchdog import watchdog_loop, token_watchdog_loop
 
 IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
 
@@ -913,6 +913,16 @@ def main(access_token, execution_backend=None):
     # gets caught after WATCHDOG_TIMEOUT_MINUTES.
     _last_message_at = {"time": datetime.datetime.now(IST)}
 
+    # Added 01-Sep-2026 - see strategy/data_watchdog.py's own should_
+    # restart_for_stale_token() docstring for the real incident (a
+    # process surviving across a calendar-day boundary never re-fetches
+    # a fresh Firebase token on its own once already connected). Seeded
+    # to "now" - build_runners() just succeeded, so the token IS valid
+    # at this exact moment; refresh_oi_snapshots() below updates this on
+    # every genuinely successful call, same "seed to now, not None"
+    # reasoning as _last_message_at above.
+    _last_valid_token_at = {"time": datetime.datetime.now(IST)}
+
     def _alert_connection_issue(kind, message):
         now = datetime.datetime.now()
         if _should_send_connection_alert(_last_connection_alert["time"], now):
@@ -1052,6 +1062,12 @@ def main(access_token, execution_backend=None):
                 # confirmation line per successful cycle costs nothing at
                 # a 5-min cadence and closes that gap for good.
                 print(f"OI snapshot refresh OK ({datetime.datetime.now(IST).strftime('%H:%M:%S')} IST)")
+                # Added 01-Sep-2026 - feeds token_watchdog_loop below. A
+                # genuinely successful refresh is real, direct proof the
+                # CURRENT token still works - only updated here (not on
+                # the except branch), so a run of pure token-error
+                # failures correctly leaves this stale.
+                _last_valid_token_at["time"] = datetime.datetime.now(IST)
             except Exception as error:
                 print(f"OI snapshot refresh failed (continuing on the old signal): {error}")
 
@@ -1061,6 +1077,16 @@ def main(access_token, execution_backend=None):
     # docstring for the real incident this covers.
     threading.Thread(
         target=watchdog_loop, args=(lambda: _last_message_at["time"],), daemon=True
+    ).start()
+
+    # Added 01-Sep-2026 - see strategy/data_watchdog.py's own should_
+    # restart_for_stale_token() docstring for the real incident this
+    # covers (a process surviving across a day boundary never picks up
+    # a fresh token on its own). Runs alongside the feed watchdog above,
+    # not instead of it - a stale feed and a stale token are different
+    # failure modes with different symptoms.
+    threading.Thread(
+        target=token_watchdog_loop, args=(lambda: _last_valid_token_at["time"],), daemon=True
     ).start()
 
     socket.connect()

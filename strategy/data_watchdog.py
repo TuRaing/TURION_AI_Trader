@@ -25,6 +25,24 @@ import datetime
 # instead of building a second, parallel restart/alerting mechanism.
 
 
+def _is_market_hours(now, market_open_time, market_close_time):
+    """
+    Shared by should_restart_for_stale_feed() and (added 01-Sep-2026)
+    should_restart_for_stale_token() below - both need the exact same
+    "is a deliberately-quiet/stale signal actually worth restarting
+    over" gate (a weekday, within NSE's 09:15-15:30 IST session), and
+    this project's own established rule is one place for a check like
+    this, not two copies to keep in sync.
+    """
+
+    if now.weekday() >= 5:
+        return False
+
+    now_hm = (now.hour, now.minute)
+
+    return market_open_time <= now_hm <= market_close_time
+
+
 def should_restart_for_stale_feed(last_message_at, now, timeout_minutes=5,
                                    market_open_time=(9, 15), market_close_time=(15, 30)):
     """
@@ -41,12 +59,7 @@ def should_restart_for_stale_feed(last_message_at, now, timeout_minutes=5,
     still gets caught after `timeout_minutes`, not ignored forever.
     """
 
-    if now.weekday() >= 5:
-        return False
-
-    now_hm = (now.hour, now.minute)
-
-    if not (market_open_time <= now_hm <= market_close_time):
+    if not _is_market_hours(now, market_open_time, market_close_time):
         return False
 
     return (now - last_message_at).total_seconds() >= timeout_minutes * 60
@@ -77,4 +90,79 @@ def watchdog_loop(get_last_message_at, timeout_minutes=5, check_interval_seconds
         if should_restart_for_stale_feed(last, now, timeout_minutes=timeout_minutes):
             print(f"WATCHDOG: no WebSocket message in {timeout_minutes}+ min during market "
                   f"hours (last at {last}) - forcing a restart.")
+            os._exit(1)
+
+
+def should_restart_for_stale_token(last_valid_token_at, now, timeout_minutes=10,
+                                    market_open_time=(9, 15), market_close_time=(15, 30)):
+    """
+    Added 01-Sep-2026, real live incident: a process that stays up
+    across a calendar-day boundary (no crash, no new commit for
+    deploy.sh's daily restart to act on) has NO way to pick up a fresh
+    Fyers token on its own once it has already connected once -
+    run_event_driven_engine.py's retry-on-stale-token wrapper (27-Aug)
+    only runs BEFORE the FIRST successful build_runners() call; once
+    past that, the process is in its main loop and never re-enters that
+    wrapper. The periodic checks that keep running (OI snapshot refresh,
+    ATM re-check) just kept reusing the SAME stale os.environ token
+    forever - each one caught and logged its own failure
+    ("continuing on the old signal"/"continuing on the old strike")
+    rather than crashing, so the process never died and never got a
+    chance to fetch a fresh token either. Caught manually 01-Sep before
+    market open; this is the structural fix - same "let systemd's
+    already-proven Restart=on-failure machinery recover it" philosophy
+    as should_restart_for_stale_feed() above, just watching a DIFFERENT
+    signal (successful REST calls, not WebSocket messages - a stale
+    token doesn't necessarily stop ticks from arriving over an already-
+    established WebSocket session, so the feed-staleness watchdog alone
+    isn't guaranteed to catch this specific failure mode).
+
+    True only when ALL of: it's a weekday, `now` falls within market
+    hours, and at least `timeout_minutes` have passed since the last
+    genuinely successful (non-token-error) REST call - meaning every
+    periodic check in that whole window failed, not just one transient
+    blip. Default 10 min (2 missed 5-min OI-refresh cycles) rather than
+    5, deliberately less trigger-happy than the feed watchdog - a single
+    failed poll is expected/harmless (see refresh_oi_snapshots()'s own
+    "continuing on the old signal" comment), only a SUSTAINED run of
+    failures indicates the token itself needs a fresh fetch.
+    """
+
+    if not _is_market_hours(now, market_open_time, market_close_time):
+        return False
+
+    return (now - last_valid_token_at).total_seconds() >= timeout_minutes * 60
+
+
+def token_watchdog_loop(get_last_valid_token_at, timeout_minutes=10, check_interval_seconds=60,
+                         ist=datetime.timezone(datetime.timedelta(hours=5, minutes=30))):
+    """
+    Added 01-Sep-2026 - see should_restart_for_stale_token()'s own
+    docstring for the real incident. A separate loop/thread from
+    watchdog_loop() above (not a shared/parameterized one) - DELIBERATE:
+    that function is already live, proven, production infrastructure
+    protecting all 3 VPS services' WebSocket feeds; this project's own
+    "never modify a working module" rule (see fyers_options_engine.py's
+    matching note elsewhere) applies here too - a small amount of
+    duplicated loop shape is a better trade than any risk of a
+    regression in the already-working watchdog.
+
+    Same os._exit(1)-on-trigger mechanism, letting the same already-
+    proven systemd Restart=on-failure path recover it. Run this
+    ALONGSIDE watchdog_loop() (a service can have a stale feed, a stale
+    token, or both - separate, complementary safety nets), each with
+    its own get_last_*_at() closure/dict-getter.
+    """
+
+    import os
+    import time
+
+    while True:
+        time.sleep(check_interval_seconds)
+        now = datetime.datetime.now(ist)
+        last = get_last_valid_token_at()
+
+        if should_restart_for_stale_token(last, now, timeout_minutes=timeout_minutes):
+            print(f"WATCHDOG: no successful Fyers REST call in {timeout_minutes}+ min during "
+                  f"market hours (last valid token confirmation at {last}) - forcing a restart.")
             os._exit(1)

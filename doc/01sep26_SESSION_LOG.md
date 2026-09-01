@@ -136,6 +136,49 @@ ask first, not "check first and proceed."
 
 ==================================================
 
+STRUCTURAL FIX BUILT FOR THIS MORNING'S TOKEN-STALENESS GAP - A NEW,
+SEPARATE TOKEN WATCHDOG. Built the real fix for the "Next Session" item
+1 flagged this morning: `strategy/data_watchdog.py` gained `should_
+restart_for_stale_token()` and `token_watchdog_loop()` - same
+`os._exit(1)`-on-trigger philosophy as the existing 26-Aug feed
+watchdog (let systemd's already-proven Restart=on-failure path recover
+it), but watching a DIFFERENT signal: time since the last genuinely
+successful (non-token-error) REST call, not WebSocket message
+silence - deliberate, since a stale token doesn't necessarily stop an
+already-established WebSocket session from delivering ticks, so the
+feed watchdog alone wasn't guaranteed to catch this specific failure
+mode. 10-minute default timeout (2 missed 5-min OI-refresh cycles,
+deliberately less trigger-happy than the feed watchdog's 5 minutes - a
+single failed poll is expected/harmless).
+
+Refactored the shared weekday/market-hours gate into one `_is_market_
+hours()` helper used by both watchdogs (this project's own "one place,
+not two copies" rule) - but deliberately did NOT touch the existing,
+already-proven `watchdog_loop()` function itself, or generalize it to
+take a `should_restart_fn`, even though the loop shape is nearly
+identical. Added a separate `token_watchdog_loop()` instead - "never
+modify a working module" outweighs a small amount of duplicated loop
+mechanics here, since `watchdog_loop()` is live production
+infrastructure protecting all 3 VPS services right now.
+
+Wired into `event_driven_runner.py`: a new `_last_valid_token_at`
+tracker (seeded to "now" at successful `build_runners()`, same pattern
+as the existing `_last_message_at`), updated by `oi_refresh_loop()`
+only on a genuinely successful refresh (not on the except branch, so a
+run of pure token-error failures correctly leaves it stale), and a new
+`token_watchdog_loop()` thread running alongside the existing feed
+watchdog thread - complementary, not a replacement.
+
+5 new tests for `should_restart_for_stale_token()` (mirrors the
+existing feed-watchdog test shape, plus one direct replay of this
+morning's real incident - a token last valid at 31-Aug 21:27 IST,
+correctly flagged as stale by the time market hours arrive the next
+day). Full suite: 634/634 passing. NOT yet deployed to the VPS - per
+today's own new rule, deploy is deferred to after asking, even though
+market is now closed (16:24 IST) for the day.
+
+==================================================
+
 Status
 
 🟢 Stable
