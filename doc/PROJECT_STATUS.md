@@ -8114,4 +8114,79 @@ backtest work stays backtest-only)
 
 ==================================================
 
+31-Aug EVENING - THE WEEK'S FIRST REAL GATE DEPLOYMENT: 10-TICK STALE-
+PRINT DEBOUNCE, LIVE ON st2_threshold ONLY. Before deploying, checked
+whether the debounce (this week's single best backtest result,
++Rs 37,004 vs baseline -Rs 75,024) was actually better matched to
+st2_threshold (5%/2% Target/SL) or simple_st1_threshold (3%/3%, the
+only other book sharing the same decide_fn) - st2_threshold won
+clearly (+Rs 37,004 vs +Rs 12,675, ~3x). User's own explicit, most
+conservative scope choice: plain `st2_threshold` only, none of its
+lock/quote siblings, not simple_st1_threshold.
+
+Implementation matches the existing daily_profit_lock/daily_loss_lock
+pattern exactly - a new opt-in `stale_print_debounce_ticks` cfg key
+(defaults to `None`/off, zero behavior change everywhere else).
+`LiveTickRunner` now tracks per-leg tick counts with an explicit
+day-boundary reset (a real production concern: this runner can outlive
+a single calendar day, unlike a fresh-per-day backtest - confirmed the
+SAME day the fix shipped, see 01-Sep entry below). 7 new tests, full
+suite 628/628 passing. Deployed to the VPS the same evening (commit
+`033024e36`), verified live: all 3 services active, correct commit,
+clean logs.
+
+Also tested and ruled out earlier the same day: a 0.3% support/
+resistance buffer (adapted from the older polling engine's existing
+but unused `apply_support_resistance_filter()`, real but net-negative
+alone, -Rs 27,864) and a full 8-way combination of debounce/cooldown/
+S-R (debounce ALONE still won every combination tried, +Rs 37,004 vs
+the best combo's +Rs 31,411) - see doc/31aug26_SESSION_LOG.md for the
+full detail on both.
+
+==================================================
+
+01-Sep MORNING - A REAL, PREVIOUSLY-UNKNOWN GAP CAUGHT BEFORE MARKET
+OPEN: a long-running process has NO way to recover from its Fyers
+token going stale WHILE it's already running across a calendar-day
+boundary - only from being stale at its own startup (27-Aug's fix).
+Found live: all 3 VPS services had been running unbroken since 31-Aug
+21:27 IST (yesterday evening's debounce deploy restart) - the user's
+~07:00 IST login reached Firebase fine, but the already-running
+processes' periodic checks (OI refresh, ATM re-check) just kept
+reusing the SAME stale in-memory token forever (catching and logging
+each failure rather than crashing), with no path back to Firebase for
+a fresh one short of a full restart. Neither deploy.sh's daily 08:00
+IST restart (only fires on a NEW commit) nor the crontab `systemctl
+start` safety net (a no-op on an already-active service) would have
+caught this - would have meant ZERO real trades across all 14
+event-driven books today if it had gone unnoticed past 09:15 IST.
+
+Fixed operationally this morning (verified no open positions first,
+manually restarted all 3 services at 07:50 IST, confirmed today's
+fresh token accepted) - NOT yet fixed structurally. See doc/01sep26_
+SESSION_LOG.md for the real fix options being considered (letting the
+periodic in-loop checks re-fetch from Firebase on failure, same as the
+existing startup-retry wrapper already does; or extending 28-Aug's
+data_watchdog.py to force a restart on persistent token errors during
+market hours).
+
+==================================================
+
+Status
+
+🟡 Needs attention
+
+Current Version
+
+v0.0.71
+
+Next Version
+
+v0.0.71 (10-tick debounce live on st2_threshold since 31-Aug evening;
+01-Sep's stale-token-across-a-day-boundary gap fixed operationally
+today, real structural fix still open - see Next Session in doc/
+01sep26_SESSION_LOG.md)
+
+==================================================
+
 END OF DOCUMENT
