@@ -1,15 +1,6 @@
 {
-  "Cash": 99848.6244887665,
-  "Position": {
-    "Name": "NTPC",
-    "Symbol": "NTPC.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-09-01 11:16:50",
-    "Entry Price": 326.5,
-    "Quantity": 1,
-    "Stop Loss": 325.72,
-    "Target": 328.06
-  },
+  "Cash": 99847.49875056477,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -938,6 +929,20 @@
       "PnL": -0.88,
       "Cost": 0.35,
       "Net PnL": -1.23
+    },
+    {
+      "Name": "NTPC",
+      "Symbol": "NTPC.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-09-01 11:16:50",
+      "Entry Price": 326.5,
+      "Exit Time": "2026-09-01 11:36:44",
+      "Exit Price": 325.72,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -0.78,
+      "Cost": 0.35,
+      "Net PnL": -1.13
     }
   ]
 }
