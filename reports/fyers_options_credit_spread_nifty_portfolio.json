@@ -1,22 +1,6 @@
 {
-  "Cash": 97307.5,
-  "Position": {
-    "Option Type": "CE",
-    "Short Strike": 24350,
-    "Long Strike": 24500,
-    "Short Symbol": "NSE:NIFTY2690124350CE",
-    "Long Symbol": "NSE:NIFTY2690124500CE",
-    "Entry Time": "2026-09-01 15:01:51",
-    "Entry Spot": 23982.1,
-    "Entry Credit": 0.3,
-    "Entry RSI": 19.05,
-    "Entry VIX": 11.41,
-    "Lots": 8,
-    "Quantity": 600,
-    "Max Loss": 89820.0,
-    "Last Cost To Close": 0.3,
-    "Last Checked": "2026-09-01 15:01:51"
-  },
+  "Cash": 97097.5,
+  "Position": null,
   "Closed Trades": [
     {
       "Option Type": "PE",
@@ -214,6 +198,24 @@
       "Exit Reason": "Stop Loss (2x credit)",
       "Net PnL": -270.0,
       "Net PnL %": -0.27
+    },
+    {
+      "Option Type": "CE",
+      "Short Strike": 24350,
+      "Long Strike": 24500,
+      "Short Symbol": "NSE:NIFTY2690124350CE",
+      "Long Symbol": "NSE:NIFTY2690124500CE",
+      "Entry Time": "2026-09-01 15:01:51",
+      "Entry Credit": 0.3,
+      "Entry Spot": 23982.1,
+      "Exit Spot": 23980.55,
+      "Exit Time": "2026-09-01 15:19:49",
+      "Short Close Premium": 0.95,
+      "Long Close Premium": 0.3,
+      "Lots": 8,
+      "Exit Reason": "Stop Loss (2x credit)",
+      "Net PnL": -210.0,
+      "Net PnL %": -0.21
     }
   ],
   "Data Source": "Fyers (real premium)",
