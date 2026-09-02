@@ -1,15 +1,6 @@
 {
-  "Cash": 99643.78665610391,
-  "Position": {
-    "Name": "ITC",
-    "Symbol": "ITC.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-09-02 11:52:47",
-    "Entry Price": 267.65,
-    "Quantity": 1,
-    "Stop Loss": 266.59999999999997,
-    "Target": 269.75
-  },
+  "Cash": 99643.25298618262,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -548,6 +539,20 @@
       "PnL": -1.12,
       "Cost": 0.25,
       "Net PnL": -1.38
+    },
+    {
+      "Name": "ITC",
+      "Symbol": "ITC.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-09-02 11:52:47",
+      "Entry Price": 267.65,
+      "Exit Time": "2026-09-02 14:46:40",
+      "Exit Price": 267.4,
+      "Quantity": 1,
+      "Exit Reason": "Intraday Square-Off",
+      "PnL": -0.25,
+      "Cost": 0.28,
+      "Net PnL": -0.53
     }
   ],
   "Data Source": "Fyers"
