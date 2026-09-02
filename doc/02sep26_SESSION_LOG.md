@@ -71,6 +71,56 @@ exactly what it was built to do.
 
 ==================================================
 
+oi_footprint's OWN WHIPSAW - REAL INCIDENT, DIFFERENT ROOT CAUSE FROM
+THIS WEEK'S RSI-momentum FIXES, AND TWO PROPOSED FIXES BOTH FALSIFIED.
+Same day, a different pair of books lost money: `oi_footprint_nifty`/
+`oi_footprint_quote_nifty` (-Rs 3,803/-Rs 4,010 today). Pulled the real
+trade JSON rather than assuming it was the same stale-print bug -
+it wasn't: premium declined smoothly (Rs 245.0 -> 240.3 -> 236.0, no
+single-tick jump), spot stayed completely flat, and BOTH trades were
+PE, back-to-back, each stopped at the ~2% hybrid SL cap. The OI-
+buildup signal itself kept pointing the same direction right after a
+loss - a different failure mode from a stale first tick, and one none
+of this week's gates (debounce/cooldown/S-R, all built for
+`_rsi_momentum_decide`) touch, since `oi_footprint` runs a completely
+separate decide_fn (`_oi_footprint_decide`).
+
+Built `scratch_oi_footprint_cooldown_backtest.py` - a NEW backtest
+harness (not a reuse of this week's RSI-momentum scripts), since
+`OIFootprintTickRunner` needs BOTH real tick data AND real OI snapshots
+merged into one chronological replay, unlike the tick-only RSI runner.
+Copied the only 3 real, non-frozen OI archive days available
+(31-Aug/01-Sep/02-Sep - see 30-Aug's frozen-data finding for why
+earlier days don't count) plus their matching tick files down from the
+VPS for this.
+
+Tested 2 ideas, both real backtests against all 3 days x 2 indices (6
+runs), both came back negative:
+
+1. Plain cooldown-after-close (same shape as 29-Aug's RSI-momentum
+   idea): 0s +Rs 37,103; 60s +Rs 34,270 (worse); **120s +Rs 38,307
+   (best, only ~3% better)**; 300s +Rs 32,911 (worse). Nowhere near the
+   RSI-momentum debounce's ~79% same-day improvement - a plain time
+   delay doesn't fix "the signal is still pointing the same way,"
+   it just postpones the same bad trade.
+
+2. Block a new entry in the SAME direction as the last LOSING trade
+   until the OI signal genuinely flips (a more targeted idea than a
+   blind time delay): **+Rs 4,723 total - much WORSE than baseline**,
+   almost entirely from one real outlier (31-Aug NIFTY: -Rs 29,549 vs
+   baseline's -Rs 4,464, ~6.6x worse) - the gate blocked a same-
+   direction entry that would have been genuinely profitable that day,
+   proving "the signal repeating itself" isn't reliably wrong the way
+   "a stale first tick" reliably is. Falsified, not just weak.
+
+Net conclusion: unlike the RSI-momentum family, `oi_footprint`'s real
+whipsaw problem does not yet have a working fix - both ideas tried
+today made things worse or barely moved the needle. Needs a genuinely
+different approach (not built or tested today) or more real data (only
+3 real OI days exist total) before trying again.
+
+==================================================
+
 Status
 
 🟢 Stable
@@ -107,5 +157,11 @@ Next Session
    today's in-progress 02-Sep) - getting closer to a real validation
    sample size for the debounce parameter itself (still only backtested
    against the original 5-day sample when "10" was chosen).
+
+4. `oi_footprint`'s real same-direction-after-loss whipsaw is still
+   unsolved - both a plain cooldown and a signal-must-flip gate were
+   tried and falsified today (see above). Only 3 real OI days exist to
+   test against so far; needs either more real days or a genuinely
+   different idea before trying again - not a quick follow-up.
 
 ==================================================
