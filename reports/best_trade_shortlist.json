@@ -1,10 +1,10 @@
 {
-  "Generated At": "2026-09-02 07:57:06",
+  "Generated At": "2026-09-02 08:31:42",
   "Stocks": [
     {
       "Name": "KOTAKBANK",
       "Symbol": "KOTAKBANK.NS",
-      "Price": 421.3,
+      "Price": 422.05,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 60.0,
@@ -14,7 +14,7 @@
     {
       "Name": "MARUTI",
       "Symbol": "MARUTI.NS",
-      "Price": 12687.0,
+      "Price": 12718.0,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
@@ -24,7 +24,7 @@
     {
       "Name": "JSWSTEEL",
       "Symbol": "JSWSTEEL.NS",
-      "Price": 1303.7,
+      "Price": 1302.7,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 60.0,
@@ -34,12 +34,12 @@
     {
       "Name": "DRREDDY",
       "Symbol": "DRREDDY.NS",
-      "Price": 1164.7,
+      "Price": 1163.7,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
       "ATR": 18.38,
-      "Candle Pattern": "Doji"
+      "Candle Pattern": "No Pattern"
     }
   ],
   "Options": [
@@ -47,8 +47,8 @@
       "Name": "BANK NIFTY",
       "Bias": "Bullish",
       "Decision": "NO TRADE",
-      "Confidence": 28.0,
-      "Reason": "Price action Bullish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 28.0% is below the 60% threshold."
+      "Confidence": 14.0,
+      "Reason": "Price action Bullish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 14.0% is below the 60% threshold."
     },
     {
       "Name": "NIFTY 50",
@@ -187,7 +187,7 @@
     },
     "NTPC": {
       "Headlines": [
-        "NTPC Share Price Live Updates: NTPC Trading Insights"
+        "NTPC Share Price Live Updates: NTPC's Current Market Position"
       ],
       "Positive": 0,
       "Negative": 0,
@@ -261,6 +261,15 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "SHREECEM": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "COALINDIA": {
       "Headlines": [],
       "Positive": 0,
@@ -271,6 +280,15 @@
       "Confidence": 0.0
     },
     "TCS": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "AXISBANK": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -326,15 +344,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "HDFCLIFE": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "CIPLA": {
       "Headlines": [],
       "Positive": 0,
@@ -369,15 +378,6 @@
       "Positive": 0,
       "Negative": 0,
       "Neutral": 1,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "SHREECEM": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -439,6 +439,8 @@
     "LT": {
       "Headlines": [
         "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
+        "Why are global bond yields surging to multi-decade highs?",
+        "Multibaggers: These 9 midcap stocks surged up to 300% in two years. Do you own any?",
         "Explained: How multi-decade high global bond yields spell caution for Indian stock market investors",
         "Global bond selloff deepens as inflation risks, oil prices jolt markets",
         "Why is market falling today? Sensex, Nifty selloff wipes out Rs 5 lakh crore investor wealth: 5 key factors",
@@ -446,21 +448,12 @@
         "Bond selloff deepens as inflation, oil prices jolt markets",
         "UltraTech Cem Share Price Live Updates: UltraTech Cement's Price Movement Today"
       ],
-      "Positive": 1,
+      "Positive": 2,
       "Negative": 3,
-      "Neutral": 3,
+      "Neutral": 4,
       "Sentiment": "Bearish",
-      "Score": -0.5,
-      "Confidence": 50.0
-    },
-    "AXISBANK": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
+      "Score": -0.2,
+      "Confidence": 20.0
     },
     "BAJFINANCE": {
       "Headlines": [],
@@ -490,6 +483,15 @@
       "Confidence": 0.0
     },
     "BAJAJFINSV": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "HDFCLIFE": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -541,6 +543,14 @@
     },
     {
       "Headline": "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Why are global bond yields surging to multi-decade highs?",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Multibaggers: These 9 midcap stocks surged up to 300% in two years. Do you own any?",
       "Sentiment": "Bullish"
     },
     {
@@ -624,6 +634,10 @@
       "Sentiment": "Neutral"
     },
     {
+      "Headline": "Bajaj Finance Share Price Live Updates: Bajaj Finance's Price and Performance Overview",
+      "Sentiment": "Neutral"
+    },
+    {
       "Headline": "Hero MotoCorp, M&amp;M, other auto stocks drop up to 5% despite strong August sales numbers. Should you buy the dip?",
       "Sentiment": "Neutral"
     },
@@ -692,11 +706,11 @@
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "HCL Tech Share Price Live Updates: HCL Tech Sees Price Drop",
-      "Sentiment": "Bearish"
+      "Headline": "HCL Tech Share Price Live Updates: HCL Tech's Performance Overview",
+      "Sentiment": "Neutral"
     },
     {
-      "Headline": "Sun Pharma Share Price Live Updates: Sun Pharma's Trading Insights",
+      "Headline": "Sun Pharma Share Price Live Updates: Sun Pharma's Current Trading Status",
       "Sentiment": "Neutral"
     },
     {
@@ -712,19 +726,7 @@
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "NTPC Share Price Live Updates: NTPC Trading Insights",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Apollo Hospital Share Price Live Updates: Today's Stock Movement for Apollo Hospital",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "IndusInd Bank Share Price Live Updates: IndusInd Bank Shares Fall by More Than 5%",
-      "Sentiment": "Bearish"
-    },
-    {
-      "Headline": "HDFC Bank Share Price Live Updates: Current Trading Status of HDFC Bank",
+      "Headline": "NTPC Share Price Live Updates: NTPC's Current Market Position",
       "Sentiment": "Neutral"
     }
   ]
