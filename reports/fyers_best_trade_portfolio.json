@@ -1,15 +1,6 @@
 {
-  "Cash": 99645.16317496238,
-  "Position": {
-    "Name": "ONGC",
-    "Symbol": "ONGC.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-09-02 10:07:56",
-    "Entry Price": 237.86,
-    "Quantity": 1,
-    "Stop Loss": 236.735,
-    "Target": 240.11
-  },
+  "Cash": 99643.78665610391,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -534,6 +525,20 @@
       "PnL": -88.07,
       "Cost": 13.13,
       "Net PnL": -101.2
+    },
+    {
+      "Name": "ONGC",
+      "Symbol": "ONGC.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-09-02 10:07:56",
+      "Entry Price": 237.86,
+      "Exit Time": "2026-09-02 11:16:53",
+      "Exit Price": 236.735,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -1.12,
+      "Cost": 0.25,
+      "Net PnL": -1.38
     }
   ],
   "Data Source": "Fyers"
