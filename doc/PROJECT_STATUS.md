@@ -8189,4 +8189,47 @@ today, real structural fix still open - see Next Session in doc/
 
 ==================================================
 
+02-Sep - THE DEBOUNCE'S FIRST FAIR FULL-DAY TEST, AND A DIRECT SAME-DAY
+PROOF IT WORKS. 01-Sep's expansion to all 10 books landed too late in
+the day (after the morning whipsaw already happened) to be a fair
+test - today it was live before market open for the first time. Real
+result at market open: all 8 "_lock" books took exactly 1 trade each,
+still running (not breaker-stopped), every one profitable
+(+Rs 3,148 to +Rs 5,373); the 2 plain books (no daily_profit_lock)
+eventually hit the N=2 breaker after 9 trades each but stayed net
+positive too. Combined: **+Rs 58,954** - the week's first genuinely
+profitable market-open snapshot, versus 31-Aug's -Rs 2,70,005 and
+01-Sep's -Rs 1,69,938 for the same window.
+
+User's own good instinct: don't just trust the good number - checked
+what TODAY would have looked like without the debounce, using TODAY's
+own real tick archive (not a different historical day). Baseline (0
+ticks): NIFTY -Rs 43,068, BankNifty -Rs 14,023 (combined -Rs 57,091) -
+the same whipsaw pattern happened again today too. With the actual
+10-tick debounce: combined -Rs 11,882 - ~79% less loss, directly
+attributable to the gate, same real morning. Strongest evidence yet
+that this fix does what it was built to do - not a backtest on old
+data, a same-day counterfactual on live ticks. Still watching: the new
+token_watchdog_loop (01-Sep) hasn't had a live trigger yet - both
+mornings since it shipped, the stale-token state existed BEFORE market
+hours (where it deliberately doesn't act) and needed a manual restart
+each time. See doc/02sep26_SESSION_LOG.md for full detail.
+
+==================================================
+
+Status
+
+🟢 Stable
+
+Current Version
+
+v0.0.71
+
+Next Version
+
+v0.0.71 (debounce validated live on its first fair full-day test;
+token watchdog still awaiting its first real market-hours trigger)
+
+==================================================
+
 END OF DOCUMENT
