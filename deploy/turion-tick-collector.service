@@ -45,6 +45,14 @@
 # (already covered by the same NOPASSWD sudoers scope used for the
 # restart/start commands deploy.sh and turion-event-driven.service's
 # own cron entry already rely on - no sudoers change needed.)
+#
+# ADDED 03-Sep-2026 - see turion-event-driven.service's own matching
+# 03-Sep-2026 note for the real gap (a process can go stale across a
+# calendar-day boundary with no restart at all, and the 01-Sep token
+# watchdog only helps DURING market hours by design). Same fix here:
+#   0 2 * * 1-5 sudo systemctl restart turion-tick-collector
+# (02:00 UTC = 07:30 IST, unconditional, independent of deploy.sh's
+# commit-gating - installed live on the VPS crontab the same day.)
 
 [Unit]
 Description=TURION ATM Tick Collector (WebSocket, archival only)

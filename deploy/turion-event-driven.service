@@ -83,6 +83,27 @@
 # the runtime path additionally needs FIREBASE_DATABASE_URL) from the
 # environment - this service DOES need them, same as the GitHub Actions
 # workflows already pass via secrets. Uncommented below.
+#
+# ADDED 03-Sep-2026 - a different, real gap from the one above: this
+# process can survive across a calendar-day boundary with NO restart at
+# all (no crash, and deploy.sh's own restart only fires when there's a
+# NEW commit - see 29-Aug's/01-Sep's real incidents where that left it
+# stuck on yesterday's token all morning). 01-Sep's token_watchdog_loop
+# (strategy/data_watchdog.py) only helps DURING market hours by design
+# (mirrors should_restart_for_stale_feed's own "quiet before 09:15 is
+# normal" rule) - it does nothing about a process that's ALREADY stale
+# before market opens, which is exactly when this kept happening live.
+# FIX: an unconditional daily restart, independent of deploy.sh's
+# commit-gating, well before both market open and deploy.sh's own run:
+#   0 2 * * 1-5 sudo systemctl restart turion-event-driven
+# (02:00 UTC = 07:30 IST, 30 min before deploy.sh's 02:30 UTC/08:00 IST
+# run - if today's login has already happened, this restart picks up a
+# fresh token immediately; if not, the existing retry-on-stale-token
+# wrapper (27-Aug) takes over and retries every 120s as before - this
+# is strictly additive, not a replacement for that fix). Matching
+# entries added for turion-tick-collector.service and turion-depth-
+# collector.service (see their own copies of this note) - same gap,
+# same fix, all 3 services.
 
 [Unit]
 Description=TURION Event-Driven Options Engine (WebSocket, real-time)
