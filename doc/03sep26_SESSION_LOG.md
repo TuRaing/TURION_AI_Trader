@@ -68,6 +68,40 @@ built.
 
 ==================================================
 
+TODAY'S RESULT - REAL VOLATILITY, NOT A DATA-QUALITY BUG, AND A REAL
+DISTINCTION WORTH KEEPING IN MIND. Combined total across all 14 books:
+-Rs 38,436, a reversal from 02-Sep's +Rs 61,003. 6 books (all the
+"_lock_quoteX%" variants) show an IDENTICAL -Rs 5,586.22 - checked
+rather than assumed it was another stale-print incident (`st2_
+threshold_lock_quote0pt5pct`'s real trade JSON):
+
+- 09:15:02 CE @ Rs 183.80, spot 24017.35 -> 09:15:03 exit @ Rs 177.25,
+  spot 24006.4 (Stop Loss, -3.66%)
+- 09:15:03 CE @ Rs 179.00, spot 24006.4 -> 09:15:04 exit @ Rs 175.75,
+  spot 23989.5 (Stop Loss, -1.93%)
+
+Genuinely different root cause from every prior incident this week:
+spot ACTUALLY moved (~28 points down in 2 real seconds) - not a stale/
+frozen print with zero spot movement like 31-Aug/01-Sep. RSI picked CE
+(bullish) right as spot was genuinely falling fast at the open -
+classic whipsaw, the exact failure mode the N=2 breaker was originally
+built for (21-Aug), not the stale-print bug the debounce targets.
+
+Real, useful clarification of what the debounce actually protects
+against: it only requires 10 REAL ticks before trusting a price - on a
+fast, genuinely volatile open, 10 real ticks can arrive within 1-2
+seconds, so the debounce did its job (waited for real data) and still
+couldn't prevent this, because the data was never bad to begin with.
+Debounce = protection from BAD data; the N=2 breaker = protection from
+GOOD but volatile data moving against the strategy. Two different,
+complementary jobs - today's incident isn't evidence the debounce
+failed, it's evidence of the OTHER, older, already-accepted risk this
+project has lived with since 21-Aug. The breaker worked exactly as
+designed both times today, capping each affected book at 2 losses
+rather than letting it compound further.
+
+==================================================
+
 Status
 
 🟢 Stable
