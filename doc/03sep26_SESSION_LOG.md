@@ -102,6 +102,54 @@ rather than letting it compound further.
 
 ==================================================
 
+OI_FOOTPRINT WHIPSAW - ALL 3 CANDIDATE GATES TESTED IN COMBINATION,
+NONE CLEARLY WORTH SHIPPING. Carried over from 02-Sep: 3 separate
+ideas had each been tried alone against `oi_footprint`'s recurring
+same-direction-after-loss whipsaw (cooldown-after-close, block-same-
+direction-until-signal-flips, require-signal-consistent-across-2-
+readings) - individually, 2 of the 3 were negative or erratic. Today,
+at the user's explicit request, ran all 8 combinations of the 3 gates
+(`scratch_oi_footprint_cooldown_backtest.py`) against every real OI
+archive day available (31-Aug, 01-Sep, 02-Sep, 03-Sep) x both indices
+(NIFTY, BankNifty) = 8 day/index runs per variant, real N=2
+`daily_loss_lock` breaker on throughout, matching every live book.
+
+Summed net PnL across all 8 runs, per variant:
+
+    Cooldown only (120s)                 +Rs 35,124.55  (best)
+    Baseline (no gate)                   +Rs 33,189.10
+    Consistent-signal only               +Rs 20,570.71
+    Direction-flip + consistent-signal   +Rs 18,576.34
+    Cooldown + direction-flip            + Rs 9,940.26
+    Direction-flip only                  + Rs 7,969.03
+    All 3 combined                          -Rs 864.94
+    Cooldown + consistent-signal          -Rs 5,210.03
+
+Cooldown-only edges out baseline by ~6% - the ONLY variant that beats
+doing nothing at all. Every combination involving direction-flip or
+consistent-signal is worse than baseline, several much worse, and
+"all 3 combined" (the exact ask this session) is net negative. Per-
+day variance is extreme regardless of variant - trade counts on
+consistent-signal-involving variants range from 0 to 22 across just 4
+days, single-day swings from -Rs 29,549 to +Rs 49,558 - nowhere near
+enough real OI data (4 days) to trust a ~6% edge as signal rather than
+noise, let alone reject the other variants as conclusively worse.
+
+Decision: WAIT, don't apply. Matches this project's established data-
+driven-patience approach (declined new gates/filters elsewhere this
+week for the same reason - insufficient real data to distinguish a
+real edge from noise) - a 6% edge on 4 days of data is not something
+to ship into a live book; the RSI-momentum debounce fix earlier this
+week only got applied after a ~79% same-day counterfactual improvement
+AND a live full-day confirmation, a much higher bar than anything
+`oi_footprint` has cleared so far. No code changes made to any live
+`oi_footprint` book. Keep accumulating real OI archive days
+(`data/oi/`) and re-test once there's meaningfully more than 4 days -
+until then this whipsaw problem stays open and unsolved, same
+conclusion as 02-Sep, now with 8x the testing behind it.
+
+==================================================
+
 Status
 
 🟢 Stable
@@ -134,9 +182,12 @@ Next Session
    retry wrapper genuinely covers the gap fine once one fresh-enough
    restart has happened.
 
-3. Carried over from 02-Sep: `oi_footprint`'s own same-direction-after-
-   loss whipsaw is still unsolved (2 ideas falsified) - needs a
-   genuinely different approach or more real OI data before trying
-   again.
+3. Carried over from 02-Sep, now tested exhaustively (all 8 gate
+   combinations, all 4 real OI days): `oi_footprint`'s own same-
+   direction-after-loss whipsaw is STILL unsolved. Cooldown-only is
+   the sole variant that beats baseline, and only by ~6% on a 4-day
+   sample - not enough to trust or ship. Decision was to WAIT for more
+   real OI archive data rather than apply anything now. Re-test once
+   `data/oi/` has meaningfully more days.
 
 ==================================================
