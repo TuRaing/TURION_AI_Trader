@@ -95,12 +95,17 @@
 # before market opens, which is exactly when this kept happening live.
 # FIX: an unconditional daily restart, independent of deploy.sh's
 # commit-gating, well before both market open and deploy.sh's own run:
-#   0 2 * * 1-5 sudo systemctl restart turion-event-driven
-# (02:00 UTC = 07:30 IST, 30 min before deploy.sh's 02:30 UTC/08:00 IST
-# run - if today's login has already happened, this restart picks up a
-# fresh token immediately; if not, the existing retry-on-stale-token
-# wrapper (27-Aug) takes over and retries every 120s as before - this
-# is strictly additive, not a replacement for that fix). Matching
+#   28 2 * * 1-5 sudo systemctl restart turion-event-driven
+# (02:28 UTC = 07:58 IST, 2 min before deploy.sh's 02:30 UTC/08:00 IST
+# run - deliberately NOT the same minute as deploy.sh, to avoid both
+# racing to restart the same services at once. CHANGED same day from
+# an initial 07:30 IST pick to 07:58 IST, user's own explicit ask - the
+# user's own login usually lands 07:00-07:30 IST, so 07:58 IST leaves
+# real margin rather than assuming login always beats a 07:30 restart.
+# If today's login has already happened by 07:58, this restart picks
+# up a fresh token immediately; if not, the existing retry-on-stale-
+# token wrapper (27-Aug) takes over and retries every 120s as before -
+# this is strictly additive, not a replacement for that fix). Matching
 # entries added for turion-tick-collector.service and turion-depth-
 # collector.service (see their own copies of this note) - same gap,
 # same fix, all 3 services.

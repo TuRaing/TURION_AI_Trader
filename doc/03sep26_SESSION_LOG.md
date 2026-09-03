@@ -36,29 +36,35 @@ services, independent of `deploy.sh`'s commit-gating (which only
 restarts when there's a NEW commit to pull - the actual root cause of
 why the daily 08:00 IST deploy never covered this):
 
-    0 2 * * 1-5 sudo systemctl restart turion-event-driven
-    0 2 * * 1-5 sudo systemctl restart turion-tick-collector
-    0 2 * * 1-5 sudo systemctl restart turion-depth-collector
+    28 2 * * 1-5 sudo systemctl restart turion-event-driven
+    28 2 * * 1-5 sudo systemctl restart turion-tick-collector
+    28 2 * * 1-5 sudo systemctl restart turion-depth-collector
 
-(02:00 UTC = 07:30 IST, 30 min before `deploy.sh`'s own 02:30 UTC run,
-Mon-Fri only.) Already covered by the existing NOPASSWD sudoers scope
-(restart was already permitted per-service) - no sudoers change
-needed. THREE separate crontab lines, not one combined `systemctl
-restart a b c` command - sudoers only permits the exact single-service
-command strings already granted, a combined multi-service invocation
-would not match any of them and would silently fail under cron (caught
-before installing, not after). This is strictly additive to the
-existing fixes, not a replacement: if login hasn't happened yet by
-07:30 IST, the 27-Aug retry-on-stale-token wrapper still takes over
-exactly as before.
+(02:28 UTC = 07:58 IST - 2 min before `deploy.sh`'s own 02:30 UTC run,
+deliberately not the same minute to avoid both racing to restart the
+same services at once. CHANGED same session from an initial 07:30 IST
+pick to 07:58 IST, user's own explicit ask - login usually lands
+07:00-07:30 IST, so 07:58 IST leaves real margin instead of assuming
+login always beats a 07:30 restart.) Already covered by the existing
+NOPASSWD sudoers scope (restart was already permitted per-service) -
+no sudoers change needed. THREE separate crontab lines, not one
+combined `systemctl restart a b c` command - sudoers only permits the
+exact single-service command strings already granted, a combined
+multi-service invocation would not match any of them and would
+silently fail under cron (caught before installing, not after). This
+is strictly additive to the existing fixes, not a replacement: if
+login hasn't happened yet by 07:58 IST, the 27-Aug retry-on-stale-
+token wrapper still takes over exactly as before.
 
 Documented in all 3 `deploy/*.service` files (mirroring the existing
 `turion-event-driven.service`/`turion-tick-collector.service`/
 `turion-depth-collector.service` convention for VPS crontab entries)
 so a future VPS reinstall reproduces this, not just the live crontab
-having it. Installed live on the VPS crontab the same session - takes
-effect from tomorrow (04-Sep) morning, since today's 07:30 IST window
-had already passed by the time this was built.
+having it. Installed live on the VPS crontab the same session (first
+at 07:30 IST, then corrected to 07:58 IST minutes later at the user's
+own request) - takes effect from tomorrow (04-Sep) morning, since
+today's pre-market window had already passed by the time this was
+built.
 
 ==================================================
 
@@ -79,20 +85,20 @@ Python/Dart code shipped)
 
 Next Session
 
-1. Verify tomorrow (04-Sep) morning that the new unconditional 07:30
+1. Verify tomorrow (04-Sep) morning that the new unconditional 07:58
    IST restart actually fires and picks up the day's token cleanly
    (assuming login has happened by then) - the real first live test of
    today's fix, same as every other fix this week has needed its own
    live confirmation before being trusted.
 
-2. If login typically happens AFTER 07:30 IST some mornings, this fix
-   alone won't fully close the gap (the 07:30 restart would just repeat
+2. If login typically happens AFTER 07:58 IST some mornings, this fix
+   alone won't fully close the gap (the 07:58 restart would just repeat
    yesterday's pattern of "started but token still stale," relying on
    the existing 120s retry-on-stale-token wrapper to eventually pick up
    a later login). Worth watching whether that's common enough to need
-   a second, later unconditional restart too (e.g. a 08:45 IST one),
-   or whether the existing retry wrapper genuinely covers the gap fine
-   once one fresh-enough restart has happened.
+   a second, later unconditional restart too, or whether the existing
+   retry wrapper genuinely covers the gap fine once one fresh-enough
+   restart has happened.
 
 3. Carried over from 02-Sep: `oi_footprint`'s own same-direction-after-
    loss whipsaw is still unsolved (2 ideas falsified) - needs a
