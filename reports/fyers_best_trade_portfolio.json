@@ -1,15 +1,6 @@
 {
-  "Cash": 99636.21576404035,
-  "Position": {
-    "Name": "NTPC",
-    "Symbol": "NTPC.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-09-03 11:07:28",
-    "Entry Price": 331.45,
-    "Quantity": 1,
-    "Stop Loss": 330.58,
-    "Target": 333.19
-  },
+  "Cash": 99634.99483422156,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -576,6 +567,20 @@
       "PnL": -5.51,
       "Cost": 1.53,
       "Net PnL": -7.04
+    },
+    {
+      "Name": "NTPC",
+      "Symbol": "NTPC.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-09-03 11:07:28",
+      "Entry Price": 331.45,
+      "Exit Time": "2026-09-03 12:11:43",
+      "Exit Price": 330.58,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -0.87,
+      "Cost": 0.35,
+      "Net PnL": -1.22
     }
   ],
   "Data Source": "Fyers"
