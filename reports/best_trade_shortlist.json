@@ -1,5 +1,5 @@
 {
-  "Generated At": "2026-09-03 08:05:49",
+  "Generated At": "2026-09-03 08:40:07",
   "Stocks": [
     {
       "Name": "ITC",
@@ -12,19 +12,9 @@
       "Candle Pattern": "Bearish Engulfing"
     },
     {
-      "Name": "HDFCBANK",
-      "Symbol": "HDFCBANK.NS",
-      "Price": 707.35,
-      "Decision": "SELL",
-      "Bias": "Bearish",
-      "Confidence": 60.0,
-      "ATR": 12.27,
-      "Candle Pattern": "Shooting Star"
-    },
-    {
       "Name": "KOTAKBANK",
       "Symbol": "KOTAKBANK.NS",
-      "Price": 423.3,
+      "Price": 423.55,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 60.0,
@@ -34,17 +24,27 @@
     {
       "Name": "MARUTI",
       "Symbol": "MARUTI.NS",
-      "Price": 12890.0,
+      "Price": 12840.0,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
       "ATR": 238.07,
-      "Candle Pattern": "No Pattern"
+      "Candle Pattern": "Doji"
+    },
+    {
+      "Name": "SBILIFE",
+      "Symbol": "SBILIFE.NS",
+      "Price": 1718.8,
+      "Decision": "SELL",
+      "Bias": "Bearish",
+      "Confidence": 60.0,
+      "ATR": 28.64,
+      "Candle Pattern": "Shooting Star"
     },
     {
       "Name": "DRREDDY",
       "Symbol": "DRREDDY.NS",
-      "Price": 1158.2,
+      "Price": 1158.6,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
@@ -54,7 +54,7 @@
     {
       "Name": "DIVISLAB",
       "Symbol": "DIVISLAB.NS",
-      "Price": 9239.5,
+      "Price": 9218.5,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 60.0,
@@ -80,17 +80,6 @@
   ],
   "News": {
     "ITC": {
-      "Headlines": [
-        "ITC Share Price Live Updates: ITC's Price Movement Today"
-      ],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 1,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "HDFCBANK": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -109,6 +98,15 @@
       "Confidence": 0.0
     },
     "MARUTI": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "SBILIFE": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -136,17 +134,6 @@
       "Confidence": 0.0
     },
     "BRITANNIA": {
-      "Headlines": [
-        "Britannia Share Price Live Updates: Britannia's Price Movement Today"
-      ],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 1,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "ICICIBANK": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -155,7 +142,16 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "HINDUNILVR": {
+    "HDFCBANK": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "ICICIBANK": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -211,40 +207,11 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "TATASTEEL": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "SBILIFE": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "BAJAJ-AUTO": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
       "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "UPL": {
-      "Headlines": [
-        "UPL Share Price Live Updates: UPL's Price Movement Today"
-      ],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 1,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -285,6 +252,15 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "HINDUNILVR": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "SBIN": {
       "Headlines": [],
       "Positive": 0,
@@ -305,15 +281,15 @@
     },
     "LT": {
       "Headlines": [
-        "Bonus issue alert! Multibagger Titan Biotech announces its maiden 1:4 bonus issue",
-        "LTIMindtree Share Price Live Updates: Today's Price Movement for LTIMindtree"
+        "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
+        "Bonus issue alert! Multibagger Titan Biotech announces its maiden 1:4 bonus issue"
       ],
-      "Positive": 0,
+      "Positive": 1,
       "Negative": 0,
-      "Neutral": 2,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
+      "Neutral": 1,
+      "Sentiment": "Bullish",
+      "Score": 1.0,
+      "Confidence": 100.0
     },
     "AXISBANK": {
       "Headlines": [],
@@ -369,6 +345,15 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "TATASTEEL": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "ADANIPORTS": {
       "Headlines": [],
       "Positive": 0,
@@ -379,6 +364,15 @@
       "Confidence": 0.0
     },
     "JSWSTEEL": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "COALINDIA": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -432,6 +426,15 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "UPL": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "BPCL": {
       "Headlines": [
         "BPCL Share Price Live Updates: BPCL Stock Details"
@@ -462,15 +465,6 @@
       "Confidence": 0.0
     },
     "ADANIENT": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "COALINDIA": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -544,6 +538,38 @@
     }
   },
   "Market Headlines": [
+    {
+      "Headline": "Taking Stock: Market fails to hold on to day#39;s gains, ends marginally higher",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Sensex, Nifty gain for third day in a row; easing volatility to support bull trend",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Mid-day Mood | Cooling volatility sparks market rally, India VIX sees steepest fall in 4 years",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Supreme Court dismisses Sebi\u2019s plea against NSE: Report",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "PTC India, Coal India among 10 stocks offering dividend yields of up to 10%",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "US economic activity rises modestly, inflation pressures persist: Fed Beige Book",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Microsoft shares rise after Azure sales disclosure; AI cloud growth in focus",
+      "Sentiment": "Bullish"
+    },
     {
       "Headline": "Bonus issue alert! Multibagger Titan Biotech announces its maiden 1:4 bonus issue",
       "Sentiment": "Neutral"
@@ -689,7 +715,7 @@
       "Sentiment": "Bearish"
     },
     {
-      "Headline": "Bajaj Finserv Share Price Live Updates: Bajaj Finserv Current Price Update",
+      "Headline": "Bajaj Finserv Share Price Live Updates: Bajaj Finserv's Current Price and Market Performance",
       "Sentiment": "Neutral"
     },
     {
@@ -710,38 +736,6 @@
     },
     {
       "Headline": "JSW Steel Share Price Live Updates: JSW Steel  Stock Update",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "India's $127 billion NRI deposits arm gives RBI more firepower, setting rupee up for rally",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "LTIMindtree Share Price Live Updates: Today's Price Movement for LTIMindtree",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "ITC Share Price Live Updates: ITC's Price Movement Today",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Britannia Share Price Live Updates: Britannia's Price Movement Today",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Tata Consumer Share Price Live Updates: Tata Consumer News",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "UPL Share Price Live Updates: UPL's Price Movement Today",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "HUL Share Price Live Updates: HUL Stock Details",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Infosys Share Price Live Updates: Disclosure Under Regulation 30 Of SEBI LODR Regulations",
       "Sentiment": "Neutral"
     }
   ]
