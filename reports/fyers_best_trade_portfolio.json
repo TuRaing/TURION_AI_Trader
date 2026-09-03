@@ -1,15 +1,6 @@
 {
-  "Cash": 99643.25298618262,
-  "Position": {
-    "Name": "ICICIBANK",
-    "Symbol": "ICICIBANK.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-09-03 10:03:10",
-    "Entry Price": 1448.2,
-    "Quantity": 1,
-    "Stop Loss": 1442.695,
-    "Target": 1459.21
-  },
+  "Cash": 99636.21576404035,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -562,6 +553,20 @@
       "PnL": -0.25,
       "Cost": 0.28,
       "Net PnL": -0.53
+    },
+    {
+      "Name": "ICICIBANK",
+      "Symbol": "ICICIBANK.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-09-03 10:03:10",
+      "Entry Price": 1448.2,
+      "Exit Time": "2026-09-03 10:36:39",
+      "Exit Price": 1442.695,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -5.51,
+      "Cost": 1.53,
+      "Net PnL": -7.04
     }
   ],
   "Data Source": "Fyers"
