@@ -148,6 +148,55 @@ AND a live full-day confirmation, a much higher bar than anything
 until then this whipsaw problem stays open and unsolved, same
 conclusion as 02-Sep, now with 8x the testing behind it.
 
+RE-TEST THRESHOLD SET: re-run the full 8-variant oi_footprint gate
+sweep once 15 usable OI-archive days exist (~4x today's sample, to
+dilute the outlier-day effect seen today - one single day, 31-Aug,
+swung the "consistent signal" variant from 0 trades to 22 depending on
+which other gate it was paired with). 10 days = an interim sanity
+glance only, not a re-decision point.
+
+==================================================
+
+DATA INVENTORY CHECK - 3 COLLECTORS, 3 DIFFERENT START DATES, ONE
+ARCHIVE NEVER SYNCED. User asked directly how much real data exists
+across the board, not just OI. Checked git history for each
+collector's first-deploy commit plus both local `data/` and the VPS's
+`/opt/turion/TURION_AI_Trader/data/` directly over SSH (root@65.20.
+78.253, key ~/.ssh/turion_vps - NOTE the deploy/sync scripts connect
+as `root`, not `turion`; a `turion@` SSH attempt this session failed
+with "Permission denied (publickey)" before this was caught).
+
+    Collector      First deployed   Usable trading days   Days
+    Tick (ticks)   20-Aug           9                     21,24,25,
+                                                            26,27,28,
+                                                            31-Aug +
+                                                            01,02,03-Sep
+    Depth (order-  24-Aug           8                     24,25,26,
+    book, VPS-only)                                       27,28,31-Aug
+                                                            + 01,02,03-Sep
+    OI (oi_        28-Aug (deploy   4                      31-Aug +
+    footprint)     20:27 IST, after                        01,02,03-Sep
+                   close) - first
+                   real trading day
+                   31-Aug (Monday)
+
+22-Aug and 29-Aug tick/depth files exist on the VPS but both were
+Saturdays (no real trading) - not counted.
+
+REAL FINDING: the depth (order-book) archive has been accumulating on
+the VPS since 24-Aug and has NEVER been synced to this machine or used
+in any backtest - `/opt/turion/TURION_AI_Trader/data/depth/` currently
+holds ~500MB across 8 daily files (~25-65MB/day). Nothing consumes it
+yet. On a 1GB-RAM/limited-disk VPS (see [[project_vps_migration_on_
+live_trading]] - staying on the current small VPS until real-money
+trading starts) this is a real, growing disk-usage risk if left
+unmanaged, not just an unused-data curiosity. No action taken yet -
+flagged to the user (sync locally for future depth/spread backtests,
+then clear the already-synced files off the VPS to free space) but not
+executed this session; VPS-side deletion needs the user's own go-ahead
+first, and live trading is active so timing matters too (see [[feedback_
+no_market_hours_vps_deploys]]).
+
 ==================================================
 
 Status
@@ -188,6 +237,14 @@ Next Session
    the sole variant that beats baseline, and only by ~6% on a 4-day
    sample - not enough to trust or ship. Decision was to WAIT for more
    real OI archive data rather than apply anything now. Re-test once
-   `data/oi/` has meaningfully more days.
+   `data/oi/` has meaningfully more days - threshold set today: 15
+   usable days (currently 4/15).
+
+4. Decide on the never-synced VPS depth archive (`/opt/turion/TURION_
+   AI_Trader/data/depth/`, ~500MB, 8 real trading days, 24-Aug through
+   03-Sep) - sync it down for future depth/spread backtests, then
+   clear the already-synced copies off the VPS to free disk. Not done
+   this session - needs the user's go-ahead on the VPS-side delete
+   step, and market-hours timing.
 
 ==================================================
