@@ -43,9 +43,15 @@ real Deribit market data instead of Fyers/NSE data.
   - `turion-crypto-options-btc-profitlock` / `-eth-profitlock` — added
     30-Aug-2026, see "Profit-lock books" below. Separate books, not a
     change to the two above.
+  - `turion-crypto-options-btc-rsi70` / `-eth-rsi70` — added
+    31-Aug-2026, RSI 70/30 conviction threshold. See "RSI 70/30
+    threshold books" below.
+  - `turion-crypto-options-btc-rsi70-lock` — added 01-Sep-2026, RSI
+    70/30 + `daily_loss_lock` (max 2 consecutive losses), BTC only.
+    See "Combo sweep" below.
 
-  All four confirmed live and holding positions normally (no repeat of
-  the stop-loss loop below) right after their own deploys.
+  All seven confirmed live and holding positions normally (no repeat
+  of the stop-loss loop below) right after their own deploys.
 - **Phase 5 (mobile app)** — done differently than originally planned,
   29-Aug-2026: instead of adding a `crypto_screen.dart` tab to the
   main `mobile_app`, the user explicitly asked for a **separate,
@@ -246,6 +252,123 @@ exact same shared decide_fn - any new helper that touches `timestamp`
 directly (not just cfg/data_point fields) needs to be checked against
 BOTH paths, not just backtested, before it's trusted live.
 
+## RSI 70/30 threshold books (BTC/ETH), 31-Aug-2026
+
+Real finding: a plain `RSI>=50` midpoint split fires on every marginal
+RSI wobble on a choppy day - a real 31-Aug session showed this
+disproportionately hurts PE (down-direction) entries (BTC profit-lock
+book that day: PE -$3,991 net vs CE -$130 net). New opt-in
+`rsi_ce_threshold`/`rsi_pe_threshold` in `event_driven_engine.py`
+(both default 50 - byte-identical split, no neutral zone, for every
+existing book). A backtest sweep found `CE>=70`/`PE<=30` (genuine
+conviction required for either side) flips both BTC and ETH from a
+real backtest loss to a real profit, and critically PE trades
+THEMSELVES turn profitable too (not just filtered out) - ETH:
++$2,064/+$2,067 across two different real windows, near-identical;
+BTC: +$11,157 on the one window with enough real liquidity to test.
+Deployed as two new, separate books
+(`rsi_momentum_crypto_{btc,eth}_rsi70`) via `CRYPTO_RSI_CE_THRESHOLD`/
+`CRYPTO_RSI_PE_THRESHOLD` env vars.
+
+## [FOUND, 04-Sep-2026] Near-expiry lot-size blowup - a real risk, not a bug
+
+**Symptom:** BTC's plain LTP book showed one single trade worth
++$16,722.17 (56 lots!) among a 320-trade, +$23,193 day - a wildly
+larger swing than any prior day.
+
+**Root cause:** ATM is picked ONCE at each book's own startup, never
+re-derived as the contract approaches its own expiry (a documented
+limitation since Phase 2). The currently-held contract
+(`BTC-4SEP26-81000-P`) was expiring THAT SAME DAY. As real expiry
+nears, an option's time value collapses toward zero - and lot sizing
+(`lots = initial_capital // (entry_premium * lot_size)`) is inversely
+proportional to premium, so a crashing premium makes lot counts
+balloon (56, 94, 123, 136, 153 lots seen live, vs the normal 5-20).
+Every subsequent % move now swings a proportionally huge dollar
+amount - both wins (+$16,722 on one trade) and losses (~$1,000-1,100
+per Stop-Loss, vs the normal ~$200) blow up together, right at the
+point in a contract's life where this is least expected.
+
+**Not fixed yet** - flagged live, user asked about immediate stop vs
+riding out the ~6 hours to real expiry; no code change made this
+session. A real fix would need either (a) re-deriving/rolling ATM to
+a fresh, longer-dated contract as expiry approaches (mirrors
+`event_driven_runner.py`'s own documented ATM-drift limitation on the
+NIFTY side), or (b) a hard cap on lots/notional regardless of how
+cheap premium gets. Carried to next session.
+
+## [ADDED, 01-Sep-2026] Stop new entries once a book's capital hits zero
+
+User's own explicit ask - "balance minus मध्ये जातायत... zero झालं की
+stop व्हायला हवं". Position sizing has always used the FIXED
+`initial_capital`, never the live shrinking Cash (deliberate "paper
+bookkeeping, not a real spending constraint" choice already used
+elsewhere in this project), so without a gate a book keeps opening
+full-size positions forever even once its own realized Cash has gone
+deeply negative - confirmed live: BTC at -$5,791, ETH at -$688 before
+this was added.
+
+New opt-in `stop_at_zero_capital` in `event_driven_engine.py`/
+`make_st2_threshold_event_cfg` (default `False` - every existing
+NIFTY/BankNifty book unchanged). Only blocks NEW entries - an
+already-open position still runs to its own Target/Stop-Loss.
+`strategy/crypto_tick_runner.py` now always includes `current_cash` in
+the live `data_point`. Enabled unconditionally for ALL crypto books
+(not opt-in per book like the performance experiments) - this is a
+risk-control fix, not something to A/B test.
+
+**Manually topped up once, same day** - after the gate correctly
+stopped BTC/ETH (plain) and BTC profit-lock (which itself later fell
+from +$6,775 all-time to -$10,080 after a single -$16,197 day, then
+hit the zero-capital stop too), the user asked to refill the ones that
+had run out. Reused the NIFTY side's own established `_maybe_top_up_
+capital()` record shape (`portfolio["Capital Top-ups"]`: Time, Cash
+Before, Topped Up To) for consistency/transparency, applied as a
+one-time manual edit to each VM portfolio JSON (services stopped,
+`sudo python3` edit needed - the JSON files are root-owned since the
+systemd units run as root, `python3` edit, services restarted). NOT
+an automatic recurring top-up - the zero-capital stop gate stays as
+the real safety net; this was a one-off "let me watch it again"
+refill, not a policy change.
+
+## Combo sweep (RSI threshold x daily_loss_lock x trend confirmation), 01-Sep-2026
+
+Real trigger: BTC RSI-70/30 took 9 consecutive PE Stop-Losses in 12
+minutes on 4-Sep - spot trending steadily UP while RSI kept reading
+oversold on the fast (5-min) view ("RSI divergence"), so even the
+70/30 conviction gate didn't prevent every single entry from being
+wrong in the same direction.
+
+Three candidate fixes were built and swept, separately and combined,
+across two real windows per currency:
+1. **`daily_loss_lock`** (already existed, max 2 consecutive losses,
+   UTC-calendar-day) stacked on RSI 70/30.
+2. **RSI 80/20** (even more conviction required) alone.
+3. **New: `require_trend_confirmation`** (`event_driven_engine.py`,
+   opt-in) - CE only if spot is above its own EMA, PE only if below.
+   `crypto_options_backtest.py` computes a 1-hour spot EMA
+   (`spot_ema`, `EMA_PERIOD=12` at 5-min resolution) for this.
+
+**Result: `RSI 70/30 + daily_loss_lock` was the ONLY variant positive
+in BOTH tested real windows for BTC** (recent: -$1,172 -> +$5,189;
+older: still +$10,525, from +$12,902 baseline). RSI 80/20 alone was
+wildly inconsistent (as good as +$1,637/64.7% win on ETH, as bad as
+-$6,223/0% win on BTC's thin recent window - only 3 trades, not a
+trustworthy sample either way). **`require_trend_confirmation` showed
+close to NO effect in the tested windows** - several results were
+byte-identical to the same run without it, meaning the EMA gate
+rarely actually blocked anything in this specific data - built for a
+real problem, but not validated as the fix by this particular
+backtest. ETH did not show the same loss-lock benefit BTC did.
+
+Deployed BTC-only: new `rsi_momentum_crypto_btc_rsi70_lock` book via
+`CRYPTO_DAILY_LOSS_LOCK`/`CRYPTO_MAX_CONSECUTIVE_LOSSES` on top of the
+existing RSI-70/30 env vars, alongside (not replacing) the plain
+RSI-70/30 book. `require_trend_confirmation` was added as real,
+tested, reusable capability (own regression tests) but is NOT used by
+any live book yet - the sweep didn't show it earning its complexity
+for this problem.
+
 ## Redeploying code to the VM
 
 ```
@@ -343,6 +466,20 @@ clean from the start, never having run the buggy cost model live.
    if the backtest-tuned improvement holds up on real forward data,
    same "single-window backtest isn't proof" caution as everywhere
    else in this doc.
+5. **Not yet fixed:** the near-expiry lot-size blowup (see that
+   section above) - BTC's plain LTP book is currently exposed to it
+   right now, live. Needs a real decision: re-derive ATM as expiry
+   nears, or cap lots/notional outright.
+6. Watch whether BTC RSI-70/30+lock actually holds up forward - the
+   backtest evidence is real but from a small sample (same caution as
+   everywhere else). ETH still has no loss-lock variant (didn't help
+   in the sweep).
+7. Now 7 live books total (2 plain, 2 profit-lock, 2 RSI-70/30, 1
+   RSI-70/30+lock) + matching `crypto_app` tabs - the app is getting
+   crowded; consider whether some early/weaker variants (e.g. plain
+   BTC/ETH, which exist mainly for LTP-vs-Quote comparison research at
+   this point) should eventually be trimmed from the app view, once
+   there's enough live history to not need them for reference anymore.
 
 ## Note on dates in this doc and its commits
 
