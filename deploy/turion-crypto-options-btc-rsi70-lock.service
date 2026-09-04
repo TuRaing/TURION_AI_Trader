@@ -1,0 +1,55 @@
+# Added 01-Sep-2026 - RSI-70/30-threshold + daily_loss_lock BTC book,
+# per a real live whipsaw: BTC RSI-70/30 took 9 consecutive PE Stop-
+# Losses in 12 minutes on 4-Sep (spot trending up against every
+# "conviction" PE entry). A combo backtest sweep found RSI-70/30 +
+# daily_loss_lock (max 2 consecutive losses) was the ONLY variant
+# positive in BOTH tested real windows for BTC - see doc/CRYPTO_
+# PROJECT_STATUS.md's own sweep record. ETH did NOT show the same
+# benefit, so this is BTC-only. Same "separate book, not a change to
+# the running turion-crypto-options-btc-rsi70" rule as every other
+# opt-in variant - own STRATEGY_NAME (rsi_momentum_crypto_btc_rsi70_
+# lock) via CRYPTO_DAILY_LOSS_LOCK on top of the existing CRYPTO_RSI_
+# CE_THRESHOLD/CRYPTO_RSI_PE_THRESHOLD.
+#
+# Install with:
+#   sudo cp deploy/turion-crypto-options-btc-rsi70-lock.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable turion-crypto-options-btc-rsi70-lock
+#   sudo systemctl start turion-crypto-options-btc-rsi70-lock
+#
+# Useful commands once running:
+#   sudo systemctl status turion-crypto-options-btc-rsi70-lock
+#   journalctl -u turion-crypto-options-btc-rsi70-lock -f
+#   sudo systemctl restart turion-crypto-options-btc-rsi70-lock
+
+[Unit]
+Description=TURION Crypto Options Engine (Deribit BTC, RSI 70/30 + daily loss lock, WebSocket, paper-trading)
+After=network-online.target
+Wants=network-online.target
+
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+
+WorkingDirectory=/home/ubuntu/turion-crypto
+ExecStart=/home/ubuntu/turion-crypto/venv/bin/python run_crypto_options_engine.py
+
+Restart=on-failure
+RestartSec=10
+
+# CRYPTO_CURRENCY unset -> defaults to BTC. RSI 70/30 conviction gate
+# + stop after 2 consecutive losses (UTC calendar day).
+Environment="CRYPTO_RSI_CE_THRESHOLD=70"
+Environment="CRYPTO_RSI_PE_THRESHOLD=30"
+Environment="CRYPTO_DAILY_LOSS_LOCK=1"
+Environment="CRYPTO_MAX_CONSECUTIVE_LOSSES=2"
+
+EnvironmentFile=/home/ubuntu/turion-crypto/.env
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

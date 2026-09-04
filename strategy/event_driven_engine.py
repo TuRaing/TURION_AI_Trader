@@ -342,6 +342,31 @@ def _rsi_momentum_decide(cfg, position, data_point, entry_field, exit_field):
         else:
             return f"SKIPPED (RSI {round(rsi, 1)} in neutral zone)", None, None
 
+        # require_trend_confirmation - added 01-Sep-2026, at the user's
+        # own request after a real whipsaw: a real 4-Sep BTC session
+        # showed 9 consecutive PE entries (RSI<=30, genuine conviction
+        # by the threshold gate above) all immediately Stop-Lossed
+        # because spot kept RISING throughout - RSI was oversold on a
+        # short 5-min view while the underlying was still in an
+        # uptrend on a slower view ("RSI divergence"). Requires a
+        # slower-moving trend read (data_point["spot_ema"], a longer-
+        # period EMA of spot - see crypto_options_backtest.py's own
+        # note for how the backtest computes this) to agree with the
+        # RSI-driven direction before entering: CE only if spot is
+        # ABOVE its own EMA (confirmed uptrend), PE only if BELOW
+        # (confirmed downtrend). Missing spot_ema (EMA not warmed up
+        # yet) -> SKIPPED, never silently ignored. Opt-in (cfg.get,
+        # default falsy) - every existing book's behavior is
+        # unchanged.
+        if cfg.get("require_trend_confirmation"):
+            spot_ema = data_point.get("spot_ema")
+            if spot_ema is None:
+                return "SKIPPED (trend EMA not ready yet)", None, None
+            if option_type == "CE" and data_point["spot"] <= spot_ema:
+                return "SKIPPED (CE blocked - spot below trend EMA)", None, None
+            if option_type == "PE" and data_point["spot"] >= spot_ema:
+                return "SKIPPED (PE blocked - spot above trend EMA)", None, None
+
         symbol = data_point[f"{option_type.lower()}_symbol"]
         entry_premium = data_point.get(f"{option_type.lower()}_{entry_field}")
 
@@ -516,7 +541,7 @@ def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
                                   daily_loss_lock=False, max_consecutive_losses=2,
                                   cost_fn=None, trailing_min_pct=None, trailing_giveback_pct=None,
                                   rsi_ce_threshold=50, rsi_pe_threshold=50,
-                                  stop_at_zero_capital=False):
+                                  stop_at_zero_capital=False, require_trend_confirmation=False):
     """
     cfg builder for rsi_momentum_decide_fn/rsi_momentum_quote_decide_fn
     - mirrors fyers_options_engine.py's make_strategy() field names
@@ -576,6 +601,11 @@ def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
     book's behavior unchanged - a book keeps opening full-size new
     positions off its own fixed initial_capital regardless of how
     negative its real Cash has gone, same as always.
+
+    require_trend_confirmation - added 01-Sep-2026, see _rsi_momentum_
+    decide()'s own matching note. False (default) keeps every existing
+    book's behavior unchanged - RSI alone decides direction, no slower
+    trend check.
     """
 
     return {
@@ -592,6 +622,7 @@ def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
         "rsi_ce_threshold": rsi_ce_threshold,
         "rsi_pe_threshold": rsi_pe_threshold,
         "stop_at_zero_capital": stop_at_zero_capital,
+        "require_trend_confirmation": require_trend_confirmation,
         "daily_profit_lock": daily_profit_lock,
         "daily_profit_lock_pct": daily_profit_lock_pct,
         "daily_loss_lock": daily_loss_lock,

@@ -139,10 +139,26 @@ RSI_CE_THRESHOLD = float(os.environ.get("CRYPTO_RSI_CE_THRESHOLD", 50))
 RSI_PE_THRESHOLD = float(os.environ.get("CRYPTO_RSI_PE_THRESHOLD", 50))
 RSI_THRESHOLD_CHANGED = RSI_CE_THRESHOLD != 50 or RSI_PE_THRESHOLD != 50
 
+# CRYPTO_DAILY_LOSS_LOCK/CRYPTO_MAX_CONSECUTIVE_LOSSES - added
+# 01-Sep-2026, after a real live whipsaw: BTC RSI-70/30 took 9
+# consecutive PE Stop-Losses in 12 minutes on 4-Sep (spot trending up
+# against every "conviction" PE entry). A combo backtest sweep found
+# RSI-70/30 + daily_loss_lock (max 2 consecutive losses, the existing
+# UTC-calendar-day version - see event_driven_engine.py's own note)
+# was the ONLY variant positive in BOTH tested real windows for BTC
+# (recent: -$1,172 -> +$5,189; older: still +$10,525) - see doc/
+# CRYPTO_PROJECT_STATUS.md's own sweep record. ETH did NOT show the
+# same benefit, so this is deployed BTC-only for now (own systemd
+# unit, not a currency-agnostic env default). Own STRATEGY_NAME suffix
+# ("_lock") so it never mixes history with the plain RSI-70/30 book.
+DAILY_LOSS_LOCK_ENABLED = os.environ.get("CRYPTO_DAILY_LOSS_LOCK", "0") == "1"
+MAX_CONSECUTIVE_LOSSES = int(os.environ.get("CRYPTO_MAX_CONSECUTIVE_LOSSES", 2))
+
 STRATEGY_NAME = f"rsi_momentum_crypto_{CURRENCY.lower()}"
 STRATEGY_NAME += "_quote" if QUOTE_BASED else ""
 STRATEGY_NAME += "_profitlock" if PROFIT_LOCK_ENABLED else ""
 STRATEGY_NAME += f"_rsi{int(RSI_CE_THRESHOLD)}" if RSI_THRESHOLD_CHANGED else ""
+STRATEGY_NAME += "_lock" if DAILY_LOSS_LOCK_ENABLED else ""
 
 
 def _seed_candles(currency):
@@ -219,7 +235,9 @@ def build_runner():
                                         # performance experiment to A/B
                                         # test. See event_driven_engine.
                                         # py's own matching note.
-                                        stop_at_zero_capital=True)
+                                        stop_at_zero_capital=True,
+                                        daily_loss_lock=DAILY_LOSS_LOCK_ENABLED,
+                                        max_consecutive_losses=MAX_CONSECUTIVE_LOSSES)
     portfolio = load_portfolio(STRATEGY_NAME, INITIAL_CAPITAL)
 
     return CryptoTickRunner(

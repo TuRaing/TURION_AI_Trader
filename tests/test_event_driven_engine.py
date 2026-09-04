@@ -105,6 +105,56 @@ def test_stop_at_zero_capital_does_not_block_managing_an_existing_position():
     assert new_position is not None
 
 
+def test_ce_blocked_when_spot_below_trend_ema():
+    cfg = _cfg(require_trend_confirmation=True)
+
+    action, position, trade = rsi_momentum_decide_fn(
+        cfg, None, _data_point(rsi=55.0, spot=24500.0, spot_ema=24600.0)
+    )
+
+    assert "SKIPPED (CE blocked - spot below trend EMA)" in action
+    assert position is None
+
+
+def test_pe_blocked_when_spot_above_trend_ema():
+    cfg = _cfg(require_trend_confirmation=True)
+
+    action, position, trade = rsi_momentum_decide_fn(
+        cfg, None, _data_point(rsi=45.0, spot=24500.0, spot_ema=24400.0)
+    )
+
+    assert "SKIPPED (PE blocked - spot above trend EMA)" in action
+    assert position is None
+
+
+def test_ce_allowed_when_spot_above_trend_ema():
+    cfg = _cfg(require_trend_confirmation=True)
+
+    action, position, trade = rsi_momentum_decide_fn(
+        cfg, None, _data_point(rsi=55.0, spot=24600.0, spot_ema=24500.0)
+    )
+
+    assert "OPENED CE" in action
+
+
+def test_trend_confirmation_skips_when_ema_not_ready():
+    cfg = _cfg(require_trend_confirmation=True)
+
+    action, position, trade = rsi_momentum_decide_fn(cfg, None, _data_point(rsi=55.0, spot_ema=None))
+
+    assert "SKIPPED (trend EMA not ready yet)" in action
+
+
+def test_trend_confirmation_ignored_when_flag_is_off():
+    # Defaults to False - a spot below its own EMA must not block CE
+    # unless explicitly turned on.
+    action, position, trade = rsi_momentum_decide_fn(
+        _cfg(), None, _data_point(rsi=55.0, spot=24500.0, spot_ema=24600.0)
+    )
+
+    assert "OPENED CE" in action
+
+
 def test_skips_open_when_daily_profit_lock_reached():
     cfg = _cfg(daily_profit_lock=True, daily_profit_lock_pct=2.0)
 

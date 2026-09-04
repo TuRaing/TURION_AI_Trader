@@ -103,6 +103,22 @@ def build_historical_data_points(currency="BTC", lookback_days=LOOKBACK_DAYS, of
     data_points = []
     last_ce_coin, last_pe_coin = None, None
 
+    # spot_ema - added 01-Sep-2026, at the user's own request, feeding
+    # event_driven_engine.py's opt-in require_trend_confirmation gate
+    # (see that module's own note for the real 4-Sep whipsaw this is
+    # meant to fix). EMA_PERIOD=12 at this module's own 5-min
+    # resolution = a 1-hour trend read, deliberately much slower than
+    # CandleAggregator's own RSI (which reacts within a few candles) -
+    # "slow" is the whole point, so a brief RSI-oversold/overbought
+    # blip inside a longer trend doesn't count as trend-reversal
+    # confirmation. None until EMA_PERIOD real spot bars have been
+    # seen (matches every other "not ready yet" field in this
+    # project - never a silently-immature reading).
+    EMA_PERIOD = 12
+    ema_alpha = 2 / (EMA_PERIOD + 1)
+    spot_ema = None
+    bars_seen = 0
+
     for ts_ms, spot in spot_bars:
         timestamp = datetime.datetime.fromtimestamp(ts_ms / 1000, tz=datetime.timezone.utc)
         aggregator.on_tick(timestamp, spot)
@@ -112,9 +128,13 @@ def build_historical_data_points(currency="BTC", lookback_days=LOOKBACK_DAYS, of
         if ts_ms in pe_bars:
             last_pe_coin = pe_bars[ts_ms]
 
+        bars_seen += 1
+        spot_ema = spot if spot_ema is None else ema_alpha * spot + (1 - ema_alpha) * spot_ema
+
         data_points.append({
             "timestamp": timestamp.strftime("%Y-%m-%d %H:%M:%S"),
             "spot": spot,
+            "spot_ema": spot_ema if bars_seen >= EMA_PERIOD else None,
             "rsi": aggregator.current_rsi(),
             "ce_symbol": ce_symbol, "ce_ltp": to_usd_premium(last_ce_coin, spot),
             "ce_bid": None, "ce_ask": None,
