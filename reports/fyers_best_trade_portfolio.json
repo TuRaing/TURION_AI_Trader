@@ -1,15 +1,6 @@
 {
-  "Cash": 99624.05770647856,
-  "Position": {
-    "Name": "RELIANCE",
-    "Symbol": "RELIANCE.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-09-04 10:07:38",
-    "Entry Price": 1328.4,
-    "Quantity": 1,
-    "Stop Loss": 1321.14,
-    "Target": 1342.92
-  },
+  "Cash": 99622.34919410956,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -604,6 +595,20 @@
       "PnL": -5.5,
       "Cost": 5.44,
       "Net PnL": -10.94
+    },
+    {
+      "Name": "RELIANCE",
+      "Symbol": "RELIANCE.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-09-04 10:07:38",
+      "Entry Price": 1328.4,
+      "Exit Time": "2026-09-04 14:46:47",
+      "Exit Price": 1328.1,
+      "Quantity": 1,
+      "Exit Reason": "Intraday Square-Off",
+      "PnL": -0.3,
+      "Cost": 1.41,
+      "Net PnL": -1.71
     }
   ],
   "Data Source": "Fyers"
