@@ -38,6 +38,10 @@ const _books = [
   // pair above.
   (key: 'rsi_momentum_crypto_btc_rsi70', label: 'BTC (RSI 70/30)', initialCapital: 10000.0),
   (key: 'rsi_momentum_crypto_eth_rsi70', label: 'ETH (RSI 70/30)', initialCapital: 1047.89),
+  // Added 01-Sep-2026 - RSI-70/30 + daily_loss_lock, BTC only (ETH
+  // didn't show the same backtest benefit - see run_crypto_options_
+  // engine.py's own CRYPTO_DAILY_LOSS_LOCK note).
+  (key: 'rsi_momentum_crypto_btc_rsi70_lock', label: 'BTC (RSI 70/30 + Lock)', initialCapital: 10000.0),
 ];
 
 // Matches strategy/event_driven_engine.py's make_st2_threshold_event_
