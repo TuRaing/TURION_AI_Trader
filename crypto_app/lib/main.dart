@@ -195,7 +195,23 @@ class _CryptoBookTabState extends State<_CryptoBookTab> {
     final closedTrades = List<Map<String, dynamic>>.from(
         (portfolio['Closed Trades'] ?? []).map((t) => Map<String, dynamic>.from(t)));
 
-    final totalPnl = closedTrades.fold<double>(0, (sum, t) => sum + (t['Net PnL'] as num).toDouble());
+    // CHANGED 05-Sep-2026, real bug caught live: this used to sum
+    // every Closed Trade's own Net PnL, same convention as the main
+    // app's realizedPnlFromTrades() (deliberately NOT Cash-based
+    // there, so a capital top-up never distorts a NIFTY book's PnL
+    // history). Crypto hit the OPPOSITE problem the main app's
+    // reasoning doesn't cover: a real near-expiry lot-size blowup
+    // corrupted two books' trade history with multi-million-dollar
+    // anomalous trades (see doc/CRYPTO_PROJECT_STATUS.md's own
+    // 05-Sep-2026 record) - Cash was manually reset to fix this, but
+    // the old trade-sum still counted the retained (kept for
+    // transparency, not deleted) corrupted trades, so this screen
+    // kept showing the pre-reset multi-million-dollar total even
+    // after the backend was already clean. Cash - initialCapital
+    // reflects whatever the backend's own source of truth currently
+    // says (top-ups and resets included), not a client-side replay of
+    // possibly-corrupted history.
+    final totalPnl = cash - widget.book.initialCapital;
     final wins = closedTrades.where((t) => (t['Net PnL'] as num) > 0).length;
     final winRate = closedTrades.isEmpty ? null : (wins / closedTrades.length * 100);
 
