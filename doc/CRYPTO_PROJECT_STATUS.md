@@ -270,32 +270,58 @@ Deployed as two new, separate books
 (`rsi_momentum_crypto_{btc,eth}_rsi70`) via `CRYPTO_RSI_CE_THRESHOLD`/
 `CRYPTO_RSI_PE_THRESHOLD` env vars.
 
-## [FOUND, 04-Sep-2026] Near-expiry lot-size blowup - a real risk, not a bug
+## [FIXED, 05-Sep-2026] Near-expiry lot-size blowup - a real risk, not a bug
 
 **Symptom:** BTC's plain LTP book showed one single trade worth
-+$16,722.17 (56 lots!) among a 320-trade, +$23,193 day - a wildly
-larger swing than any prior day.
++$16,722.17 (56 lots!) among a 320-trade, +$23,193 day on 4-Sep - a
+wildly larger swing than any prior day. Left unfixed overnight, this
+got catastrophically worse by 5-Sep: BTC's Cash reached
+**$1,967,608.57** (from a $10,000 book!) via a single 1238-lot trade
+worth +$1,968,854.76; BTC profit-lock reached $55,292.79 via a
+39-lot, +$45,620.63 trade. Cash reconciliation (Cash == initial_
+capital + sum(Closed Trades)) checked out exactly - NOT a sync/
+arithmetic bug, the underlying position-sizing model itself was
+producing real-but-meaningless numbers.
 
 **Root cause:** ATM is picked ONCE at each book's own startup, never
 re-derived as the contract approaches its own expiry (a documented
 limitation since Phase 2). The currently-held contract
-(`BTC-4SEP26-81000-P`) was expiring THAT SAME DAY. As real expiry
-nears, an option's time value collapses toward zero - and lot sizing
-(`lots = initial_capital // (entry_premium * lot_size)`) is inversely
+(`BTC-4SEP26-81000-P`) was expiring on 4-Sep. As real expiry nears, an
+option's time value collapses toward zero - and lot sizing (`lots =
+initial_capital // (entry_premium * lot_size)`) is inversely
 proportional to premium, so a crashing premium makes lot counts
-balloon (56, 94, 123, 136, 153 lots seen live, vs the normal 5-20).
-Every subsequent % move now swings a proportionally huge dollar
-amount - both wins (+$16,722 on one trade) and losses (~$1,000-1,100
-per Stop-Loss, vs the normal ~$200) blow up together, right at the
-point in a contract's life where this is least expected.
+balloon (56 lots on 4-Sep, 1238 by 5-Sep, vs the normal 5-20). Every
+subsequent % move now swings a proportionally huge dollar amount.
 
-**Not fixed yet** - flagged live, user asked about immediate stop vs
-riding out the ~6 hours to real expiry; no code change made this
-session. A real fix would need either (a) re-deriving/rolling ATM to
-a fresh, longer-dated contract as expiry approaches (mirrors
-`event_driven_runner.py`'s own documented ATM-drift limitation on the
-NIFTY side), or (b) a hard cap on lots/notional regardless of how
-cheap premium gets. Carried to next session.
+**Fix, 05-Sep-2026:** new opt-in `max_lots` in `event_driven_engine.py`
+- clamps `lots = min(lots, max_lots)` right after the existing
+capital-derived calculation, regardless of how cheap premium gets.
+`None` (default) keeps every existing NIFTY/BankNifty book byte-
+identical. Only added to `_rsi_momentum_decide` (what crypto uses) -
+`oi_footprint_decide_fn`'s identical-looking lot sizing is untouched.
+Applied unconditionally to ALL crypto books via `CRYPTO_MAX_LOTS`
+(default 100 - comfortably above any normal lot count seen live so
+far). Two regression tests added (uncapped stays uncapped; a
+near-expiry-style cheap premium clamps to the cap).
+
+**Manually cleaned up, 05-Sep-2026:** both corrupted books (BTC,
+BTC profit-lock) stopped, `Position` cleared (was stuck on the
+already-expired contract), `Cash` reset to their own `initial_capital`
+(same `Capital Top-ups` record convention as the earlier 01-Sep
+top-up, with a `Reason` field this time), then restarted - both
+immediately picked a fresh, non-expired ATM contract and resumed with
+normal-looking lot counts and PnL swings. Closed Trade history was
+KEPT (not deleted) for both books - the corrupted trades remain
+visible in their own history, just no longer counted toward current
+Cash.
+
+**Not fully addressed:** the underlying "ATM picked once, never
+re-derived near expiry" limitation itself is still there - `max_lots`
+prevents the dangerous SYMPTOM (uncontrolled notional blowup) but a
+book can still spend its final hours before expiry trading an
+increasingly stale/illiquid near-worthless contract instead of rolling
+to a fresh one. A real roll-to-next-contract fix is a bigger change,
+not done this session.
 
 ## [ADDED, 01-Sep-2026] Stop new entries once a book's capital hits zero
 
@@ -466,10 +492,11 @@ clean from the start, never having run the buggy cost model live.
    if the backtest-tuned improvement holds up on real forward data,
    same "single-window backtest isn't proof" caution as everywhere
    else in this doc.
-5. **Not yet fixed:** the near-expiry lot-size blowup (see that
-   section above) - BTC's plain LTP book is currently exposed to it
-   right now, live. Needs a real decision: re-derive ATM as expiry
-   nears, or cap lots/notional outright.
+5. **Symptom fixed (`max_lots`, 05-Sep), root cause still open:** the
+   underlying "ATM never re-derived near expiry" limitation itself is
+   unaddressed - a book can still spend its final hours before expiry
+   trading an increasingly stale/illiquid contract. A real
+   roll-to-next-contract fix would be the complete solution.
 6. Watch whether BTC RSI-70/30+lock actually holds up forward - the
    backtest evidence is real but from a small sample (same caution as
    everywhere else). ETH still has no loss-lock variant (didn't help
