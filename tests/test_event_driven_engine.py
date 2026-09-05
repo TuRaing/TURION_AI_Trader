@@ -42,6 +42,35 @@ def test_opens_pe_when_rsi_below_50():
     assert position["Entry Premium"] == 90.0
 
 
+def test_lots_uncapped_by_default():
+    # entry_premium=1.0 -> uncapped lots would be 100000/(1*75)=1333.
+    cfg = _cfg()
+    action, position, trade = rsi_momentum_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ltp=1.0))
+
+    assert position["Lots"] == 1333
+
+
+def test_max_lots_caps_a_near_expiry_style_cheap_premium():
+    # Regression test for a real bug caught live, 04-Sep-2026: a
+    # near-expiry Deribit contract's collapsing premium made lots
+    # balloon to 1238 (normal range 5-20), producing a single trade
+    # worth +$1,968,854.76 against a $10,000 book. Same cheap
+    # entry_premium=1.0 as the uncapped test above, but with max_lots
+    # set - lots must clamp to the cap, not the raw capital/premium
+    # division.
+    cfg = _cfg(max_lots=50)
+    action, position, trade = rsi_momentum_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ltp=1.0))
+
+    assert position["Lots"] == 50
+
+
+def test_max_lots_does_not_raise_lots_that_are_already_below_the_cap():
+    cfg = _cfg(max_lots=50)
+    action, position, trade = rsi_momentum_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ltp=100.0))
+
+    assert position["Lots"] == 13  # unaffected - already under the 50 cap
+
+
 def test_skips_open_when_rsi_not_ready():
     action, position, trade = rsi_momentum_decide_fn(_cfg(), None, _data_point(rsi=None))
 

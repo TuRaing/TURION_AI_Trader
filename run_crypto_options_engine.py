@@ -154,6 +154,14 @@ RSI_THRESHOLD_CHANGED = RSI_CE_THRESHOLD != 50 or RSI_PE_THRESHOLD != 50
 DAILY_LOSS_LOCK_ENABLED = os.environ.get("CRYPTO_DAILY_LOSS_LOCK", "0") == "1"
 MAX_CONSECUTIVE_LOSSES = int(os.environ.get("CRYPTO_MAX_CONSECUTIVE_LOSSES", 2))
 
+# CRYPTO_MAX_LOTS - added 05-Sep-2026, real bug caught live - see
+# event_driven_engine.py's own matching note (a near-expiry Deribit
+# contract's collapsing premium made BTC's own lot count balloon to
+# 1238, a single trade worth +$1,968,854.76 against a $10,000 book).
+# Applied to EVERY crypto book unconditionally (not opt-in per book) -
+# a risk-control fix, not a performance experiment.
+MAX_LOTS = int(os.environ.get("CRYPTO_MAX_LOTS", 100))
+
 STRATEGY_NAME = f"rsi_momentum_crypto_{CURRENCY.lower()}"
 STRATEGY_NAME += "_quote" if QUOTE_BASED else ""
 STRATEGY_NAME += "_profitlock" if PROFIT_LOCK_ENABLED else ""
@@ -237,7 +245,24 @@ def build_runner():
                                         # py's own matching note.
                                         stop_at_zero_capital=True,
                                         daily_loss_lock=DAILY_LOSS_LOCK_ENABLED,
-                                        max_consecutive_losses=MAX_CONSECUTIVE_LOSSES)
+                                        max_consecutive_losses=MAX_CONSECUTIVE_LOSSES,
+                                        # Added 05-Sep-2026, real bug
+                                        # caught live - a near-expiry
+                                        # contract's collapsing premium
+                                        # made BTC's own lot count
+                                        # balloon to 1238 (normal range
+                                        # 5-20), a single trade worth
+                                        # +$1,968,854.76 against a
+                                        # $10,000 book. 100 is well
+                                        # above any normal lot count
+                                        # seen live so far, comfortably
+                                        # below where the blowup
+                                        # becomes dangerous. Applied to
+                                        # EVERY crypto book
+                                        # unconditionally, same
+                                        # risk-control reasoning as
+                                        # stop_at_zero_capital above.
+                                        max_lots=MAX_LOTS)
     portfolio = load_portfolio(STRATEGY_NAME, INITIAL_CAPITAL)
 
     return CryptoTickRunner(

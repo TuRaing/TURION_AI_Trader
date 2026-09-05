@@ -378,6 +378,29 @@ def _rsi_momentum_decide(cfg, position, data_point, entry_field, exit_field):
         if lots < 1:
             return f"SKIPPED (capital insufficient for 1 lot at premium {entry_premium})", None, None
 
+        # max_lots - added 05-Sep-2026, real bug caught live: a
+        # near-expiry Deribit contract's premium collapses toward zero
+        # as real expiry nears (documented, unfixed "KNOWN LIMITATION"
+        # that ATM is picked ONCE at startup, never re-derived) - since
+        # lots is inversely proportional to premium, a crashing premium
+        # made BTC's own lot count balloon to 1238 (normal range:
+        # 5-20), producing a single "Target" trade worth +$1,968,854.76
+        # against a $10,000 book - a real number, correctly summed into
+        # Cash, but meaningless (confirmed live, 04-Sep-2026, required
+        # a manual Cash reset - see doc/CRYPTO_PROJECT_STATUS.md).
+        # Clamping lots at a hard ceiling regardless of how cheap
+        # premium gets prevents this blowup outright, independent of
+        # (and simpler than) actually re-deriving ATM near expiry.
+        # Opt-in (cfg.get, default None = no cap) - every existing
+        # NIFTY/BankNifty book's behavior is unchanged; crypto sets
+        # this explicitly (see run_crypto_options_engine.py). Only
+        # added to _rsi_momentum_decide (what crypto actually uses) -
+        # oi_footprint_decide_fn's own identical-looking lot sizing
+        # below is untouched, since no crypto book uses it.
+        max_lots = cfg.get("max_lots")
+        if max_lots is not None:
+            lots = min(lots, max_lots)
+
         new_position = {
             "Option Type": option_type,
             "Symbol": symbol,
@@ -541,7 +564,8 @@ def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
                                   daily_loss_lock=False, max_consecutive_losses=2,
                                   cost_fn=None, trailing_min_pct=None, trailing_giveback_pct=None,
                                   rsi_ce_threshold=50, rsi_pe_threshold=50,
-                                  stop_at_zero_capital=False, require_trend_confirmation=False):
+                                  stop_at_zero_capital=False, require_trend_confirmation=False,
+                                  max_lots=None):
     """
     cfg builder for rsi_momentum_decide_fn/rsi_momentum_quote_decide_fn
     - mirrors fyers_options_engine.py's make_strategy() field names
@@ -606,6 +630,11 @@ def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
     decide()'s own matching note. False (default) keeps every existing
     book's behavior unchanged - RSI alone decides direction, no slower
     trend check.
+
+    max_lots - added 05-Sep-2026, see _rsi_momentum_decide()'s own
+    matching note for the real near-expiry blowup this fixes. None
+    (default) keeps every existing book's behavior unchanged - lots is
+    only ever capital-derived, never capped.
     """
 
     return {
@@ -623,6 +652,7 @@ def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
         "rsi_pe_threshold": rsi_pe_threshold,
         "stop_at_zero_capital": stop_at_zero_capital,
         "require_trend_confirmation": require_trend_confirmation,
+        "max_lots": max_lots,
         "daily_profit_lock": daily_profit_lock,
         "daily_profit_lock_pct": daily_profit_lock_pct,
         "daily_loss_lock": daily_loss_lock,
