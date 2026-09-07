@@ -1,15 +1,6 @@
 {
-  "Cash": 99622.34919410956,
-  "Position": {
-    "Name": "ADANIENT",
-    "Symbol": "ADANIENT.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-09-07 10:03:10",
-    "Entry Price": 2954.0,
-    "Quantity": 1,
-    "Stop Loss": 2940.785,
-    "Target": 2980.43
-  },
+  "Cash": 99606.01007948814,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -618,6 +609,20 @@
       "PnL": -0.3,
       "Cost": 1.41,
       "Net PnL": -1.71
+    },
+    {
+      "Name": "ADANIENT",
+      "Symbol": "ADANIENT.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-09-07 10:03:10",
+      "Entry Price": 2954.0,
+      "Exit Time": "2026-09-07 10:26:44",
+      "Exit Price": 2940.785,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -13.22,
+      "Cost": 3.12,
+      "Net PnL": -16.34
     }
   ],
   "Data Source": "Fyers"
