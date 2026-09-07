@@ -1,15 +1,6 @@
 {
-  "Cash": 99604.77272766255,
-  "Position": {
-    "Name": "DIVISLAB",
-    "Symbol": "DIVISLAB.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-09-07 10:57:26",
-    "Entry Price": 9269.0,
-    "Quantity": 1,
-    "Stop Loss": 9241.52,
-    "Target": 9323.96
-  },
+  "Cash": 99567.48099148503,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -646,6 +637,20 @@
       "PnL": -0.88,
       "Cost": 0.35,
       "Net PnL": -1.24
+    },
+    {
+      "Name": "DIVISLAB",
+      "Symbol": "DIVISLAB.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-09-07 10:57:26",
+      "Entry Price": 9269.0,
+      "Exit Time": "2026-09-07 12:26:50",
+      "Exit Price": 9241.52,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -27.48,
+      "Cost": 9.81,
+      "Net PnL": -37.29
     }
   ],
   "Data Source": "Fyers"
