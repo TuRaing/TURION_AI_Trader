@@ -1,15 +1,6 @@
 {
-  "Cash": 99567.48099148503,
-  "Position": {
-    "Name": "APOLLOHOSP",
-    "Symbol": "APOLLOHOSP.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-09-07 13:27:22",
-    "Entry Price": 8756.5,
-    "Quantity": 1,
-    "Stop Loss": 8738.875,
-    "Target": 8791.75
-  },
+  "Cash": 99593.42257558054,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -660,6 +651,20 @@
       "PnL": -27.48,
       "Cost": 9.81,
       "Net PnL": -37.29
+    },
+    {
+      "Name": "APOLLOHOSP",
+      "Symbol": "APOLLOHOSP.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-09-07 13:27:22",
+      "Entry Price": 8756.5,
+      "Exit Time": "2026-09-07 14:16:43",
+      "Exit Price": 8791.75,
+      "Quantity": 1,
+      "Exit Reason": "Target",
+      "PnL": 35.25,
+      "Cost": 9.31,
+      "Net PnL": 25.94
     }
   ],
   "Data Source": "Fyers"
