@@ -1,15 +1,6 @@
 {
-  "Cash": 99835.27362381296,
-  "Position": {
-    "Name": "BRITANNIA",
-    "Symbol": "BRITANNIA.NS",
-    "Direction": "SELL",
-    "Entry Time": "2026-09-07 11:51:47",
-    "Entry Price": 5033.0,
-    "Quantity": 1,
-    "Stop Loss": 5040.44,
-    "Target": 5018.12
-  },
+  "Cash": 99822.49160561552,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -1106,6 +1097,20 @@
       "PnL": 11.37,
       "Cost": 2.66,
       "Net PnL": 8.71
+    },
+    {
+      "Name": "BRITANNIA",
+      "Symbol": "BRITANNIA.NS",
+      "Direction": "SELL",
+      "Entry Time": "2026-09-07 11:51:47",
+      "Entry Price": 5033.0,
+      "Exit Time": "2026-09-07 12:06:46",
+      "Exit Price": 5040.44,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -7.44,
+      "Cost": 5.34,
+      "Net PnL": -12.78
     }
   ]
 }
