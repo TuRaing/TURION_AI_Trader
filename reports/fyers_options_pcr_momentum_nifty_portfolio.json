@@ -1,19 +1,6 @@
 {
-  "Cash": 19795.819861214957,
-  "Position": {
-    "Symbol": "NSE:NIFTY2690823650PE",
-    "Strike": 23650,
-    "Option Type": "PE",
-    "Entry Time": "2026-09-08 13:07:59",
-    "Entry Spot": 23653.6,
-    "Entry Premium": 27.2,
-    "Entry PCR": 0.8573,
-    "Lots": 9,
-    "Quantity": 675,
-    "Capital Deployed": 18360.0,
-    "Last Premium": 27.2,
-    "Last Checked": "2026-09-08 13:07:59"
-  },
+  "Cash": 48968.04859920495,
+  "Position": null,
   "Closed Trades": [
     {
       "Symbol": "NSE:NIFTY2681824300CE",
@@ -606,6 +593,22 @@
       "Exit Reason": "Stop Loss",
       "Net PnL": -3746.48,
       "Net PnL %": -3.746
+    },
+    {
+      "Symbol": "NSE:NIFTY2690823650PE",
+      "Strike": 23650,
+      "Option Type": "PE",
+      "Entry Time": "2026-09-08 13:07:59",
+      "Entry Premium": 27.2,
+      "Entry Spot": 23653.6,
+      "Exit Spot": 23640.05,
+      "Entry PCR": 0.8573,
+      "Exit Time": "2026-09-08 15:22:58",
+      "Exit Premium": 70.6,
+      "Lots": 9,
+      "Exit Reason": "Target",
+      "Net PnL": 29172.23,
+      "Net PnL %": 29.172
     }
   ],
   "Last Chain Snapshot": {
