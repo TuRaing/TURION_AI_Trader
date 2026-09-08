@@ -1,0 +1,17 @@
+# Added 08-Sep-2026 - fires turion-crypto-healthcheck.service every 5
+# minutes, starting 2 minutes after boot (gives the trading engines
+# themselves time to start first, avoids a false "not active yet"
+# repair attempt during a normal VM reboot). See that service file's
+# own comment for the real 3-day outage this exists to catch quickly
+# instead of by chance.
+
+[Unit]
+Description=Run the TURION Crypto health check every 5 minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+Unit=turion-crypto-healthcheck.service
+
+[Install]
+WantedBy=timers.target

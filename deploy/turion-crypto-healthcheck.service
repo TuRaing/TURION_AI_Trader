@@ -1,0 +1,28 @@
+# Added 08-Sep-2026 - runs deploy/crypto_health_check.sh once per
+# trigger (see deploy/turion-crypto-healthcheck.timer for the actual
+# 5-minute schedule) - Type=oneshot since this is a check-then-exit
+# script, not a long-running process like the trading engines
+# themselves.
+#
+# Install with:
+#   sudo cp deploy/crypto_health_check.sh /home/ubuntu/turion-crypto/deploy/
+#   sudo chmod +x /home/ubuntu/turion-crypto/deploy/crypto_health_check.sh
+#   sudo cp deploy/turion-crypto-healthcheck.service deploy/turion-crypto-healthcheck.timer /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now turion-crypto-healthcheck.timer
+#
+# Useful commands:
+#   sudo systemctl status turion-crypto-healthcheck.timer   # confirm it's scheduled
+#   sudo systemctl list-timers turion-crypto-healthcheck.timer
+#   journalctl -u turion-crypto-healthcheck.service -f      # see each check's output
+#   sudo systemctl start turion-crypto-healthcheck.service  # run one check right now
+
+[Unit]
+Description=TURION Crypto health check - detects and auto-repairs any failed unit
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/ubuntu/turion-crypto
+ExecStart=/bin/bash /home/ubuntu/turion-crypto/deploy/crypto_health_check.sh
+StandardOutput=journal
+StandardError=journal
