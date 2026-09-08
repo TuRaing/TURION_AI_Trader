@@ -2,6 +2,7 @@ import concurrent.futures
 import datetime
 import os
 import sys
+import time
 
 import pandas as pd
 
@@ -206,6 +207,38 @@ def _seed_candles(currency):
         return None
 
 
+def _retry_on_transient_error(fn, attempts=5, base_delay_seconds=5):
+    """
+    Added 08-Sep-2026, real outage caught live: a transient Deribit
+    503 ("Service Unavailable") on get_index_price()/get_instruments()
+    at startup used to crash main() immediately - systemd's own
+    StartLimitBurst=5/StartLimitIntervalSec=300 (deploy/turion-crypto-
+    options*.service) then exhausted within ~30 seconds (10s
+    RestartSec x a handful of instant re-crashes) and gave up,
+    leaving the unit in `failed` state - silently down for THREE DAYS
+    (confirmed live: zero trades logged across two full days) until
+    a routine PnL check noticed and someone ran `systemctl reset-
+    failed` + restart by hand. Retries the same real network call
+    in-process instead, with a growing delay (5s, 10s, 20s, 40s, 80s)
+    - long enough to ride out a real Deribit-side blip without ever
+    needing systemd's own crash-loop/give-up behavior to kick in at
+    all. Raises the last real exception if every attempt fails - a
+    permanently-down Deribit (not just a transient blip) should still
+    surface as a real failure, not loop forever.
+    """
+
+    for attempt in range(attempts):
+        try:
+            return fn()
+        except Exception as error:
+            if attempt == attempts - 1:
+                raise
+            delay = base_delay_seconds * (2 ** attempt)
+            print(f"Transient error on startup network call ({error}) - retrying in {delay}s "
+                  f"(attempt {attempt + 1}/{attempts})...")
+            time.sleep(delay)
+
+
 def build_runner():
     """
     One real REST snapshot (spot + today's option chain) to pick the
@@ -222,8 +255,8 @@ def build_runner():
     matters in practice once it's actually running.
     """
 
-    spot = get_index_price(CURRENCY)
-    instruments = get_instruments(CURRENCY)
+    spot = _retry_on_transient_error(lambda: get_index_price(CURRENCY))
+    instruments = _retry_on_transient_error(lambda: get_instruments(CURRENCY))
     expiry, atm_strike, ce_symbol, pe_symbol = pick_atm_instruments(instruments, spot)
 
     print(f"ATM picked: {ce_symbol} / {pe_symbol} (strike {atm_strike}, spot {spot})")
