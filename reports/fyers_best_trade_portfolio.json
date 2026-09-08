@@ -1,15 +1,6 @@
 {
-  "Cash": 99593.42257558054,
-  "Position": {
-    "Name": "NESTLEIND",
-    "Symbol": "NESTLEIND.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-09-08 10:12:54",
-    "Entry Price": 1404.8,
-    "Quantity": 1,
-    "Stop Loss": 1399.835,
-    "Target": 1414.73
-  },
+  "Cash": 99586.97103133303,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -674,6 +665,20 @@
       "PnL": 35.25,
       "Cost": 9.31,
       "Net PnL": 25.94
+    },
+    {
+      "Name": "NESTLEIND",
+      "Symbol": "NESTLEIND.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-09-08 10:12:54",
+      "Entry Price": 1404.8,
+      "Exit Time": "2026-09-08 14:46:44",
+      "Exit Price": 1399.835,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -4.96,
+      "Cost": 1.49,
+      "Net PnL": -6.45
     }
   ],
   "Data Source": "Fyers"
