@@ -1,23 +1,6 @@
 {
-  "Cash": 86336.134660502,
-  "Position": {
-    "Symbol": "NSE:BANKNIFTY26SEP57000PE",
-    "Strike": 57000,
-    "Option Type": "PE",
-    "Entry Time": "2026-09-08 09:27:56",
-    "Entry Spot": 56965.2,
-    "Entry Premium": 537.9,
-    "Entry ATR": 53.79,
-    "Entry ADX": 35.69,
-    "Lots": 5,
-    "Quantity": 150,
-    "Capital Deployed": 80685.0,
-    "Peak Spot": 56872.75,
-    "Trailing Active": true,
-    "Last Premium": 556.2,
-    "Last Spot": 56872.75,
-    "Last Checked": "2026-09-08 10:04:32"
-  },
+  "Cash": 79817.889759142,
+  "Position": null,
   "Closed Trades": [
     {
       "Symbol": "NSE:BANKNIFTY26AUG57800PE",
@@ -191,9 +174,25 @@
       "Exit Reason": "Trailing Stop",
       "Net PnL": 555.78,
       "Net PnL %": 0.556
+    },
+    {
+      "Symbol": "NSE:BANKNIFTY26SEP57000PE",
+      "Strike": 57000,
+      "Option Type": "PE",
+      "Entry Time": "2026-09-08 09:27:56",
+      "Entry Premium": 537.9,
+      "Entry Spot": 56965.2,
+      "Peak Spot": 56872.75,
+      "Exit Spot": 57009.05,
+      "Exit Time": "2026-09-08 10:15:29",
+      "Exit Premium": 495.7,
+      "Lots": 5,
+      "Exit Reason": "Trailing Stop",
+      "Net PnL": -6518.24,
+      "Net PnL %": -6.518
     }
   ],
-  "Last Trade Date": "2026-09-07",
+  "Last Trade Date": "2026-09-08",
   "Data Source": "Fyers (real premium)",
   "Strategy": "st4",
   "Index": "BANKNIFTY"
