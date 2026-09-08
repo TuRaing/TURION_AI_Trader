@@ -270,6 +270,42 @@ Deployed as two new, separate books
 (`rsi_momentum_crypto_{btc,eth}_rsi70`) via `CRYPTO_RSI_CE_THRESHOLD`/
 `CRYPTO_RSI_PE_THRESHOLD` env vars.
 
+## [FIXED, 08-Sep-2026] All 7 crypto units silently down for 3 days
+
+**Symptom:** a routine PnL check for 7-Sep (Monday) and 8-Sep (Tuesday)
+showed EXACTLY ZERO trades across all 7 books, both days - a real
+outage, not a quiet market.
+
+**Root cause:** a transient Deribit `503 Service Unavailable` on
+`get_index_price()` during the 05-Sep restart (the same restart that
+deployed the `max_lots` fix above) crashed `build_runner()`
+immediately - no retry logic existed. systemd's own `StartLimitBurst=
+5`/`StartLimitIntervalSec=300` (every `deploy/turion-crypto-options*.
+service`) exhausted within ~30 seconds (instant re-crashes, only
+`RestartSec=10` between them) and gave up, leaving all 7 units in
+`failed` state. Nothing else was watching - the outage was silent for
+**three full days** until this PnL check noticed.
+
+**Fix:** new `_retry_on_transient_error()` in `run_crypto_options_
+engine.py` wraps both startup Deribit calls (`get_index_price()`,
+`get_instruments()`) with an in-process retry (5s/10s/20s/40s/80s
+growing delay, 5 attempts) - long enough to ride out a real transient
+blip without ever needing systemd's own crash-loop/give-up behavior.
+Raises the last real exception if every attempt fails, so a
+genuinely-down Deribit (not just a blip) still surfaces as a real
+failure rather than retrying forever.
+
+**Restarted, 08-Sep-2026:** `sudo systemctl reset-failed` + start on
+all 7 units, confirmed active and trading again.
+
+**Not addressed:** there is still NO active monitoring/alerting for
+this class of outage - the only reason this was caught was a manual
+PnL check that happened to ask about a specific date range. A real
+fix would need either a periodic health-check (cron/systemd timer)
+that pings each unit's `systemctl is-active` and alerts if not, or a
+push notification on service failure (systemd `OnFailure=` directive
+pointing at a small alert script). Carried to next session.
+
 ## [FIXED, 05-Sep-2026] Near-expiry lot-size blowup - a real risk, not a bug
 
 **Symptom:** BTC's plain LTP book showed one single trade worth
