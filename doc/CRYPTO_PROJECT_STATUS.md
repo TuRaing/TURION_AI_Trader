@@ -270,6 +270,46 @@ Deployed as two new, separate books
 (`rsi_momentum_crypto_{btc,eth}_rsi70`) via `CRYPTO_RSI_CE_THRESHOLD`/
 `CRYPTO_RSI_PE_THRESHOLD` env vars.
 
+## Health-check auto-repair, 08-Sep-2026
+
+Built right after the 3-day outage below - `deploy/crypto_health_
+check.sh` checks all 7 units' `systemctl is-active` state every 5
+minutes (`turion-crypto-healthcheck.timer`, `OnUnitActiveSec=5min`,
+`OnBootSec=2min`), `reset-failed` + `start`s any that aren't, and
+sends a best-effort push notification (same channel/topic the NIFTY
+side's own `_alert_connection_issue()` already uses) only when a
+repair actually happened. Deployed and verified live, 08/09-Sep-2026 -
+every 5-minute run so far found all 7 units already healthy (no
+repairs needed), confirming the timer itself runs reliably without
+needing to wait for a real failure to prove it works.
+
+## [09-Sep-2026] All three ETH books hit the zero-capital stop again
+
+A routine status check found ETH (plain), ETH profit-lock, and ETH
+RSI-70/30 all showing `SKIPPED (capital depleted - book stopped)` -
+the `stop_at_zero_capital` gate (added 01-Sep) working exactly as
+designed, not a new bug. All three BTC books were still active and
+trading normally at the same moment - this looks like a real,
+currency-specific performance gap (ETH's own book economics/signal
+doing meaningfully worse than BTC's right now), not an infra issue.
+
+**Manually refilled, same "Capital Top-ups" convention as every prior
+top-up** (Time, Cash Before, Topped Up To, Reason) - all three
+stopped, `Position` cleared, `Cash` reset to $1,047.89, restarted.
+Confirmed live: all three resumed trading normally immediately
+(`rsi_momentum_crypto_eth`/`_profitlock` opened fresh HELD positions,
+`_rsi70` correctly waiting out a neutral-zone RSI reading). Closed
+Trade history was kept for all three, same "never delete, just stop
+counting toward current Cash" reasoning as every prior reset.
+
+**Not decided:** whether ETH's own books need a real strategy change
+(the profit-lock/RSI-70 tuning that helped BTC didn't carry over to
+ETH as strongly - see the "Profit-lock books" and "Combo sweep"
+sections above, both of which already found ETH's own tuned settings
+differ from BTC's) or whether this is just this signal's own real,
+accepted risk of running out and needing periodic refills. Carried to
+next session - watch whether ETH keeps depleting at a similar rate.
+
 ## [FIXED, 08-Sep-2026] All 7 crypto units silently down for 3 days
 
 **Symptom:** a routine PnL check for 7-Sep (Monday) and 8-Sep (Tuesday)
