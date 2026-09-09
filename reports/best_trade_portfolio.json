@@ -1,15 +1,6 @@
 {
-  "Cash": 99702.76532346994,
-  "Position": {
-    "Name": "SBILIFE",
-    "Symbol": "SBILIFE.NS",
-    "Direction": "SELL",
-    "Entry Time": "2026-09-09 12:43:05",
-    "Entry Price": 1684.0,
-    "Quantity": 1,
-    "Stop Loss": 1688.935,
-    "Target": 1674.13
-  },
+  "Cash": 99696.04136278664,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -1246,6 +1237,20 @@
       "PnL": -7.65,
       "Cost": 1.94,
       "Net PnL": -9.59
+    },
+    {
+      "Name": "SBILIFE",
+      "Symbol": "SBILIFE.NS",
+      "Direction": "SELL",
+      "Entry Time": "2026-09-09 12:43:05",
+      "Entry Price": 1684.0,
+      "Exit Time": "2026-09-09 14:02:48",
+      "Exit Price": 1688.935,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -4.93,
+      "Cost": 1.79,
+      "Net PnL": -6.72
     }
   ]
 }
