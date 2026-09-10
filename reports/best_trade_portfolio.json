@@ -1,15 +1,6 @@
 {
-  "Cash": 99692.85109823888,
-  "Position": {
-    "Name": "NESTLEIND",
-    "Symbol": "NESTLEIND.NS",
-    "Direction": "SELL",
-    "Entry Time": "2026-09-10 11:51:12",
-    "Entry Price": 1386.3,
-    "Quantity": 1,
-    "Stop Loss": 1387.965,
-    "Target": 1382.97
-  },
+  "Cash": 99694.71312558386,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -1274,6 +1265,20 @@
       "PnL": -2.46,
       "Cost": 0.73,
       "Net PnL": -3.19
+    },
+    {
+      "Name": "NESTLEIND",
+      "Symbol": "NESTLEIND.NS",
+      "Direction": "SELL",
+      "Entry Time": "2026-09-10 11:51:12",
+      "Entry Price": 1386.3,
+      "Exit Time": "2026-09-10 12:46:50",
+      "Exit Price": 1382.97,
+      "Quantity": 1,
+      "Exit Reason": "Target",
+      "PnL": 3.33,
+      "Cost": 1.47,
+      "Net PnL": 1.86
     }
   ]
 }
