@@ -1,15 +1,6 @@
 {
-  "Cash": 99576.15134422257,
-  "Position": {
-    "Name": "TITAN",
-    "Symbol": "TITAN.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-09-10 10:07:53",
-    "Entry Price": 5008.0,
-    "Quantity": 1,
-    "Stop Loss": 4992.415,
-    "Target": 5039.17
-  },
+  "Cash": 99567.34284139756,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -716,6 +707,20 @@
       "PnL": -23.0,
       "Cost": 3.29,
       "Net PnL": -26.29
+    },
+    {
+      "Name": "TITAN",
+      "Symbol": "TITAN.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-09-10 10:07:53",
+      "Entry Price": 5008.0,
+      "Exit Time": "2026-09-10 14:46:49",
+      "Exit Price": 5004.5,
+      "Quantity": 1,
+      "Exit Reason": "Intraday Square-Off",
+      "PnL": -3.5,
+      "Cost": 5.31,
+      "Net PnL": -8.81
     }
   ],
   "Data Source": "Fyers"
