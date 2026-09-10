@@ -1,20 +1,30 @@
 {
-  "Generated At": "2026-09-10 08:11:04",
+  "Generated At": "2026-09-10 08:44:09",
   "Stocks": [
     {
-      "Name": "BRITANNIA",
-      "Symbol": "BRITANNIA.NS",
-      "Price": 5021.0,
+      "Name": "SBIN",
+      "Symbol": "SBIN.NS",
+      "Price": 1003.9,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 80.0,
-      "ATR": 102.11,
+      "ATR": 16.84,
+      "Candle Pattern": "Shooting Star"
+    },
+    {
+      "Name": "MARUTI",
+      "Symbol": "MARUTI.NS",
+      "Price": 12608.0,
+      "Decision": "SELL",
+      "Bias": "Bearish",
+      "Confidence": 80.0,
+      "ATR": 244.0,
       "Candle Pattern": "Bearish Engulfing"
     },
     {
       "Name": "HDFCBANK",
       "Symbol": "HDFCBANK.NS",
-      "Price": 694.05,
+      "Price": 692.2,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
@@ -24,7 +34,7 @@
     {
       "Name": "INFY",
       "Symbol": "INFY.NS",
-      "Price": 1032.5,
+      "Price": 1031.6,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
@@ -34,7 +44,7 @@
     {
       "Name": "HINDUNILVR",
       "Symbol": "HINDUNILVR.NS",
-      "Price": 1944.2,
+      "Price": 1941.8,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
@@ -42,24 +52,14 @@
       "Candle Pattern": "No Pattern"
     },
     {
-      "Name": "SBIN",
-      "Symbol": "SBIN.NS",
-      "Price": 1005.7,
+      "Name": "ULTRACEMCO",
+      "Symbol": "ULTRACEMCO.NS",
+      "Price": 10946.0,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
-      "ATR": 16.84,
+      "ATR": 176.79,
       "Candle Pattern": "No Pattern"
-    },
-    {
-      "Name": "ASIANPAINT",
-      "Symbol": "ASIANPAINT.NS",
-      "Price": 2486.3,
-      "Decision": "SELL",
-      "Bias": "Bearish",
-      "Confidence": 60.0,
-      "ATR": 45.9,
-      "Candle Pattern": "Doji"
     }
   ],
   "Options": [
@@ -67,19 +67,28 @@
       "Name": "NIFTY 50",
       "Bias": "Bearish",
       "Decision": "NO TRADE",
-      "Confidence": 42.0,
-      "Reason": "Price action Bearish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 42.0% is below the 60% threshold."
+      "Confidence": 28.0,
+      "Reason": "Price action Bearish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 28.0% is below the 60% threshold."
     },
     {
       "Name": "BANK NIFTY",
       "Bias": "Bearish",
       "Decision": "NO TRADE",
-      "Confidence": 14.0,
-      "Reason": "Price action Bearish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 14.0% is below the 60% threshold."
+      "Confidence": 28.0,
+      "Reason": "Price action Bearish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 28.0% is below the 60% threshold."
     }
   ],
   "News": {
-    "BRITANNIA": {
+    "SBIN": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "MARUTI": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -115,24 +124,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "SBIN": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "ASIANPAINT": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "ULTRACEMCO": {
       "Headlines": [],
       "Positive": 0,
@@ -142,7 +133,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "NESTLEIND": {
+    "M&M": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -187,7 +178,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "SHREECEM": {
+    "BRITANNIA": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -196,7 +187,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "RELIANCE": {
+    "SHREECEM": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -232,7 +223,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "MARUTI": {
+    "ASIANPAINT": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -259,7 +250,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "M&M": {
+    "NESTLEIND": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -286,6 +277,24 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "UPL": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "RELIANCE": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "KOTAKBANK": {
       "Headlines": [],
       "Positive": 0,
@@ -304,7 +313,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "HCLTECH": {
+    "POWERGRID": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -313,7 +322,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "POWERGRID": {
+    "JSWSTEEL": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -376,15 +385,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "UPL": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "BPCL": {
       "Headlines": [
         "BPCL Share Price Live Updates: BPCL's Daily Performance Update"
@@ -427,6 +427,15 @@
       "Score": 1.0,
       "Confidence": 100.0
     },
+    "HCLTECH": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "TITAN": {
       "Headlines": [],
       "Positive": 0,
@@ -464,15 +473,6 @@
       "Confidence": 0.0
     },
     "ADANIPORTS": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "JSWSTEEL": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
