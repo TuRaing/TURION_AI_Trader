@@ -1,15 +1,6 @@
 {
-  "Cash": 99567.34284139756,
-  "Position": {
-    "Name": "HDFCBANK",
-    "Symbol": "HDFCBANK.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-09-15 10:02:55",
-    "Entry Price": 726.95,
-    "Quantity": 1,
-    "Stop Loss": 721.73,
-    "Target": 737.3900000000001
-  },
+  "Cash": 99561.35528779589,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -730,6 +721,20 @@
       "PnL": -3.5,
       "Cost": 5.31,
       "Net PnL": -8.81
+    },
+    {
+      "Name": "HDFCBANK",
+      "Symbol": "HDFCBANK.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-09-15 10:02:55",
+      "Entry Price": 726.95,
+      "Exit Time": "2026-09-15 10:26:30",
+      "Exit Price": 721.73,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -5.22,
+      "Cost": 0.77,
+      "Net PnL": -5.99
     }
   ],
   "Data Source": "Fyers"
