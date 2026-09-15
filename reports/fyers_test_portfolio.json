@@ -1,23 +1,14 @@
 {
-  "Cash": 96740.15961535636,
+  "Cash": 96621.44540495767,
   "Positions": {
-    "LT": {
-      "Entry Time": "2026-08-12 11:46:31",
-      "Entry Price": 3994.5,
-      "Quantity": 1,
-      "Stop Loss": 3899.565,
-      "Target": 4184.37,
-      "Last Price": 3912.9,
-      "Last Checked": "2026-09-15 09:16:37"
-    },
     "GRASIM": {
       "Entry Time": "2026-08-13 09:41:34",
       "Entry Price": 3248.8,
       "Quantity": 1,
       "Stop Loss": 3115.855,
       "Target": 3514.69,
-      "Last Price": 3253.0,
-      "Last Checked": "2026-09-15 09:16:37"
+      "Last Price": 3235.0,
+      "Last Checked": "2026-09-15 09:21:41"
     },
     "TITAN": {
       "Entry Time": "2026-08-17 15:16:37",
@@ -25,8 +16,8 @@
       "Quantity": 1,
       "Stop Loss": 4933.455,
       "Target": 5379.09,
-      "Last Price": 4972.5,
-      "Last Checked": "2026-09-15 09:16:37"
+      "Last Price": 4960.5,
+      "Last Checked": "2026-09-15 09:21:41"
     },
     "KOTAKBANK": {
       "Entry Time": "2026-08-26 10:22:05",
@@ -34,8 +25,8 @@
       "Quantity": 2,
       "Stop Loss": 399.735,
       "Target": 429.93,
-      "Last Price": 414.7,
-      "Last Checked": "2026-09-15 09:16:37"
+      "Last Price": 413.0,
+      "Last Checked": "2026-09-15 09:21:41"
     },
     "DIVISLAB": {
       "Entry Time": "2026-09-02 13:37:24",
@@ -43,8 +34,8 @@
       "Quantity": 1,
       "Stop Loss": 8961.75,
       "Target": 9769.5,
-      "Last Price": 9307.5,
-      "Last Checked": "2026-09-15 09:16:37"
+      "Last Price": 9260.0,
+      "Last Checked": "2026-09-15 09:21:41"
     }
   },
   "Closed Trades": [
@@ -473,6 +464,20 @@
       "Net PnL": -54.89,
       "STCG Tax": 0.0,
       "After-Tax PnL": -54.89
+    },
+    {
+      "Symbol": "LT",
+      "Entry Time": "2026-08-12 11:46:31",
+      "Entry Price": 3994.5,
+      "Exit Time": "2026-09-15 09:21:41",
+      "Exit Price": 3899.565,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -94.93,
+      "Cost": 23.78,
+      "Net PnL": -118.71,
+      "STCG Tax": 0.0,
+      "After-Tax PnL": -118.71
     }
   ],
   "Data Source": "Fyers"
