@@ -1,20 +1,20 @@
 {
-  "Generated At": "2026-09-15 08:43:33",
+  "Generated At": "2026-09-15 09:16:32",
   "Stocks": [
     {
       "Name": "ITC",
       "Symbol": "ITC.NS",
-      "Price": 260.25,
+      "Price": 259.7,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 80.0,
-      "ATR": 5.18,
+      "ATR": 5.21,
       "Candle Pattern": "Shooting Star"
     },
     {
       "Name": "ULTRACEMCO",
       "Symbol": "ULTRACEMCO.NS",
-      "Price": 10812.0,
+      "Price": 10785.0,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 80.0,
@@ -24,7 +24,7 @@
     {
       "Name": "NESTLEIND",
       "Symbol": "NESTLEIND.NS",
-      "Price": 1370.1,
+      "Price": 1373.1,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 80.0,
@@ -32,9 +32,19 @@
       "Candle Pattern": "Bearish Engulfing"
     },
     {
+      "Name": "HDFCLIFE",
+      "Symbol": "HDFCLIFE.NS",
+      "Price": 521.05,
+      "Decision": "SELL",
+      "Bias": "Bearish",
+      "Confidence": 80.0,
+      "ATR": 12.52,
+      "Candle Pattern": "Bearish Engulfing"
+    },
+    {
       "Name": "BRITANNIA",
       "Symbol": "BRITANNIA.NS",
-      "Price": 4976.5,
+      "Price": 4977.5,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 80.0,
@@ -42,24 +52,14 @@
       "Candle Pattern": "Shooting Star"
     },
     {
-      "Name": "BPCL",
-      "Symbol": "BPCL.NS",
-      "Price": 302.75,
+      "Name": "TCS",
+      "Symbol": "TCS.NS",
+      "Price": 2269.4,
       "Decision": "SELL",
       "Bias": "Bearish",
-      "Confidence": 80.0,
-      "ATR": 7.6,
+      "Confidence": 70.0,
+      "ATR": 61.36,
       "Candle Pattern": "Shooting Star"
-    },
-    {
-      "Name": "INFY",
-      "Symbol": "INFY.NS",
-      "Price": 1076.2,
-      "Decision": "SELL",
-      "Bias": "Bearish",
-      "Confidence": 60.0,
-      "ATR": 31.46,
-      "Candle Pattern": "No Pattern"
     }
   ],
   "Options": [
@@ -108,6 +108,15 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "HDFCLIFE": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "BRITANNIA": {
       "Headlines": [
         "Britannia Share Price Live Updates: Britannia's Price Movement Today"
@@ -119,14 +128,16 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "BPCL": {
-      "Headlines": [],
-      "Positive": 0,
+    "TCS": {
+      "Headlines": [
+        "Infosys, HCLTech, TCS, other IT stocks soar up to 6%; Nifty IT rallies 5% as global AI slowdown calls boost sentiment"
+      ],
+      "Positive": 1,
       "Negative": 0,
       "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
+      "Sentiment": "Bullish",
+      "Score": 1.0,
+      "Confidence": 100.0
     },
     "INFY": {
       "Headlines": [],
@@ -146,18 +157,8 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "SBIN": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "LT": {
       "Headlines": [
-        "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
         "Cochin Shipyard shares tumble 12% over 2 sessions. Should you buy after multibagger corrects 26% in a year?",
         "KEC International shares rally 6% after securing new orders worth Rs 1,303 crore across multiple business segments",
         "Stock-picking, multi-manager hedge funds attract more capital from investors in 2026, BofA says",
@@ -165,7 +166,7 @@
         "Vijay Kedia reveals multibagger playbook: How the superstar picks stocks using RISE strategy",
         "Infosys, HCLTech, TCS, other IT stocks soar up to 6%; Nifty IT rallies 5% as global AI slowdown calls boost sentiment"
       ],
-      "Positive": 6,
+      "Positive": 5,
       "Negative": 0,
       "Neutral": 1,
       "Sentiment": "Bullish",
@@ -190,34 +191,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "MARUTI": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "WIPRO": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "HDFCLIFE": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "SBILIFE": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -253,7 +227,18 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "SHREECEM": {
+    "BPCL": {
+      "Headlines": [
+        "BPCL Share Price Live Updates: BPCL's Current Market Position"
+      ],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 1,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "HDFCBANK": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -262,18 +247,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "TCS": {
-      "Headlines": [
-        "Infosys, HCLTech, TCS, other IT stocks soar up to 6%; Nifty IT rallies 5% as global AI slowdown calls boost sentiment"
-      ],
-      "Positive": 1,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Bullish",
-      "Score": 1.0,
-      "Confidence": 100.0
-    },
-    "HDFCBANK": {
+    "SBIN": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -291,7 +265,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "BAJFINANCE": {
+    "MARUTI": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -327,7 +301,25 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "SBILIFE": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "DRREDDY": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "SHREECEM": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -365,6 +357,24 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "KOTAKBANK": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "BAJFINANCE": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "POWERGRID": {
       "Headlines": [],
       "Positive": 0,
@@ -383,7 +393,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "ADANIENT": {
+    "ADANIPORTS": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -392,7 +402,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "ADANIPORTS": {
+    "JSWSTEEL": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -419,7 +429,25 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "GRASIM": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "HEROMOTOCO": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "BAJAJ-AUTO": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -437,7 +465,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "INDUSINDBK": {
+    "TECHM": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -447,15 +475,6 @@
       "Confidence": 0.0
     },
     "HINDALCO": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "KOTAKBANK": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -482,16 +501,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "JSWSTEEL": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "GRASIM": {
+    "ADANIENT": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -509,16 +519,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "BAJAJ-AUTO": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "TECHM": {
+    "INDUSINDBK": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -548,20 +549,8 @@
   },
   "Market Headlines": [
     {
-      "Headline": "Taking Stock: Market fails to hold on to day#39;s gains, ends marginally higher",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Sensex, Nifty gain for third day in a row; easing volatility to support bull trend",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Mid-day Mood | Cooling volatility sparks market rally, India VIX sees steepest fall in 4 years",
+      "Headline": "Tech picks: Adani Ports, Data Patterns among 5 stocks that could give up to 23% returns in short term",
       "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
-      "Sentiment": "Bullish"
     },
     {
       "Headline": "Coforge shares fall over 3%. What are Jefferies, Emkay saying after Chairman, independent director exit?",
@@ -745,6 +734,18 @@
     },
     {
       "Headline": "3 SME IPOs open today: Vama Wovenfab, Shakti Polytarp and Quanto Agroworld. Check GMP and key details",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "PhysicsWallah among 5 Nifty500 stocks flashing bullish signals",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "BPCL Share Price Live Updates: BPCL's Current Market Position",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Yes Bank among 4 stocks showing RSI trending up",
       "Sentiment": "Neutral"
     }
   ]
