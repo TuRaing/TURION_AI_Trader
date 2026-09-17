@@ -1,15 +1,6 @@
 {
-  "Cash": 99736.64155159153,
-  "Position": {
-    "Name": "SBIN",
-    "Symbol": "SBIN.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-09-17 12:32:28",
-    "Entry Price": 990.2,
-    "Quantity": 1,
-    "Stop Loss": 987.95,
-    "Target": 994.7
-  },
+  "Cash": 99733.34293252963,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -1442,6 +1433,20 @@
       "PnL": -2.26,
       "Cost": 1.05,
       "Net PnL": -3.32
+    },
+    {
+      "Name": "SBIN",
+      "Symbol": "SBIN.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-09-17 12:32:28",
+      "Entry Price": 990.2,
+      "Exit Time": "2026-09-17 13:31:30",
+      "Exit Price": 987.95,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -2.25,
+      "Cost": 1.05,
+      "Net PnL": -3.3
     }
   ]
 }
