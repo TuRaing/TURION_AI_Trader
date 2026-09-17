@@ -1,10 +1,10 @@
 {
-  "Generated At": "2026-09-17 08:41:54",
+  "Generated At": "2026-09-17 09:17:52",
   "Stocks": [
     {
       "Name": "SBIN",
       "Symbol": "SBIN.NS",
-      "Price": 987.1,
+      "Price": 986.7,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 80.0,
@@ -12,29 +12,39 @@
       "Candle Pattern": "Shooting Star"
     },
     {
+      "Name": "INDUSINDBK",
+      "Symbol": "INDUSINDBK.NS",
+      "Price": 956.8,
+      "Decision": "SELL",
+      "Bias": "Bearish",
+      "Confidence": 70.0,
+      "ATR": 21.44,
+      "Candle Pattern": "No Pattern"
+    },
+    {
       "Name": "RELIANCE",
       "Symbol": "RELIANCE.NS",
-      "Price": 1242.2,
+      "Price": 1244.2,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
       "ATR": 21.09,
-      "Candle Pattern": "No Pattern"
+      "Candle Pattern": "Doji"
     },
     {
       "Name": "ICICIBANK",
       "Symbol": "ICICIBANK.NS",
-      "Price": 1353.3,
+      "Price": 1350.3,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
       "ATR": 20.95,
-      "Candle Pattern": "Doji"
+      "Candle Pattern": "No Pattern"
     },
     {
       "Name": "HINDUNILVR",
       "Symbol": "HINDUNILVR.NS",
-      "Price": 1951.4,
+      "Price": 1952.1,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
@@ -44,21 +54,11 @@
     {
       "Name": "LT",
       "Symbol": "LT.NS",
-      "Price": 3855.2,
+      "Price": 3853.6,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
       "ATR": 60.47,
-      "Candle Pattern": "No Pattern"
-    },
-    {
-      "Name": "ASIANPAINT",
-      "Symbol": "ASIANPAINT.NS",
-      "Price": 2444.6,
-      "Decision": "SELL",
-      "Bias": "Bearish",
-      "Confidence": 60.0,
-      "ATR": 49.05,
       "Candle Pattern": "No Pattern"
     }
   ],
@@ -88,16 +88,23 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "RELIANCE": {
-      "Headlines": [
-        "Reliance Industries shares in focus as govt slashes windfall tax on fuel exports; stock down 21% in 2026 so far"
-      ],
+    "INDUSINDBK": {
+      "Headlines": [],
       "Positive": 0,
-      "Negative": 1,
+      "Negative": 0,
       "Neutral": 0,
-      "Sentiment": "Bearish",
-      "Score": -1.0,
-      "Confidence": 100.0
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "RELIANCE": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
     },
     "ICICIBANK": {
       "Headlines": [],
@@ -192,7 +199,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "UPL": {
+    "SHREECEM": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -201,7 +208,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "SHREECEM": {
+    "SBILIFE": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -275,15 +282,14 @@
     },
     "NTPC": {
       "Headlines": [
-        "NTPC Share Price Live Updates: NTPC News",
-        "GR Infraprojects shares drop 2% after terminating contract with NTPC. Here\u2019s why"
+        "NTPC Share Price Live Updates: NTPC News"
       ],
       "Positive": 0,
-      "Negative": 1,
+      "Negative": 0,
       "Neutral": 1,
-      "Sentiment": "Bearish",
-      "Score": -1.0,
-      "Confidence": 100.0
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
     },
     "COALINDIA": {
       "Headlines": [],
@@ -294,7 +300,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "SBILIFE": {
+    "UPL": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -321,20 +327,13 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "INDUSINDBK": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "ITC": {
-      "Headlines": [],
+      "Headlines": [
+        "How Fed rate hike can impact Bitcoin and other crypto investors"
+      ],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 0,
+      "Neutral": 1,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -420,7 +419,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "APOLLOHOSP": {
+    "BAJAJ-AUTO": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -501,7 +500,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "BAJAJ-AUTO": {
+    "APOLLOHOSP": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -554,6 +553,22 @@
     {
       "Headline": "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
       "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "How Fed rate hike can impact Bitcoin and other crypto investors",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Homebuyers remain bullish on real estate despite rising prices; premium homes, new launches gain traction: Anarock survey",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "GIFT City moves up 9 places to 37th globally, ranks among Asia-Pacific top 15",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Global Market: Eurozone bond yields edge higher after Fed rate hike",
+      "Sentiment": "Neutral"
     },
     {
       "Headline": "Michael Burry has a new short-selling partner. Who is Lakshmi Ganapathi?",
@@ -721,22 +736,6 @@
     },
     {
       "Headline": "HDFC Bank is winning the mutual fund vote over ICICI Bank. Can the shift last?",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "GR Infraprojects shares drop 2% after terminating contract with NTPC. Here\u2019s why",
-      "Sentiment": "Bearish"
-    },
-    {
-      "Headline": "Manika Plastech IPO allotment likely today: GMP signals 5% listing gain. Here\u2019s how to check status",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Reliance Industries shares in focus as govt slashes windfall tax on fuel exports; stock down 21% in 2026 so far",
-      "Sentiment": "Bearish"
-    },
-    {
-      "Headline": "BEML among 4 stocks closing above VWAP",
       "Sentiment": "Neutral"
     }
   ]
