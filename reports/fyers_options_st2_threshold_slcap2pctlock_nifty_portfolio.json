@@ -1,19 +1,6 @@
 {
-  "Cash": 52306.22751816509,
-  "Position": {
-    "Symbol": "NSE:NIFTY2692223300PE",
-    "Strike": 23300,
-    "Option Type": "PE",
-    "Entry Time": "2026-09-18 11:12:37",
-    "Entry Spot": 23304.2,
-    "Entry Premium": 97.5,
-    "Entry RSI": 38.09,
-    "Lots": 7,
-    "Quantity": 525,
-    "Capital Deployed": 51187.5,
-    "Last Premium": 99.35,
-    "Last Checked": "2026-09-18 11:45:59"
-  },
+  "Cash": 45453.37214339509,
+  "Position": null,
   "Closed Trades": [
     {
       "Symbol": "NSE:NIFTY26AUG24050PE",
@@ -2339,6 +2326,21 @@
       "Exit Reason": "Stop Loss",
       "Net PnL": -1639.18,
       "Net PnL %": -1.639
+    },
+    {
+      "Symbol": "NSE:NIFTY2692223300PE",
+      "Strike": 23300,
+      "Option Type": "PE",
+      "Entry Time": "2026-09-18 11:12:37",
+      "Entry Premium": 97.5,
+      "Entry Spot": 23304.2,
+      "Exit Time": "2026-09-18 11:53:50",
+      "Exit Premium": 84.7,
+      "Exit Spot": 23323.4,
+      "Lots": 7,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -6852.86,
+      "Net PnL %": -6.853
     }
   ],
   "Data Source": "Fyers (real premium)",
