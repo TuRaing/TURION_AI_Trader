@@ -1,15 +1,6 @@
 {
-  "Cash": 99730.01443328617,
-  "Position": {
-    "Name": "ICICIBANK",
-    "Symbol": "ICICIBANK.NS",
-    "Direction": "SELL",
-    "Entry Time": "2026-09-18 12:44:55",
-    "Entry Price": 1343.6,
-    "Quantity": 1,
-    "Stop Loss": 1345.5049999999999,
-    "Target": 1339.79
-  },
+  "Cash": 99726.68339034844,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -1498,6 +1489,20 @@
       "PnL": 2.55,
       "Cost": 1.05,
       "Net PnL": 1.5
+    },
+    {
+      "Name": "ICICIBANK",
+      "Symbol": "ICICIBANK.NS",
+      "Direction": "SELL",
+      "Entry Time": "2026-09-18 12:44:55",
+      "Entry Price": 1343.6,
+      "Exit Time": "2026-09-18 13:05:09",
+      "Exit Price": 1345.5049999999999,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -1.9,
+      "Cost": 1.43,
+      "Net PnL": -3.33
     }
   ]
 }
