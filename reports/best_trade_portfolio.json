@@ -1,15 +1,6 @@
 {
-  "Cash": 99732.29520595363,
-  "Position": {
-    "Name": "RELIANCE",
-    "Symbol": "RELIANCE.NS",
-    "Direction": "SELL",
-    "Entry Time": "2026-09-18 10:22:48",
-    "Entry Price": 1241.2,
-    "Quantity": 1,
-    "Stop Loss": 1243.66,
-    "Target": 1236.28
-  },
+  "Cash": 99728.51739797527,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -1470,6 +1461,20 @@
       "PnL": 0.0,
       "Cost": 1.05,
       "Net PnL": -1.05
+    },
+    {
+      "Name": "RELIANCE",
+      "Symbol": "RELIANCE.NS",
+      "Direction": "SELL",
+      "Entry Time": "2026-09-18 10:22:48",
+      "Entry Price": 1241.2,
+      "Exit Time": "2026-09-18 11:52:37",
+      "Exit Price": 1243.66,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -2.46,
+      "Cost": 1.32,
+      "Net PnL": -3.78
     }
   ]
 }
