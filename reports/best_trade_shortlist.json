@@ -1,40 +1,20 @@
 {
-  "Generated At": "2026-09-18 08:17:53",
+  "Generated At": "2026-09-18 08:52:30",
   "Stocks": [
     {
       "Name": "SHREECEM",
       "Symbol": "SHREECEM.NS",
-      "Price": 22465.0,
+      "Price": 22475.0,
       "Decision": "SELL",
       "Bias": "Bearish",
-      "Confidence": 90.0,
+      "Confidence": 70.0,
       "ATR": 488.93,
-      "Candle Pattern": "Shooting Star"
-    },
-    {
-      "Name": "MARUTI",
-      "Symbol": "MARUTI.NS",
-      "Price": 12162.0,
-      "Decision": "SELL",
-      "Bias": "Bearish",
-      "Confidence": 80.0,
-      "ATR": 238.36,
-      "Candle Pattern": "Bearish Engulfing"
-    },
-    {
-      "Name": "CIPLA",
-      "Symbol": "CIPLA.NS",
-      "Price": 1374.6,
-      "Decision": "SELL",
-      "Bias": "Bearish",
-      "Confidence": 80.0,
-      "ATR": 20.28,
-      "Candle Pattern": "Shooting Star"
+      "Candle Pattern": "No Pattern"
     },
     {
       "Name": "HINDALCO",
       "Symbol": "HINDALCO.NS",
-      "Price": 984.6,
+      "Price": 984.5,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 70.0,
@@ -44,7 +24,7 @@
     {
       "Name": "RELIANCE",
       "Symbol": "RELIANCE.NS",
-      "Price": 1242.6,
+      "Price": 1242.7,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
@@ -52,52 +32,54 @@
       "Candle Pattern": "No Pattern"
     },
     {
+      "Name": "ICICIBANK",
+      "Symbol": "ICICIBANK.NS",
+      "Price": 1342.8,
+      "Decision": "SELL",
+      "Bias": "Bearish",
+      "Confidence": 60.0,
+      "ATR": 20.03,
+      "Candle Pattern": "No Pattern"
+    },
+    {
       "Name": "INFY",
       "Symbol": "INFY.NS",
-      "Price": 1043.9,
+      "Price": 1044.1,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
       "ATR": 28.09,
       "Candle Pattern": "Bearish Engulfing"
+    },
+    {
+      "Name": "LT",
+      "Symbol": "LT.NS",
+      "Price": 3880.9,
+      "Decision": "SELL",
+      "Bias": "Bearish",
+      "Confidence": 60.0,
+      "ATR": 58.94,
+      "Candle Pattern": "No Pattern"
     }
   ],
   "Options": [
-    {
-      "Name": "NIFTY 50",
-      "Bias": "Bearish",
-      "Decision": "NO TRADE",
-      "Confidence": 42.0,
-      "Reason": "Price action Bearish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 42.0% is below the 60% threshold."
-    },
     {
       "Name": "BANK NIFTY",
       "Bias": "Bearish",
       "Decision": "NO TRADE",
       "Confidence": 42.0,
       "Reason": "Price action Bearish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 42.0% is below the 60% threshold."
+    },
+    {
+      "Name": "NIFTY 50",
+      "Bias": "Bearish",
+      "Decision": "NO TRADE",
+      "Confidence": 28.0,
+      "Reason": "Price action Bearish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 28.0% is below the 60% threshold."
     }
   ],
   "News": {
     "SHREECEM": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "MARUTI": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "CIPLA": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -124,6 +106,15 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "ICICIBANK": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "INFY": {
       "Headlines": [],
       "Positive": 0,
@@ -137,17 +128,25 @@
       "Headlines": [
         "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
         "Tata Sons IPO: Why Tata Chemicals may be the biggest beneficiary although Tata Motors, Tata Steel own bigger stake",
-        "14 stocks held by 100+ MFs in August surged up to 200%; 5 turned multibaggers in CY26",
-        "Coal India Share Price Live Updates: Coal India Ltd experiences a decline below its 20-day EMA"
+        "14 stocks held by 100+ MFs in August surged up to 200%; 5 turned multibaggers in CY26"
       ],
       "Positive": 2,
-      "Negative": 1,
+      "Negative": 0,
       "Neutral": 1,
       "Sentiment": "Bullish",
-      "Score": 0.33,
-      "Confidence": 33.3
+      "Score": 1.0,
+      "Confidence": 100.0
     },
     "ASIANPAINT": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "MARUTI": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -183,6 +182,15 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "CIPLA": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "EICHERMOT": {
       "Headlines": [],
       "Positive": 0,
@@ -201,6 +209,15 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "DRREDDY": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "TCS": {
       "Headlines": [
         "TCS, Tata Chemicals, other Tata stocks tumble up to 8% as Tata Trusts calls Chandrasekaran\u2019s tenure extension illegal"
@@ -208,15 +225,6 @@
       "Positive": 0,
       "Negative": 0,
       "Neutral": 1,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "ICICIBANK": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -293,15 +301,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "DRREDDY": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "BRITANNIA": {
       "Headlines": [],
       "Positive": 0,
@@ -312,6 +311,15 @@
       "Confidence": 0.0
     },
     "UPL": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "HDFCBANK": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -428,15 +436,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "HDFCBANK": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "ITC": {
       "Headlines": [],
       "Positive": 0,
@@ -518,7 +517,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "NIFTY 50": {
+    "BANK NIFTY": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -527,7 +526,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "BANK NIFTY": {
+    "NIFTY 50": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -553,6 +552,10 @@
     {
       "Headline": "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
       "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "India enters top 30 most transparent real estate markets, ranks 26th globally: JLL GRETI 2026",
+      "Sentiment": "Neutral"
     },
     {
       "Headline": "US Market: Nike\u2019s position in Dow Jones index comes under pressure",
@@ -675,11 +678,11 @@
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Coal India Share Price Live Updates: Coal India Ltd experiences a decline below its 20-day EMA",
-      "Sentiment": "Bearish"
+      "Headline": "Coal India Share Price Live Updates: Coal India  Current Market Status",
+      "Sentiment": "Neutral"
     },
     {
-      "Headline": "HUL Share Price Live Updates: HUL's Current Price and Market Performance",
+      "Headline": "HUL Share Price Live Updates: HUL's Trading Insights",
       "Sentiment": "Neutral"
     },
     {
@@ -711,8 +714,12 @@
       "Sentiment": "Bullish"
     },
     {
-      "Headline": "Eicher Motors Share Price Live Updates: Eicher Motors Sees Decline Below 100-Day Average",
-      "Sentiment": "Bearish"
+      "Headline": "Tata Consumer Share Price Live Updates: Tata Consumer's Trading Insights",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Eicher Motors Share Price Live Updates: Eicher Motors Trading Insights",
+      "Sentiment": "Neutral"
     },
     {
       "Headline": "Small and midcap trade at up to 50% premium, says Bajaj Life CIO. Why largecaps look better now",
@@ -728,14 +735,6 @@
     },
     {
       "Headline": "Six factors, 250 stocks and one model: How JioBlackRock is building portfolios",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Divis Labs Share Price Live Updates: Divis Labs continues to perform well",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "JK Cement among 4 stocks showing White Marubozu pattern",
       "Sentiment": "Neutral"
     }
   ]
