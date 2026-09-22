@@ -1,15 +1,6 @@
 {
-  "Cash": 99707.62181072714,
-  "Position": {
-    "Name": "HINDALCO",
-    "Symbol": "HINDALCO.NS",
-    "Direction": "SELL",
-    "Entry Time": "2026-09-22 12:47:13",
-    "Entry Price": 967.9,
-    "Quantity": 1,
-    "Stop Loss": 969.25,
-    "Target": 965.1999999999999
-  },
+  "Cash": 99705.24453493125,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -1568,6 +1559,20 @@
       "PnL": 5.37,
       "Cost": 1.42,
       "Net PnL": 3.95
+    },
+    {
+      "Name": "HINDALCO",
+      "Symbol": "HINDALCO.NS",
+      "Direction": "SELL",
+      "Entry Time": "2026-09-22 12:47:13",
+      "Entry Price": 967.9,
+      "Exit Time": "2026-09-22 13:02:07",
+      "Exit Price": 969.25,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -1.35,
+      "Cost": 1.03,
+      "Net PnL": -2.38
     }
   ]
 }
