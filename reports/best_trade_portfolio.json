@@ -1,15 +1,6 @@
 {
-  "Cash": 99717.77647409096,
-  "Position": {
-    "Name": "LT",
-    "Symbol": "LT.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-09-22 10:11:13",
-    "Entry Price": 3916.7,
-    "Quantity": 1,
-    "Stop Loss": 3906.74,
-    "Target": 3936.62
-  },
+  "Cash": 99703.66937839352,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -1540,6 +1531,20 @@
       "PnL": -5.3,
       "Cost": 1.1,
       "Net PnL": -6.4
+    },
+    {
+      "Name": "LT",
+      "Symbol": "LT.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-09-22 10:11:13",
+      "Entry Price": 3916.7,
+      "Exit Time": "2026-09-22 10:36:52",
+      "Exit Price": 3906.74,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -9.96,
+      "Cost": 4.15,
+      "Net PnL": -14.11
     }
   ]
 }
