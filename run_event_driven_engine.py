@@ -43,6 +43,17 @@ from strategy.fyers_options_engine import is_invalid_token_error
 # through the existing OnFailure alert path.
 RETRY_DELAY_SECONDS = 120
 
+# Added 22-Sep-2026, real live incident: 11-Sep-2026 the user simply
+# forgot to log in that morning. The ONE notification above fired
+# right at the first retry (~09:01 IST that day) and was never
+# repeated - easy to miss in the morning rush, and with nothing else
+# reminding the user, the entire day's trading was silently skipped
+# and only noticed 11 days later while pulling day-by-day PnL history.
+# A single early ping isn't enough for something this consequential -
+# re-notify periodically for as long as the retry loop keeps failing,
+# so a missed first alert isn't the whole safety net.
+REMINDER_INTERVAL_SECONDS = 1800  # 30 min
+
 # Added 18-Aug-2026 - the VPS entry point for tonight's WebSocket
 # event-driven engine (strategy/event_driven_runner.py). Same "top-
 # level script fetches real credentials, strategy/ module takes them
@@ -134,7 +145,7 @@ def main():
     from report.push_notifier import send_push_notification
     from report.firebase_realtime_sync import sync_state
 
-    notified = False
+    last_notified_at = None
 
     while True:
         try:
@@ -159,14 +170,17 @@ def main():
                 "detail": str(error),
             })
 
-            if not notified:
+            # CHANGED 22-Sep-2026 - see REMINDER_INTERVAL_SECONDS' own
+            # note above: a repeating reminder, not a one-shot flag.
+            now = datetime.datetime.now(IST)
+            if last_notified_at is None or (now - last_notified_at).total_seconds() >= REMINDER_INTERVAL_SECONDS:
                 send_push_notification(
                     "TURION Engine - Waiting for today's login",
                     f"Startup failed with a stale/invalid Fyers token: {error}. "
                     f"Will keep retrying every {RETRY_DELAY_SECONDS}s until today's "
                     f"login is done - no action needed unless this repeats after logging in.",
                 )
-                notified = True
+                last_notified_at = now
 
             print(f"Startup failed on a stale/invalid token - retrying in "
                   f"{RETRY_DELAY_SECONDS}s ({error})")
