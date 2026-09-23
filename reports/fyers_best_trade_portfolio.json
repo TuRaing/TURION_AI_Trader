@@ -1,15 +1,6 @@
 {
-  "Cash": 99544.97694083839,
-  "Position": {
-    "Name": "JSWSTEEL",
-    "Symbol": "JSWSTEEL.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-09-23 12:08:12",
-    "Entry Price": 1300.2,
-    "Quantity": 1,
-    "Stop Loss": 1295.6100000000001,
-    "Target": 1309.38
-  },
+  "Cash": 99539.01107978533,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -940,6 +931,20 @@
       "PnL": 1.59,
       "Cost": 0.2,
       "Net PnL": 1.39
+    },
+    {
+      "Name": "JSWSTEEL",
+      "Symbol": "JSWSTEEL.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-09-23 12:08:12",
+      "Entry Price": 1300.2,
+      "Exit Time": "2026-09-23 12:41:39",
+      "Exit Price": 1295.6100000000001,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -4.59,
+      "Cost": 1.38,
+      "Net PnL": -5.97
     }
   ],
   "Data Source": "Fyers"
