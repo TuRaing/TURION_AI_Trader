@@ -221,13 +221,32 @@ jobs:
           # picking a side.
           export GIT_EDITOR=true
 
-          for i in 1 2 3; do
+          # WIDENED 23-Sep-2026, real bug found live: despite this
+          # workflow's own shared concurrency group (26-Aug, meant to
+          # make overlapping runs impossible), reports/fyers_options_
+          # st3_banknifty_portfolio.json kept hitting genuine rebase
+          # CONTENT conflicts through the whole week of 15-22-Sep (100+
+          # failed runs) - 3 retries with no delay between them wasn't
+          # enough margin once queued runs stack up under cron-job.org's
+          # ~1-min-per-job trigger rate. Also caught here: the old "commit
+          # still exists locally for the next run" comment was WRONG -
+          # GitHub-hosted runners are ephemeral, torn down at job end, so
+          # a failed push after all retries doesn't defer the work to
+          # "next run", it LOSES that run's real computed trade/portfolio
+          # update permanently. Widened retries 3 -> 8 with a short random
+          # backoff between attempts (spreads out competing runs instead
+          # of all retrying in lockstep) to make that loss meaningfully
+          # rarer - not a full fix (a genuine simultaneous conflict is
+          # still possible and still aborts rather than guessing which
+          # side's real trade data to keep, same safety principle as the
+          # candle-cache carve-out above), just a much wider safety margin.
+          for i in 1 2 3 4 5 6 7 8; do
 
             if git push; then
               exit 0
             fi
 
-            echo "Push rejected - rebasing this run's commit onto latest ($i/3)..."
+            echo "Push rejected - rebasing this run's commit onto latest ($i/8)..."
 
             if git pull --rebase --autostash origin ${{ github.ref_name }}; then
               continue
@@ -246,7 +265,9 @@ jobs:
               git rebase --abort
               break
             fi
+
+            sleep $((RANDOM % 10 + 5))
           done
 
-          echo "Could not push after 3 attempts - commit still exists locally for the next run (~2 min later)."
+          echo "Could not push after 8 attempts - this run's update could not be saved (GitHub-hosted runners are ephemeral, so this is a real loss, not deferred to a next run)."
           exit 1
