@@ -1,20 +1,6 @@
 {
-  "Cash": 55892.51643363798,
-  "Position": {
-    "Symbol": "NSE:BANKNIFTY26SEP55600PE",
-    "Strike": 55600,
-    "Option Type": "PE",
-    "Entry Time": "2026-09-24 12:25:55",
-    "Entry Spot": 55564.3,
-    "Entry Premium": 278.4,
-    "Entry CE OI": 388530,
-    "Entry PE OI": 327870,
-    "Lots": 6,
-    "Quantity": 180,
-    "Capital Deployed": 50112.0,
-    "Last Premium": 278.4,
-    "Last Checked": "2026-09-24 12:25:55"
-  },
+  "Cash": 51069.787567947984,
+  "Position": null,
   "Closed Trades": [
     {
       "Symbol": "NSE:BANKNIFTY26AUG57200PE",
@@ -814,6 +800,23 @@
       "Exit Reason": "Target",
       "Net PnL": 6367.13,
       "Net PnL %": 6.367
+    },
+    {
+      "Symbol": "NSE:BANKNIFTY26SEP55600PE",
+      "Strike": 55600,
+      "Option Type": "PE",
+      "Entry Time": "2026-09-24 12:25:55",
+      "Entry Premium": 278.4,
+      "Entry Spot": 55564.3,
+      "Exit Spot": 55604.9,
+      "Entry CE OI": 388530,
+      "Entry PE OI": 327870,
+      "Exit Time": "2026-09-24 12:28:51",
+      "Exit Premium": 252.35,
+      "Lots": 6,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -4822.73,
+      "Net PnL %": -4.823
     }
   ],
   "Last OI Snapshot": {
