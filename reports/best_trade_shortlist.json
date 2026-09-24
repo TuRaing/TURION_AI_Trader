@@ -1,40 +1,50 @@
 {
-  "Generated At": "2026-09-24 08:30:29",
+  "Generated At": "2026-09-24 09:05:25",
   "Stocks": [
-    {
-      "Name": "SBIN",
-      "Symbol": "SBIN.NS",
-      "Price": 979.2,
-      "Decision": "SELL",
-      "Bias": "Bearish",
-      "Confidence": 90.0,
-      "ATR": 15.24,
-      "Candle Pattern": "Shooting Star"
-    },
     {
       "Name": "WIPRO",
       "Symbol": "WIPRO.NS",
-      "Price": 163.9,
+      "Price": 163.59,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 80.0,
-      "ATR": 3.1,
+      "ATR": 3.14,
       "Candle Pattern": "Shooting Star"
     },
     {
       "Name": "NESTLEIND",
       "Symbol": "NESTLEIND.NS",
-      "Price": 1359.2,
+      "Price": 1357.9,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 80.0,
-      "ATR": 25.97,
+      "ATR": 26.64,
       "Candle Pattern": "Shooting Star"
+    },
+    {
+      "Name": "SBIN",
+      "Symbol": "SBIN.NS",
+      "Price": 976.9,
+      "Decision": "SELL",
+      "Bias": "Bearish",
+      "Confidence": 70.0,
+      "ATR": 15.4,
+      "Candle Pattern": "No Pattern"
+    },
+    {
+      "Name": "AXISBANK",
+      "Symbol": "AXISBANK.NS",
+      "Price": 1179.4,
+      "Decision": "SELL",
+      "Bias": "Bearish",
+      "Confidence": 70.0,
+      "ATR": 22.67,
+      "Candle Pattern": "No Pattern"
     },
     {
       "Name": "BAJAJFINSV",
       "Symbol": "BAJAJFINSV.NS",
-      "Price": 1764.5,
+      "Price": 1768.2,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 70.0,
@@ -42,24 +52,14 @@
       "Candle Pattern": "No Pattern"
     },
     {
-      "Name": "INDUSINDBK",
-      "Symbol": "INDUSINDBK.NS",
-      "Price": 917.0,
-      "Decision": "SELL",
-      "Bias": "Bearish",
-      "Confidence": 70.0,
-      "ATR": 18.57,
-      "Candle Pattern": "Doji"
-    },
-    {
-      "Name": "ICICIBANK",
-      "Symbol": "ICICIBANK.NS",
-      "Price": 1332.5,
+      "Name": "RELIANCE",
+      "Symbol": "RELIANCE.NS",
+      "Price": 1223.1,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
-      "ATR": 17.5,
-      "Candle Pattern": "Doji"
+      "ATR": 18.51,
+      "Candle Pattern": "No Pattern"
     }
   ],
   "Options": [
@@ -74,20 +74,11 @@
       "Name": "BANK NIFTY",
       "Bias": "Bearish",
       "Decision": "NO TRADE",
-      "Confidence": 14.0,
-      "Reason": "Price action Bearish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 14.0% is below the 60% threshold."
+      "Confidence": 28.0,
+      "Reason": "Price action Bearish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 28.0% is below the 60% threshold."
     }
   ],
   "News": {
-    "SBIN": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "WIPRO": {
       "Headlines": [],
       "Positive": 0,
@@ -106,6 +97,24 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "SBIN": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "AXISBANK": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "BAJAJFINSV": {
       "Headlines": [],
       "Positive": 0,
@@ -115,11 +124,13 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "INDUSINDBK": {
-      "Headlines": [],
+    "RELIANCE": {
+      "Headlines": [
+        "Billionaire Ambani's Reliance Industries eyes Rs 10,000 cr debt fundraise: Sources"
+      ],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 0,
+      "Neutral": 1,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -160,7 +171,25 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "M&M": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "DIVISLAB": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "BRITANNIA": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -178,25 +207,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "AXISBANK": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "BAJFINANCE": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "RELIANCE": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -214,7 +225,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "ASIANPAINT": {
+    "INFY": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -241,24 +252,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "POWERGRID": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "M&M": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "ADANIPORTS": {
       "Headlines": [],
       "Positive": 0,
@@ -268,7 +261,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "JSWSTEEL": {
+    "EICHERMOT": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -295,16 +288,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "CIPLA": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "INFY": {
+    "INDUSINDBK": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -373,7 +357,34 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "POWERGRID": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "TATASTEEL": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "ADANIENT": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "JSWSTEEL": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -409,34 +420,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "BRITANNIA": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "EICHERMOT": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "HEROMOTOCO": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "BAJAJ-AUTO": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -472,6 +456,15 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "CIPLA": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "HDFCBANK": {
       "Headlines": [],
       "Positive": 0,
@@ -483,17 +476,25 @@
     },
     "ITC": {
       "Headlines": [
-        "What Bitcoin\u2019s $16 billion options expiry means for investors",
-        "ITC Share Price Live Updates: ITC's Market Update"
+        "What Bitcoin\u2019s $16 billion options expiry means for investors"
       ],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 2,
+      "Neutral": 1,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "TATASTEEL": {
+    "ASIANPAINT": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "BAJAJ-AUTO": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -555,6 +556,10 @@
     {
       "Headline": "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
       "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Billionaire Ambani's Reliance Industries eyes Rs 10,000 cr debt fundraise: Sources",
+      "Sentiment": "Neutral"
     },
     {
       "Headline": "Global Market: BOJ could raise rates to 2% by June 2027 as inflation risks mount: Sakurai",
@@ -677,7 +682,7 @@
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Why is market falling today? Sensex plummets over 1,100 points, Nifty below 23,100. 5 factors behind bloodbath on D-Street",
+      "Headline": "Why is market falling today? Sensex plummets over 1,200 points, Nifty below 23,100. 5 factors behind bloodbath on D-Street",
       "Sentiment": "Bearish"
     },
     {
@@ -734,10 +739,6 @@
     },
     {
       "Headline": "Titan Company Share Price Live Updates: Titan Company Current Market Status",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "ITC Share Price Live Updates: ITC's Market Update",
       "Sentiment": "Neutral"
     }
   ]
