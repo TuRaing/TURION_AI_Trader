@@ -1,15 +1,6 @@
 {
-  "Cash": 99539.71518437359,
-  "Position": {
-    "Name": "SHREECEM",
-    "Symbol": "SHREECEM.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-09-24 10:17:50",
-    "Entry Price": 22640.0,
-    "Quantity": 1,
-    "Stop Loss": 22450.895,
-    "Target": 23018.21
-  },
+  "Cash": 99326.72262103132,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -968,6 +959,20 @@
       "PnL": 0.99,
       "Cost": 0.29,
       "Net PnL": 0.7
+    },
+    {
+      "Name": "SHREECEM",
+      "Symbol": "SHREECEM.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-09-24 10:17:50",
+      "Entry Price": 22640.0,
+      "Exit Time": "2026-09-24 13:41:40",
+      "Exit Price": 22450.895,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -189.1,
+      "Cost": 23.89,
+      "Net PnL": -212.99
     }
   ],
   "Data Source": "Fyers"
