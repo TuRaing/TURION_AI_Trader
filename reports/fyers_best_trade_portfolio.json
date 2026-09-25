@@ -1,15 +1,6 @@
 {
-  "Cash": 99327.13671607042,
-  "Position": {
-    "Name": "AXISBANK",
-    "Symbol": "AXISBANK.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-09-25 14:12:58",
-    "Entry Price": 1222.0,
-    "Quantity": 1,
-    "Stop Loss": 1218.625,
-    "Target": 1228.75
-  },
+  "Cash": 99325.54103579423,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -1010,6 +1001,20 @@
       "PnL": 18.21,
       "Cost": 5.66,
       "Net PnL": 12.55
+    },
+    {
+      "Name": "AXISBANK",
+      "Symbol": "AXISBANK.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-09-25 14:12:58",
+      "Entry Price": 1222.0,
+      "Exit Time": "2026-09-25 14:46:45",
+      "Exit Price": 1221.7,
+      "Quantity": 1,
+      "Exit Reason": "Intraday Square-Off",
+      "PnL": -0.3,
+      "Cost": 1.3,
+      "Net PnL": -1.6
     }
   ],
   "Data Source": "Fyers"
