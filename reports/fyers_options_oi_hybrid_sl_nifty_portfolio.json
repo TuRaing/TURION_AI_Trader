@@ -1,20 +1,6 @@
 {
-  "Cash": 82253.79464316505,
-  "Position": {
-    "Symbol": "NSE:NIFTY26SEP23100PE",
-    "Strike": 23100,
-    "Option Type": "PE",
-    "Entry Time": "2026-09-25 11:04:44",
-    "Entry Spot": 23080.45,
-    "Entry Premium": 98.5,
-    "Entry CE OI": 17725110,
-    "Entry PE OI": 14735045,
-    "Lots": 11,
-    "Quantity": 825,
-    "Capital Deployed": 81262.5,
-    "Last Premium": 98.5,
-    "Last Checked": "2026-09-25 11:04:44"
-  },
+  "Cash": 76371.07436461005,
+  "Position": null,
   "Closed Trades": [
     {
       "Symbol": "NSE:NIFTY2681824300PE",
@@ -1375,6 +1361,23 @@
       "Exit Reason": "Target",
       "Net PnL": 2280.05,
       "Net PnL %": 2.28
+    },
+    {
+      "Symbol": "NSE:NIFTY26SEP23100PE",
+      "Strike": 23100,
+      "Option Type": "PE",
+      "Entry Time": "2026-09-25 11:04:44",
+      "Entry Premium": 98.5,
+      "Entry Spot": 23080.45,
+      "Exit Spot": 23100.3,
+      "Entry CE OI": 17725110,
+      "Entry PE OI": 14735045,
+      "Exit Time": "2026-09-25 11:22:48",
+      "Exit Premium": 91.6,
+      "Lots": 11,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -5882.72,
+      "Net PnL %": -5.883
     }
   ],
   "Last OI Snapshot": {
