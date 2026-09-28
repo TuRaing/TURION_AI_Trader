@@ -1,15 +1,6 @@
 {
-  "Cash": 99325.54103579423,
-  "Position": {
-    "Name": "COALINDIA",
-    "Symbol": "COALINDIA.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-09-28 10:32:17",
-    "Entry Price": 427.75,
-    "Quantity": 1,
-    "Stop Loss": 426.565,
-    "Target": 430.12
-  },
+  "Cash": 99323.90318611905,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -1024,6 +1015,20 @@
       "PnL": -0.3,
       "Cost": 1.3,
       "Net PnL": -1.6
+    },
+    {
+      "Name": "COALINDIA",
+      "Symbol": "COALINDIA.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-09-28 10:32:17",
+      "Entry Price": 427.75,
+      "Exit Time": "2026-09-28 11:16:46",
+      "Exit Price": 426.565,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -1.19,
+      "Cost": 0.45,
+      "Net PnL": -1.64
     }
   ],
   "Data Source": "Fyers"
