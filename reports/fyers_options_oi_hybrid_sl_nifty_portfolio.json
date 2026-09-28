@@ -1,20 +1,6 @@
 {
-  "Cash": 70050.39401391005,
-  "Position": {
-    "Symbol": "NSE:NIFTY26SEP22850CE",
-    "Strike": 22850,
-    "Option Type": "CE",
-    "Entry Time": "2026-09-28 12:28:50",
-    "Entry Spot": 22847.1,
-    "Entry Premium": 108.8,
-    "Entry CE OI": 14760395,
-    "Entry PE OI": 13362830,
-    "Lots": 8,
-    "Quantity": 600,
-    "Capital Deployed": 65280.0,
-    "Last Premium": 108.8,
-    "Last Checked": "2026-09-28 12:28:50"
-  },
+  "Cash": 61224.09806465004,
+  "Position": null,
   "Closed Trades": [
     {
       "Symbol": "NSE:NIFTY2681824300PE",
@@ -1409,6 +1395,23 @@
       "Exit Reason": "Stop Loss",
       "Net PnL": -6320.68,
       "Net PnL %": -6.321
+    },
+    {
+      "Symbol": "NSE:NIFTY26SEP22850CE",
+      "Strike": 22850,
+      "Option Type": "CE",
+      "Entry Time": "2026-09-28 12:28:50",
+      "Entry Premium": 108.8,
+      "Entry Spot": 22847.1,
+      "Exit Spot": 22832.9,
+      "Entry CE OI": 14760395,
+      "Entry PE OI": 13362830,
+      "Exit Time": "2026-09-28 13:54:52",
+      "Exit Premium": 94.35,
+      "Lots": 8,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -8826.3,
+      "Net PnL %": -8.826
     }
   ],
   "Last OI Snapshot": {
