@@ -1,22 +1,6 @@
 {
-  "Cash": 109142.5,
-  "Position": {
-    "Option Type": "CE",
-    "Short Strike": 23150,
-    "Long Strike": 23300,
-    "Short Symbol": "NSE:NIFTY26SEP23150CE",
-    "Long Symbol": "NSE:NIFTY26SEP23300CE",
-    "Entry Time": "2026-09-28 10:54:46",
-    "Entry Spot": 22828.9,
-    "Entry Credit": 9.05,
-    "Entry RSI": 26.04,
-    "Entry VIX": 13.94,
-    "Lots": 10,
-    "Quantity": 750,
-    "Max Loss": 105712.5,
-    "Last Cost To Close": 5.2,
-    "Last Checked": "2026-09-28 14:53:45"
-  },
+  "Cash": 113492.5,
+  "Position": null,
   "Closed Trades": [
     {
       "Option Type": "PE",
@@ -394,6 +378,24 @@
       "Exit Reason": "Square-Off",
       "Net PnL": 750.0,
       "Net PnL %": 0.75
+    },
+    {
+      "Option Type": "CE",
+      "Short Strike": 23150,
+      "Long Strike": 23300,
+      "Short Symbol": "NSE:NIFTY26SEP23150CE",
+      "Long Symbol": "NSE:NIFTY26SEP23300CE",
+      "Entry Time": "2026-09-28 10:54:46",
+      "Entry Credit": 9.05,
+      "Entry Spot": 22828.9,
+      "Exit Spot": 22788.25,
+      "Exit Time": "2026-09-28 15:16:04",
+      "Short Close Premium": 9.2,
+      "Long Close Premium": 5.95,
+      "Lots": 10,
+      "Exit Reason": "Target (50% of credit)",
+      "Net PnL": 4350.0,
+      "Net PnL %": 4.35
     }
   ],
   "Data Source": "Fyers (real premium)",
