@@ -1,5 +1,5 @@
 {
-  "Cash": 99673.98005240767,
+  "Cash": 99553.35511420816,
   "Closed Trades": [
     {
       "Symbol": "HDFCBANK",
@@ -554,26 +554,31 @@
       "Net PnL": -255.08,
       "STCG Tax": 0.0,
       "After-Tax PnL": -255.08
+    },
+    {
+      "Symbol": "GRASIM",
+      "Entry Time": "2026-08-05 11:22:48",
+      "Entry Price": 3222.6,
+      "Exit Time": "2026-09-29 10:53:00",
+      "Exit Price": 3124.035,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -98.57,
+      "Cost": 22.06,
+      "Net PnL": -120.62,
+      "STCG Tax": 0.0,
+      "After-Tax PnL": -120.62
     }
   ],
   "Positions": {
-    "GRASIM": {
-      "Entry Time": "2026-08-05 11:22:48",
-      "Entry Price": 3222.6,
-      "Quantity": 1,
-      "Stop Loss": 3124.035,
-      "Target": 3419.73,
-      "Last Price": 3125.1,
-      "Last Checked": "2026-09-29 10:37:50"
-    },
     "DIVISLAB": {
       "Entry Time": "2026-09-02 14:07:44",
       "Entry Price": 9222.5,
       "Quantity": 1,
       "Stop Loss": 8953.25,
       "Target": 9761.0,
-      "Last Price": 9529.5,
-      "Last Checked": "2026-09-29 10:37:50"
+      "Last Price": 9527.0,
+      "Last Checked": "2026-09-29 10:53:00"
     },
     "ADANIPORTS": {
       "Entry Time": "2026-09-21 11:52:50",
@@ -581,8 +586,8 @@
       "Quantity": 1,
       "Stop Loss": 1726.3149999999998,
       "Target": 1907.1699999999998,
-      "Last Price": 1744.0,
-      "Last Checked": "2026-09-29 10:37:50"
+      "Last Price": 1747.5,
+      "Last Checked": "2026-09-29 10:53:00"
     }
   }
 }
