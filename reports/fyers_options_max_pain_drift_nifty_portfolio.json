@@ -1,6 +1,19 @@
 {
   "Cash": 620810.5722250699,
-  "Position": null,
+  "Position": {
+    "Symbol": "NSE:NIFTY26SEP22650CE",
+    "Strike": 22650,
+    "Option Type": "CE",
+    "Entry Time": "2026-09-29 13:44:54",
+    "Entry Spot": 22643.65,
+    "Entry Premium": 47.6,
+    "Entry Max Pain": 22700,
+    "Lots": 173,
+    "Quantity": 12975,
+    "Capital Deployed": 617610.0,
+    "Last Premium": 47.6,
+    "Last Checked": "2026-09-29 13:44:54"
+  },
   "Closed Trades": [
     {
       "Symbol": "NSE:NIFTY2681824300PE",
@@ -438,7 +451,7 @@
       "Net PnL %": -209.852
     }
   ],
-  "Last Max Pain": 22650,
+  "Last Max Pain": 22700,
   "Data Source": "Fyers (real premium)",
   "Strategy": "max_pain_drift",
   "Index": "NIFTY"
