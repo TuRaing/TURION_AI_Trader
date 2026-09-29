@@ -1,23 +1,6 @@
 {
-  "Cash": 42825.09563802498,
-  "Position": {
-    "Symbol": "NSE:NIFTY26SEP22600PE",
-    "Strike": 22600,
-    "Option Type": "PE",
-    "Entry Time": "2026-09-29 09:48:06",
-    "Entry Spot": 22603.85,
-    "Entry Premium": 59.95,
-    "Entry ATR": 27.71,
-    "Entry ADX": 53.53,
-    "Lots": 9,
-    "Quantity": 675,
-    "Capital Deployed": 40466.25,
-    "Peak Spot": 22576.2,
-    "Trailing Active": true,
-    "Last Premium": 60.85,
-    "Last Spot": 22588,
-    "Last Checked": "2026-09-29 10:38:13"
-  },
+  "Cash": 34614.12385296998,
+  "Position": null,
   "Closed Trades": [
     {
       "Symbol": "NSE:NIFTY2681124550PE",
@@ -334,9 +317,25 @@
       "Exit Reason": "Stop Loss",
       "Net PnL": -3373.72,
       "Net PnL %": -3.374
+    },
+    {
+      "Symbol": "NSE:NIFTY26SEP22600PE",
+      "Strike": 22600,
+      "Option Type": "PE",
+      "Entry Time": "2026-09-29 09:48:06",
+      "Entry Premium": 59.95,
+      "Entry Spot": 22603.85,
+      "Peak Spot": 22576.2,
+      "Exit Spot": 22618.15,
+      "Exit Time": "2026-09-29 10:56:32",
+      "Exit Premium": 47.95,
+      "Lots": 9,
+      "Exit Reason": "Trailing Stop",
+      "Net PnL": -8210.97,
+      "Net PnL %": -8.211
     }
   ],
-  "Last Trade Date": "2026-09-28",
+  "Last Trade Date": "2026-09-29",
   "Data Source": "Fyers (real premium)",
   "Strategy": "st4",
   "Index": "NIFTY"
