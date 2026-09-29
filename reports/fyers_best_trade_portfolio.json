@@ -1,15 +1,6 @@
 {
-  "Cash": 99345.58427819789,
-  "Position": {
-    "Name": "LTIM",
-    "Symbol": "LTIM.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-09-29 12:13:05",
-    "Entry Price": 4173.2,
-    "Quantity": 1,
-    "Stop Loss": 4153.76,
-    "Target": 4212.08
-  },
+  "Cash": 99321.73124590493,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -1080,6 +1071,20 @@
       "PnL": 53.58,
       "Cost": 4.4,
       "Net PnL": 49.18
+    },
+    {
+      "Name": "LTIM",
+      "Symbol": "LTIM.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-09-29 12:13:05",
+      "Entry Price": 4173.2,
+      "Exit Time": "2026-09-29 12:26:44",
+      "Exit Price": 4153.76,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -19.44,
+      "Cost": 4.41,
+      "Net PnL": -23.85
     }
   ],
   "Data Source": "Fyers"
