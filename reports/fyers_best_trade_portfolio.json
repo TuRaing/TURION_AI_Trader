@@ -1,15 +1,6 @@
 {
-  "Cash": 99321.73124590493,
-  "Position": {
-    "Name": "TATASTEEL",
-    "Symbol": "TATASTEEL.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-09-29 12:52:36",
-    "Entry Price": 188.01,
-    "Quantity": 1,
-    "Stop Loss": 187.23,
-    "Target": 189.57
-  },
+  "Cash": 99321.6517934973,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -1094,6 +1085,20 @@
       "PnL": -19.44,
       "Cost": 4.41,
       "Net PnL": -23.85
+    },
+    {
+      "Name": "TATASTEEL",
+      "Symbol": "TATASTEEL.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-09-29 12:52:36",
+      "Entry Price": 188.01,
+      "Exit Time": "2026-09-29 14:46:58",
+      "Exit Price": 188.13,
+      "Quantity": 1,
+      "Exit Reason": "Intraday Square-Off",
+      "PnL": 0.12,
+      "Cost": 0.2,
+      "Net PnL": -0.08
     }
   ],
   "Data Source": "Fyers"
