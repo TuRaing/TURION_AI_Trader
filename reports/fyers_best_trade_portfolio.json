@@ -1,15 +1,6 @@
 {
-  "Cash": 99321.6517934973,
-  "Position": {
-    "Name": "INFY",
-    "Symbol": "INFY.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-09-30 10:07:22",
-    "Entry Price": 1020.1,
-    "Quantity": 1,
-    "Stop Loss": 1010.32,
-    "Target": 1039.66
-  },
+  "Cash": 99310.79628782238,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -1108,6 +1099,20 @@
       "PnL": 0.12,
       "Cost": 0.2,
       "Net PnL": -0.08
+    },
+    {
+      "Name": "INFY",
+      "Symbol": "INFY.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-09-30 10:07:22",
+      "Entry Price": 1020.1,
+      "Exit Time": "2026-09-30 11:16:52",
+      "Exit Price": 1010.32,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -9.78,
+      "Cost": 1.08,
+      "Net PnL": -10.86
     }
   ],
   "Data Source": "Fyers"
