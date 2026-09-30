@@ -1,64 +1,64 @@
 {
-  "Generated At": "2026-09-30 09:45:17",
+  "Generated At": "2026-09-30 10:20:32",
   "Stocks": [
     {
-      "Name": "RELIANCE",
-      "Symbol": "RELIANCE.NS",
-      "Price": 1185.7,
+      "Name": "BHARTIARTL",
+      "Symbol": "BHARTIARTL.NS",
+      "Price": 1757.0,
+      "Decision": "SELL",
+      "Bias": "Bearish",
+      "Confidence": 90.0,
+      "ATR": 27.34,
+      "Candle Pattern": "Bearish Engulfing"
+    },
+    {
+      "Name": "SBIN",
+      "Symbol": "SBIN.NS",
+      "Price": 959.5,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 80.0,
-      "ATR": 18.41,
-      "Candle Pattern": "Shooting Star"
+      "ATR": 15.59,
+      "Candle Pattern": "Bearish Engulfing"
     },
     {
-      "Name": "TCS",
-      "Symbol": "TCS.NS",
-      "Price": 2055.7,
+      "Name": "WIPRO",
+      "Symbol": "WIPRO.NS",
+      "Price": 158.5,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 80.0,
-      "ATR": 60.53,
+      "ATR": 3.35,
       "Candle Pattern": "Shooting Star"
     },
     {
-      "Name": "M&M",
-      "Symbol": "M&M.NS",
-      "Price": 2940.0,
-      "Decision": "SELL",
-      "Bias": "Bearish",
-      "Confidence": 80.0,
-      "ATR": 55.34,
-      "Candle Pattern": "Shooting Star"
-    },
-    {
-      "Name": "ADANIENT",
-      "Symbol": "ADANIENT.NS",
-      "Price": 2887.2,
-      "Decision": "SELL",
-      "Bias": "Bearish",
-      "Confidence": 80.0,
-      "ATR": 78.41,
-      "Candle Pattern": "Shooting Star"
-    },
-    {
-      "Name": "SHREECEM",
-      "Symbol": "SHREECEM.NS",
-      "Price": 22050.0,
-      "Decision": "SELL",
-      "Bias": "Bearish",
-      "Confidence": 80.0,
-      "ATR": 495.0,
-      "Candle Pattern": "Shooting Star"
-    },
-    {
-      "Name": "BAJAJFINSV",
-      "Symbol": "BAJAJFINSV.NS",
-      "Price": 1727.9,
+      "Name": "ICICIBANK",
+      "Symbol": "ICICIBANK.NS",
+      "Price": 1321.7,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 70.0,
-      "ATR": 37.47,
+      "ATR": 20.01,
+      "Candle Pattern": "No Pattern"
+    },
+    {
+      "Name": "INFY",
+      "Symbol": "INFY.NS",
+      "Price": 994.1,
+      "Decision": "SELL",
+      "Bias": "Bearish",
+      "Confidence": 70.0,
+      "ATR": 23.96,
+      "Candle Pattern": "Shooting Star"
+    },
+    {
+      "Name": "RELIANCE",
+      "Symbol": "RELIANCE.NS",
+      "Price": 1187.0,
+      "Decision": "SELL",
+      "Bias": "Bearish",
+      "Confidence": 60.0,
+      "ATR": 18.41,
       "Candle Pattern": "No Pattern"
     }
   ],
@@ -67,8 +67,8 @@
       "Name": "NIFTY 50",
       "Bias": "Bearish",
       "Decision": "NO TRADE",
-      "Confidence": 56.0,
-      "Reason": "Price action Bearish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 56.0% is below the 60% threshold."
+      "Confidence": 42.0,
+      "Reason": "Price action Bearish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 42.0% is below the 60% threshold."
     },
     {
       "Name": "BANK NIFTY",
@@ -79,6 +79,53 @@
     }
   ],
   "News": {
+    "BHARTIARTL": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "SBIN": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "WIPRO": {
+      "Headlines": [
+        "TCS, Wipro, other IT stocks rebound up to 6%, snapping 8-day losing streak. Why is Jefferies cautious?"
+      ],
+      "Positive": 1,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Bullish",
+      "Score": 1.0,
+      "Confidence": 100.0
+    },
+    "ICICIBANK": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "INFY": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "RELIANCE": {
       "Headlines": [],
       "Positive": 0,
@@ -99,52 +146,7 @@
       "Score": 1.0,
       "Confidence": 100.0
     },
-    "M&M": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "ADANIENT": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "SHREECEM": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "BAJAJFINSV": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "ICICIBANK": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "INFY": {
+    "HDFCBANK": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -154,24 +156,6 @@
       "Confidence": 0.0
     },
     "HINDUNILVR": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "SBIN": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "BHARTIARTL": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -198,18 +182,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "WIPRO": {
-      "Headlines": [
-        "TCS, Wipro, other IT stocks rebound up to 6%, snapping 8-day losing streak. Why is Jefferies cautious?"
-      ],
-      "Positive": 1,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Bullish",
-      "Score": 1.0,
-      "Confidence": 100.0
-    },
-    "NESTLEIND": {
+    "NTPC": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -218,7 +191,25 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "NTPC": {
+    "M&M": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "ADANIENT": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "JSWSTEEL": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -236,41 +227,19 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "ADANIPORTS": {
-      "Headlines": [],
-      "Positive": 0,
+    "LT": {
+      "Headlines": [
+        "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
+        "STL Networks shares jump 5% after emerging as L1 bidder for RailTel contract worth Rs 250 crore",
+        "Cupid shares rally 16% in two sessions. What\u2019s behind the sharp uptick in the multibagger stock?",
+        "LTM among 3 stocks that closed below VWAP"
+      ],
+      "Positive": 3,
       "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "BRITANNIA": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "HDFCBANK": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "BAJFINANCE": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
+      "Neutral": 1,
+      "Sentiment": "Bullish",
+      "Score": 1.0,
+      "Confidence": 100.0
     },
     "HCLTECH": {
       "Headlines": [],
@@ -281,7 +250,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "POWERGRID": {
+    "ADANIPORTS": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -290,7 +259,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "DIVISLAB": {
+    "BAJAJFINSV": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -299,7 +268,16 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "INDUSINDBK": {
+    "DRREDDY": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "BRITANNIA": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -326,7 +304,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "KOTAKBANK": {
+    "BAJFINANCE": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -335,21 +313,43 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "LT": {
-      "Headlines": [
-        "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
-        "STL Networks shares jump 5% after emerging as L1 bidder for RailTel contract worth Rs 250 crore",
-        "Cupid shares rally 16% in two sessions. What\u2019s behind the sharp uptick in the multibagger stock?",
-        "LTM among 3 stocks that closed below VWAP"
-      ],
-      "Positive": 3,
+    "NESTLEIND": {
+      "Headlines": [],
+      "Positive": 0,
       "Negative": 0,
-      "Neutral": 1,
-      "Sentiment": "Bullish",
-      "Score": 1.0,
-      "Confidence": 100.0
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
     },
-    "DRREDDY": {
+    "DIVISLAB": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "EICHERMOT": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "INDUSINDBK": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "KOTAKBANK": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -385,15 +385,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "TITAN": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "ULTRACEMCO": {
       "Headlines": [],
       "Positive": 0,
@@ -403,7 +394,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "ONGC": {
+    "POWERGRID": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -412,7 +403,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "JSWSTEEL": {
+    "TATASTEEL": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -439,7 +430,16 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "EICHERMOT": {
+    "CIPLA": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "HEROMOTOCO": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -449,6 +449,33 @@
       "Confidence": 0.0
     },
     "BPCL": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "SHREECEM": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "SUNPHARMA": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "TITAN": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -467,42 +494,6 @@
       "Confidence": 0.0
     },
     "APOLLOHOSP": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "SUNPHARMA": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "TATASTEEL": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "CIPLA": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "HEROMOTOCO": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -555,6 +546,22 @@
     {
       "Headline": "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
       "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Global Market: Eurozone bond yields ease from highs as rate-hike bets cool",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Diwali stock picks: Urban Company among 5 stock ideas from Ambareesh Baliga for up to 38% upside",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Hospital stocks fall up to 6%: Apollo, Fortis, KIMS tumble as SC questions drug mark-ups",
+      "Sentiment": "Bearish"
+    },
+    {
+      "Headline": "Coca-Cola mulls filing draft papers for $1 billion India IPO in December",
+      "Sentiment": "Neutral"
     },
     {
       "Headline": "MRPL shares tumble 5% after explosion at Mangaluru plant, thick smoke seen from refinery unit",
@@ -697,7 +704,7 @@
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Bajaj Finserv Share Price Live Updates: Bajaj Finserv Current Market Status",
+      "Headline": "Bajaj Finserv Share Price Live Updates: Bajaj Finserv ends the trading session at Rs 1727.9",
       "Sentiment": "Neutral"
     },
     {
@@ -722,22 +729,6 @@
     },
     {
       "Headline": "Foreign outflows from Indian stocks hit 6-month high in September on higher oil, yields",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Vishal Nirmiti IPO opens today. Check GMP, price band, and key details. Should you subscribe?",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Vishal Mega Mart among 3 stocks that closed crossing above VWAP",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Nityas Gems &amp; Jewellery IPO opens today. Check GMP, price band and key details",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Morgan Stanley raises Lenskart target price to Rs 718; bull case implies 41% upside. Here\u2019s why",
       "Sentiment": "Neutral"
     }
   ]
