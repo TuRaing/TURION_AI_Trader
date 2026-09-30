@@ -1,6 +1,19 @@
 {
   "Cash": 17012.92345476,
-  "Position": null,
+  "Position": {
+    "Symbol": "NSE:NIFTY26O0622750CE",
+    "Strike": 22750,
+    "Option Type": "CE",
+    "Entry Time": "2026-09-30 13:29:57",
+    "Entry Spot": 22774.15,
+    "Entry Premium": 168.8,
+    "Entry PCR": 1.182,
+    "Lots": 1,
+    "Quantity": 75,
+    "Capital Deployed": 12660.0,
+    "Last Premium": 168.8,
+    "Last Checked": "2026-09-30 13:29:57"
+  },
   "Closed Trades": [
     {
       "Symbol": "NSE:NIFTY2681824300PE",
@@ -199,9 +212,9 @@
     }
   ],
   "Last Chain Snapshot": {
-    "spot": 22749.4,
-    "pcr": 0.8886955686570032,
-    "total_volume": 471660670
+    "spot": 22774.95,
+    "pcr": 1.1820381563579028,
+    "total_volume": 1572889045
   },
   "Data Source": "Fyers (real premium)",
   "Strategy": "pcr_vix_combo",
