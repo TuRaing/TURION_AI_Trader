@@ -1,15 +1,6 @@
 {
-  "Cash": 99311.44849771041,
-  "Position": {
-    "Name": "DRREDDY",
-    "Symbol": "DRREDDY.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-09-30 13:57:43",
-    "Entry Price": 1240.5,
-    "Quantity": 1,
-    "Stop Loss": 1237.815,
-    "Target": 1245.87
-  },
+  "Cash": 99307.44972601123,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -1150,6 +1141,20 @@
       "PnL": -3.97,
       "Cost": 1.99,
       "Net PnL": -5.97
+    },
+    {
+      "Name": "DRREDDY",
+      "Symbol": "DRREDDY.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-09-30 13:57:43",
+      "Entry Price": 1240.5,
+      "Exit Time": "2026-09-30 14:32:13",
+      "Exit Price": 1237.815,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -2.68,
+      "Cost": 1.31,
+      "Net PnL": -4.0
     }
   ],
   "Data Source": "Fyers"
