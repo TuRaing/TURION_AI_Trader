@@ -1,22 +1,6 @@
 {
-  "Cash": 107916.25,
-  "Position": {
-    "Option Type": "CE",
-    "Short Strike": 22650,
-    "Long Strike": 22800,
-    "Short Symbol": "NSE:NIFTY26O0622650CE",
-    "Long Symbol": "NSE:NIFTY26O0622800CE",
-    "Entry Time": "2026-10-01 14:31:36",
-    "Entry Spot": 22334.9,
-    "Entry Credit": 21.8,
-    "Entry RSI": 30.21,
-    "Entry VIX": 15.0,
-    "Lots": 11,
-    "Quantity": 825,
-    "Max Loss": 105765.0,
-    "Last Cost To Close": 24.95,
-    "Last Checked": "2026-10-01 15:04:50"
-  },
+  "Cash": 104740.0,
+  "Position": null,
   "Closed Trades": [
     {
       "Option Type": "PE",
@@ -448,6 +432,24 @@
       "Exit Reason": "Target (50% of credit)",
       "Net PnL": 911.25,
       "Net PnL %": 0.911
+    },
+    {
+      "Option Type": "CE",
+      "Short Strike": 22650,
+      "Long Strike": 22800,
+      "Short Symbol": "NSE:NIFTY26O0622650CE",
+      "Long Symbol": "NSE:NIFTY26O0622800CE",
+      "Entry Time": "2026-10-01 14:31:36",
+      "Entry Credit": 21.8,
+      "Entry Spot": 22334.9,
+      "Exit Spot": 22421.95,
+      "Exit Time": "2026-10-01 15:31:40",
+      "Short Close Premium": 49.6,
+      "Long Close Premium": 23.95,
+      "Lots": 11,
+      "Exit Reason": "Square-Off",
+      "Net PnL": -3176.25,
+      "Net PnL %": -3.176
     }
   ],
   "Data Source": "Fyers (real premium)",
