@@ -1,5 +1,5 @@
 {
-  "Generated At": "2026-10-01 10:46:53",
+  "Generated At": "2026-10-02 09:49:28",
   "Stocks": [
     {
       "Name": "ICICIBANK",
@@ -67,8 +67,8 @@
       "Name": "NIFTY 50",
       "Bias": "Bearish",
       "Decision": "NO TRADE",
-      "Confidence": 42.0,
-      "Reason": "Price action Bearish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 42.0% is below the 60% threshold."
+      "Confidence": 49.0,
+      "Reason": "Price action Bearish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 49.0% is below the 60% threshold."
     },
     {
       "Name": "BANK NIFTY",
@@ -116,15 +116,13 @@
       "Confidence": 0.0
     },
     "GRASIM": {
-      "Headlines": [
-        "Grasim Inds Share Price Live Updates: Grasim Industries Shows Weakness in Today's Trading"
-      ],
+      "Headlines": [],
       "Positive": 0,
-      "Negative": 1,
+      "Negative": 0,
       "Neutral": 0,
-      "Sentiment": "Bearish",
-      "Score": -1.0,
-      "Confidence": 100.0
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
     },
     "BAJAJ-AUTO": {
       "Headlines": [],
@@ -181,25 +179,23 @@
       "Confidence": 0.0
     },
     "TITAN": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "WIPRO": {
       "Headlines": [
-        "Stocks to buy: Titan, Lenskart, Dabur among Nomura\u2019s 17 consumer picks. Do you own any?"
+        "Infosys, Wipro ADRs soar up to 8% as strong Accenture earnings forecast lifts mood"
       ],
       "Positive": 1,
       "Negative": 0,
       "Neutral": 0,
       "Sentiment": "Bullish",
       "Score": 1.0,
-      "Confidence": 100.0
-    },
-    "WIPRO": {
-      "Headlines": [
-        "Jefferies is bearish TCS, Wipro, 6 other IT stocks ahead of Q2 results. How many do you own?"
-      ],
-      "Positive": 0,
-      "Negative": 1,
-      "Neutral": 0,
-      "Sentiment": "Bearish",
-      "Score": -1.0,
       "Confidence": 100.0
     },
     "NESTLEIND": {
@@ -212,10 +208,12 @@
       "Confidence": 0.0
     },
     "NTPC": {
-      "Headlines": [],
+      "Headlines": [
+        "\u200bCoal India, NTPC among 360 ONE Capital\u2019s 8 stock picks for October. Check full list with target prices"
+      ],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 0,
+      "Neutral": 1,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -275,30 +273,26 @@
       "Confidence": 0.0
     },
     "TCS": {
-      "Headlines": [
-        "Jefferies is bearish TCS, Wipro, 6 other IT stocks ahead of Q2 results. How many do you own?"
-      ],
+      "Headlines": [],
       "Positive": 0,
-      "Negative": 1,
+      "Negative": 0,
       "Neutral": 0,
-      "Sentiment": "Bearish",
-      "Score": -1.0,
-      "Confidence": 100.0
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
     },
     "LT": {
       "Headlines": [
-        "RIL Q2 Results: Nuvama sees 17% EBITDA growth, led by O2C biz. Here\u2019s what to expect",
-        "Jefferies is bearish TCS, Wipro, 6 other IT stocks ahead of Q2 results. How many do you own?",
-        "Anarock Property Consultants files draft papers for Rs 1,000 crore IPO",
-        "IPO investors strike gold with 7 multibagger stocks in 3 months. Did you miss the bus?",
-        "Cupid shares hit fresh 52-week high as firm raises FY27 revenue, profit guidance again; multibagger stock skyrockets 617% in a year"
+        "ET Alpha Wealth Summit 2.0: Decoding the new investment landscape and shift in smart money",
+        "Jefferies is bullish on 6 healthcare stocks with upside potential of up to 46%. Own any?",
+        "UK 30-year gilt yields top 6% for the first time since 1998"
       ],
-      "Positive": 2,
-      "Negative": 1,
+      "Positive": 1,
+      "Negative": 0,
       "Neutral": 2,
       "Sentiment": "Bullish",
-      "Score": 0.33,
-      "Confidence": 33.3
+      "Score": 1.0,
+      "Confidence": 100.0
     },
     "HCLTECH": {
       "Headlines": [],
@@ -418,13 +412,15 @@
       "Confidence": 0.0
     },
     "ITC": {
-      "Headlines": [],
-      "Positive": 0,
+      "Headlines": [
+        "Bitcoin leads crypto market rebound above $85K as short liquidations accelerate"
+      ],
+      "Positive": 1,
       "Negative": 0,
       "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
+      "Sentiment": "Bullish",
+      "Score": 1.0,
+      "Confidence": 100.0
     },
     "KOTAKBANK": {
       "Headlines": [],
@@ -526,12 +522,10 @@
       "Confidence": 0.0
     },
     "NIFTY 50": {
-      "Headlines": [
-        "Nifty 500\u2019s hidden bear market: Half the stocks are down over 30% from highs"
-      ],
+      "Headlines": [],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 1,
+      "Neutral": 0,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -548,204 +542,188 @@
   },
   "Market Headlines": [
     {
-      "Headline": "Rupee drops to two-month low as global bond rout deepens, oil jumps",
+      "Headline": "ET Alpha Wealth Summit 2.0: Decoding the new investment landscape and shift in smart money",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "AMC stocks face rough waters; Kotak sees selective opportunities in SBI, HDFC AMC",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "PB Fintech shares crash 50% from peak, fall below 2021 IPO price. More downside coming?",
+      "Headline": "European shares edge higher after bonds-driven selloff, focus on inflation data",
       "Sentiment": "Bearish"
     },
     {
-      "Headline": "FY27 comeback: India IPOs raise record Rs 94,000 crore in first half, average listing gain doubles",
+      "Headline": "Inox Air Products files draft papers for initial offer",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Carlsberg India unit, 3 other firms get Sebi nod to proceed with IPO plans",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Bitcoin leads crypto market rebound above $85K as short liquidations accelerate",
       "Sentiment": "Bullish"
     },
     {
-      "Headline": "Global Market: European shares slide as surging bond yields hit risk appetite",
+      "Headline": "ETMarkets Smart Talk: Rupee under pressure, inflation sticky: Will RBI be forced to rethink rates? Ankita Pathak, Ionic Asset",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Gas maker Inox Air Products files IPO papers with Sebi, public issue to entirely comprise OFS",
+      "Headline": "Danish brewing giant Carlsberg\u2019s India arm, 3 others get Sebi nod to float IPOs",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "\u200bCoal India, NTPC among 360 ONE Capital\u2019s 8 stock picks for October. Check full list with target prices",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "ETMarkets Smart Talk| \u2018Desi to Videsi\u2019: How GIFT City is changing the way Indians invest globally \u2014 Mustafa Pardiwala",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Global Markets | Japan's Nikkei retreats from 6-week high as investors lock in gains",
       "Sentiment": "Bullish"
     },
     {
-      "Headline": "Global Market: Eurozone bonds face pressure as energy shock fuels rate hike bets",
+      "Headline": "Bajaj Finance to raise Rs 17,500 cr via QIP, preference issue",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "US Market: AI credit surge tests lenders as future revenues remain uncertain",
+      "Headline": "Jefferies is bullish on 6 healthcare stocks with upside potential of up to 46%. Own any?",
       "Sentiment": "Bullish"
     },
     {
-      "Headline": "US 10-year yield at 24-year high rattles Nifty, rupee and bond markets. Why is India hit hard?",
+      "Headline": "Market crash wipes out Rs 26 lakh cr in 8 weeks! Why soaring bond yields may hurt Sensex, Nifty more than elevated oil prices",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "US 10-year yield at 24-year high rattles Nifty, rupee and bond markets. Why is India hit hard?",
+      "Headline": "Gold price today: Precious metal slips ahead of US Jobs data; MCX closed for Gandhi Jayanti",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Inox Air Products files IPO papers; issue size not disclosed",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Tata Motors PV shares fall over 3% despite 40% Q2 sales growth; Nifty Auto index down over 4%",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "FOREX-Euro slides to 17-month low, hit by rates and inflation cocktail",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Stock Market Holiday: Are BSE, NSE open or closed for Gandhi Jayanti tomorrow? Check upcoming market holidays",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "India bonds slide as US Treasury rout, supply weigh",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "10-year US Treasury yield hits highest level since 2002",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Two tractor stocks: Escorts Kubota shares fall 6%; VST Tillers shares rally 5% after September sales",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "US Market:  Treasury bond purchases fall below $6 billion buyback cap",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "8 weeks, 2,149 points gone: Nifty\u2019s longest losing streak in 25 years raises bear market fears",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "MTNL shares rally 17% as board approves Rs 892 crore Powai property sale amid debt worries",
+      "Headline": "Nifty valuations near post-Covid lows. Alchemy Capital\u2019s Alok Agarwal explains what investors should buy now",
       "Sentiment": "Bullish"
     },
     {
-      "Headline": "Global markets defy bond turmoil as stocks stay near record highs",
-      "Sentiment": "Bullish"
+      "Headline": "US Treasury yield hits the highest since 2002 at 5.34%",
+      "Sentiment": "Neutral"
     },
     {
-      "Headline": "RIL Q2 Results: Nuvama sees 17% EBITDA growth, led by O2C biz. Here\u2019s what to expect",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Why did market crash today? Sensex drops 571 points, Nifty nears 22,450. 5 key factors behind Rs 5 lakh crore wipe out",
+      "Headline": "D-Street logs longest spell of week slump in 25 years",
       "Sentiment": "Bearish"
     },
     {
-      "Headline": "Moneyview shares skyrocket 82% from IPO price after strong market debut. Should you buy, sell or hold?",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Why is Liquidia stock plunging? Yutrepia patent case explained",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "US Market: 10-year yield surges to 5.31%, highest since 2007",
+      "Headline": "Sri Lotus shares rally 29% in a month. Can luxury and redevelopment sustain the momentum?",
       "Sentiment": "Bullish"
     },
     {
-      "Headline": "Highway Infrastructure shares jump 9% after Rs 245 crore toll operations win from UP authority, NHAI",
-      "Sentiment": "Bullish"
+      "Headline": "FPIs pull record Rs 3 lakh crore from Indian equities in 9 months. More pain ahead?",
+      "Sentiment": "Neutral"
     },
     {
-      "Headline": "$2 billion gone in two days! FIIs accelerate selling as Nifty, Sensex set to fall for 8th week running. Will they make a comeback?",
+      "Headline": "Vishakha Renewables files IPO papers, eyes Rs 1,250 crore",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Rupee sinks to 96.31, logs biggest fall in over 2 months",
       "Sentiment": "Bearish"
     },
     {
-      "Headline": "Global Market: BOJ policymakers see scope for faster rate hikes as inflation pressure builds",
+      "Headline": "10-year bond yield breaches 7.20%; hits 2.5-year high",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Global Market: Japan\u2019s Nikkei hits six-week high as chip stocks rally on AI optimism",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Micron earnings: AI chip demand drives fresh memory boom",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "TBO Tek shares gain 3%; Nuvama initiates 'Buy' with Rs 2,200 target",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Stocks to buy: Titan, Lenskart, Dabur among Nomura\u2019s 17 consumer picks. Do you own any?",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Fortis, Apollo, other hospital stocks slump up to 10% in 2 days after SC questions steep markups. Buying opportunity?",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Global Market: SK Hynix to assess shareholder protection over potential Solidigm listing",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Bajaj Auto shares crash 9%, M&amp;M hits 52-week low after September auto sales data. What went wrong?",
+      "Headline": "Gold slips before US payrolls data, set for second weekly loss",
       "Sentiment": "Bearish"
     },
     {
-      "Headline": "Kataline files DRHP for IPO; plans 43 lakh fresh issue, OFS",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Sensex falls over 100 pts, Nifty below 22,550 as market heads for 8th weekly loss, longest streak in 25 years. More pain ahead?",
+      "Headline": "Global Markets: Asian shares fall after wild swings in bonds, FX before US jobs data",
       "Sentiment": "Bearish"
     },
     {
-      "Headline": "AI pressure, client caution cloud Indian IT earnings in September quarter",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Jefferies is bearish TCS, Wipro, 6 other IT stocks ahead of Q2 results. How many do you own?",
+      "Headline": "Japan government bond yields fall as global markets steady",
       "Sentiment": "Bearish"
     },
     {
-      "Headline": "Nifty 500\u2019s hidden bear market: Half the stocks are down over 30% from highs",
+      "Headline": "Oil prices edge higher, hover around $102 as US-Iran tensions, China fuel curbs support prices; MCX closed today",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Grasim Inds Share Price Live Updates: Grasim Industries Shows Weakness in Today's Trading",
-      "Sentiment": "Bearish"
+      "Headline": "US dollar climbs to 17-month high as bond rout, French fiscal worries weigh on euro",
+      "Sentiment": "Neutral"
     },
     {
-      "Headline": "Global Market: Japanese bond yields rise as investors weigh inflation, rate-hike risks",
+      "Headline": "Stock market holiday today: Are NSE, BSE closed for Gandhi Jayanti? Check 2026 holiday list",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "US stocks: US market rebounds to close higher as surging Treasury yields recede",
       "Sentiment": "Bullish"
     },
     {
-      "Headline": "Anarock Property Consultants files draft papers for Rs 1,000 crore IPO",
+      "Headline": "Fed\u2019s Jefferson urges patience on rates; Kashkari sees more hikes ahead",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "IPO investors strike gold with 7 multibagger stocks in 3 months. Did you miss the bus?",
+      "Headline": "Why are world bond markets selling off again?",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Code red! NSE breadth breaks down as 350 out of 500 stocks crash up to 60% in two month selloff",
-      "Sentiment": "Bearish"
-    },
-    {
-      "Headline": "Vishal Nirmiti IPO Day 2: GMP at 16%, check subscription and key details. Should you apply?",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Cupid shares hit fresh 52-week high as firm raises FY27 revenue, profit guidance again; multibagger stock skyrockets 617% in a year",
+      "Headline": "Global markets rattled as bond yields surge, offsetting AI-stock optimism",
       "Sentiment": "Bullish"
     },
     {
-      "Headline": "Goldman Sachs pushes Fed rate hike forecast to December",
+      "Headline": "Adani Group has Rs 2.6 lakh crore projects completed or under execution in Maharashtra: Pranav Adani",
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Eicher Motors Share Price Live Updates: Eicher Motors Current Price Update",
+      "Headline": "US stocks: US markets dip as surging Treasury yields overshadow software gains",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Sebi revamps Document Number Verification System, adds subject matter as mandatory field",
       "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "UK pound falls to three-month lows as investors fret over rates, oil",
+      "Sentiment": "Bearish"
+    },
+    {
+      "Headline": "UK 30-year gilt yields top 6% for the first time since 1998",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Jio Platforms IPO in final stages after concluding worldwide roadshows",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "RBI eases bank stake rules, allows one-time approval for MFs, insurers for holdings up to 10%",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Inox Clean Energy IPO papers kept in abeyance by Sebi",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Sebi asks stock brokers to display investor warnings on apps and websites",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Carlsberg India IPO gets Sebi approval along with three other public offers. Check details",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Bharat Dynamics among 5 capital goods stocks that hit 52-week lows and slipped up to 17% in a month",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Global bond rout hoists benchmark Indian yield to mid-2024 high before RBI policy",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Dow Jones| Nasdaq | US Stock Market Today | Live: US stocks rebound to close higher as surging Treasury yields retreat",
+      "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "Infosys, Wipro ADRs soar up to 8% as strong Accenture earnings forecast lifts mood",
+      "Sentiment": "Bullish"
     }
   ]
 }
