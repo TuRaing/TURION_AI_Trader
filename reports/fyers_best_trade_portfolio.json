@@ -1,15 +1,6 @@
 {
-  "Cash": 99299.48231683759,
-  "Position": {
-    "Name": "HDFCLIFE",
-    "Symbol": "HDFCLIFE.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-10-02 10:03:02",
-    "Entry Price": 534.2,
-    "Quantity": 1,
-    "Stop Loss": 532.115,
-    "Target": 538.37
-  },
+  "Cash": 99298.91582337918,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -1178,6 +1169,20 @@
       "PnL": -6.66,
       "Cost": 1.31,
       "Net PnL": -7.97
+    },
+    {
+      "Name": "HDFCLIFE",
+      "Symbol": "HDFCLIFE.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-10-02 10:03:02",
+      "Entry Price": 534.2,
+      "Exit Time": "2026-10-02 14:46:48",
+      "Exit Price": 534.2,
+      "Quantity": 1,
+      "Exit Reason": "Intraday Square-Off",
+      "PnL": 0.0,
+      "Cost": 0.57,
+      "Net PnL": -0.57
     }
   ],
   "Data Source": "Fyers"
