@@ -1,15 +1,6 @@
 {
-  "Cash": 99298.91582337918,
-  "Position": {
-    "Name": "LT",
-    "Symbol": "LT.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-10-05 10:03:24",
-    "Entry Price": 3733.6,
-    "Quantity": 1,
-    "Stop Loss": 3717.31,
-    "Target": 3766.18
-  },
+  "Cash": 99284.86298607459,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -1192,6 +1183,20 @@
       "PnL": 0.0,
       "Cost": 0.57,
       "Net PnL": -0.57
+    },
+    {
+      "Name": "LT",
+      "Symbol": "LT.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-10-05 10:03:24",
+      "Entry Price": 3733.6,
+      "Exit Time": "2026-10-05 14:46:49",
+      "Exit Price": 3723.5,
+      "Quantity": 1,
+      "Exit Reason": "Intraday Square-Off",
+      "PnL": -10.1,
+      "Cost": 3.95,
+      "Net PnL": -14.05
     }
   ],
   "Data Source": "Fyers"
