@@ -1,15 +1,6 @@
 {
-  "Cash": 99693.7631227533,
-  "Position": {
-    "Name": "MARUTI",
-    "Symbol": "MARUTI.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-10-05 12:02:19",
-    "Entry Price": 11476.0,
-    "Quantity": 1,
-    "Stop Loss": 11440.75,
-    "Target": 11546.5
-  },
+  "Cash": 99646.3659435678,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -1946,6 +1937,20 @@
       "PnL": -9.47,
       "Cost": 3.03,
       "Net PnL": -12.49
+    },
+    {
+      "Name": "MARUTI",
+      "Symbol": "MARUTI.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-10-05 12:02:19",
+      "Entry Price": 11476.0,
+      "Exit Time": "2026-10-05 12:07:43",
+      "Exit Price": 11440.75,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -35.25,
+      "Cost": 12.15,
+      "Net PnL": -47.4
     }
   ]
 }
