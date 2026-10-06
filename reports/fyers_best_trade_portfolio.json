@@ -1,15 +1,6 @@
 {
-  "Cash": 99284.86298607459,
-  "Position": {
-    "Name": "KOTAKBANK",
-    "Symbol": "KOTAKBANK.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-10-06 10:03:06",
-    "Entry Price": 430.8,
-    "Quantity": 1,
-    "Stop Loss": 426.975,
-    "Target": 438.45
-  },
+  "Cash": 99285.20563117218,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -1206,6 +1197,20 @@
       "PnL": -10.1,
       "Cost": 3.95,
       "Net PnL": -14.05
+    },
+    {
+      "Name": "KOTAKBANK",
+      "Symbol": "KOTAKBANK.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-10-06 10:03:06",
+      "Entry Price": 430.8,
+      "Exit Time": "2026-10-06 14:46:35",
+      "Exit Price": 431.6,
+      "Quantity": 1,
+      "Exit Reason": "Intraday Square-Off",
+      "PnL": 0.8,
+      "Cost": 0.46,
+      "Net PnL": 0.34
     }
   ],
   "Data Source": "Fyers"
