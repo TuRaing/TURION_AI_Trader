@@ -1,19 +1,6 @@
 {
-  "Cash": 2458.595895254954,
-  "Position": {
-    "Symbol": "NSE:NIFTY26O0622700PE",
-    "Strike": 22700,
-    "Option Type": "PE",
-    "Entry Time": "2026-10-06 14:47:46",
-    "Entry Spot": 22708.65,
-    "Entry Premium": 23.4,
-    "Entry PCR": 1.181,
-    "Lots": 1,
-    "Quantity": 75,
-    "Capital Deployed": 1755.0,
-    "Last Premium": 23.4,
-    "Last Checked": "2026-10-06 14:47:46"
-  },
+  "Cash": 659.3604335824543,
+  "Position": null,
   "Closed Trades": [
     {
       "Symbol": "NSE:NIFTY2681824300CE",
@@ -750,6 +737,22 @@
       "Exit Reason": "Square-Off",
       "Net PnL": -339.82,
       "Net PnL %": -0.34
+    },
+    {
+      "Symbol": "NSE:NIFTY26O0622700PE",
+      "Strike": 22700,
+      "Option Type": "PE",
+      "Entry Time": "2026-10-06 14:47:46",
+      "Entry Premium": 23.4,
+      "Entry Spot": 22708.65,
+      "Exit Spot": 22776.1,
+      "Entry PCR": 1.181,
+      "Exit Time": "2026-10-06 15:29:58",
+      "Exit Premium": 0.05,
+      "Lots": 1,
+      "Exit Reason": "Stop Loss",
+      "Net PnL": -1799.24,
+      "Net PnL %": -1.799
     }
   ],
   "Last Chain Snapshot": {
