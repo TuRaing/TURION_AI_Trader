@@ -1,15 +1,6 @@
 {
-  "Cash": 99280.04339688463,
-  "Position": {
-    "Name": "TCS",
-    "Symbol": "TCS.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-10-08 10:07:21",
-    "Entry Price": 2128.2,
-    "Quantity": 1,
-    "Stop Loss": 2112.45,
-    "Target": 2159.7
-  },
+  "Cash": 99262.04662649773,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "SBIN",
@@ -1262,6 +1253,20 @@
       "PnL": -10.59,
       "Cost": 1.95,
       "Net PnL": -12.54
+    },
+    {
+      "Name": "TCS",
+      "Symbol": "TCS.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-10-08 10:07:21",
+      "Entry Price": 2128.2,
+      "Exit Time": "2026-10-08 10:56:38",
+      "Exit Price": 2112.45,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -15.75,
+      "Cost": 2.25,
+      "Net PnL": -18.0
     }
   ],
   "Data Source": "Fyers"
