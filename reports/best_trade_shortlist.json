@@ -1,20 +1,30 @@
 {
-  "Generated At": "2026-10-16 08:13:51",
+  "Generated At": "2026-10-16 08:49:22",
   "Stocks": [
+    {
+      "Name": "HDFCBANK",
+      "Symbol": "HDFCBANK.NS",
+      "Price": 725.3,
+      "Decision": "SELL",
+      "Bias": "Bearish",
+      "Confidence": 60.0,
+      "ATR": 15.19,
+      "Candle Pattern": "Shooting Star"
+    },
     {
       "Name": "KOTAKBANK",
       "Symbol": "KOTAKBANK.NS",
-      "Price": 446.3,
+      "Price": 448.0,
       "Decision": "BUY",
       "Bias": "Bullish",
       "Confidence": 60.0,
       "ATR": 10.96,
-      "Candle Pattern": "No Pattern"
+      "Candle Pattern": "Doji"
     },
     {
       "Name": "SUNPHARMA",
       "Symbol": "SUNPHARMA.NS",
-      "Price": 1755.5,
+      "Price": 1753.2,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
@@ -24,7 +34,7 @@
     {
       "Name": "NTPC",
       "Symbol": "NTPC.NS",
-      "Price": 317.1,
+      "Price": 315.95,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
@@ -34,7 +44,7 @@
     {
       "Name": "JSWSTEEL",
       "Symbol": "JSWSTEEL.NS",
-      "Price": 1225.9,
+      "Price": 1222.0,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
@@ -44,31 +54,21 @@
     {
       "Name": "SBILIFE",
       "Symbol": "SBILIFE.NS",
-      "Price": 1665.9,
+      "Price": 1665.8,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
       "ATR": 42.36,
       "Candle Pattern": "Doji"
-    },
-    {
-      "Name": "BAJAJ-AUTO",
-      "Symbol": "BAJAJ-AUTO.NS",
-      "Price": 10430.0,
-      "Decision": "SELL",
-      "Bias": "Bearish",
-      "Confidence": 60.0,
-      "ATR": 301.43,
-      "Candle Pattern": "No Pattern"
     }
   ],
   "Options": [
     {
       "Name": "NIFTY 50",
-      "Bias": "Neutral",
+      "Bias": "Bearish",
       "Decision": "NO TRADE",
-      "Confidence": 0.0,
-      "Reason": "Index price action is Neutral - no directional bias to trade."
+      "Confidence": 14.0,
+      "Reason": "Price action Bearish only - option chain data unavailable (NSE blocked this network (datacenter IP) or request failed). Confidence 14.0% is below the 60% threshold."
     },
     {
       "Name": "BANK NIFTY",
@@ -79,6 +79,15 @@
     }
   ],
   "News": {
+    "HDFCBANK": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "KOTAKBANK": {
       "Headlines": [],
       "Positive": 0,
@@ -133,33 +142,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "INDUSINDBK": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "HINDALCO": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "HDFCBANK": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "HINDUNILVR": {
       "Headlines": [],
       "Positive": 0,
@@ -178,18 +160,9 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "SBIN": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "LT": {
       "Headlines": [
-        "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
+        "10 stocks held by 100+ MF schemes in September rally up to 205% in CY26; 6 turn multibaggers",
         "HDFC Bank Q2 results preview: PAT, NII may rise up to 9% YoY; deposit growth in focus",
         "Global Market: China's wealthy rush to unwind offshore trusts as tax deadline looms",
         "Tech Mahindra shares gain 5% after Q2 results. Should you buy, sell or hold the stock?",
@@ -201,6 +174,15 @@
       "Sentiment": "Bullish",
       "Score": 1.0,
       "Confidence": 100.0
+    },
+    "ASIANPAINT": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
     },
     "MARUTI": {
       "Headlines": [],
@@ -230,10 +212,12 @@
       "Confidence": 0.0
     },
     "ONGC": {
-      "Headlines": [],
+      "Headlines": [
+        "ONGC Share Price Live Updates: ONGC's Current Market Position"
+      ],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 0,
+      "Neutral": 1,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -275,15 +259,6 @@
       "Confidence": 0.0
     },
     "CIPLA": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "GRASIM": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -337,7 +312,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "ICICIBANK": {
+    "SBIN": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -347,15 +322,6 @@
       "Confidence": 0.0
     },
     "AXISBANK": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "ASIANPAINT": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -375,15 +341,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "ULTRACEMCO": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "M&M": {
       "Headlines": [],
       "Positive": 0,
@@ -394,15 +351,6 @@
       "Confidence": 0.0
     },
     "ADANIPORTS": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "BAJAJFINSV": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -429,6 +377,15 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "GRASIM": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "EICHERMOT": {
       "Headlines": [],
       "Positive": 0,
@@ -439,6 +396,24 @@
       "Confidence": 0.0
     },
     "HEROMOTOCO": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "INDUSINDBK": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "INFY": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -476,7 +451,7 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "INFY": {
+    "ICICIBANK": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -494,7 +469,25 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "ULTRACEMCO": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "COALINDIA": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "BAJAJFINSV": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -544,19 +537,7 @@
   },
   "Market Headlines": [
     {
-      "Headline": "Taking Stock: Market fails to hold on to day#39;s gains, ends marginally higher",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Sensex, Nifty gain for third day in a row; easing volatility to support bull trend",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Mid-day Mood | Cooling volatility sparks market rally, India VIX sees steepest fall in 4 years",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
+      "Headline": "10 stocks held by 100+ MF schemes in September rally up to 205% in CY26; 6 turn multibaggers",
       "Sentiment": "Bullish"
     },
     {
@@ -708,7 +689,7 @@
       "Sentiment": "Neutral"
     },
     {
-      "Headline": "Bajaj Finserv Share Price Live Updates: Bajaj Finserv's Current Market Position",
+      "Headline": "Bajaj Finserv Share Price Live Updates: Bajaj Finserv Sees Minor Gain Amidst Six-Month Decline",
       "Sentiment": "Neutral"
     },
     {
@@ -741,6 +722,18 @@
     },
     {
       "Headline": "UltraTech Cem Share Price Live Updates: UltraTech Cement's Current Trading Status",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "ONGC Share Price Live Updates: ONGC's Current Market Position",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "HPCL among 3 stocks showing White Marubozu pattern",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "Tata Consumer Share Price Live Updates: Tata Consumer Stock Details",
       "Sentiment": "Neutral"
     }
   ]
