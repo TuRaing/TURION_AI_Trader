@@ -1,15 +1,6 @@
 {
-  "Cash": 99645.79389810847,
-  "Position": {
-    "Name": "ONGC",
-    "Symbol": "ONGC.NS",
-    "Direction": "SELL",
-    "Entry Time": "2026-10-16 10:04:50",
-    "Entry Price": 222.76,
-    "Quantity": 1,
-    "Stop Loss": 223.39,
-    "Target": 221.5
-  },
+  "Cash": 99644.92726847857,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -2352,6 +2343,20 @@
       "PnL": -0.12,
       "Cost": 0.24,
       "Net PnL": -0.36
+    },
+    {
+      "Name": "ONGC",
+      "Symbol": "ONGC.NS",
+      "Direction": "SELL",
+      "Entry Time": "2026-10-16 10:04:50",
+      "Entry Price": 222.76,
+      "Exit Time": "2026-10-16 10:18:02",
+      "Exit Price": 223.39,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -0.63,
+      "Cost": 0.24,
+      "Net PnL": -0.87
     }
   ]
 }
