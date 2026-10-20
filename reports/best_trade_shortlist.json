@@ -1,6 +1,26 @@
 {
-  "Generated At": "2026-10-20 08:35:38",
+  "Generated At": "2026-10-20 09:15:50",
   "Stocks": [
+    {
+      "Name": "GRASIM",
+      "Symbol": "GRASIM.NS",
+      "Price": 2879.0,
+      "Decision": "SELL",
+      "Bias": "Bearish",
+      "Confidence": 80.0,
+      "ATR": 66.68,
+      "Candle Pattern": "Bearish Engulfing"
+    },
+    {
+      "Name": "BAJAJ-AUTO",
+      "Symbol": "BAJAJ-AUTO.NS",
+      "Price": 10287.0,
+      "Decision": "SELL",
+      "Bias": "Bearish",
+      "Confidence": 80.0,
+      "ATR": 293.79,
+      "Candle Pattern": "Bearish Engulfing"
+    },
     {
       "Name": "TCS",
       "Symbol": "TCS.NS",
@@ -24,11 +44,11 @@
     {
       "Name": "SUNPHARMA",
       "Symbol": "SUNPHARMA.NS",
-      "Price": NaN,
+      "Price": 1743.0,
       "Decision": "SELL",
       "Bias": "Bearish",
       "Confidence": 60.0,
-      "ATR": NaN,
+      "ATR": 34.09,
       "Candle Pattern": "No Pattern"
     },
     {
@@ -40,26 +60,6 @@
       "Confidence": 60.0,
       "ATR": 6.76,
       "Candle Pattern": "No Pattern"
-    },
-    {
-      "Name": "SBILIFE",
-      "Symbol": "SBILIFE.NS",
-      "Price": NaN,
-      "Decision": "SELL",
-      "Bias": "Bearish",
-      "Confidence": 60.0,
-      "ATR": NaN,
-      "Candle Pattern": "No Pattern"
-    },
-    {
-      "Name": "CIPLA",
-      "Symbol": "CIPLA.NS",
-      "Price": 1324.1,
-      "Decision": "SELL",
-      "Bias": "Bearish",
-      "Confidence": 60.0,
-      "ATR": 25.99,
-      "Candle Pattern": "Shooting Star"
     }
   ],
   "Options": [
@@ -79,6 +79,24 @@
     }
   ],
   "News": {
+    "GRASIM": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "BAJAJ-AUTO": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "TCS": {
       "Headlines": [],
       "Positive": 0,
@@ -133,15 +151,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "BAJAJ-AUTO": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "HINDALCO": {
       "Headlines": [],
       "Positive": 0,
@@ -170,12 +179,10 @@
       "Confidence": 0.0
     },
     "ITC": {
-      "Headlines": [
-        "Central Bank of India reports technical glitch in RTGS outward system"
-      ],
+      "Headlines": [],
       "Positive": 0,
       "Negative": 0,
-      "Neutral": 1,
+      "Neutral": 0,
       "Sentiment": "Neutral",
       "Score": 0.0,
       "Confidence": 0.0
@@ -234,6 +241,15 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
+    "BAJAJFINSV": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
     "HDFCLIFE": {
       "Headlines": [],
       "Positive": 0,
@@ -244,15 +260,6 @@
       "Confidence": 0.0
     },
     "DRREDDY": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
-    "GRASIM": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -354,13 +361,14 @@
     "LT": {
       "Headlines": [
         "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
+        "IPO bound Paras Healthcare raises Rs 652.50 crore from anchor investors as issue set to open on October 21",
         "EAAA India Alternatives to float Rs 1,200-cr IPO on Oct 26",
         "Paras Healthcare secures Rs 652 cr from anchor investors; IPO to open on Oct 21",
         "UltraTech Cement Q2 net profit up 21% in September quarter"
       ],
       "Positive": 2,
       "Negative": 0,
-      "Neutral": 2,
+      "Neutral": 3,
       "Sentiment": "Bullish",
       "Score": 1.0,
       "Confidence": 100.0
@@ -419,15 +427,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "BAJAJFINSV": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "DIVISLAB": {
       "Headlines": [],
       "Positive": 0,
@@ -447,6 +446,15 @@
       "Confidence": 0.0
     },
     "BPCL": {
+      "Headlines": [],
+      "Positive": 0,
+      "Negative": 0,
+      "Neutral": 0,
+      "Sentiment": "Neutral",
+      "Score": 0.0,
+      "Confidence": 0.0
+    },
+    "SHREECEM": {
       "Headlines": [],
       "Positive": 0,
       "Negative": 0,
@@ -509,15 +517,6 @@
       "Score": 0.0,
       "Confidence": 0.0
     },
-    "SHREECEM": {
-      "Headlines": [],
-      "Positive": 0,
-      "Negative": 0,
-      "Neutral": 0,
-      "Sentiment": "Neutral",
-      "Score": 0.0,
-      "Confidence": 0.0
-    },
     "NIFTY 50": {
       "Headlines": [],
       "Positive": 0,
@@ -553,6 +552,18 @@
     {
       "Headline": "Sensex, Nifty extend gains to 3rd day, Q4 results to guide stock-specific action",
       "Sentiment": "Bullish"
+    },
+    {
+      "Headline": "IPO bound Paras Healthcare raises Rs 652.50 crore from anchor investors as issue set to open on October 21",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "China flags APEC's role as key for a challenged global economy",
+      "Sentiment": "Neutral"
+    },
+    {
+      "Headline": "French bond yields edge down, but investors stay on alert",
+      "Sentiment": "Neutral"
     },
     {
       "Headline": "European stocks extend slide as French protests dent risk appetite",
@@ -724,18 +735,6 @@
     },
     {
       "Headline": "S&amp;P Global flags potentially hidden AI debt at hyperscalers as AI spending surges",
-      "Sentiment": "Bullish"
-    },
-    {
-      "Headline": "Jio IPO: LIC, BlackRock, Fidelity, GIC among 212 anchor investors to pour Rs 8,110 crore",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "Central Bank of India reports technical glitch in RTGS outward system",
-      "Sentiment": "Neutral"
-    },
-    {
-      "Headline": "AI stocks rebound as CoreWeave jumps on Goldman Sachs upgrade",
       "Sentiment": "Bullish"
     }
   ]
