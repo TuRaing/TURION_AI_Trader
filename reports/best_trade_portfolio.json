@@ -1,15 +1,6 @@
 {
-  "Cash": 99652.64871017849,
-  "Position": {
-    "Name": "TCS",
-    "Symbol": "TCS.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-10-21 10:01:40",
-    "Entry Price": 2525.0,
-    "Quantity": 1,
-    "Stop Loss": 2506.865,
-    "Target": 2561.27
-  },
+  "Cash": 99631.847679377,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -2422,6 +2413,20 @@
       "PnL": 2.65,
       "Cost": 0.76,
       "Net PnL": 1.89
+    },
+    {
+      "Name": "TCS",
+      "Symbol": "TCS.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-10-21 10:01:40",
+      "Entry Price": 2525.0,
+      "Exit Time": "2026-10-21 12:23:54",
+      "Exit Price": 2506.865,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -18.14,
+      "Cost": 2.67,
+      "Net PnL": -20.8
     }
   ]
 }
