@@ -1,15 +1,6 @@
 {
-  "Cash": 99631.847679377,
-  "Position": {
-    "Name": "SUNPHARMA",
-    "Symbol": "SUNPHARMA.NS",
-    "Direction": "SELL",
-    "Entry Time": "2026-10-21 12:24:48",
-    "Entry Price": 1726.6,
-    "Quantity": 1,
-    "Stop Loss": 1730.5149999999999,
-    "Target": 1718.77
-  },
+  "Cash": 99626.7145657783,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -2436,6 +2427,20 @@
       "PnL": -18.14,
       "Cost": 2.67,
       "Net PnL": -20.8
+    },
+    {
+      "Name": "SUNPHARMA",
+      "Symbol": "SUNPHARMA.NS",
+      "Direction": "SELL",
+      "Entry Time": "2026-10-21 12:24:48",
+      "Entry Price": 1726.6,
+      "Exit Time": "2026-10-21 14:41:18",
+      "Exit Price": 1729.9000244140625,
+      "Quantity": 1,
+      "Exit Reason": "Intraday Square-Off",
+      "PnL": -3.3,
+      "Cost": 1.83,
+      "Net PnL": -5.13
     }
   ]
 }
