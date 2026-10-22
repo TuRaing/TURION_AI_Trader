@@ -1,15 +1,6 @@
 {
-  "Cash": 99626.7145657783,
-  "Position": {
-    "Name": "COALINDIA",
-    "Symbol": "COALINDIA.NS",
-    "Direction": "SELL",
-    "Entry Time": "2026-10-22 10:53:54",
-    "Entry Price": 397.25,
-    "Quantity": 1,
-    "Stop Loss": 398.42,
-    "Target": 394.91
-  },
+  "Cash": 99625.12255215687,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -2450,6 +2441,20 @@
       "PnL": -3.3,
       "Cost": 1.83,
       "Net PnL": -5.13
+    },
+    {
+      "Name": "COALINDIA",
+      "Symbol": "COALINDIA.NS",
+      "Direction": "SELL",
+      "Entry Time": "2026-10-22 10:53:54",
+      "Entry Price": 397.25,
+      "Exit Time": "2026-10-22 11:11:05",
+      "Exit Price": 398.42,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -1.17,
+      "Cost": 0.42,
+      "Net PnL": -1.59
     }
   ]
 }
