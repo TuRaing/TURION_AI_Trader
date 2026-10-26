@@ -1,6 +1,19 @@
 {
   "Cash": 77332.54592576498,
-  "Position": null,
+  "Position": {
+    "Symbol": "NSE:BANKNIFTY26OCT54000PE",
+    "Strike": 54000,
+    "Option Type": "PE",
+    "Entry Time": "2026-10-26 12:46:58",
+    "Entry Spot": 54009.05,
+    "Entry Premium": 231.4,
+    "Entry Max Pain": 54400,
+    "Lots": 11,
+    "Quantity": 330,
+    "Capital Deployed": 76362.0,
+    "Last Premium": 231.4,
+    "Last Checked": "2026-10-26 12:46:58"
+  },
   "Closed Trades": [
     {
       "Symbol": "NSE:BANKNIFTY26AUG57600PE",
@@ -138,7 +151,7 @@
       "Net PnL %": -16.772
     }
   ],
-  "Last Max Pain": 54500,
+  "Last Max Pain": 54400,
   "Data Source": "Fyers (real premium)",
   "Strategy": "max_pain_drift",
   "Index": "BANKNIFTY"
