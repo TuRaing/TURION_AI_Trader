@@ -1,22 +1,6 @@
 {
-  "Cash": 123156.25,
-  "Position": {
-    "Option Type": "PE",
-    "Short Strike": 22350,
-    "Long Strike": 22200,
-    "Short Symbol": "NSE:NIFTY26OCT22350PE",
-    "Long Symbol": "NSE:NIFTY26OCT22200PE",
-    "Entry Time": "2026-10-26 14:11:06",
-    "Entry Spot": 22693.7,
-    "Entry Credit": 7.05,
-    "Entry RSI": 65.22,
-    "Entry VIX": 17.36,
-    "Lots": 11,
-    "Quantity": 825,
-    "Max Loss": 117933.75,
-    "Last Cost To Close": 7.2,
-    "Last Checked": "2026-10-26 14:51:18"
-  },
+  "Cash": 124888.75,
+  "Position": null,
   "Closed Trades": [
     {
       "Option Type": "PE",
@@ -592,6 +576,24 @@
       "Exit Reason": "Target (50% of credit)",
       "Net PnL": 4826.25,
       "Net PnL %": 4.826
+    },
+    {
+      "Option Type": "PE",
+      "Short Strike": 22350,
+      "Long Strike": 22200,
+      "Short Symbol": "NSE:NIFTY26OCT22350PE",
+      "Long Symbol": "NSE:NIFTY26OCT22200PE",
+      "Entry Time": "2026-10-26 14:11:06",
+      "Entry Credit": 7.05,
+      "Entry Spot": 22693.7,
+      "Exit Spot": 22753.2,
+      "Exit Time": "2026-10-26 15:57:46",
+      "Short Close Premium": 11.4,
+      "Long Close Premium": 6.45,
+      "Lots": 11,
+      "Exit Reason": "Square-Off",
+      "Net PnL": 1732.5,
+      "Net PnL %": 1.732
     }
   ],
   "Data Source": "Fyers (real premium)",
