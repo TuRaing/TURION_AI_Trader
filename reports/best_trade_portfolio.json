@@ -1,15 +1,6 @@
 {
-  "Cash": 99578.94320327368,
-  "Position": {
-    "Name": "INDUSINDBK",
-    "Symbol": "INDUSINDBK.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-10-26 10:01:29",
-    "Entry Price": 852.65,
-    "Quantity": 1,
-    "Stop Loss": 844.4599999999999,
-    "Target": 869.03
-  },
+  "Cash": 99569.85425232683,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -2576,6 +2567,20 @@
       "PnL": -5.33,
       "Cost": 1.23,
       "Net PnL": -6.56
+    },
+    {
+      "Name": "INDUSINDBK",
+      "Symbol": "INDUSINDBK.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-10-26 10:01:29",
+      "Entry Price": 852.65,
+      "Exit Time": "2026-10-26 10:26:50",
+      "Exit Price": 844.4599999999999,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -8.19,
+      "Cost": 0.9,
+      "Net PnL": -9.09
     }
   ]
 }
