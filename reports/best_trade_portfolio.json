@@ -1,15 +1,6 @@
 {
-  "Cash": 99549.70126239861,
-  "Position": {
-    "Name": "INFY",
-    "Symbol": "INFY.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-10-26 14:03:13",
-    "Entry Price": 1147.25,
-    "Quantity": 1,
-    "Stop Loss": 1143.515,
-    "Target": 1154.72
-  },
+  "Cash": 99553.7312976551,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -2632,6 +2623,20 @@
       "PnL": -4.63,
       "Cost": 1.86,
       "Net PnL": -6.49
+    },
+    {
+      "Name": "INFY",
+      "Symbol": "INFY.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-10-26 14:03:13",
+      "Entry Price": 1147.25,
+      "Exit Time": "2026-10-26 14:41:21",
+      "Exit Price": 1152.5,
+      "Quantity": 1,
+      "Exit Reason": "Intraday Square-Off",
+      "PnL": 5.25,
+      "Cost": 1.22,
+      "Net PnL": 4.03
     }
   ]
 }
