@@ -1,30 +1,30 @@
 {
-  "Cash": 95912.09045682402,
+  "Cash": 95607.60400626253,
   "Positions": {
-    "DIVISLAB": {
-      "Entry Time": "2026-09-02 13:37:24",
-      "Entry Price": 9231.0,
-      "Quantity": 1,
-      "Stop Loss": 8961.75,
-      "Target": 9769.5,
-      "Last Price": 9087.0,
-      "Last Checked": "2026-10-20 07:40:17"
-    },
     "KOTAKBANK": {
       "Entry Time": "2026-10-06 09:41:38",
       "Entry Price": 432.25,
       "Quantity": 2,
       "Stop Loss": 417.31,
       "Target": 462.13,
-      "Last Price": 442.3,
-      "Last Checked": "2026-10-20 07:40:17"
+      "Last Price": 438.75,
+      "Last Checked": "2026-10-26 11:27:57"
     },
     "TCS": {
       "Entry Time": "2026-10-20 07:40:17",
       "Entry Price": 2460.9,
       "Quantity": 1,
       "Stop Loss": 2344.29,
-      "Target": 2694.12
+      "Target": 2694.12,
+      "Last Price": 2528.0,
+      "Last Checked": "2026-10-26 11:27:57"
+    },
+    "INFY": {
+      "Entry Time": "2026-10-26 11:27:57",
+      "Entry Price": 1143.1,
+      "Quantity": 1,
+      "Stop Loss": 1077.955,
+      "Target": 1273.3899999999999
     }
   },
   "Closed Trades": [
@@ -537,6 +537,20 @@
       "Net PnL": -85.89,
       "STCG Tax": 0.0,
       "After-Tax PnL": -85.89
+    },
+    {
+      "Symbol": "DIVISLAB",
+      "Entry Time": "2026-09-02 13:37:24",
+      "Entry Price": 9231.0,
+      "Exit Time": "2026-10-26 11:27:57",
+      "Exit Price": 8961.75,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -269.25,
+      "Cost": 35.24,
+      "Net PnL": -304.49,
+      "STCG Tax": 0.0,
+      "After-Tax PnL": -304.49
     }
   ],
   "Data Source": "Fyers"
