@@ -113,6 +113,16 @@ const _books = [
     lotSize: 30, initialCapital: 100000.0, hybridSlCapPct: 2.0,
     targetNetPct: null, stopLossPct: null, targetRupees: 1500.0, stopLossRupees: 1500.0,
     description: 'OI Footprint सारखंच, पण Target/Stop-Loss खऱ्या bid/ask किमतीवर ठरतो (LTP नाही) - जास्त वास्तववादी PnL'),
+  // Added 31-Oct-2026 - forward-test paper books: exit (Target/SL) checked
+  // only every 60s instead of every tick; entries/square-off unchanged.
+  (key: 'st2_threshold_lock_quote_exit60_eventdriven', label: 'ST2 Threshold (2% Lock, Quote, Exit 60s)', underlying: 'NIFTY',
+    lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
+    targetNetPct: 5.0, stopLossPct: 2.0, targetRupees: null, stopLossRupees: null,
+    description: 'प्रयोग: 2% Lock Quote सारखंच, पण Target/Stop-Loss दर 60 सेकंदांनी तपासतो (प्रत्येक tick ला नाही)'),
+  (key: 'oi_footprint_quote_exit60_eventdriven_nifty', label: 'OI Footprint (Quote, Exit 60s)', underlying: 'NIFTY',
+    lotSize: 75, initialCapital: 100000.0, hybridSlCapPct: 2.0,
+    targetNetPct: null, stopLossPct: null, targetRupees: 1500.0, stopLossRupees: 1500.0,
+    description: 'प्रयोग: OI Footprint Quote सारखंच, पण Target/Stop-Loss दर 60 सेकंदांनी तपासतो (प्रत्येक tick ला नाही)'),
 ];
 
 class VpsScreen extends StatefulWidget {
