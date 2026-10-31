@@ -155,7 +155,17 @@ STRATEGY_NAMES = {
     # oi_footprint_quote_decide_fn's own docstring.
     "oi_footprint_nifty_quote": "oi_footprint_quote_eventdriven_nifty",
     "oi_footprint_banknifty_quote": "oi_footprint_quote_eventdriven_banknifty",
+    # Added 31-Oct-2026 - forward-test PAPER books for the slow-exit
+    # lead (see memory project_slow_exit_counterfactual): same entries
+    # and quote (ask/bid) fills as their siblings, Target/Stop-Loss only
+    # evaluated every EXIT_CHECK_SECONDS_FORWARD_TEST seconds. NOT a
+    # proven edge (day-level t < 0.9 in the counterfactual) - existing
+    # books are untouched.
+    "st2_threshold_lock_quote_exit60": "st2_threshold_lock_quote_exit60_eventdriven",
+    "oi_footprint_nifty_quote_exit60": "oi_footprint_quote_exit60_eventdriven_nifty",
 }
+
+EXIT_CHECK_SECONDS_FORWARD_TEST = 60
 
 
 def _portfolio_path(name):
@@ -525,6 +535,11 @@ def build_runners(execution_backend=None):
          "simple_st1_threshold_lock_quote0pt5pct",
          {"daily_profit_lock": True, "daily_profit_lock_pct": 0.5,
           "daily_loss_lock": True, "max_consecutive_losses": 2, "stale_print_debounce_ticks": 10}),
+        # 31-Oct-2026 - forward-test book, see STRATEGY_NAMES' note.
+        ("NIFTY", make_st2_threshold_event_cfg, rsi_momentum_quote_decide_fn, "st2_threshold_lock_quote_exit60",
+         {"daily_profit_lock": True, "daily_profit_lock_pct": 2.0,
+          "daily_loss_lock": True, "max_consecutive_losses": 2, "stale_print_debounce_ticks": 10,
+          "exit_check_seconds": EXIT_CHECK_SECONDS_FORWARD_TEST}),
     ):
         name = STRATEGY_NAMES[key]
         index_cfg = INDEX_CONFIG[index]
@@ -577,6 +592,8 @@ def build_runners(execution_backend=None):
         # same index - only decide_fn differs.
         ("NIFTY", oi_footprint_quote_decide_fn, "oi_footprint_nifty_quote"),
         ("BANKNIFTY", oi_footprint_quote_decide_fn, "oi_footprint_banknifty_quote"),
+        # 31-Oct-2026 - forward-test book, see STRATEGY_NAMES' note.
+        ("NIFTY", oi_footprint_quote_decide_fn, "oi_footprint_nifty_quote_exit60"),
     ):
         name = STRATEGY_NAMES[key]
         index_cfg = INDEX_CONFIG[index]
@@ -606,7 +623,9 @@ def build_runners(execution_backend=None):
         # without a protection already proven necessary for this exact
         # signal family.
         cfg = make_oi_footprint_event_cfg(index=index, lot_size=index_cfg["lot_size"], hybrid_sl_cap_pct=2.0,
-                                           daily_loss_lock=True, max_consecutive_losses=2)
+                                           daily_loss_lock=True, max_consecutive_losses=2,
+                                           exit_check_seconds=(EXIT_CHECK_SECONDS_FORWARD_TEST
+                                                               if key.endswith("_exit60") else None))
 
         spot, atm_strike, ce_symbol, pe_symbol = _oi_atm_for(index)
 
@@ -663,7 +682,7 @@ def refresh_oi_snapshots(runners):
     # 24-Aug-2026 note) - fetch the option-chain snapshot once per
     # index, feed it to both, rather than doubling this real REST call.
     for index, keys in (
-        ("NIFTY", ("oi_footprint_nifty", "oi_footprint_nifty_quote")),
+        ("NIFTY", ("oi_footprint_nifty", "oi_footprint_nifty_quote", "oi_footprint_nifty_quote_exit60")),
         ("BANKNIFTY", ("oi_footprint_banknifty", "oi_footprint_banknifty_quote")),
     ):
         index_cfg = INDEX_CONFIG[index]

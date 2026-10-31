@@ -221,6 +221,39 @@ def _quote_net_pnl(cfg, entry_quote, exit_quote, lots):
     return _net_pnl(cfg, entry_quote, exit_quote, lots)
 
 
+def _exit_cadence_gate(cfg, position, data_point):
+    """
+    Added 31-Oct-2026 - opt-in `exit_check_seconds` (cfg key, default
+    absent/None = unchanged tick-by-tick exit checking). Counterfactual
+    on the 4 live NIFTY/BANKNIFTY books' real entries (31-Oct-2026, see
+    memory project_slow_exit_counterfactual) found that checking
+    Target/Stop-Loss only every 30-120s instead of every tick turned PnL
+    positive on all four, but NOT statistically significant (day-level
+    t < 0.9) - so this only ever backs new forward-test PAPER books,
+    never replaces an existing one.
+
+    Returns (action, position): action is None when the exit check
+    should run now (position may carry an updated "Last Exit Check"
+    stamp), or a "HELD (...)" string when this tick must skip the
+    Target/Stop-Loss evaluation. Square-off and circuit-risk exits are
+    NEVER delayed.
+    """
+
+    seconds = cfg.get("exit_check_seconds")
+
+    if not seconds or data_point.get("past_squareoff") or _near_circuit(data_point):
+        return None, position
+
+    fmt = "%Y-%m-%d %H:%M:%S"
+    now = datetime.datetime.strptime(data_point["timestamp"], fmt)
+    reference = datetime.datetime.strptime(position.get("Last Exit Check") or position["Entry Time"], fmt)
+
+    if (now - reference).total_seconds() < seconds:
+        return f"HELD (exit cadence {seconds}s)", position
+
+    return None, {**position, "Last Exit Check": data_point["timestamp"]}
+
+
 def _rsi_momentum_decide(cfg, position, data_point, entry_field, exit_field):
     """
     Shared core behind rsi_momentum_decide_fn (entry_field=exit_field=
@@ -346,6 +379,11 @@ def _rsi_momentum_decide(cfg, position, data_point, entry_field, exit_field):
 
         return f"OPENED {option_type} @ {entry_premium}", new_position, None
 
+    held, position = _exit_cadence_gate(cfg, position, data_point)
+
+    if held is not None:
+        return held, position, None
+
     option_type = position["Option Type"]
     current_premium = data_point.get(f"{option_type.lower()}_{exit_field}")
 
@@ -452,7 +490,7 @@ def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
                                   hybrid_sl_cap_pct=2.0, spread_pct=None,
                                   daily_profit_lock=False, daily_profit_lock_pct=2.0,
                                   daily_loss_lock=False, max_consecutive_losses=2,
-                                  stale_print_debounce_ticks=None):
+                                  stale_print_debounce_ticks=None, exit_check_seconds=None):
     """
     cfg builder for rsi_momentum_decide_fn/rsi_momentum_quote_decide_fn
     - mirrors fyers_options_engine.py's make_strategy() field names
@@ -505,6 +543,7 @@ def make_st2_threshold_event_cfg(index, lot_size, initial_capital=100000,
         "daily_loss_lock": daily_loss_lock,
         "max_consecutive_losses": max_consecutive_losses,
         "stale_print_debounce_ticks": stale_print_debounce_ticks,
+        "exit_check_seconds": exit_check_seconds,
     }
 
 
@@ -512,7 +551,7 @@ def make_simple_st1_threshold_event_cfg(index, lot_size, initial_capital=100000,
                                          hybrid_sl_cap_pct=2.0, spread_pct=None,
                                          daily_profit_lock=False, daily_profit_lock_pct=2.0,
                                          daily_loss_lock=False, max_consecutive_losses=2,
-                                         stale_print_debounce_ticks=None):
+                                         stale_print_debounce_ticks=None, exit_check_seconds=None):
     """
     cfg builder for rsi_momentum_decide_fn/rsi_momentum_quote_decide_fn,
     simple_st1_threshold's real ratios (Target 3%, Stop-Loss 3% -
@@ -544,6 +583,7 @@ def make_simple_st1_threshold_event_cfg(index, lot_size, initial_capital=100000,
         "daily_loss_lock": daily_loss_lock,
         "max_consecutive_losses": max_consecutive_losses,
         "stale_print_debounce_ticks": stale_print_debounce_ticks,
+        "exit_check_seconds": exit_check_seconds,
     }
 
 
@@ -675,6 +715,11 @@ def _oi_footprint_decide(cfg, position, data_point, entry_field, exit_field):
 
         return f"OPENED {option_type} @ {entry_premium} (OI buildup signal)", new_position, None
 
+    held, position = _exit_cadence_gate(cfg, position, data_point)
+
+    if held is not None:
+        return held, position, None
+
     option_type = position["Option Type"]
     current_premium = data_point.get(f"{option_type.lower()}_{exit_field}")
 
@@ -775,7 +820,7 @@ def oi_footprint_quote_decide_fn(cfg, position, data_point):
 
 def make_oi_footprint_event_cfg(index, lot_size, initial_capital=100000,
                                  hybrid_sl_cap_pct=None, spread_pct=None,
-                                 daily_loss_lock=False, max_consecutive_losses=2):
+                                 daily_loss_lock=False, max_consecutive_losses=2, exit_check_seconds=None):
     """
     cfg builder for oi_footprint_decide_fn/oi_footprint_quote_decide_fn.
     hybrid_sl_cap_pct defaults to None (the original fixed Rs 1,500
@@ -799,4 +844,5 @@ def make_oi_footprint_event_cfg(index, lot_size, initial_capital=100000,
         "spread_pct": spread_pct,
         "daily_loss_lock": daily_loss_lock,
         "max_consecutive_losses": max_consecutive_losses,
+        "exit_check_seconds": exit_check_seconds,
     }

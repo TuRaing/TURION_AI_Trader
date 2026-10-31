@@ -297,3 +297,38 @@ def test_tick_sync_due_is_independent_per_key():
 
     assert _tick_sync_due(last_tick_sync, ("book_a", "PE"), now_ts=1000.1, min_interval=1.0) is True
     assert _tick_sync_due(last_tick_sync, ("book_b", "CE"), now_ts=1000.1, min_interval=1.0) is True
+
+
+# --- build_runners: forward-test exit60 books (added 31-Oct-2026) ---
+
+def _build_runners_offline(tmp_path, monkeypatch):
+    import pandas as pd
+    monkeypatch.setattr(event_driven_runner, "PORTFOLIO_DIR", str(tmp_path))
+    monkeypatch.setattr(event_driven_runner, "pick_atm_symbols",
+                        lambda index: (24500.0, 24500, f"NSE:{index}26NOV24500CE", f"NSE:{index}26NOV24500PE"))
+    monkeypatch.setattr(event_driven_runner, "_seed_candles", lambda index: pd.DataFrame(
+        {"Open": [], "High": [], "Low": [], "Close": []}))
+    monkeypatch.setattr(event_driven_runner, "_previous_close", lambda index: 24400.0)
+    return event_driven_runner.build_runners()
+
+
+def test_build_runners_registers_the_two_exit60_books_with_the_cadence_set(tmp_path, monkeypatch):
+    router, runners = _build_runners_offline(tmp_path, monkeypatch)
+
+    assert runners["st2_threshold_lock_quote_exit60"].cfg["exit_check_seconds"] == 60
+    assert runners["oi_footprint_nifty_quote_exit60"].cfg["exit_check_seconds"] == 60
+
+
+def test_build_runners_leaves_every_existing_book_on_tick_level_exits(tmp_path, monkeypatch):
+    router, runners = _build_runners_offline(tmp_path, monkeypatch)
+
+    existing = [k for k in runners if not k.endswith("_exit60")]
+    assert len(existing) == 14
+    assert all(runners[k].cfg.get("exit_check_seconds") is None for k in existing)
+
+
+def test_exit60_books_have_distinct_portfolio_names_from_every_other_book():
+    names = list(event_driven_runner.STRATEGY_NAMES.values())
+    assert len(names) == len(set(names))
+    assert "st2_threshold_lock_quote_exit60_eventdriven" in names
+    assert "oi_footprint_quote_exit60_eventdriven_nifty" in names

@@ -786,3 +786,119 @@ def test_oi_footprint_run_backtest_full_sequence():
     assert "OPENED" in actions[0]
     assert len(portfolio["Closed Trades"]) == 1
     assert portfolio["Cash"] > 100000
+
+
+# --- exit_check_seconds (opt-in exit cadence, added 31-Oct-2026) ---
+
+def _open_oi_position(cfg, entry_time="2026-08-18 09:20:00"):
+    _, position, _ = oi_footprint_decide_fn(cfg, None, _oi_data_point(oi_signal="CE", timestamp=entry_time))
+    return position
+
+
+def test_exit_cadence_defaults_off_in_all_cfg_builders():
+    assert make_st2_threshold_event_cfg("NIFTY", 75)["exit_check_seconds"] is None
+    assert make_simple_st1_threshold_event_cfg("NIFTY", 75)["exit_check_seconds"] is None
+    assert make_oi_footprint_event_cfg("NIFTY", 75)["exit_check_seconds"] is None
+    assert make_oi_footprint_event_cfg("NIFTY", 75, exit_check_seconds=60)["exit_check_seconds"] == 60
+
+
+def test_exit_cadence_off_still_closes_on_first_tick():
+    cfg = _oi_cfg()
+    position = _open_oi_position(cfg)
+
+    action, new_position, trade = oi_footprint_decide_fn(
+        cfg, position, _oi_data_point(timestamp="2026-08-18 09:20:01", ce_ltp=90.0))
+
+    assert "CLOSED (Target)" in action
+
+
+def test_exit_cadence_holds_target_hit_before_interval_elapses():
+    cfg = _oi_cfg(exit_check_seconds=60)
+    position = _open_oi_position(cfg)
+
+    action, new_position, trade = oi_footprint_decide_fn(
+        cfg, position, _oi_data_point(timestamp="2026-08-18 09:20:30", ce_ltp=90.0))
+
+    assert action == "HELD (exit cadence 60s)"
+    assert new_position is position
+    assert trade is None
+
+
+def test_exit_cadence_closes_once_interval_elapsed_and_stamps_unclosed_checks():
+    cfg = _oi_cfg(exit_check_seconds=60)
+    position = _open_oi_position(cfg)
+
+    # First check at +60s: flat price -> HELD (net ...), and the check time is recorded.
+    action, position, trade = oi_footprint_decide_fn(
+        cfg, position, _oi_data_point(timestamp="2026-08-18 09:21:00", ce_ltp=60.0))
+    assert action.startswith("HELD (net")
+    assert position["Last Exit Check"] == "2026-08-18 09:21:00"
+
+    # +30s after that check the Target price must NOT close it yet...
+    action, same, trade = oi_footprint_decide_fn(
+        cfg, position, _oi_data_point(timestamp="2026-08-18 09:21:30", ce_ltp=90.0))
+    assert action == "HELD (exit cadence 60s)"
+
+    # ...but +60s after the last check it does.
+    action, same, trade = oi_footprint_decide_fn(
+        cfg, position, _oi_data_point(timestamp="2026-08-18 09:22:00", ce_ltp=90.0))
+    assert "CLOSED (Target)" in action
+    assert trade["Exit Reason"] == "Target"
+
+
+def test_exit_cadence_never_delays_square_off():
+    cfg = _oi_cfg(exit_check_seconds=60)
+    position = _open_oi_position(cfg, entry_time="2026-08-18 15:24:50")
+
+    action, new_position, trade = oi_footprint_decide_fn(
+        cfg, position, _oi_data_point(timestamp="2026-08-18 15:25:00", past_squareoff=True))
+
+    assert "CLOSED (Square-Off)" in action
+
+
+def test_exit_cadence_never_delays_circuit_risk_exit():
+    cfg = _oi_cfg(exit_check_seconds=60)
+    position = _open_oi_position(cfg)
+
+    action, new_position, trade = oi_footprint_decide_fn(
+        cfg, position, _oi_data_point(timestamp="2026-08-18 09:20:05",
+                                      previous_close=22000.0, spot=24200.0))
+
+    assert "CLOSED (Circuit Risk)" in action
+
+
+def test_exit_cadence_does_not_delay_entries():
+    cfg = _oi_cfg(exit_check_seconds=60)
+
+    action, position, trade = oi_footprint_decide_fn(cfg, None, _oi_data_point(oi_signal="CE"))
+
+    assert "OPENED CE" in action
+
+
+def test_exit_cadence_on_rsi_quote_book_holds_then_closes_using_bid():
+    cfg = _cfg(exit_check_seconds=60)
+    _, position, _ = rsi_momentum_quote_decide_fn(cfg, None, _data_point(rsi=55.0, ce_ask=100.1))
+
+    held, same, trade = rsi_momentum_quote_decide_fn(
+        cfg, position, _data_point(timestamp="2026-08-18 09:20:40", ce_bid=140.0))
+    assert held == "HELD (exit cadence 60s)"
+
+    action, same, trade = rsi_momentum_quote_decide_fn(
+        cfg, position, _data_point(timestamp="2026-08-18 09:21:05", ce_bid=140.0))
+    assert "CLOSED (Target)" in action
+    assert trade["Exit Premium"] == 140.0
+    assert trade["Entry Premium"] == 100.1
+
+
+def test_exit_cadence_does_not_change_trade_record_shape():
+    cfg = _oi_cfg(exit_check_seconds=60)
+    position = _open_oi_position(cfg)
+    _, _, with_cadence = oi_footprint_decide_fn(
+        cfg, position, _oi_data_point(timestamp="2026-08-18 09:21:05", ce_ltp=90.0))
+
+    plain_cfg = _oi_cfg()
+    plain_pos = _open_oi_position(plain_cfg)
+    _, _, without = oi_footprint_decide_fn(
+        plain_cfg, plain_pos, _oi_data_point(timestamp="2026-08-18 09:21:05", ce_ltp=90.0))
+
+    assert set(with_cadence) == set(without)
