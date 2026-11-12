@@ -1,15 +1,6 @@
 {
-  "Cash": 99427.09376120973,
-  "Position": {
-    "Name": "DIVISLAB",
-    "Symbol": "DIVISLAB.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-11-12 13:21:55",
-    "Entry Price": 11408.0,
-    "Quantity": 1,
-    "Stop Loss": 11377.73,
-    "Target": 11468.54
-  },
+  "Cash": 99429.48684151673,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -3290,6 +3281,20 @@
       "PnL": -3.35,
       "Cost": 1.42,
       "Net PnL": -4.76
+    },
+    {
+      "Name": "DIVISLAB",
+      "Symbol": "DIVISLAB.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-11-12 13:21:55",
+      "Entry Price": 11408.0,
+      "Exit Time": "2026-11-12 14:41:20",
+      "Exit Price": 11422.5,
+      "Quantity": 1,
+      "Exit Reason": "Intraday Square-Off",
+      "PnL": 14.5,
+      "Cost": 12.11,
+      "Net PnL": 2.39
     }
   ]
 }
