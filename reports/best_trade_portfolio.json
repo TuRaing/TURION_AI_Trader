@@ -1,15 +1,6 @@
 {
-  "Cash": 99646.32935921598,
-  "Position": {
-    "Name": "APOLLOHOSP",
-    "Symbol": "APOLLOHOSP.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-11-23 10:06:08",
-    "Entry Price": 9321.5,
-    "Quantity": 1,
-    "Stop Loss": 9248.105,
-    "Target": 9468.29
-  },
+  "Cash": 99599.96772414698,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -3500,6 +3491,20 @@
       "PnL": 32.58,
       "Cost": 8.63,
       "Net PnL": 23.95
+    },
+    {
+      "Name": "APOLLOHOSP",
+      "Symbol": "APOLLOHOSP.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-11-23 10:06:08",
+      "Entry Price": 9321.5,
+      "Exit Time": "2026-11-23 14:41:21",
+      "Exit Price": 9285.0,
+      "Quantity": 1,
+      "Exit Reason": "Intraday Square-Off",
+      "PnL": -36.5,
+      "Cost": 9.86,
+      "Net PnL": -46.36
     }
   ]
 }
