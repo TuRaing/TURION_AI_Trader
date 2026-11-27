@@ -1,15 +1,6 @@
 {
-  "Cash": 99574.25072836339,
-  "Position": {
-    "Name": "BAJFINANCE",
-    "Symbol": "BAJFINANCE.NS",
-    "Direction": "SELL",
-    "Entry Time": "2026-11-27 13:11:15",
-    "Entry Price": 1083.85,
-    "Quantity": 1,
-    "Stop Loss": 1087.435,
-    "Target": 1076.6799999999998
-  },
+  "Cash": 99576.4034213496,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -3668,6 +3659,20 @@
       "PnL": 7.65,
       "Cost": 1.16,
       "Net PnL": 6.49
+    },
+    {
+      "Name": "BAJFINANCE",
+      "Symbol": "BAJFINANCE.NS",
+      "Direction": "SELL",
+      "Entry Time": "2026-11-27 13:11:15",
+      "Entry Price": 1083.85,
+      "Exit Time": "2026-11-27 14:41:22",
+      "Exit Price": 1080.550048828125,
+      "Quantity": 1,
+      "Exit Reason": "Intraday Square-Off",
+      "PnL": 3.3,
+      "Cost": 1.15,
+      "Net PnL": 2.15
     }
   ]
 }
