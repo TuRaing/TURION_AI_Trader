@@ -1,15 +1,6 @@
 {
-  "Cash": 99571.76249732394,
-  "Position": {
-    "Name": "HDFCBANK",
-    "Symbol": "HDFCBANK.NS",
-    "Direction": "BUY",
-    "Entry Time": "2026-11-27 10:16:12",
-    "Entry Price": 865.2,
-    "Quantity": 1,
-    "Stop Loss": 862.11,
-    "Target": 871.38
-  },
+  "Cash": 99567.75697255188,
+  "Position": null,
   "Closed Trades": [
     {
       "Name": "ULTRACEMCO",
@@ -3640,6 +3631,20 @@
       "PnL": -8.24,
       "Cost": 2.26,
       "Net PnL": -10.49
+    },
+    {
+      "Name": "HDFCBANK",
+      "Symbol": "HDFCBANK.NS",
+      "Direction": "BUY",
+      "Entry Time": "2026-11-27 10:16:12",
+      "Entry Price": 865.2,
+      "Exit Time": "2026-11-27 10:59:45",
+      "Exit Price": 862.11,
+      "Quantity": 1,
+      "Exit Reason": "Stop Loss",
+      "PnL": -3.09,
+      "Cost": 0.92,
+      "Net PnL": -4.01
     }
   ]
 }
